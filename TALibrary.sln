@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TALib.NETCore", "TALib.NETCore\TALib.NETCore.csproj", "{60CE2AD5-319B-4A7D-BB98-AFCB81EBA9FA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{60CE2AD5-319B-4A7D-BB98-AFCB81EBA9FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60CE2AD5-319B-4A7D-BB98-AFCB81EBA9FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60CE2AD5-319B-4A7D-BB98-AFCB81EBA9FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60CE2AD5-319B-4A7D-BB98-AFCB81EBA9FA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C7053D97-7D6D-4855-9800-3B803B6CBF8F}
+	EndGlobalSection
+EndGlobal
