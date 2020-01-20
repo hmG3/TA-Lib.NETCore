@@ -1,11 +1,9 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
     {
-        public static RetCode MinMaxIndex(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, int[] outMinIdx, int[] outMaxIdx)
+        public static RetCode MinMaxIndex(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement,
+            int[] outMinIdx, int[] outMaxIdx, int optInTimePeriod = 30)
         {
             int i;
             if (startIdx < 0)
@@ -13,7 +11,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -23,11 +21,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -55,13 +49,13 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
             int trailingIdx = startIdx - nbInitialElementNeeded;
             int highestIdx = -1;
-            double highest = 0.0;
+            double highest = default;
             int lowestIdx = -1;
-            double lowest = 0.0;
+            double lowest = default;
             Label_00AA:
             if (today > endIdx)
             {
@@ -138,8 +132,8 @@ namespace TALib
             goto Label_00AA;
         }
 
-        public static RetCode MinMaxIndex(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, int[] outMinIdx, int[] outMaxIdx)
+        public static RetCode MinMaxIndex(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement,
+            int[] outMinIdx, int[] outMaxIdx, int optInTimePeriod = 30)
         {
             int i;
             if (startIdx < 0)
@@ -147,7 +141,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -157,11 +151,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -189,13 +179,13 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
             int trailingIdx = startIdx - nbInitialElementNeeded;
             int highestIdx = -1;
-            double highest = 0.0;
+            decimal highest = default;
             int lowestIdx = -1;
-            double lowest = 0.0;
+            decimal lowest = default;
             Label_00AA:
             if (today > endIdx)
             {
@@ -204,8 +194,8 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double tmpHigh = inReal[today];
-            double tmpLow = tmpHigh;
+            decimal tmpHigh = inReal[today];
+            decimal tmpLow = tmpHigh;
             if (highestIdx < trailingIdx)
             {
                 highestIdx = trailingIdx;
@@ -272,18 +262,14 @@ namespace TALib
             goto Label_00AA;
         }
 
-        public static int MinMaxIndexLookback(int optInTimePeriod)
+        public static int MinMaxIndexLookback(int optInTimePeriod = 30)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod - 1);
+            return optInTimePeriod - 1;
         }
     }
 }

@@ -1,32 +1,26 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Adxr(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, int optInTimePeriod,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Adxr(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, ref int outBegIdx,
+            ref int outNBElement, double[] outReal, int optInTimePeriod = 14)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || (inClose == null))
+            if (inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -49,23 +43,19 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double[] adx = new double[(endIdx - startIdx) + optInTimePeriod];
-            if (adx == null)
-            {
-                return RetCode.AllocErr;
-            }
+            var adx = new double[endIdx - startIdx + optInTimePeriod];
 
-            RetCode retCode = Adx(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, optInTimePeriod, ref outBegIdx,
-                ref outNBElement, adx);
+            RetCode retCode = Adx(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, ref outBegIdx, ref outNBElement, adx,
+                optInTimePeriod);
             if (retCode != RetCode.Success)
             {
                 return retCode;
             }
 
             int i = optInTimePeriod - 1;
-            int j = 0;
-            int outIdx = 0;
-            int nbElement = (endIdx - startIdx) + 2;
+            int j = default;
+            int outIdx = default;
+            int nbElement = endIdx - startIdx + 2;
             while (true)
             {
                 nbElement--;
@@ -85,29 +75,25 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Adxr(int startIdx, int endIdx, float[] inHigh, float[] inLow, float[] inClose, int optInTimePeriod,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Adxr(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, ref int outBegIdx,
+            ref int outNBElement, decimal[] outReal, int optInTimePeriod = 14)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || (inClose == null))
+            if (inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -130,23 +116,19 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double[] adx = new double[(endIdx - startIdx) + optInTimePeriod];
-            if (adx == null)
-            {
-                return RetCode.AllocErr;
-            }
+            var adx = new decimal[endIdx - startIdx + optInTimePeriod];
 
-            RetCode retCode = Adx(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, optInTimePeriod, ref outBegIdx,
-                ref outNBElement, adx);
+            RetCode retCode = Adx(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, ref outBegIdx, ref outNBElement, adx,
+                optInTimePeriod);
             if (retCode != RetCode.Success)
             {
                 return retCode;
             }
 
             int i = optInTimePeriod - 1;
-            int j = 0;
-            int outIdx = 0;
-            int nbElement = (endIdx - startIdx) + 2;
+            int j = default;
+            int outIdx = default;
+            int nbElement = endIdx - startIdx + 2;
             while (true)
             {
                 nbElement--;
@@ -155,7 +137,7 @@ namespace TALib
                     break;
                 }
 
-                outReal[outIdx] = (adx[i] + adx[j]) / 2.0;
+                outReal[outIdx] = (adx[i] + adx[j]) / 2m;
                 outIdx++;
                 j++;
                 i++;
@@ -166,23 +148,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int AdxrLookback(int optInTimePeriod)
+        public static int AdxrLookback(int optInTimePeriod = 14)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            if (optInTimePeriod > 1)
-            {
-                return ((optInTimePeriod + AdxLookback(optInTimePeriod)) - 1);
-            }
-
-            return 3;
+            return optInTimePeriod > 1 ? optInTimePeriod + AdxLookback(optInTimePeriod) - 1 : 3;
         }
     }
 }

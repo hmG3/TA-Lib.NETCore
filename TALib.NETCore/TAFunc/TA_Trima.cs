@@ -4,8 +4,8 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Trima(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode Trima(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
+            int optInTimePeriod = 30)
         {
             int i;
             double tempReal;
@@ -21,7 +21,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -31,11 +31,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -58,14 +54,14 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
-            if ((optInTimePeriod % 2) != 1)
+            int outIdx;
+            if (optInTimePeriod % 2 != 1)
             {
                 i = optInTimePeriod >> 1;
                 factor = i * (i + 1);
                 factor = 1.0 / factor;
                 trailingIdx = startIdx - lookbackTotal;
-                middleIdx = (trailingIdx + i) - 1;
+                middleIdx = trailingIdx + i - 1;
                 todayIdx = middleIdx + i;
                 numerator = 0.0;
                 numeratorSub = 0.0;
@@ -169,24 +165,24 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Trima(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode Trima(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
+            int optInTimePeriod = 30)
         {
             int i;
-            double tempReal;
-            double numerator;
-            double numeratorAdd;
-            double numeratorSub;
+            decimal tempReal;
+            decimal numerator;
+            decimal numeratorAdd;
+            decimal numeratorSub;
             int middleIdx;
             int trailingIdx;
             int todayIdx;
-            double factor;
+            decimal factor;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -196,11 +192,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -223,17 +215,17 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
-            if ((optInTimePeriod % 2) != 1)
+            int outIdx;
+            if (optInTimePeriod % 2 != 1)
             {
                 i = optInTimePeriod >> 1;
                 factor = i * (i + 1);
-                factor = 1.0 / factor;
+                factor = Decimal.One / factor;
                 trailingIdx = startIdx - lookbackTotal;
-                middleIdx = (trailingIdx + i) - 1;
+                middleIdx = trailingIdx + i - 1;
                 todayIdx = middleIdx + i;
-                numerator = 0.0f;
-                numeratorSub = 0.0f;
+                numerator = Decimal.Zero;
+                numeratorSub = Decimal.Zero;
                 i = middleIdx;
                 while (i >= trailingIdx)
                 {
@@ -243,7 +235,7 @@ namespace TALib
                     i--;
                 }
 
-                numeratorAdd = 0.0f;
+                numeratorAdd = Decimal.Zero;
                 middleIdx++;
                 for (i = middleIdx; i <= todayIdx; i++)
                 {
@@ -281,12 +273,12 @@ namespace TALib
             {
                 i = optInTimePeriod >> 1;
                 factor = (i + 1) * (i + 1);
-                factor = 1.0 / factor;
+                factor = Decimal.One / factor;
                 trailingIdx = startIdx - lookbackTotal;
                 middleIdx = trailingIdx + i;
                 todayIdx = middleIdx + i;
-                numerator = 0.0f;
-                numeratorSub = 0.0f;
+                numerator = Decimal.Zero;
+                numeratorSub = Decimal.Zero;
                 for (i = middleIdx; i >= trailingIdx; i--)
                 {
                     tempReal = inReal[i];
@@ -294,7 +286,7 @@ namespace TALib
                     numerator += numeratorSub;
                 }
 
-                numeratorAdd = 0.0f;
+                numeratorAdd = Decimal.Zero;
                 middleIdx++;
                 for (i = middleIdx; i <= todayIdx; i++)
                 {
@@ -334,18 +326,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int TrimaLookback(int optInTimePeriod)
+        public static int TrimaLookback(int optInTimePeriod = 30)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod - 1);
+            return optInTimePeriod - 1;
         }
     }
 }

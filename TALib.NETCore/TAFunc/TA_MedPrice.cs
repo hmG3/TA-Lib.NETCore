@@ -1,5 +1,3 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
@@ -12,12 +10,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if ((inHigh == null) || (inLow == null))
+            if (inHigh == null || inLow == null)
             {
                 return RetCode.BadParam;
             }
@@ -27,8 +25,8 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int outIdx = 0;
-            for (int i = startIdx; i <= endIdx; i++)
+            int outIdx = default;
+            for (var i = startIdx; i <= endIdx; i++)
             {
                 outReal[outIdx] = (inHigh[i] + inLow[i]) / 2.0;
                 outIdx++;
@@ -39,20 +37,20 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode MedPrice(int startIdx, int endIdx, float[] inHigh, float[] inLow, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode MedPrice(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, ref int outBegIdx, ref int outNBElement,
+            decimal[] outReal)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if ((inHigh == null) || (inLow == null))
+            if (inHigh == null || inLow == null)
             {
                 return RetCode.BadParam;
             }
@@ -62,10 +60,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int outIdx = 0;
-            for (int i = startIdx; i <= endIdx; i++)
+            int outIdx = default;
+            for (var i = startIdx; i <= endIdx; i++)
             {
-                outReal[outIdx] = (inHigh[i] + inLow[i]) / 2.0;
+                outReal[outIdx] = (inHigh[i] + inLow[i]) / 2m;
                 outIdx++;
             }
 

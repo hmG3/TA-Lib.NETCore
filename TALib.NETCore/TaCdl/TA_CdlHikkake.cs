@@ -1,5 +1,3 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
@@ -12,12 +10,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inOpen == null) || (inHigh == null)) || ((inLow == null) || (inClose == null)))
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
@@ -40,8 +38,8 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int patternIdx = 0;
-            int patternResult = 0;
+            int patternIdx = default;
+            int patternResult = default;
             int i = startIdx - 3;
             while (true)
             {
@@ -50,15 +48,14 @@ namespace TALib
                     break;
                 }
 
-                if (((inHigh[i - 1] < inHigh[i - 2]) && (inLow[i - 1] > inLow[i - 2])) &&
-                    (((inHigh[i] < inHigh[i - 1]) && (inLow[i] < inLow[i - 1])) ||
-                     ((inHigh[i] > inHigh[i - 1]) && (inLow[i] > inLow[i - 1]))))
+                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] &&
+                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1]))
                 {
-                    patternResult = ((inHigh[i] >= inHigh[i - 1]) ? -1 : 1) * 100;
+                    patternResult = (inHigh[i] >= inHigh[i - 1] ? -1 : 1) * 100;
                     patternIdx = i;
                 }
-                else if ((i <= (patternIdx + 3)) && (((patternResult > 0) && (inClose[i] > inHigh[patternIdx - 1])) ||
-                                                     ((patternResult < 0) && (inClose[i] < inLow[patternIdx - 1]))))
+                else if (i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] ||
+                                                 patternResult < 0 && inClose[i] < inLow[patternIdx - 1]))
                 {
                     patternIdx = 0;
                 }
@@ -67,20 +64,19 @@ namespace TALib
             }
 
             i = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             do
             {
-                if (((inHigh[i - 1] < inHigh[i - 2]) && (inLow[i - 1] > inLow[i - 2])) &&
-                    (((inHigh[i] < inHigh[i - 1]) && (inLow[i] < inLow[i - 1])) ||
-                     ((inHigh[i] > inHigh[i - 1]) && (inLow[i] > inLow[i - 1]))))
+                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] &&
+                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1]))
                 {
-                    patternResult = ((inHigh[i] >= inHigh[i - 1]) ? -1 : 1) * 100;
+                    patternResult = (inHigh[i] >= inHigh[i - 1] ? -1 : 1) * 100;
                     patternIdx = i;
                     outInteger[outIdx] = patternResult;
                     outIdx++;
                 }
-                else if ((i <= (patternIdx + 3)) && (((patternResult > 0) && (inClose[i] > inHigh[patternIdx - 1])) ||
-                                                     ((patternResult < 0) && (inClose[i] < inLow[patternIdx - 1]))))
+                else if (i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] ||
+                                                 patternResult < 0 && inClose[i] < inLow[patternIdx - 1]))
                 {
                     int num;
                     if (patternResult > 0)
@@ -92,7 +88,7 @@ namespace TALib
                         num = -1;
                     }
 
-                    outInteger[outIdx] = patternResult + (num * 100);
+                    outInteger[outIdx] = patternResult + num * 100;
                     outIdx++;
                     patternIdx = 0;
                 }
@@ -110,7 +106,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode CdlHikkake(int startIdx, int endIdx, float[] inOpen, float[] inHigh, float[] inLow, float[] inClose,
+        public static RetCode CdlHikkake(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose,
             ref int outBegIdx, ref int outNBElement, int[] outInteger)
         {
             if (startIdx < 0)
@@ -118,12 +114,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inOpen == null) || (inHigh == null)) || ((inLow == null) || (inClose == null)))
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
@@ -146,8 +142,8 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int patternIdx = 0;
-            int patternResult = 0;
+            int patternIdx = default;
+            int patternResult = default;
             int i = startIdx - 3;
             while (true)
             {
@@ -156,15 +152,14 @@ namespace TALib
                     break;
                 }
 
-                if (((inHigh[i - 1] < inHigh[i - 2]) && (inLow[i - 1] > inLow[i - 2])) &&
-                    (((inHigh[i] < inHigh[i - 1]) && (inLow[i] < inLow[i - 1])) ||
-                     ((inHigh[i] > inHigh[i - 1]) && (inLow[i] > inLow[i - 1]))))
+                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] &&
+                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1]))
                 {
-                    patternResult = ((inHigh[i] >= inHigh[i - 1]) ? -1 : 1) * 100;
+                    patternResult = (inHigh[i] >= inHigh[i - 1] ? -1 : 1) * 100;
                     patternIdx = i;
                 }
-                else if ((i <= (patternIdx + 3)) && (((patternResult > 0) && (inClose[i] > inHigh[patternIdx - 1])) ||
-                                                     ((patternResult < 0) && (inClose[i] < inLow[patternIdx - 1]))))
+                else if (i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] ||
+                                                 patternResult < 0 && inClose[i] < inLow[patternIdx - 1]))
                 {
                     patternIdx = 0;
                 }
@@ -173,20 +168,19 @@ namespace TALib
             }
 
             i = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             do
             {
-                if (((inHigh[i - 1] < inHigh[i - 2]) && (inLow[i - 1] > inLow[i - 2])) &&
-                    (((inHigh[i] < inHigh[i - 1]) && (inLow[i] < inLow[i - 1])) ||
-                     ((inHigh[i] > inHigh[i - 1]) && (inLow[i] > inLow[i - 1]))))
+                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] &&
+                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1]))
                 {
-                    patternResult = ((inHigh[i] >= inHigh[i - 1]) ? -1 : 1) * 100;
+                    patternResult = (inHigh[i] >= inHigh[i - 1] ? -1 : 1) * 100;
                     patternIdx = i;
                     outInteger[outIdx] = patternResult;
                     outIdx++;
                 }
-                else if ((i <= (patternIdx + 3)) && (((patternResult > 0) && (inClose[i] > inHigh[patternIdx - 1])) ||
-                                                     ((patternResult < 0) && (inClose[i] < inLow[patternIdx - 1]))))
+                else if (i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] ||
+                                                 patternResult < 0 && inClose[i] < inLow[patternIdx - 1]))
                 {
                     int num;
                     if (patternResult > 0)
@@ -198,7 +192,7 @@ namespace TALib
                         num = -1;
                     }
 
-                    outInteger[outIdx] = patternResult + (num * 100);
+                    outInteger[outIdx] = patternResult + num * 100;
                     outIdx++;
                     patternIdx = 0;
                 }

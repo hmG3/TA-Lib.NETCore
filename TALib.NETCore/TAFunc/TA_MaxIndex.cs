@@ -1,18 +1,16 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
     {
-        public static RetCode MaxIndex(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, int[] outInteger)
+        public static RetCode MaxIndex(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, int[] outInteger,
+            int optInTimePeriod = 30)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -22,11 +20,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -49,11 +43,11 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
             int trailingIdx = startIdx - nbInitialElementNeeded;
             int highestIdx = -1;
-            double highest = 0.0;
+            double highest = default;
             Label_008B:
             if (today > endIdx)
             {
@@ -99,15 +93,15 @@ namespace TALib
             goto Label_008B;
         }
 
-        public static RetCode MaxIndex(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, int[] outInteger)
+        public static RetCode MaxIndex(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement,
+            int[] outInteger, int optInTimePeriod = 30)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -117,11 +111,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -144,11 +134,11 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
             int trailingIdx = startIdx - nbInitialElementNeeded;
             int highestIdx = -1;
-            double highest = 0.0;
+            decimal highest = default;
             Label_008B:
             if (today > endIdx)
             {
@@ -157,7 +147,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double tmp = inReal[today];
+            decimal tmp = inReal[today];
             if (highestIdx < trailingIdx)
             {
                 highestIdx = trailingIdx;
@@ -194,18 +184,14 @@ namespace TALib
             goto Label_008B;
         }
 
-        public static int MaxIndexLookback(int optInTimePeriod)
+        public static int MaxIndexLookback(int optInTimePeriod = 30)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod - 1);
+            return optInTimePeriod - 1;
         }
     }
 }

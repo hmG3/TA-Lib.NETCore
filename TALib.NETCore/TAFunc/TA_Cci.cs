@@ -4,31 +4,26 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Cci(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, int optInTimePeriod,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Cci(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, ref int outBegIdx,
+            ref int outNBElement, double[] outReal, int optInTimePeriod = 14)
         {
-            int circBuffer_Idx = 0;
-            int maxIdx_circBuffer = 0x1d;
+            int circBufferIdx = default;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || (inClose == null))
+            if (inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -51,57 +46,48 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            if (optInTimePeriod <= 0)
-            {
-                return RetCode.AllocErr;
-            }
+            var circBuffer = new double[optInTimePeriod];
 
-            double[] circBuffer = new double[optInTimePeriod];
-            if (circBuffer == null)
-            {
-                return RetCode.AllocErr;
-            }
-
-            maxIdx_circBuffer = optInTimePeriod - 1;
+            var maxIdxCircBuffer = optInTimePeriod - 1;
             int i = startIdx - lookbackTotal;
             if (optInTimePeriod > 1)
             {
                 while (i < startIdx)
                 {
-                    circBuffer[circBuffer_Idx] = ((inHigh[i] + inLow[i]) + inClose[i]) / 3.0;
+                    circBuffer[circBufferIdx] = (inHigh[i] + inLow[i] + inClose[i]) / 3.0;
                     i++;
-                    circBuffer_Idx++;
-                    if (circBuffer_Idx > maxIdx_circBuffer)
+                    circBufferIdx++;
+                    if (circBufferIdx > maxIdxCircBuffer)
                     {
-                        circBuffer_Idx = 0;
+                        circBufferIdx = 0;
                     }
                 }
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             do
             {
-                double lastValue = ((inHigh[i] + inLow[i]) + inClose[i]) / 3.0;
-                circBuffer[circBuffer_Idx] = lastValue;
-                double theAverage = 0.0;
-                int j = 0;
+                double lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3.0;
+                circBuffer[circBufferIdx] = lastValue;
+                double theAverage = default;
+                int j = default;
                 while (j < optInTimePeriod)
                 {
                     theAverage += circBuffer[j];
                     j++;
                 }
 
-                theAverage /= (double) optInTimePeriod;
-                double tempReal2 = 0.0;
+                theAverage /= optInTimePeriod;
+                double tempReal2 = default;
                 for (j = 0; j < optInTimePeriod; j++)
                 {
-                    tempReal2 += Math.Abs((double) (circBuffer[j] - theAverage));
+                    tempReal2 += Math.Abs(circBuffer[j] - theAverage);
                 }
 
                 double tempReal = lastValue - theAverage;
-                if ((tempReal != 0.0) && (tempReal2 != 0.0))
+                if (!tempReal.Equals(0.0) && !tempReal2.Equals(0.0))
                 {
-                    outReal[outIdx] = tempReal / (0.015 * (tempReal2 / ((double) optInTimePeriod)));
+                    outReal[outIdx] = tempReal / (0.015 * (tempReal2 / optInTimePeriod));
                     outIdx++;
                 }
                 else
@@ -110,10 +96,10 @@ namespace TALib
                     outIdx++;
                 }
 
-                circBuffer_Idx++;
-                if (circBuffer_Idx > maxIdx_circBuffer)
+                circBufferIdx++;
+                if (circBufferIdx > maxIdxCircBuffer)
                 {
-                    circBuffer_Idx = 0;
+                    circBufferIdx = 0;
                 }
 
                 i++;
@@ -124,31 +110,26 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Cci(int startIdx, int endIdx, float[] inHigh, float[] inLow, float[] inClose, int optInTimePeriod,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Cci(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, ref int outBegIdx,
+            ref int outNBElement, decimal[] outReal, int optInTimePeriod = 14)
         {
-            int circBuffer_Idx = 0;
-            int maxIdx_circBuffer = 0x1d;
+            int circBufferIdx = default;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || (inClose == null))
+            if (inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -171,69 +152,60 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            if (optInTimePeriod <= 0)
-            {
-                return RetCode.AllocErr;
-            }
+            var circBuffer = new decimal[optInTimePeriod];
 
-            double[] circBuffer = new double[optInTimePeriod];
-            if (circBuffer == null)
-            {
-                return RetCode.AllocErr;
-            }
-
-            maxIdx_circBuffer = optInTimePeriod - 1;
+            var maxIdxCircBuffer = optInTimePeriod - 1;
             int i = startIdx - lookbackTotal;
             if (optInTimePeriod > 1)
             {
                 while (i < startIdx)
                 {
-                    circBuffer[circBuffer_Idx] = ((inHigh[i] + inLow[i]) + inClose[i]) / 3.0;
+                    circBuffer[circBufferIdx] = (inHigh[i] + inLow[i] + inClose[i]) / 3m;
                     i++;
-                    circBuffer_Idx++;
-                    if (circBuffer_Idx > maxIdx_circBuffer)
+                    circBufferIdx++;
+                    if (circBufferIdx > maxIdxCircBuffer)
                     {
-                        circBuffer_Idx = 0;
+                        circBufferIdx = 0;
                     }
                 }
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             do
             {
-                double lastValue = ((inHigh[i] + inLow[i]) + inClose[i]) / 3.0;
-                circBuffer[circBuffer_Idx] = lastValue;
-                double theAverage = 0.0;
-                int j = 0;
+                decimal lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3m;
+                circBuffer[circBufferIdx] = lastValue;
+                decimal theAverage = default;
+                int j = default;
                 while (j < optInTimePeriod)
                 {
                     theAverage += circBuffer[j];
                     j++;
                 }
 
-                theAverage /= (double) optInTimePeriod;
-                double tempReal2 = 0.0;
+                theAverage /= optInTimePeriod;
+                decimal tempReal2 = default;
                 for (j = 0; j < optInTimePeriod; j++)
                 {
-                    tempReal2 += Math.Abs((double) (circBuffer[j] - theAverage));
+                    tempReal2 += Math.Abs(circBuffer[j] - theAverage);
                 }
 
-                double tempReal = lastValue - theAverage;
-                if ((tempReal != 0.0) && (tempReal2 != 0.0))
+                decimal tempReal = lastValue - theAverage;
+                if (tempReal != Decimal.Zero && tempReal2 != Decimal.Zero)
                 {
-                    outReal[outIdx] = tempReal / (0.015 * (tempReal2 / ((double) optInTimePeriod)));
+                    outReal[outIdx] = tempReal / (0.015m * (tempReal2 / optInTimePeriod));
                     outIdx++;
                 }
                 else
                 {
-                    outReal[outIdx] = 0.0;
+                    outReal[outIdx] = Decimal.Zero;
                     outIdx++;
                 }
 
-                circBuffer_Idx++;
-                if (circBuffer_Idx > maxIdx_circBuffer)
+                circBufferIdx++;
+                if (circBufferIdx > maxIdxCircBuffer)
                 {
-                    circBuffer_Idx = 0;
+                    circBufferIdx = 0;
                 }
 
                 i++;
@@ -244,18 +216,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int CciLookback(int optInTimePeriod)
+        public static int CciLookback(int optInTimePeriod = 14)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod - 1);
+            return optInTimePeriod - 1;
         }
     }
 }

@@ -4,8 +4,8 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Wma(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode Wma(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
+            int optInTimePeriod = 30)
         {
             double tempReal;
             if (startIdx < 0)
@@ -13,7 +13,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -23,11 +23,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -53,15 +49,15 @@ namespace TALib
             if (optInTimePeriod == 1)
             {
                 outBegIdx = startIdx;
-                outNBElement = (endIdx - startIdx) + 1;
+                outNBElement = endIdx - startIdx + 1;
                 Array.Copy(inReal, startIdx, outReal, 0, outNBElement);
                 return RetCode.Success;
             }
 
             int divider = (optInTimePeriod * (optInTimePeriod + 1)) >> 1;
-            int outIdx = 0;
+            int outIdx = default;
             int trailingIdx = startIdx - lookbackTotal;
-            double periodSub = 0.0;
+            double periodSub = default;
             double periodSum = periodSub;
             int inIdx = trailingIdx;
             int i = 1;
@@ -79,7 +75,7 @@ namespace TALib
                 i++;
             }
 
-            double trailingValue = 0.0;
+            double trailingValue = default;
             while (true)
             {
                 if (inIdx > endIdx)
@@ -94,7 +90,7 @@ namespace TALib
                 periodSum += tempReal * optInTimePeriod;
                 trailingValue = inReal[trailingIdx];
                 trailingIdx++;
-                outReal[outIdx] = periodSum / ((double) divider);
+                outReal[outIdx] = periodSum / divider;
                 outIdx++;
                 periodSum -= periodSub;
             }
@@ -104,16 +100,16 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Wma(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode Wma(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
+            int optInTimePeriod = 30)
         {
-            double tempReal;
+            decimal tempReal;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -123,11 +119,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -153,16 +145,16 @@ namespace TALib
             if (optInTimePeriod == 1)
             {
                 outBegIdx = startIdx;
-                outNBElement = (endIdx - startIdx) + 1;
+                outNBElement = endIdx - startIdx + 1;
                 Array.Copy(inReal, startIdx, outReal, 0, outNBElement);
                 return RetCode.Success;
             }
 
             int divider = (optInTimePeriod * (optInTimePeriod + 1)) >> 1;
-            int outIdx = 0;
+            int outIdx = default;
             int trailingIdx = startIdx - lookbackTotal;
-            double periodSub = 0.0;
-            double periodSum = periodSub;
+            decimal periodSub = default;
+            decimal periodSum = periodSub;
             int inIdx = trailingIdx;
             int i = 1;
             while (true)
@@ -179,7 +171,7 @@ namespace TALib
                 i++;
             }
 
-            double trailingValue = 0.0;
+            decimal trailingValue = default;
             while (true)
             {
                 if (inIdx > endIdx)
@@ -194,7 +186,7 @@ namespace TALib
                 periodSum += tempReal * optInTimePeriod;
                 trailingValue = inReal[trailingIdx];
                 trailingIdx++;
-                outReal[outIdx] = periodSum / ((double) divider);
+                outReal[outIdx] = periodSum / divider;
                 outIdx++;
                 periodSum -= periodSub;
             }
@@ -204,18 +196,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int WmaLookback(int optInTimePeriod)
+        public static int WmaLookback(int optInTimePeriod = 30)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod - 1);
+            return optInTimePeriod - 1;
         }
     }
 }

@@ -1,5 +1,3 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
@@ -21,12 +19,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inOpen == null) || (inHigh == null)) || ((inLow == null) || (inClose == null)))
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
@@ -50,7 +48,7 @@ namespace TALib
             }
 
             int i = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             Label_0063:
             if (inClose[i - 1] >= inOpen[i - 1])
             {
@@ -61,7 +59,7 @@ namespace TALib
                 num11 = -1;
             }
 
-            if (((inClose[i - 2] < inOpen[i - 2]) ? -1 : 1) != num11)
+            if ((inClose[i - 2] < inOpen[i - 2] ? -1 : 1) != num11)
             {
                 goto Label_0229;
             }
@@ -75,7 +73,7 @@ namespace TALib
                 num10 = -1;
             }
 
-            if (((inClose[i - 1] < inOpen[i - 1]) ? -1 : 1) != -num10)
+            if ((inClose[i - 1] < inOpen[i - 1] ? -1 : 1) != -num10)
             {
                 goto Label_0229;
             }
@@ -164,7 +162,7 @@ namespace TALib
                 }
             }
 
-            if (((inClose[i - 2] < inOpen[i - 2]) ? -1 : 1) != -1)
+            if (inClose[i - 2] >= inOpen[i - 2])
             {
                 goto Label_0229;
             }
@@ -220,16 +218,16 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode CdlXSideGap3Methods(int startIdx, int endIdx, float[] inOpen, float[] inHigh, float[] inLow, float[] inClose,
-            ref int outBegIdx, ref int outNBElement, int[] outInteger)
+        public static RetCode CdlXSideGap3Methods(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
+            decimal[] inClose, ref int outBegIdx, ref int outNBElement, int[] outInteger)
         {
             int num;
-            float num2;
-            float num3;
-            float num6;
-            float num7;
-            float num8;
-            float num9;
+            decimal num2;
+            decimal num3;
+            decimal num6;
+            decimal num7;
+            decimal num8;
+            decimal num9;
             int num10;
             int num11;
             if (startIdx < 0)
@@ -237,12 +235,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inOpen == null) || (inHigh == null)) || ((inLow == null) || (inClose == null)))
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
@@ -266,7 +264,7 @@ namespace TALib
             }
 
             int i = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             Label_0063:
             if (inClose[i - 1] >= inOpen[i - 1])
             {
@@ -277,7 +275,7 @@ namespace TALib
                 num11 = -1;
             }
 
-            if (((inClose[i - 2] < inOpen[i - 2]) ? -1 : 1) != num11)
+            if ((inClose[i - 2] < inOpen[i - 2] ? -1 : 1) != num11)
             {
                 goto Label_0263;
             }
@@ -291,7 +289,7 @@ namespace TALib
                 num10 = -1;
             }
 
-            if (((inClose[i - 1] < inOpen[i - 1]) ? -1 : 1) != -num10)
+            if ((inClose[i - 1] < inOpen[i - 1] ? -1 : 1) != -num10)
             {
                 goto Label_0263;
             }
@@ -354,8 +352,8 @@ namespace TALib
 
             if (inClose[i - 2] >= inOpen[i - 2])
             {
-                float num4;
-                float num5;
+                decimal num4;
+                decimal num5;
                 if (inOpen[i - 1] < inClose[i - 1])
                 {
                     num5 = inOpen[i - 1];
@@ -380,7 +378,7 @@ namespace TALib
                 }
             }
 
-            if (((inClose[i - 2] < inOpen[i - 2]) ? -1 : 1) != -1)
+            if (inClose[i - 2] >= inOpen[i - 2])
             {
                 goto Label_0263;
             }

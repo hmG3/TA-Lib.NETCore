@@ -11,7 +11,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -27,7 +27,7 @@ namespace TALib
             }
 
             int i = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             while (i <= endIdx)
             {
                 outReal[outIdx] = Math.Sin(inReal[i]);
@@ -40,14 +40,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Sin(int startIdx, int endIdx, float[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Sin(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -63,10 +63,10 @@ namespace TALib
             }
 
             int i = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             while (i <= endIdx)
             {
-                outReal[outIdx] = Math.Sin((double) inReal[i]);
+                outReal[outIdx] = DecimalMath.Sin(inReal[i]);
                 i++;
                 outIdx++;
             }

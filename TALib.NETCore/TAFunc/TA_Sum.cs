@@ -1,18 +1,16 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Sum(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode Sum(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
+            int optInTimePeriod = 30)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -22,11 +20,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -49,7 +43,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double periodTotal = 0.0;
+            double periodTotal = default;
             int trailingIdx = startIdx - lookbackTotal;
             int i = trailingIdx;
             if (optInTimePeriod > 1)
@@ -61,7 +55,7 @@ namespace TALib
                 }
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             do
             {
                 periodTotal += inReal[i];
@@ -78,15 +72,15 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Sum(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode Sum(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
+            int optInTimePeriod = 30)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -96,11 +90,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -123,7 +113,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double periodTotal = 0.0;
+            decimal periodTotal = default;
             int trailingIdx = startIdx - lookbackTotal;
             int i = trailingIdx;
             if (optInTimePeriod > 1)
@@ -135,12 +125,12 @@ namespace TALib
                 }
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             do
             {
                 periodTotal += inReal[i];
                 i++;
-                double tempReal = periodTotal;
+                decimal tempReal = periodTotal;
                 periodTotal -= inReal[trailingIdx];
                 trailingIdx++;
                 outReal[outIdx] = tempReal;
@@ -152,18 +142,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int SumLookback(int optInTimePeriod)
+        public static int SumLookback(int optInTimePeriod = 30)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod - 1);
+            return optInTimePeriod - 1;
         }
     }
 }

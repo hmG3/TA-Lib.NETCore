@@ -4,8 +4,8 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Correl(int startIdx, int endIdx, double[] inReal0, double[] inReal1, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode Correl(int startIdx, int endIdx, double[] inReal0, double[] inReal1, ref int outBegIdx, ref int outNBElement,
+            double[] outReal, int optInTimePeriod = 30)
         {
             double y;
             double x;
@@ -14,7 +14,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -29,11 +29,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -58,7 +54,7 @@ namespace TALib
 
             outBegIdx = startIdx;
             int trailingIdx = startIdx - lookbackTotal;
-            double sumY2 = 0.0;
+            double sumY2 = default;
             double sumX2 = sumY2;
             double sumY = sumX2;
             double sumX = sumY;
@@ -79,11 +75,10 @@ namespace TALib
             double trailingX = inReal0[trailingIdx];
             double trailingY = inReal1[trailingIdx];
             trailingIdx++;
-            double tempReal = (sumX2 - ((sumX * sumX) / ((double) optInTimePeriod))) *
-                              (sumY2 - ((sumY * sumY) / ((double) optInTimePeriod)));
+            double tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
             if (tempReal >= 1E-08)
             {
-                outReal[0] = (sumXY - ((sumX * sumY) / ((double) optInTimePeriod))) / Math.Sqrt(tempReal);
+                outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal);
             }
             else
             {
@@ -109,10 +104,10 @@ namespace TALib
                 trailingX = inReal0[trailingIdx];
                 trailingY = inReal1[trailingIdx];
                 trailingIdx++;
-                tempReal = (sumX2 - ((sumX * sumX) / ((double) optInTimePeriod))) * (sumY2 - ((sumY * sumY) / ((double) optInTimePeriod)));
+                tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
                 if (tempReal >= 1E-08)
                 {
-                    outReal[outIdx] = (sumXY - ((sumX * sumY) / ((double) optInTimePeriod))) / Math.Sqrt(tempReal);
+                    outReal[outIdx] = (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal);
                     outIdx++;
                 }
                 else
@@ -126,17 +121,17 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Correl(int startIdx, int endIdx, float[] inReal0, float[] inReal1, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode Correl(int startIdx, int endIdx, decimal[] inReal0, decimal[] inReal1, ref int outBegIdx,
+            ref int outNBElement, decimal[] outReal, int optInTimePeriod = 30)
         {
-            double y;
-            double x;
+            decimal y;
+            decimal x;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -151,11 +146,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -180,11 +171,11 @@ namespace TALib
 
             outBegIdx = startIdx;
             int trailingIdx = startIdx - lookbackTotal;
-            double sumY2 = 0.0;
-            double sumX2 = sumY2;
-            double sumY = sumX2;
-            double sumX = sumY;
-            double sumXY = sumX;
+            decimal sumY2 = default;
+            decimal sumX2 = sumY2;
+            decimal sumY = sumX2;
+            decimal sumX = sumY;
+            decimal sumXY = sumX;
             int today = trailingIdx;
             while (today <= startIdx)
             {
@@ -198,18 +189,17 @@ namespace TALib
                 today++;
             }
 
-            double trailingX = inReal0[trailingIdx];
-            double trailingY = inReal1[trailingIdx];
+            decimal trailingX = inReal0[trailingIdx];
+            decimal trailingY = inReal1[trailingIdx];
             trailingIdx++;
-            double tempReal = (sumX2 - ((sumX * sumX) / ((double) optInTimePeriod))) *
-                              (sumY2 - ((sumY * sumY) / ((double) optInTimePeriod)));
-            if (tempReal >= 1E-08)
+            decimal tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+            if (tempReal >= 1E-08m)
             {
-                outReal[0] = (sumXY - ((sumX * sumY) / ((double) optInTimePeriod))) / Math.Sqrt(tempReal);
+                outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal);
             }
             else
             {
-                outReal[0] = 0.0;
+                outReal[0] = Decimal.Zero;
             }
 
             int outIdx = 1;
@@ -231,15 +221,15 @@ namespace TALib
                 trailingX = inReal0[trailingIdx];
                 trailingY = inReal1[trailingIdx];
                 trailingIdx++;
-                tempReal = (sumX2 - ((sumX * sumX) / ((double) optInTimePeriod))) * (sumY2 - ((sumY * sumY) / ((double) optInTimePeriod)));
-                if (tempReal >= 1E-08)
+                tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+                if (tempReal >= 1E-08m)
                 {
-                    outReal[outIdx] = (sumXY - ((sumX * sumY) / ((double) optInTimePeriod))) / Math.Sqrt(tempReal);
+                    outReal[outIdx] = (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal);
                     outIdx++;
                 }
                 else
                 {
-                    outReal[outIdx] = 0.0;
+                    outReal[outIdx] = Decimal.Zero;
                     outIdx++;
                 }
             }
@@ -248,18 +238,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int CorrelLookback(int optInTimePeriod)
+        public static int CorrelLookback(int optInTimePeriod = 30)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 30;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod - 1);
+            return optInTimePeriod - 1;
         }
     }
 }

@@ -10,20 +10,20 @@ namespace TALib
             double smoothedValue;
             const double a = 0.0962;
             const double b = 0.5769;
-            double[] detrender_Odd = new double[3];
-            double[] detrender_Even = new double[3];
-            double[] Q1_Odd = new double[3];
-            double[] Q1_Even = new double[3];
-            double[] jI_Odd = new double[3];
-            double[] jI_Even = new double[3];
-            double[] jQ_Odd = new double[3];
-            double[] jQ_Even = new double[3];
+            var detrenderOdd = new double[3];
+            var detrenderEven = new double[3];
+            var q1Odd = new double[3];
+            var q1Even = new double[3];
+            var jIOdd = new double[3];
+            var jIEven = new double[3];
+            var jQOdd = new double[3];
+            var jQEven = new double[3];
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -44,7 +44,7 @@ namespace TALib
             }
 
             double rad2Deg = 180.0 / (4.0 * Math.Atan(1.0));
-            int lookbackTotal = ((int) Globals.unstablePeriod[8]) + 0x20;
+            int lookbackTotal = (int) Globals.UnstablePeriod[(int) FuncUnstId.HtPhasor] + 32;
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -72,7 +72,7 @@ namespace TALib
             today++;
             periodWMASub += tempReal;
             periodWMASum += tempReal * 3.0;
-            double trailingWMAValue = 0.0;
+            double trailingWMAValue = default;
             int i = 9;
             do
             {
@@ -88,72 +88,44 @@ namespace TALib
                 i--;
             } while (i != 0);
 
-            int hilbertIdx = 0;
-            detrender_Odd[0] = 0.0;
-            detrender_Odd[1] = 0.0;
-            detrender_Odd[2] = 0.0;
-            detrender_Even[0] = 0.0;
-            detrender_Even[1] = 0.0;
-            detrender_Even[2] = 0.0;
-            double detrender = 0.0;
-            double prev_detrender_Odd = 0.0;
-            double prev_detrender_Even = 0.0;
-            double prev_detrender_input_Odd = 0.0;
-            double prev_detrender_input_Even = 0.0;
-            Q1_Odd[0] = 0.0;
-            Q1_Odd[1] = 0.0;
-            Q1_Odd[2] = 0.0;
-            Q1_Even[0] = 0.0;
-            Q1_Even[1] = 0.0;
-            Q1_Even[2] = 0.0;
-            double Q1 = 0.0;
-            double prev_Q1_Odd = 0.0;
-            double prev_Q1_Even = 0.0;
-            double prev_Q1_input_Odd = 0.0;
-            double prev_Q1_input_Even = 0.0;
-            jI_Odd[0] = 0.0;
-            jI_Odd[1] = 0.0;
-            jI_Odd[2] = 0.0;
-            jI_Even[0] = 0.0;
-            jI_Even[1] = 0.0;
-            jI_Even[2] = 0.0;
-            double jI = 0.0;
-            double prev_jI_Odd = 0.0;
-            double prev_jI_Even = 0.0;
-            double prev_jI_input_Odd = 0.0;
-            double prev_jI_input_Even = 0.0;
-            jQ_Odd[0] = 0.0;
-            jQ_Odd[1] = 0.0;
-            jQ_Odd[2] = 0.0;
-            jQ_Even[0] = 0.0;
-            jQ_Even[1] = 0.0;
-            jQ_Even[2] = 0.0;
-            double jQ = 0.0;
-            double prev_jQ_Odd = 0.0;
-            double prev_jQ_Even = 0.0;
-            double prev_jQ_input_Odd = 0.0;
-            double prev_jQ_input_Even = 0.0;
-            double period = 0.0;
-            int outIdx = 0;
-            double prevQ2 = 0.0;
+            int hilbertIdx = default;
+            double prevDetrenderOdd = default;
+            double prevDetrenderEven = default;
+            double prevDetrenderInputOdd = default;
+            double prevDetrenderInputEven = default;
+            double prevQ1Odd = default;
+            double prevQ1Even = default;
+            double prevQ1InputOdd = default;
+            double prevQ1InputEven = default;
+            double prevJIOdd = default;
+            double prevJIEven = default;
+            double prevJIInputOdd = default;
+            double prevJIInputEven = default;
+            double prevJQOdd = default;
+            double prevJQEven = default;
+            double prevJQInputOdd = default;
+            double prevJQInputEven = default;
+            double period = default;
+            int outIdx = default;
+            double prevQ2 = default;
             double prevI2 = prevQ2;
-            double Im = 0.0;
-            double Re = Im;
-            double I1ForEvenPrev3 = 0.0;
-            double I1ForOddPrev3 = I1ForEvenPrev3;
-            double I1ForEvenPrev2 = 0.0;
-            double I1ForOddPrev2 = I1ForEvenPrev2;
+            double im = default;
+            double re = im;
+            double i1ForEvenPrev3 = default;
+            double i1ForOddPrev3 = i1ForEvenPrev3;
+            double i1ForEvenPrev2 = default;
+            double i1ForOddPrev2 = i1ForEvenPrev2;
             while (true)
             {
                 double hilbertTempReal;
-                double I2;
-                double Q2;
+                double i2;
+                double q2;
                 if (today > endIdx)
                 {
                     break;
                 }
 
-                double adjustedPrevPeriod = (0.075 * period) + 0.54;
+                double adjustedPrevPeriod = 0.075 * period + 0.54;
                 double todayValue = inReal[today];
                 periodWMASub += todayValue;
                 periodWMASub -= trailingWMAValue;
@@ -162,50 +134,54 @@ namespace TALib
                 trailingWMAIdx++;
                 smoothedValue = periodWMASum * 0.1;
                 periodWMASum -= periodWMASub;
-                if ((today % 2) == 0)
+                double detrender;
+                double q1;
+                double jI;
+                double jQ;
+                if (today % 2 == 0)
                 {
                     hilbertTempReal = a * smoothedValue;
-                    detrender = -detrender_Even[hilbertIdx];
-                    detrender_Even[hilbertIdx] = hilbertTempReal;
+                    detrender = -detrenderEven[hilbertIdx];
+                    detrenderEven[hilbertIdx] = hilbertTempReal;
                     detrender += hilbertTempReal;
-                    detrender -= prev_detrender_Even;
-                    prev_detrender_Even = b * prev_detrender_input_Even;
-                    detrender += prev_detrender_Even;
-                    prev_detrender_input_Even = smoothedValue;
+                    detrender -= prevDetrenderEven;
+                    prevDetrenderEven = b * prevDetrenderInputEven;
+                    detrender += prevDetrenderEven;
+                    prevDetrenderInputEven = smoothedValue;
                     detrender *= adjustedPrevPeriod;
                     hilbertTempReal = a * detrender;
-                    Q1 = -Q1_Even[hilbertIdx];
-                    Q1_Even[hilbertIdx] = hilbertTempReal;
-                    Q1 += hilbertTempReal;
-                    Q1 -= prev_Q1_Even;
-                    prev_Q1_Even = b * prev_Q1_input_Even;
-                    Q1 += prev_Q1_Even;
-                    prev_Q1_input_Even = detrender;
-                    Q1 *= adjustedPrevPeriod;
+                    q1 = -q1Even[hilbertIdx];
+                    q1Even[hilbertIdx] = hilbertTempReal;
+                    q1 += hilbertTempReal;
+                    q1 -= prevQ1Even;
+                    prevQ1Even = b * prevQ1InputEven;
+                    q1 += prevQ1Even;
+                    prevQ1InputEven = detrender;
+                    q1 *= adjustedPrevPeriod;
                     if (today >= startIdx)
                     {
-                        outQuadrature[outIdx] = Q1;
-                        outInPhase[outIdx] = I1ForEvenPrev3;
+                        outQuadrature[outIdx] = q1;
+                        outInPhase[outIdx] = i1ForEvenPrev3;
                         outIdx++;
                     }
 
-                    hilbertTempReal = a * I1ForEvenPrev3;
-                    jI = -jI_Even[hilbertIdx];
-                    jI_Even[hilbertIdx] = hilbertTempReal;
+                    hilbertTempReal = a * i1ForEvenPrev3;
+                    jI = -jIEven[hilbertIdx];
+                    jIEven[hilbertIdx] = hilbertTempReal;
                     jI += hilbertTempReal;
-                    jI -= prev_jI_Even;
-                    prev_jI_Even = b * prev_jI_input_Even;
-                    jI += prev_jI_Even;
-                    prev_jI_input_Even = I1ForEvenPrev3;
+                    jI -= prevJIEven;
+                    prevJIEven = b * prevJIInputEven;
+                    jI += prevJIEven;
+                    prevJIInputEven = i1ForEvenPrev3;
                     jI *= adjustedPrevPeriod;
-                    hilbertTempReal = a * Q1;
-                    jQ = -jQ_Even[hilbertIdx];
-                    jQ_Even[hilbertIdx] = hilbertTempReal;
+                    hilbertTempReal = a * q1;
+                    jQ = -jQEven[hilbertIdx];
+                    jQEven[hilbertIdx] = hilbertTempReal;
                     jQ += hilbertTempReal;
-                    jQ -= prev_jQ_Even;
-                    prev_jQ_Even = b * prev_jQ_input_Even;
-                    jQ += prev_jQ_Even;
-                    prev_jQ_input_Even = Q1;
+                    jQ -= prevJQEven;
+                    prevJQEven = b * prevJQInputEven;
+                    jQ += prevJQEven;
+                    prevJQInputEven = q1;
                     jQ *= adjustedPrevPeriod;
                     hilbertIdx++;
                     if (hilbertIdx == 3)
@@ -213,70 +189,70 @@ namespace TALib
                         hilbertIdx = 0;
                     }
 
-                    Q2 = (0.2 * (Q1 + jI)) + (0.8 * prevQ2);
-                    I2 = (0.2 * (I1ForEvenPrev3 - jQ)) + (0.8 * prevI2);
-                    I1ForOddPrev3 = I1ForOddPrev2;
-                    I1ForOddPrev2 = detrender;
+                    q2 = 0.2 * (q1 + jI) + 0.8 * prevQ2;
+                    i2 = 0.2 * (i1ForEvenPrev3 - jQ) + 0.8 * prevI2;
+                    i1ForOddPrev3 = i1ForOddPrev2;
+                    i1ForOddPrev2 = detrender;
                 }
                 else
                 {
                     hilbertTempReal = a * smoothedValue;
-                    detrender = -detrender_Odd[hilbertIdx];
-                    detrender_Odd[hilbertIdx] = hilbertTempReal;
+                    detrender = -detrenderOdd[hilbertIdx];
+                    detrenderOdd[hilbertIdx] = hilbertTempReal;
                     detrender += hilbertTempReal;
-                    detrender -= prev_detrender_Odd;
-                    prev_detrender_Odd = b * prev_detrender_input_Odd;
-                    detrender += prev_detrender_Odd;
-                    prev_detrender_input_Odd = smoothedValue;
+                    detrender -= prevDetrenderOdd;
+                    prevDetrenderOdd = b * prevDetrenderInputOdd;
+                    detrender += prevDetrenderOdd;
+                    prevDetrenderInputOdd = smoothedValue;
                     detrender *= adjustedPrevPeriod;
                     hilbertTempReal = a * detrender;
-                    Q1 = -Q1_Odd[hilbertIdx];
-                    Q1_Odd[hilbertIdx] = hilbertTempReal;
-                    Q1 += hilbertTempReal;
-                    Q1 -= prev_Q1_Odd;
-                    prev_Q1_Odd = b * prev_Q1_input_Odd;
-                    Q1 += prev_Q1_Odd;
-                    prev_Q1_input_Odd = detrender;
-                    Q1 *= adjustedPrevPeriod;
+                    q1 = -q1Odd[hilbertIdx];
+                    q1Odd[hilbertIdx] = hilbertTempReal;
+                    q1 += hilbertTempReal;
+                    q1 -= prevQ1Odd;
+                    prevQ1Odd = b * prevQ1InputOdd;
+                    q1 += prevQ1Odd;
+                    prevQ1InputOdd = detrender;
+                    q1 *= adjustedPrevPeriod;
                     if (today >= startIdx)
                     {
-                        outQuadrature[outIdx] = Q1;
-                        outInPhase[outIdx] = I1ForOddPrev3;
+                        outQuadrature[outIdx] = q1;
+                        outInPhase[outIdx] = i1ForOddPrev3;
                         outIdx++;
                     }
 
-                    hilbertTempReal = a * I1ForOddPrev3;
-                    jI = -jI_Odd[hilbertIdx];
-                    jI_Odd[hilbertIdx] = hilbertTempReal;
+                    hilbertTempReal = a * i1ForOddPrev3;
+                    jI = -jIOdd[hilbertIdx];
+                    jIOdd[hilbertIdx] = hilbertTempReal;
                     jI += hilbertTempReal;
-                    jI -= prev_jI_Odd;
-                    prev_jI_Odd = b * prev_jI_input_Odd;
-                    jI += prev_jI_Odd;
-                    prev_jI_input_Odd = I1ForOddPrev3;
+                    jI -= prevJIOdd;
+                    prevJIOdd = b * prevJIInputOdd;
+                    jI += prevJIOdd;
+                    prevJIInputOdd = i1ForOddPrev3;
                     jI *= adjustedPrevPeriod;
-                    hilbertTempReal = a * Q1;
-                    jQ = -jQ_Odd[hilbertIdx];
-                    jQ_Odd[hilbertIdx] = hilbertTempReal;
+                    hilbertTempReal = a * q1;
+                    jQ = -jQOdd[hilbertIdx];
+                    jQOdd[hilbertIdx] = hilbertTempReal;
                     jQ += hilbertTempReal;
-                    jQ -= prev_jQ_Odd;
-                    prev_jQ_Odd = b * prev_jQ_input_Odd;
-                    jQ += prev_jQ_Odd;
-                    prev_jQ_input_Odd = Q1;
+                    jQ -= prevJQOdd;
+                    prevJQOdd = b * prevJQInputOdd;
+                    jQ += prevJQOdd;
+                    prevJQInputOdd = q1;
                     jQ *= adjustedPrevPeriod;
-                    Q2 = (0.2 * (Q1 + jI)) + (0.8 * prevQ2);
-                    I2 = (0.2 * (I1ForOddPrev3 - jQ)) + (0.8 * prevI2);
-                    I1ForEvenPrev3 = I1ForEvenPrev2;
-                    I1ForEvenPrev2 = detrender;
+                    q2 = 0.2 * (q1 + jI) + 0.8 * prevQ2;
+                    i2 = 0.2 * (i1ForOddPrev3 - jQ) + 0.8 * prevI2;
+                    i1ForEvenPrev3 = i1ForEvenPrev2;
+                    i1ForEvenPrev2 = detrender;
                 }
 
-                Re = (0.2 * ((I2 * prevI2) + (Q2 * prevQ2))) + (0.8 * Re);
-                Im = (0.2 * ((I2 * prevQ2) - (Q2 * prevI2))) + (0.8 * Im);
-                prevQ2 = Q2;
-                prevI2 = I2;
+                re = 0.2 * (i2 * prevI2 + q2 * prevQ2) + 0.8 * re;
+                im = 0.2 * (i2 * prevQ2 - q2 * prevI2) + 0.8 * im;
+                prevQ2 = q2;
+                prevI2 = i2;
                 tempReal = period;
-                if ((Im != 0.0) && (Re != 0.0))
+                if (!im.Equals(0.0) && !re.Equals(0.0))
                 {
-                    period = 360.0 / (Math.Atan(Im / Re) * rad2Deg);
+                    period = 360.0 / (Math.Atan(im / re) * rad2Deg);
                 }
 
                 double tempReal2 = 1.5 * tempReal;
@@ -300,7 +276,7 @@ namespace TALib
                     period = 50.0;
                 }
 
-                period = (0.2 * period) + (0.8 * tempReal);
+                period = 0.2 * period + 0.8 * tempReal;
                 today++;
             }
 
@@ -308,26 +284,26 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode HtPhasor(int startIdx, int endIdx, float[] inReal, ref int outBegIdx, ref int outNBElement,
-            double[] outInPhase, double[] outQuadrature)
+        public static RetCode HtPhasor(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement,
+            decimal[] outInPhase, decimal[] outQuadrature)
         {
-            double smoothedValue;
-            const double a = 0.0962;
-            const double b = 0.5769;
-            double[] detrender_Odd = new double[3];
-            double[] detrender_Even = new double[3];
-            double[] Q1_Odd = new double[3];
-            double[] Q1_Even = new double[3];
-            double[] jI_Odd = new double[3];
-            double[] jI_Even = new double[3];
-            double[] jQ_Odd = new double[3];
-            double[] jQ_Even = new double[3];
+            decimal smoothedValue;
+            const decimal a = 0.0962m;
+            const decimal b = 0.5769m;
+            var detrenderOdd = new decimal[3];
+            var detrenderEven = new decimal[3];
+            var q1Odd = new decimal[3];
+            var q1Even = new decimal[3];
+            var jIOdd = new decimal[3];
+            var jIEven = new decimal[3];
+            var jQOdd = new decimal[3];
+            var jQEven = new decimal[3];
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -347,8 +323,8 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            double rad2Deg = 180.0 / (4.0 * Math.Atan(1.0));
-            int lookbackTotal = ((int) Globals.unstablePeriod[8]) + 0x20;
+            decimal rad2Deg = 180m / (4m * DecimalMath.Atan(Decimal.One));
+            int lookbackTotal = (int) Globals.UnstablePeriod[(int) FuncUnstId.HtPhasor] + 32;
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -364,19 +340,19 @@ namespace TALib
             outBegIdx = startIdx;
             int trailingWMAIdx = startIdx - lookbackTotal;
             int today = trailingWMAIdx;
-            double tempReal = inReal[today];
+            decimal tempReal = inReal[today];
             today++;
-            double periodWMASub = tempReal;
-            double periodWMASum = tempReal;
+            decimal periodWMASub = tempReal;
+            decimal periodWMASum = tempReal;
             tempReal = inReal[today];
             today++;
             periodWMASub += tempReal;
-            periodWMASum += tempReal * 2.0;
+            periodWMASum += tempReal * 2m;
             tempReal = inReal[today];
             today++;
             periodWMASub += tempReal;
-            periodWMASum += tempReal * 3.0;
-            double trailingWMAValue = 0.0;
+            periodWMASum += tempReal * 3m;
+            decimal trailingWMAValue = default;
             int i = 9;
             do
             {
@@ -384,132 +360,108 @@ namespace TALib
                 today++;
                 periodWMASub += tempReal;
                 periodWMASub -= trailingWMAValue;
-                periodWMASum += tempReal * 4.0;
+                periodWMASum += tempReal * 4m;
                 trailingWMAValue = inReal[trailingWMAIdx];
                 trailingWMAIdx++;
-                smoothedValue = periodWMASum * 0.1;
+                smoothedValue = periodWMASum * 0.1m;
                 periodWMASum -= periodWMASub;
                 i--;
             } while (i != 0);
 
-            int hilbertIdx = 0;
-            detrender_Odd[0] = 0.0;
-            detrender_Odd[1] = 0.0;
-            detrender_Odd[2] = 0.0;
-            detrender_Even[0] = 0.0;
-            detrender_Even[1] = 0.0;
-            detrender_Even[2] = 0.0;
-            double detrender = 0.0;
-            double prev_detrender_Odd = 0.0;
-            double prev_detrender_Even = 0.0;
-            double prev_detrender_input_Odd = 0.0;
-            double prev_detrender_input_Even = 0.0;
-            Q1_Odd[0] = 0.0;
-            Q1_Odd[1] = 0.0;
-            Q1_Odd[2] = 0.0;
-            Q1_Even[0] = 0.0;
-            Q1_Even[1] = 0.0;
-            Q1_Even[2] = 0.0;
-            double Q1 = 0.0;
-            double prev_Q1_Odd = 0.0;
-            double prev_Q1_Even = 0.0;
-            double prev_Q1_input_Odd = 0.0;
-            double prev_Q1_input_Even = 0.0;
-            jI_Odd[0] = 0.0;
-            jI_Odd[1] = 0.0;
-            jI_Odd[2] = 0.0;
-            jI_Even[0] = 0.0;
-            jI_Even[1] = 0.0;
-            jI_Even[2] = 0.0;
-            double jI = 0.0;
-            double prev_jI_Odd = 0.0;
-            double prev_jI_Even = 0.0;
-            double prev_jI_input_Odd = 0.0;
-            double prev_jI_input_Even = 0.0;
-            jQ_Odd[0] = 0.0;
-            jQ_Odd[1] = 0.0;
-            jQ_Odd[2] = 0.0;
-            jQ_Even[0] = 0.0;
-            jQ_Even[1] = 0.0;
-            jQ_Even[2] = 0.0;
-            double jQ = 0.0;
-            double prev_jQ_Odd = 0.0;
-            double prev_jQ_Even = 0.0;
-            double prev_jQ_input_Odd = 0.0;
-            double prev_jQ_input_Even = 0.0;
-            double period = 0.0;
-            int outIdx = 0;
-            double prevQ2 = 0.0;
-            double prevI2 = prevQ2;
-            double Im = 0.0;
-            double Re = Im;
-            double I1ForEvenPrev3 = 0.0;
-            double I1ForOddPrev3 = I1ForEvenPrev3;
-            double I1ForEvenPrev2 = 0.0;
-            double I1ForOddPrev2 = I1ForEvenPrev2;
+            int hilbertIdx = default;
+            decimal prevDetrenderOdd = default;
+            decimal prevDetrenderEven = default;
+            decimal prevDetrenderInputOdd = default;
+            decimal prevDetrenderInputEven = default;
+            decimal prevQ1Odd = default;
+            decimal prevQ1Even = default;
+            decimal prevQ1InputOdd = default;
+            decimal prevQ1InputEven = default;
+            decimal prevJIOdd = default;
+            decimal prevJIEven = default;
+            decimal prevJIInputOdd = default;
+            decimal prevJIInputEven = default;
+            decimal prevJQOdd = default;
+            decimal prevJQEven = default;
+            decimal prevJQInputOdd = default;
+            decimal prevJQInputEven = default;
+            decimal period = default;
+            int outIdx = default;
+            decimal prevQ2 = default;
+            decimal prevI2 = prevQ2;
+            decimal im = default;
+            decimal re = im;
+            decimal i1ForEvenPrev3 = default;
+            decimal i1ForOddPrev3 = i1ForEvenPrev3;
+            decimal i1ForEvenPrev2 = default;
+            decimal i1ForOddPrev2 = i1ForEvenPrev2;
             while (true)
             {
-                double hilbertTempReal;
-                double I2;
-                double Q2;
+                decimal hilbertTempReal;
+                decimal i2;
+                decimal q2;
                 if (today > endIdx)
                 {
                     break;
                 }
 
-                double adjustedPrevPeriod = (0.075 * period) + 0.54;
-                double todayValue = inReal[today];
+                decimal adjustedPrevPeriod = 0.075m * period + 0.54m;
+                decimal todayValue = inReal[today];
                 periodWMASub += todayValue;
                 periodWMASub -= trailingWMAValue;
-                periodWMASum += todayValue * 4.0;
+                periodWMASum += todayValue * 4m;
                 trailingWMAValue = inReal[trailingWMAIdx];
                 trailingWMAIdx++;
-                smoothedValue = periodWMASum * 0.1;
+                smoothedValue = periodWMASum * 0.1m;
                 periodWMASum -= periodWMASub;
-                if ((today % 2) == 0)
+                decimal detrender;
+                decimal q1;
+                decimal jQ;
+                decimal jI;
+                if (today % 2 == 0)
                 {
                     hilbertTempReal = a * smoothedValue;
-                    detrender = -detrender_Even[hilbertIdx];
-                    detrender_Even[hilbertIdx] = hilbertTempReal;
+                    detrender = -detrenderEven[hilbertIdx];
+                    detrenderEven[hilbertIdx] = hilbertTempReal;
                     detrender += hilbertTempReal;
-                    detrender -= prev_detrender_Even;
-                    prev_detrender_Even = b * prev_detrender_input_Even;
-                    detrender += prev_detrender_Even;
-                    prev_detrender_input_Even = smoothedValue;
+                    detrender -= prevDetrenderEven;
+                    prevDetrenderEven = b * prevDetrenderInputEven;
+                    detrender += prevDetrenderEven;
+                    prevDetrenderInputEven = smoothedValue;
                     detrender *= adjustedPrevPeriod;
                     hilbertTempReal = a * detrender;
-                    Q1 = -Q1_Even[hilbertIdx];
-                    Q1_Even[hilbertIdx] = hilbertTempReal;
-                    Q1 += hilbertTempReal;
-                    Q1 -= prev_Q1_Even;
-                    prev_Q1_Even = b * prev_Q1_input_Even;
-                    Q1 += prev_Q1_Even;
-                    prev_Q1_input_Even = detrender;
-                    Q1 *= adjustedPrevPeriod;
+                    q1 = -q1Even[hilbertIdx];
+                    q1Even[hilbertIdx] = hilbertTempReal;
+                    q1 += hilbertTempReal;
+                    q1 -= prevQ1Even;
+                    prevQ1Even = b * prevQ1InputEven;
+                    q1 += prevQ1Even;
+                    prevQ1InputEven = detrender;
+                    q1 *= adjustedPrevPeriod;
                     if (today >= startIdx)
                     {
-                        outQuadrature[outIdx] = Q1;
-                        outInPhase[outIdx] = I1ForEvenPrev3;
+                        outQuadrature[outIdx] = q1;
+                        outInPhase[outIdx] = i1ForEvenPrev3;
                         outIdx++;
                     }
 
-                    hilbertTempReal = a * I1ForEvenPrev3;
-                    jI = -jI_Even[hilbertIdx];
-                    jI_Even[hilbertIdx] = hilbertTempReal;
+                    hilbertTempReal = a * i1ForEvenPrev3;
+                    jI = -jIEven[hilbertIdx];
+                    jIEven[hilbertIdx] = hilbertTempReal;
                     jI += hilbertTempReal;
-                    jI -= prev_jI_Even;
-                    prev_jI_Even = b * prev_jI_input_Even;
-                    jI += prev_jI_Even;
-                    prev_jI_input_Even = I1ForEvenPrev3;
+                    jI -= prevJIEven;
+                    prevJIEven = b * prevJIInputEven;
+                    jI += prevJIEven;
+                    prevJIInputEven = i1ForEvenPrev3;
                     jI *= adjustedPrevPeriod;
-                    hilbertTempReal = a * Q1;
-                    jQ = -jQ_Even[hilbertIdx];
-                    jQ_Even[hilbertIdx] = hilbertTempReal;
+                    hilbertTempReal = a * q1;
+                    jQ = -jQEven[hilbertIdx];
+                    jQEven[hilbertIdx] = hilbertTempReal;
                     jQ += hilbertTempReal;
-                    jQ -= prev_jQ_Even;
-                    prev_jQ_Even = b * prev_jQ_input_Even;
-                    jQ += prev_jQ_Even;
-                    prev_jQ_input_Even = Q1;
+                    jQ -= prevJQEven;
+                    prevJQEven = b * prevJQInputEven;
+                    jQ += prevJQEven;
+                    prevJQInputEven = q1;
                     jQ *= adjustedPrevPeriod;
                     hilbertIdx++;
                     if (hilbertIdx == 3)
@@ -517,94 +469,94 @@ namespace TALib
                         hilbertIdx = 0;
                     }
 
-                    Q2 = (0.2 * (Q1 + jI)) + (0.8 * prevQ2);
-                    I2 = (0.2 * (I1ForEvenPrev3 - jQ)) + (0.8 * prevI2);
-                    I1ForOddPrev3 = I1ForOddPrev2;
-                    I1ForOddPrev2 = detrender;
+                    q2 = 0.2m * (q1 + jI) + 0.8m * prevQ2;
+                    i2 = 0.2m * (i1ForEvenPrev3 - jQ) + 0.8m * prevI2;
+                    i1ForOddPrev3 = i1ForOddPrev2;
+                    i1ForOddPrev2 = detrender;
                 }
                 else
                 {
                     hilbertTempReal = a * smoothedValue;
-                    detrender = -detrender_Odd[hilbertIdx];
-                    detrender_Odd[hilbertIdx] = hilbertTempReal;
+                    detrender = -detrenderOdd[hilbertIdx];
+                    detrenderOdd[hilbertIdx] = hilbertTempReal;
                     detrender += hilbertTempReal;
-                    detrender -= prev_detrender_Odd;
-                    prev_detrender_Odd = b * prev_detrender_input_Odd;
-                    detrender += prev_detrender_Odd;
-                    prev_detrender_input_Odd = smoothedValue;
+                    detrender -= prevDetrenderOdd;
+                    prevDetrenderOdd = b * prevDetrenderInputOdd;
+                    detrender += prevDetrenderOdd;
+                    prevDetrenderInputOdd = smoothedValue;
                     detrender *= adjustedPrevPeriod;
                     hilbertTempReal = a * detrender;
-                    Q1 = -Q1_Odd[hilbertIdx];
-                    Q1_Odd[hilbertIdx] = hilbertTempReal;
-                    Q1 += hilbertTempReal;
-                    Q1 -= prev_Q1_Odd;
-                    prev_Q1_Odd = b * prev_Q1_input_Odd;
-                    Q1 += prev_Q1_Odd;
-                    prev_Q1_input_Odd = detrender;
-                    Q1 *= adjustedPrevPeriod;
+                    q1 = -q1Odd[hilbertIdx];
+                    q1Odd[hilbertIdx] = hilbertTempReal;
+                    q1 += hilbertTempReal;
+                    q1 -= prevQ1Odd;
+                    prevQ1Odd = b * prevQ1InputOdd;
+                    q1 += prevQ1Odd;
+                    prevQ1InputOdd = detrender;
+                    q1 *= adjustedPrevPeriod;
                     if (today >= startIdx)
                     {
-                        outQuadrature[outIdx] = Q1;
-                        outInPhase[outIdx] = I1ForOddPrev3;
+                        outQuadrature[outIdx] = q1;
+                        outInPhase[outIdx] = i1ForOddPrev3;
                         outIdx++;
                     }
 
-                    hilbertTempReal = a * I1ForOddPrev3;
-                    jI = -jI_Odd[hilbertIdx];
-                    jI_Odd[hilbertIdx] = hilbertTempReal;
+                    hilbertTempReal = a * i1ForOddPrev3;
+                    jI = -jIOdd[hilbertIdx];
+                    jIOdd[hilbertIdx] = hilbertTempReal;
                     jI += hilbertTempReal;
-                    jI -= prev_jI_Odd;
-                    prev_jI_Odd = b * prev_jI_input_Odd;
-                    jI += prev_jI_Odd;
-                    prev_jI_input_Odd = I1ForOddPrev3;
+                    jI -= prevJIOdd;
+                    prevJIOdd = b * prevJIInputOdd;
+                    jI += prevJIOdd;
+                    prevJIInputOdd = i1ForOddPrev3;
                     jI *= adjustedPrevPeriod;
-                    hilbertTempReal = a * Q1;
-                    jQ = -jQ_Odd[hilbertIdx];
-                    jQ_Odd[hilbertIdx] = hilbertTempReal;
+                    hilbertTempReal = a * q1;
+                    jQ = -jQOdd[hilbertIdx];
+                    jQOdd[hilbertIdx] = hilbertTempReal;
                     jQ += hilbertTempReal;
-                    jQ -= prev_jQ_Odd;
-                    prev_jQ_Odd = b * prev_jQ_input_Odd;
-                    jQ += prev_jQ_Odd;
-                    prev_jQ_input_Odd = Q1;
+                    jQ -= prevJQOdd;
+                    prevJQOdd = b * prevJQInputOdd;
+                    jQ += prevJQOdd;
+                    prevJQInputOdd = q1;
                     jQ *= adjustedPrevPeriod;
-                    Q2 = (0.2 * (Q1 + jI)) + (0.8 * prevQ2);
-                    I2 = (0.2 * (I1ForOddPrev3 - jQ)) + (0.8 * prevI2);
-                    I1ForEvenPrev3 = I1ForEvenPrev2;
-                    I1ForEvenPrev2 = detrender;
+                    q2 = 0.2m * (q1 + jI) + 0.8m * prevQ2;
+                    i2 = 0.2m * (i1ForOddPrev3 - jQ) + 0.8m * prevI2;
+                    i1ForEvenPrev3 = i1ForEvenPrev2;
+                    i1ForEvenPrev2 = detrender;
                 }
 
-                Re = (0.2 * ((I2 * prevI2) + (Q2 * prevQ2))) + (0.8 * Re);
-                Im = (0.2 * ((I2 * prevQ2) - (Q2 * prevI2))) + (0.8 * Im);
-                prevQ2 = Q2;
-                prevI2 = I2;
+                re = 0.2m * (i2 * prevI2 + q2 * prevQ2) + 0.8m * re;
+                im = 0.2m * (i2 * prevQ2 - q2 * prevI2) + 0.8m * im;
+                prevQ2 = q2;
+                prevI2 = i2;
                 tempReal = period;
-                if ((Im != 0.0) && (Re != 0.0))
+                if (im != Decimal.Zero && re != Decimal.Zero)
                 {
-                    period = 360.0 / (Math.Atan(Im / Re) * rad2Deg);
+                    period = 360m / (DecimalMath.Atan(im / re) * rad2Deg);
                 }
 
-                double tempReal2 = 1.5 * tempReal;
+                decimal tempReal2 = 1.5m * tempReal;
                 if (period > tempReal2)
                 {
                     period = tempReal2;
                 }
 
-                tempReal2 = 0.67 * tempReal;
+                tempReal2 = 0.67m * tempReal;
                 if (period < tempReal2)
                 {
                     period = tempReal2;
                 }
 
-                if (period < 6.0)
+                if (period < 6m)
                 {
-                    period = 6.0;
+                    period = 6m;
                 }
-                else if (period > 50.0)
+                else if (period > 50m)
                 {
-                    period = 50.0;
+                    period = 50m;
                 }
 
-                period = (0.2 * period) + (0.8 * tempReal);
+                period = 0.2m * period + 0.8m * tempReal;
                 today++;
             }
 
@@ -614,7 +566,7 @@ namespace TALib
 
         public static int HtPhasorLookback()
         {
-            return (((int) Globals.unstablePeriod[8]) + 0x20);
+            return (int) Globals.UnstablePeriod[(int) FuncUnstId.HtPhasor] + 32;
         }
     }
 }

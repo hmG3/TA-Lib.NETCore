@@ -1,18 +1,16 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
     {
-        public static RetCode MidPoint(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode MidPoint(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
+            int optInTimePeriod = 14)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -22,11 +20,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -49,7 +43,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
             int trailingIdx = startIdx - nbInitialElementNeeded;
             while (true)
@@ -64,7 +58,7 @@ namespace TALib
                 double lowest = inReal[trailingIdx];
                 trailingIdx++;
                 double highest = lowest;
-                for (int i = trailingIdx; i <= today; i++)
+                for (var i = trailingIdx; i <= today; i++)
                 {
                     double tmp = inReal[i];
                     if (tmp < lowest)
@@ -83,15 +77,15 @@ namespace TALib
             }
         }
 
-        public static RetCode MidPoint(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode MidPoint(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement,
+            decimal[] outReal, int optInTimePeriod = 14)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -101,11 +95,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -128,7 +118,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
             int trailingIdx = startIdx - nbInitialElementNeeded;
             while (true)
@@ -140,12 +130,12 @@ namespace TALib
                     return RetCode.Success;
                 }
 
-                double lowest = inReal[trailingIdx];
+                decimal lowest = inReal[trailingIdx];
                 trailingIdx++;
-                double highest = lowest;
-                for (int i = trailingIdx; i <= today; i++)
+                decimal highest = lowest;
+                for (var i = trailingIdx; i <= today; i++)
                 {
-                    double tmp = inReal[i];
+                    decimal tmp = inReal[i];
                     if (tmp < lowest)
                     {
                         lowest = tmp;
@@ -156,24 +146,20 @@ namespace TALib
                     }
                 }
 
-                outReal[outIdx] = (highest + lowest) / 2.0;
+                outReal[outIdx] = (highest + lowest) / 2m;
                 outIdx++;
                 today++;
             }
         }
 
-        public static int MidPointLookback(int optInTimePeriod)
+        public static int MidPointLookback(int optInTimePeriod = 14)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod - 1);
+            return optInTimePeriod - 1;
         }
     }
 }

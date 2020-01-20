@@ -4,27 +4,22 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Beta(int startIdx, int endIdx, double[] inReal0, double[] inReal1, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode Beta(int startIdx, int endIdx, double[] inReal0, double[] inReal1, ref int outBegIdx, ref int outNBElement,
+            double[] outReal, int optInTimePeriod = 5)
         {
             double x;
             double y;
-            double S_xx = 0.0;
-            double S_xy = 0.0;
-            double S_x = 0.0;
-            double S_y = 0.0;
-            double last_price_x = 0.0;
-            double last_price_y = 0.0;
-            double trailing_last_price_x = 0.0;
-            double trailing_last_price_y = 0.0;
-            double tmp_real = 0.0;
-            double n = 0.0;
+            double sxx = default;
+            double sxy = default;
+            double sx = default;
+            double sy = default;
+            double tmpReal;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -39,11 +34,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -67,10 +58,10 @@ namespace TALib
             }
 
             int trailingIdx = startIdx - nbInitialElementNeeded;
-            trailing_last_price_x = inReal0[trailingIdx];
-            last_price_x = trailing_last_price_x;
-            trailing_last_price_y = inReal1[trailingIdx];
-            last_price_y = trailing_last_price_y;
+            var trailingLastPriceX = inReal0[trailingIdx];
+            var lastPriceX = trailingLastPriceX;
+            var trailingLastPriceY = inReal1[trailingIdx];
+            var lastPriceY = trailingLastPriceY;
             trailingIdx++;
             int i = trailingIdx;
             while (true)
@@ -80,93 +71,93 @@ namespace TALib
                     break;
                 }
 
-                tmp_real = inReal0[i];
-                if ((-1E-08 >= last_price_x) || (last_price_x >= 1E-08))
+                tmpReal = inReal0[i];
+                if (-1E-08 >= lastPriceX || lastPriceX >= 1E-08)
                 {
-                    x = (tmp_real - last_price_x) / last_price_x;
+                    x = (tmpReal - lastPriceX) / lastPriceX;
                 }
                 else
                 {
                     x = 0.0;
                 }
 
-                last_price_x = tmp_real;
-                tmp_real = inReal1[i];
+                lastPriceX = tmpReal;
+                tmpReal = inReal1[i];
                 i++;
-                if ((-1E-08 >= last_price_y) || (last_price_y >= 1E-08))
+                if (-1E-08 >= lastPriceY || lastPriceY >= 1E-08)
                 {
-                    y = (tmp_real - last_price_y) / last_price_y;
+                    y = (tmpReal - lastPriceY) / lastPriceY;
                 }
                 else
                 {
                     y = 0.0;
                 }
 
-                last_price_y = tmp_real;
-                S_xx += x * x;
-                S_xy += x * y;
-                S_x += x;
-                S_y += y;
+                lastPriceY = tmpReal;
+                sxx += x * x;
+                sxy += x * y;
+                sx += x;
+                sy += y;
             }
 
-            int outIdx = 0;
-            n = optInTimePeriod;
+            int outIdx = default;
+            double n = optInTimePeriod;
             do
             {
-                tmp_real = inReal0[i];
-                if ((-1E-08 >= last_price_x) || (last_price_x >= 1E-08))
+                tmpReal = inReal0[i];
+                if (-1E-08 >= lastPriceX || lastPriceX >= 1E-08)
                 {
-                    x = (tmp_real - last_price_x) / last_price_x;
+                    x = (tmpReal - lastPriceX) / lastPriceX;
                 }
                 else
                 {
                     x = 0.0;
                 }
 
-                last_price_x = tmp_real;
-                tmp_real = inReal1[i];
+                lastPriceX = tmpReal;
+                tmpReal = inReal1[i];
                 i++;
-                if ((-1E-08 >= last_price_y) || (last_price_y >= 1E-08))
+                if (-1E-08 >= lastPriceY || lastPriceY >= 1E-08)
                 {
-                    y = (tmp_real - last_price_y) / last_price_y;
+                    y = (tmpReal - lastPriceY) / lastPriceY;
                 }
                 else
                 {
                     y = 0.0;
                 }
 
-                last_price_y = tmp_real;
-                S_xx += x * x;
-                S_xy += x * y;
-                S_x += x;
-                S_y += y;
-                tmp_real = inReal0[trailingIdx];
-                if ((-1E-08 >= trailing_last_price_x) || (trailing_last_price_x >= 1E-08))
+                lastPriceY = tmpReal;
+                sxx += x * x;
+                sxy += x * y;
+                sx += x;
+                sy += y;
+                tmpReal = inReal0[trailingIdx];
+                if (-1E-08 >= trailingLastPriceX || trailingLastPriceX >= 1E-08)
                 {
-                    x = (tmp_real - trailing_last_price_x) / trailing_last_price_x;
+                    x = (tmpReal - trailingLastPriceX) / trailingLastPriceX;
                 }
                 else
                 {
                     x = 0.0;
                 }
 
-                trailing_last_price_x = tmp_real;
-                tmp_real = inReal1[trailingIdx];
+                trailingLastPriceX = tmpReal;
+                tmpReal = inReal1[trailingIdx];
                 trailingIdx++;
-                if ((-1E-08 >= trailing_last_price_y) || (trailing_last_price_y >= 1E-08))
+                if (-1E-08 >= trailingLastPriceY || trailingLastPriceY >= 1E-08)
                 {
-                    y = (tmp_real - trailing_last_price_y) / trailing_last_price_y;
+                    y = (tmpReal - trailingLastPriceY) / trailingLastPriceY;
                 }
                 else
                 {
                     y = 0.0;
                 }
 
-                trailing_last_price_y = tmp_real;
-                tmp_real = (n * S_xx) - (S_x * S_x);
-                if ((-1E-08 >= tmp_real) || (tmp_real >= 1E-08))
+                trailingLastPriceY = tmpReal;
+                tmpReal = n * sxx - sx * sx;
+                if (-1E-08 >= tmpReal || tmpReal >= 1E-08)
                 {
-                    outReal[outIdx] = ((n * S_xy) - (S_x * S_y)) / tmp_real;
+                    outReal[outIdx] = (n * sxy - sx * sy) / tmpReal;
                     outIdx++;
                 }
                 else
@@ -175,10 +166,10 @@ namespace TALib
                     outIdx++;
                 }
 
-                S_xx -= x * x;
-                S_xy -= x * y;
-                S_x -= x;
-                S_y -= y;
+                sxx -= x * x;
+                sxy -= x * y;
+                sx -= x;
+                sy -= y;
             } while (i <= endIdx);
 
             outNBElement = outIdx;
@@ -186,27 +177,22 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Beta(int startIdx, int endIdx, float[] inReal0, float[] inReal1, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode Beta(int startIdx, int endIdx, decimal[] inReal0, decimal[] inReal1, ref int outBegIdx, ref int outNBElement,
+            decimal[] outReal, int optInTimePeriod = 5)
         {
-            double x;
-            double y;
-            double S_xx = 0.0;
-            double S_xy = 0.0;
-            double S_x = 0.0;
-            double S_y = 0.0;
-            double last_price_x = 0.0;
-            double last_price_y = 0.0;
-            double trailing_last_price_x = 0.0;
-            double trailing_last_price_y = 0.0;
-            double tmp_real = 0.0;
-            double n = 0.0;
+            decimal x;
+            decimal y;
+            decimal sxx = default;
+            decimal sxy = default;
+            decimal sx = default;
+            decimal sy = default;
+            decimal tmpReal;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -221,11 +207,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -249,10 +231,10 @@ namespace TALib
             }
 
             int trailingIdx = startIdx - nbInitialElementNeeded;
-            trailing_last_price_x = inReal0[trailingIdx];
-            last_price_x = trailing_last_price_x;
-            trailing_last_price_y = inReal1[trailingIdx];
-            last_price_y = trailing_last_price_y;
+            decimal trailingLastPriceX = inReal0[trailingIdx];
+            var lastPriceX = trailingLastPriceX;
+            decimal trailingLastPriceY = inReal1[trailingIdx];
+            var lastPriceY = trailingLastPriceY;
             trailingIdx++;
             int i = trailingIdx;
             while (true)
@@ -262,105 +244,105 @@ namespace TALib
                     break;
                 }
 
-                tmp_real = inReal0[i];
-                if ((-1E-08 >= last_price_x) || (last_price_x >= 1E-08))
+                tmpReal = inReal0[i];
+                if (-1E-08m >= lastPriceX || lastPriceX >= 1E-08m)
                 {
-                    x = (tmp_real - last_price_x) / last_price_x;
+                    x = (tmpReal - lastPriceX) / lastPriceX;
                 }
                 else
                 {
-                    x = 0.0;
+                    x = Decimal.Zero;
                 }
 
-                last_price_x = tmp_real;
-                tmp_real = inReal1[i];
+                lastPriceX = tmpReal;
+                tmpReal = inReal1[i];
                 i++;
-                if ((-1E-08 >= last_price_y) || (last_price_y >= 1E-08))
+                if (-1E-08m >= lastPriceY || lastPriceY >= 1E-08m)
                 {
-                    y = (tmp_real - last_price_y) / last_price_y;
+                    y = (tmpReal - lastPriceY) / lastPriceY;
                 }
                 else
                 {
-                    y = 0.0;
+                    y = Decimal.Zero;
                 }
 
-                last_price_y = tmp_real;
-                S_xx += x * x;
-                S_xy += x * y;
-                S_x += x;
-                S_y += y;
+                lastPriceY = tmpReal;
+                sxx += x * x;
+                sxy += x * y;
+                sx += x;
+                sy += y;
             }
 
-            int outIdx = 0;
-            n = optInTimePeriod;
+            int outIdx = default;
+            decimal n = optInTimePeriod;
             do
             {
-                tmp_real = inReal0[i];
-                if ((-1E-08 >= last_price_x) || (last_price_x >= 1E-08))
+                tmpReal = inReal0[i];
+                if (-1E-08m >= lastPriceX || lastPriceX >= 1E-08m)
                 {
-                    x = (tmp_real - last_price_x) / last_price_x;
+                    x = (tmpReal - lastPriceX) / lastPriceX;
                 }
                 else
                 {
-                    x = 0.0;
+                    x = Decimal.Zero;
                 }
 
-                last_price_x = tmp_real;
-                tmp_real = inReal1[i];
+                lastPriceX = tmpReal;
+                tmpReal = inReal1[i];
                 i++;
-                if ((-1E-08 >= last_price_y) || (last_price_y >= 1E-08))
+                if (-1E-08m >= lastPriceY || lastPriceY >= 1E-08m)
                 {
-                    y = (tmp_real - last_price_y) / last_price_y;
+                    y = (tmpReal - lastPriceY) / lastPriceY;
                 }
                 else
                 {
-                    y = 0.0;
+                    y = Decimal.Zero;
                 }
 
-                last_price_y = tmp_real;
-                S_xx += x * x;
-                S_xy += x * y;
-                S_x += x;
-                S_y += y;
-                tmp_real = inReal0[trailingIdx];
-                if ((-1E-08 >= trailing_last_price_x) || (trailing_last_price_x >= 1E-08))
+                lastPriceY = tmpReal;
+                sxx += x * x;
+                sxy += x * y;
+                sx += x;
+                sy += y;
+                tmpReal = inReal0[trailingIdx];
+                if (-1E-08m >= trailingLastPriceX || trailingLastPriceX >= 1E-08m)
                 {
-                    x = (tmp_real - trailing_last_price_x) / trailing_last_price_x;
+                    x = (tmpReal - trailingLastPriceX) / trailingLastPriceX;
                 }
                 else
                 {
-                    x = 0.0;
+                    x = Decimal.Zero;
                 }
 
-                trailing_last_price_x = tmp_real;
-                tmp_real = inReal1[trailingIdx];
+                trailingLastPriceX = tmpReal;
+                tmpReal = inReal1[trailingIdx];
                 trailingIdx++;
-                if ((-1E-08 >= trailing_last_price_y) || (trailing_last_price_y >= 1E-08))
+                if (-1E-08m >= trailingLastPriceY || trailingLastPriceY >= 1E-08m)
                 {
-                    y = (tmp_real - trailing_last_price_y) / trailing_last_price_y;
+                    y = (tmpReal - trailingLastPriceY) / trailingLastPriceY;
                 }
                 else
                 {
-                    y = 0.0;
+                    y = Decimal.Zero;
                 }
 
-                trailing_last_price_y = tmp_real;
-                tmp_real = (n * S_xx) - (S_x * S_x);
-                if ((-1E-08 >= tmp_real) || (tmp_real >= 1E-08))
+                trailingLastPriceY = tmpReal;
+                tmpReal = n * sxx - sx * sx;
+                if (-1E-08m >= tmpReal || tmpReal >= 1E-08m)
                 {
-                    outReal[outIdx] = ((n * S_xy) - (S_x * S_y)) / tmp_real;
+                    outReal[outIdx] = (n * sxy - sx * sy) / tmpReal;
                     outIdx++;
                 }
                 else
                 {
-                    outReal[outIdx] = 0.0;
+                    outReal[outIdx] = Decimal.Zero;
                     outIdx++;
                 }
 
-                S_xx -= x * x;
-                S_xy -= x * y;
-                S_x -= x;
-                S_y -= y;
+                sxx -= x * x;
+                sxy -= x * y;
+                sx -= x;
+                sy -= y;
             } while (i <= endIdx);
 
             outNBElement = outIdx;
@@ -368,13 +350,9 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int BetaLookback(int optInTimePeriod)
+        public static int BetaLookback(int optInTimePeriod = 5)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return -1;
             }

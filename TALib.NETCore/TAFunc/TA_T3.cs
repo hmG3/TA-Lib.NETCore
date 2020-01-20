@@ -4,8 +4,8 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode T3(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, double optInVFactor, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode T3(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
+            int optInTimePeriod = 5, double optInVFactor = 0.7)
         {
             int i;
             if (startIdx < 0)
@@ -13,7 +13,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -23,20 +23,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInVFactor == -4E+37)
-            {
-                optInVFactor = 0.7;
-            }
-            else if ((optInVFactor < 0.0) || (optInVFactor > 1.0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000 || optInVFactor < 0.0 || optInVFactor > 1.0)
             {
                 return RetCode.BadParam;
             }
@@ -46,7 +33,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookbackTotal = ((optInTimePeriod - 1) * 6) + ((int) Globals.unstablePeriod[0x16]);
+            int lookbackTotal = (optInTimePeriod - 1) * 6 + (int) Globals.UnstablePeriod[(int) FuncUnstId.T3];
             if (startIdx <= lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -62,7 +49,7 @@ namespace TALib
             outBegIdx = startIdx;
             int today = startIdx - lookbackTotal;
             double k = 2.0 / (optInTimePeriod + 1.0);
-            double one_minus_k = 1.0 - k;
+            double oneMinusK = 1.0 - k;
             double tempReal = inReal[today];
             today++;
             for (i = optInTimePeriod - 1; i > 0; i--)
@@ -71,62 +58,62 @@ namespace TALib
                 today++;
             }
 
-            double e1 = tempReal / ((double) optInTimePeriod);
+            double e1 = tempReal / optInTimePeriod;
             tempReal = e1;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
                 tempReal += e1;
             }
 
-            double e2 = tempReal / ((double) optInTimePeriod);
+            double e2 = tempReal / optInTimePeriod;
             tempReal = e2;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
+                e2 = k * e1 + oneMinusK * e2;
                 tempReal += e2;
             }
 
-            double e3 = tempReal / ((double) optInTimePeriod);
+            double e3 = tempReal / optInTimePeriod;
             tempReal = e3;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
-                e3 = (k * e2) + (one_minus_k * e3);
+                e2 = k * e1 + oneMinusK * e2;
+                e3 = k * e2 + oneMinusK * e3;
                 tempReal += e3;
             }
 
-            double e4 = tempReal / ((double) optInTimePeriod);
+            double e4 = tempReal / optInTimePeriod;
             tempReal = e4;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
-                e3 = (k * e2) + (one_minus_k * e3);
-                e4 = (k * e3) + (one_minus_k * e4);
+                e2 = k * e1 + oneMinusK * e2;
+                e3 = k * e2 + oneMinusK * e3;
+                e4 = k * e3 + oneMinusK * e4;
                 tempReal += e4;
             }
 
-            double e5 = tempReal / ((double) optInTimePeriod);
+            double e5 = tempReal / optInTimePeriod;
             tempReal = e5;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
-                e3 = (k * e2) + (one_minus_k * e3);
-                e4 = (k * e3) + (one_minus_k * e4);
-                e5 = (k * e4) + (one_minus_k * e5);
+                e2 = k * e1 + oneMinusK * e2;
+                e3 = k * e2 + oneMinusK * e3;
+                e4 = k * e3 + oneMinusK * e4;
+                e5 = k * e4 + oneMinusK * e5;
                 tempReal += e5;
             }
 
-            double e6 = tempReal / ((double) optInTimePeriod);
+            double e6 = tempReal / optInTimePeriod;
             while (true)
             {
                 if (today > startIdx)
@@ -134,22 +121,22 @@ namespace TALib
                     break;
                 }
 
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
-                e3 = (k * e2) + (one_minus_k * e3);
-                e4 = (k * e3) + (one_minus_k * e4);
-                e5 = (k * e4) + (one_minus_k * e5);
-                e6 = (k * e5) + (one_minus_k * e6);
+                e2 = k * e1 + oneMinusK * e2;
+                e3 = k * e2 + oneMinusK * e3;
+                e4 = k * e3 + oneMinusK * e4;
+                e5 = k * e4 + oneMinusK * e5;
+                e6 = k * e5 + oneMinusK * e6;
             }
 
             tempReal = optInVFactor * optInVFactor;
             double c1 = -(tempReal * optInVFactor);
             double c2 = 3.0 * (tempReal - c1);
-            double c3 = (-6.0 * tempReal) - (3.0 * (optInVFactor - c1));
-            double c4 = ((1.0 + (3.0 * optInVFactor)) - c1) + (3.0 * tempReal);
-            int outIdx = 0;
-            outReal[outIdx] = (((c1 * e6) + (c2 * e5)) + (c3 * e4)) + (c4 * e3);
+            double c3 = -6.0 * tempReal - 3.0 * (optInVFactor - c1);
+            double c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
+            int outIdx = default;
+            outReal[outIdx] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
             outIdx++;
             while (true)
             {
@@ -158,14 +145,14 @@ namespace TALib
                     break;
                 }
 
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
-                e3 = (k * e2) + (one_minus_k * e3);
-                e4 = (k * e3) + (one_minus_k * e4);
-                e5 = (k * e4) + (one_minus_k * e5);
-                e6 = (k * e5) + (one_minus_k * e6);
-                outReal[outIdx] = (((c1 * e6) + (c2 * e5)) + (c3 * e4)) + (c4 * e3);
+                e2 = k * e1 + oneMinusK * e2;
+                e3 = k * e2 + oneMinusK * e3;
+                e4 = k * e3 + oneMinusK * e4;
+                e5 = k * e4 + oneMinusK * e5;
+                e6 = k * e5 + oneMinusK * e6;
+                outReal[outIdx] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
                 outIdx++;
             }
 
@@ -173,8 +160,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode T3(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, double optInVFactor, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode T3(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
+            int optInTimePeriod = 5, decimal optInVFactor = 0.7m)
         {
             int i;
             if (startIdx < 0)
@@ -182,7 +169,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -192,20 +179,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInVFactor == -4E+37)
-            {
-                optInVFactor = 0.7;
-            }
-            else if ((optInVFactor < 0.0) || (optInVFactor > 1.0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000 || optInVFactor < Decimal.Zero || optInVFactor > Decimal.One)
             {
                 return RetCode.BadParam;
             }
@@ -215,7 +189,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookbackTotal = ((optInTimePeriod - 1) * 6) + ((int) Globals.unstablePeriod[0x16]);
+            int lookbackTotal = (optInTimePeriod - 1) * 6 + (int) Globals.UnstablePeriod[(int) FuncUnstId.T3];
             if (startIdx <= lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -230,9 +204,9 @@ namespace TALib
 
             outBegIdx = startIdx;
             int today = startIdx - lookbackTotal;
-            double k = 2.0 / (optInTimePeriod + 1.0);
-            double one_minus_k = 1.0 - k;
-            double tempReal = inReal[today];
+            decimal k = 2m / (optInTimePeriod + Decimal.One);
+            decimal oneMinusK = Decimal.One - k;
+            decimal tempReal = inReal[today];
             today++;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
@@ -240,62 +214,62 @@ namespace TALib
                 today++;
             }
 
-            double e1 = tempReal / ((double) optInTimePeriod);
+            decimal e1 = tempReal / optInTimePeriod;
             tempReal = e1;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
                 tempReal += e1;
             }
 
-            double e2 = tempReal / ((double) optInTimePeriod);
+            decimal e2 = tempReal / optInTimePeriod;
             tempReal = e2;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
+                e2 = k * e1 + oneMinusK * e2;
                 tempReal += e2;
             }
 
-            double e3 = tempReal / ((double) optInTimePeriod);
+            decimal e3 = tempReal / optInTimePeriod;
             tempReal = e3;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
-                e3 = (k * e2) + (one_minus_k * e3);
+                e2 = k * e1 + oneMinusK * e2;
+                e3 = k * e2 + oneMinusK * e3;
                 tempReal += e3;
             }
 
-            double e4 = tempReal / ((double) optInTimePeriod);
+            decimal e4 = tempReal / optInTimePeriod;
             tempReal = e4;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
-                e3 = (k * e2) + (one_minus_k * e3);
-                e4 = (k * e3) + (one_minus_k * e4);
+                e2 = k * e1 + oneMinusK * e2;
+                e3 = k * e2 + oneMinusK * e3;
+                e4 = k * e3 + oneMinusK * e4;
                 tempReal += e4;
             }
 
-            double e5 = tempReal / ((double) optInTimePeriod);
+            decimal e5 = tempReal / optInTimePeriod;
             tempReal = e5;
             for (i = optInTimePeriod - 1; i > 0; i--)
             {
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
-                e3 = (k * e2) + (one_minus_k * e3);
-                e4 = (k * e3) + (one_minus_k * e4);
-                e5 = (k * e4) + (one_minus_k * e5);
+                e2 = k * e1 + oneMinusK * e2;
+                e3 = k * e2 + oneMinusK * e3;
+                e4 = k * e3 + oneMinusK * e4;
+                e5 = k * e4 + oneMinusK * e5;
                 tempReal += e5;
             }
 
-            double e6 = tempReal / ((double) optInTimePeriod);
+            decimal e6 = tempReal / optInTimePeriod;
             while (true)
             {
                 if (today > startIdx)
@@ -303,22 +277,22 @@ namespace TALib
                     break;
                 }
 
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
-                e3 = (k * e2) + (one_minus_k * e3);
-                e4 = (k * e3) + (one_minus_k * e4);
-                e5 = (k * e4) + (one_minus_k * e5);
-                e6 = (k * e5) + (one_minus_k * e6);
+                e2 = k * e1 + oneMinusK * e2;
+                e3 = k * e2 + oneMinusK * e3;
+                e4 = k * e3 + oneMinusK * e4;
+                e5 = k * e4 + oneMinusK * e5;
+                e6 = k * e5 + oneMinusK * e6;
             }
 
             tempReal = optInVFactor * optInVFactor;
-            double c1 = -(tempReal * optInVFactor);
-            double c2 = 3.0 * (tempReal - c1);
-            double c3 = (-6.0 * tempReal) - (3.0 * (optInVFactor - c1));
-            double c4 = ((1.0 + (3.0 * optInVFactor)) - c1) + (3.0 * tempReal);
-            int outIdx = 0;
-            outReal[outIdx] = (((c1 * e6) + (c2 * e5)) + (c3 * e4)) + (c4 * e3);
+            decimal c1 = -(tempReal * optInVFactor);
+            decimal c2 = 3m * (tempReal - c1);
+            decimal c3 = -6m * tempReal - 3m * (optInVFactor - c1);
+            decimal c4 = Decimal.One + 3m * optInVFactor - c1 + 3m * tempReal;
+            int outIdx = default;
+            outReal[outIdx] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
             outIdx++;
             while (true)
             {
@@ -327,14 +301,14 @@ namespace TALib
                     break;
                 }
 
-                e1 = (k * inReal[today]) + (one_minus_k * e1);
+                e1 = k * inReal[today] + oneMinusK * e1;
                 today++;
-                e2 = (k * e1) + (one_minus_k * e2);
-                e3 = (k * e2) + (one_minus_k * e3);
-                e4 = (k * e3) + (one_minus_k * e4);
-                e5 = (k * e4) + (one_minus_k * e5);
-                e6 = (k * e5) + (one_minus_k * e6);
-                outReal[outIdx] = (((c1 * e6) + (c2 * e5)) + (c3 * e4)) + (c4 * e3);
+                e2 = k * e1 + oneMinusK * e2;
+                e3 = k * e2 + oneMinusK * e3;
+                e4 = k * e3 + oneMinusK * e4;
+                e5 = k * e4 + oneMinusK * e5;
+                e6 = k * e5 + oneMinusK * e6;
+                outReal[outIdx] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
                 outIdx++;
             }
 
@@ -342,27 +316,15 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int T3Lookback(int optInTimePeriod, double optInVFactor)
+        public static int T3Lookback(int optInTimePeriod = 5)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            if (optInVFactor == -4E+37)
-            {
-                optInVFactor = 0.7;
-            }
-            else if ((optInVFactor < 0.0) || (optInVFactor > 1.0))
-            {
-                return -1;
-            }
 
-            return (((optInTimePeriod - 1) * 6) + ((int) Globals.unstablePeriod[0x16]));
+            return (optInTimePeriod - 1) * 6 + (int) Globals.UnstablePeriod[(int) FuncUnstId.T3];
         }
     }
 }

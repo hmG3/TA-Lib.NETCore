@@ -12,12 +12,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || ((inClose == null) || (inVolume == null)))
+            if (inHigh == null || inLow == null || inClose == null || inVolume == null)
             {
                 return RetCode.BadParam;
             }
@@ -27,12 +27,12 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int nbBar = (endIdx - startIdx) + 1;
+            int nbBar = endIdx - startIdx + 1;
             outNBElement = nbBar;
             outBegIdx = startIdx;
             int currentBar = startIdx;
-            int outIdx = 0;
-            double ad = 0.0;
+            int outIdx = default;
+            double ad = default;
             while (true)
             {
                 if (nbBar == 0)
@@ -46,7 +46,7 @@ namespace TALib
                 double close = inClose[currentBar];
                 if (tmp > 0.0)
                 {
-                    ad += (((close - low) - (high - close)) / tmp) * inVolume[currentBar];
+                    ad += (close - low - (high - close)) / tmp * inVolume[currentBar];
                 }
 
                 outReal[outIdx] = ad;
@@ -58,20 +58,20 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Ad(int startIdx, int endIdx, float[] inHigh, float[] inLow, float[] inClose, float[] inVolume,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Ad(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume,
+            ref int outBegIdx, ref int outNBElement, decimal[] outReal)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || ((inClose == null) || (inVolume == null)))
+            if (inHigh == null || inLow == null || inClose == null || inVolume == null)
             {
                 return RetCode.BadParam;
             }
@@ -81,12 +81,12 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int nbBar = (endIdx - startIdx) + 1;
+            int nbBar = endIdx - startIdx + 1;
             outNBElement = nbBar;
             outBegIdx = startIdx;
             int currentBar = startIdx;
-            int outIdx = 0;
-            double ad = 0.0;
+            int outIdx = default;
+            decimal ad = default;
             while (true)
             {
                 if (nbBar == 0)
@@ -94,13 +94,13 @@ namespace TALib
                     break;
                 }
 
-                double high = inHigh[currentBar];
-                double low = inLow[currentBar];
-                double tmp = high - low;
-                double close = inClose[currentBar];
-                if (tmp > 0.0)
+                decimal high = inHigh[currentBar];
+                decimal low = inLow[currentBar];
+                decimal tmp = high - low;
+                decimal close = inClose[currentBar];
+                if (tmp > Decimal.Zero)
                 {
-                    ad += (((close - low) - (high - close)) / tmp) * inVolume[currentBar];
+                    ad += (close - low - (high - close)) / tmp * inVolume[currentBar];
                 }
 
                 outReal[outIdx] = ad;

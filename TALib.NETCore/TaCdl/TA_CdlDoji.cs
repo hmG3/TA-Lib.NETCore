@@ -12,12 +12,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inOpen == null) || (inHigh == null)) || ((inLow == null) || (inClose == null)))
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
@@ -40,9 +40,9 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double BodyDojiPeriodTotal = 0.0;
-            int BodyDojiTrailingIdx = startIdx - Globals.candleSettings[3].avgPeriod;
-            int i = BodyDojiTrailingIdx;
+            double bodyDojiPeriodTotal = default;
+            int bodyDojiTrailingIdx = startIdx - Globals.CandleSettings[(int) CandleSettingType.BodyDoji].AvgPeriod;
+            int i = bodyDojiTrailingIdx;
             while (true)
             {
                 double num22;
@@ -51,21 +51,21 @@ namespace TALib
                     break;
                 }
 
-                if (Globals.candleSettings[3].rangeType == RangeType.RealBody)
+                if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.RealBody)
                 {
-                    num22 = Math.Abs((double) (inClose[i] - inOpen[i]));
+                    num22 = Math.Abs(inClose[i] - inOpen[i]);
                 }
                 else
                 {
                     double num21;
-                    if (Globals.candleSettings[3].rangeType == RangeType.HighLow)
+                    if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.HighLow)
                     {
                         num21 = inHigh[i] - inLow[i];
                     }
                     else
                     {
                         double num18;
-                        if (Globals.candleSettings[3].rangeType == RangeType.Shadows)
+                        if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.Shadows)
                         {
                             double num19;
                             double num20;
@@ -87,7 +87,7 @@ namespace TALib
                                 num19 = inClose[i];
                             }
 
-                            num18 = (inHigh[i] - num20) + (num19 - inLow[i]);
+                            num18 = inHigh[i] - num20 + (num19 - inLow[i]);
                         }
                         else
                         {
@@ -100,39 +100,38 @@ namespace TALib
                     num22 = num21;
                 }
 
-                BodyDojiPeriodTotal += num22;
+                bodyDojiPeriodTotal += num22;
                 i++;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             do
             {
                 double num5;
                 double num10;
-                double num11;
                 double num17;
-                if (Globals.candleSettings[3].avgPeriod != 0.0)
+                if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].AvgPeriod != 0)
                 {
-                    num17 = BodyDojiPeriodTotal / ((double) Globals.candleSettings[3].avgPeriod);
+                    num17 = bodyDojiPeriodTotal / Globals.CandleSettings[(int) CandleSettingType.BodyDoji].AvgPeriod;
                 }
                 else
                 {
                     double num16;
-                    if (Globals.candleSettings[3].rangeType == RangeType.RealBody)
+                    if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.RealBody)
                     {
-                        num16 = Math.Abs((double) (inClose[i] - inOpen[i]));
+                        num16 = Math.Abs(inClose[i] - inOpen[i]);
                     }
                     else
                     {
                         double num15;
-                        if (Globals.candleSettings[3].rangeType == RangeType.HighLow)
+                        if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.HighLow)
                         {
                             num15 = inHigh[i] - inLow[i];
                         }
                         else
                         {
                             double num12;
-                            if (Globals.candleSettings[3].rangeType == RangeType.Shadows)
+                            if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.Shadows)
                             {
                                 double num13;
                                 double num14;
@@ -154,7 +153,7 @@ namespace TALib
                                     num13 = inClose[i];
                                 }
 
-                                num12 = (inHigh[i] - num14) + (num13 - inLow[i]);
+                                num12 = inHigh[i] - num14 + (num13 - inLow[i]);
                             }
                             else
                             {
@@ -170,16 +169,9 @@ namespace TALib
                     num17 = num16;
                 }
 
-                if (Globals.candleSettings[3].rangeType == RangeType.Shadows)
-                {
-                    num11 = 2.0;
-                }
-                else
-                {
-                    num11 = 1.0;
-                }
+                var num11 = Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.Shadows ? 2.0 : 1.0;
 
-                if (Math.Abs((double) (inClose[i] - inOpen[i])) <= ((Globals.candleSettings[3].factor * num17) / num11))
+                if (Math.Abs(inClose[i] - inOpen[i]) <= Globals.CandleSettings[(int) CandleSettingType.BodyDoji].Factor * num17 / num11)
                 {
                     outInteger[outIdx] = 100;
                     outIdx++;
@@ -190,21 +182,21 @@ namespace TALib
                     outIdx++;
                 }
 
-                if (Globals.candleSettings[3].rangeType == RangeType.RealBody)
+                if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.RealBody)
                 {
-                    num10 = Math.Abs((double) (inClose[i] - inOpen[i]));
+                    num10 = Math.Abs(inClose[i] - inOpen[i]);
                 }
                 else
                 {
                     double num9;
-                    if (Globals.candleSettings[3].rangeType == RangeType.HighLow)
+                    if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.HighLow)
                     {
                         num9 = inHigh[i] - inLow[i];
                     }
                     else
                     {
                         double num6;
-                        if (Globals.candleSettings[3].rangeType == RangeType.Shadows)
+                        if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.Shadows)
                         {
                             double num7;
                             double num8;
@@ -226,7 +218,7 @@ namespace TALib
                                 num7 = inClose[i];
                             }
 
-                            num6 = (inHigh[i] - num8) + (num7 - inLow[i]);
+                            num6 = inHigh[i] - num8 + (num7 - inLow[i]);
                         }
                         else
                         {
@@ -239,43 +231,43 @@ namespace TALib
                     num10 = num9;
                 }
 
-                if (Globals.candleSettings[3].rangeType == RangeType.RealBody)
+                if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.RealBody)
                 {
-                    num5 = Math.Abs((double) (inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx]));
+                    num5 = Math.Abs(inClose[bodyDojiTrailingIdx] - inOpen[bodyDojiTrailingIdx]);
                 }
                 else
                 {
                     double num4;
-                    if (Globals.candleSettings[3].rangeType == RangeType.HighLow)
+                    if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.HighLow)
                     {
-                        num4 = inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx];
+                        num4 = inHigh[bodyDojiTrailingIdx] - inLow[bodyDojiTrailingIdx];
                     }
                     else
                     {
                         double num;
-                        if (Globals.candleSettings[3].rangeType == RangeType.Shadows)
+                        if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.Shadows)
                         {
                             double num2;
                             double num3;
-                            if (inClose[BodyDojiTrailingIdx] >= inOpen[BodyDojiTrailingIdx])
+                            if (inClose[bodyDojiTrailingIdx] >= inOpen[bodyDojiTrailingIdx])
                             {
-                                num3 = inClose[BodyDojiTrailingIdx];
+                                num3 = inClose[bodyDojiTrailingIdx];
                             }
                             else
                             {
-                                num3 = inOpen[BodyDojiTrailingIdx];
+                                num3 = inOpen[bodyDojiTrailingIdx];
                             }
 
-                            if (inClose[BodyDojiTrailingIdx] >= inOpen[BodyDojiTrailingIdx])
+                            if (inClose[bodyDojiTrailingIdx] >= inOpen[bodyDojiTrailingIdx])
                             {
-                                num2 = inOpen[BodyDojiTrailingIdx];
+                                num2 = inOpen[bodyDojiTrailingIdx];
                             }
                             else
                             {
-                                num2 = inClose[BodyDojiTrailingIdx];
+                                num2 = inClose[bodyDojiTrailingIdx];
                             }
 
-                            num = (inHigh[BodyDojiTrailingIdx] - num3) + (num2 - inLow[BodyDojiTrailingIdx]);
+                            num = inHigh[bodyDojiTrailingIdx] - num3 + (num2 - inLow[bodyDojiTrailingIdx]);
                         }
                         else
                         {
@@ -288,9 +280,9 @@ namespace TALib
                     num5 = num4;
                 }
 
-                BodyDojiPeriodTotal += num10 - num5;
+                bodyDojiPeriodTotal += num10 - num5;
                 i++;
-                BodyDojiTrailingIdx++;
+                bodyDojiTrailingIdx++;
             } while (i <= endIdx);
 
             outNBElement = outIdx;
@@ -298,7 +290,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode CdlDoji(int startIdx, int endIdx, float[] inOpen, float[] inHigh, float[] inLow, float[] inClose,
+        public static RetCode CdlDoji(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose,
             ref int outBegIdx, ref int outNBElement, int[] outInteger)
         {
             if (startIdx < 0)
@@ -306,12 +298,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inOpen == null) || (inHigh == null)) || ((inLow == null) || (inClose == null)))
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
@@ -334,35 +326,35 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double BodyDojiPeriodTotal = 0.0;
-            int BodyDojiTrailingIdx = startIdx - Globals.candleSettings[3].avgPeriod;
-            int i = BodyDojiTrailingIdx;
+            decimal bodyDojiPeriodTotal = default;
+            int bodyDojiTrailingIdx = startIdx - Globals.CandleSettings[(int) CandleSettingType.BodyDoji].AvgPeriod;
+            int i = bodyDojiTrailingIdx;
             while (true)
             {
-                float num22;
+                decimal num22;
                 if (i >= startIdx)
                 {
                     break;
                 }
 
-                if (Globals.candleSettings[3].rangeType == RangeType.RealBody)
+                if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.RealBody)
                 {
-                    num22 = Math.Abs((float) (inClose[i] - inOpen[i]));
+                    num22 = Math.Abs(inClose[i] - inOpen[i]);
                 }
                 else
                 {
-                    float num21;
-                    if (Globals.candleSettings[3].rangeType == RangeType.HighLow)
+                    decimal num21;
+                    if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.HighLow)
                     {
                         num21 = inHigh[i] - inLow[i];
                     }
                     else
                     {
-                        float num18;
-                        if (Globals.candleSettings[3].rangeType == RangeType.Shadows)
+                        decimal num18;
+                        if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.Shadows)
                         {
-                            float num19;
-                            float num20;
+                            decimal num19;
+                            decimal num20;
                             if (inClose[i] >= inOpen[i])
                             {
                                 num20 = inClose[i];
@@ -381,11 +373,11 @@ namespace TALib
                                 num19 = inClose[i];
                             }
 
-                            num18 = (inHigh[i] - num20) + (num19 - inLow[i]);
+                            num18 = inHigh[i] - num20 + (num19 - inLow[i]);
                         }
                         else
                         {
-                            num18 = 0.0f;
+                            num18 = Decimal.Zero;
                         }
 
                         num21 = num18;
@@ -394,42 +386,41 @@ namespace TALib
                     num22 = num21;
                 }
 
-                BodyDojiPeriodTotal += num22;
+                bodyDojiPeriodTotal += num22;
                 i++;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             do
             {
-                float num5;
-                float num10;
-                double num11;
-                double num17;
-                if (Globals.candleSettings[3].avgPeriod != 0.0)
+                decimal num5;
+                decimal num10;
+                decimal num17;
+                if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].AvgPeriod != 0)
                 {
-                    num17 = BodyDojiPeriodTotal / ((double) Globals.candleSettings[3].avgPeriod);
+                    num17 = bodyDojiPeriodTotal / Globals.CandleSettings[(int) CandleSettingType.BodyDoji].AvgPeriod;
                 }
                 else
                 {
-                    float num16;
-                    if (Globals.candleSettings[3].rangeType == RangeType.RealBody)
+                    decimal num16;
+                    if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.RealBody)
                     {
-                        num16 = Math.Abs((float) (inClose[i] - inOpen[i]));
+                        num16 = Math.Abs(inClose[i] - inOpen[i]);
                     }
                     else
                     {
-                        float num15;
-                        if (Globals.candleSettings[3].rangeType == RangeType.HighLow)
+                        decimal num15;
+                        if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.HighLow)
                         {
                             num15 = inHigh[i] - inLow[i];
                         }
                         else
                         {
-                            float num12;
-                            if (Globals.candleSettings[3].rangeType == RangeType.Shadows)
+                            decimal num12;
+                            if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.Shadows)
                             {
-                                float num13;
-                                float num14;
+                                decimal num13;
+                                decimal num14;
                                 if (inClose[i] >= inOpen[i])
                                 {
                                     num14 = inClose[i];
@@ -448,11 +439,11 @@ namespace TALib
                                     num13 = inClose[i];
                                 }
 
-                                num12 = (inHigh[i] - num14) + (num13 - inLow[i]);
+                                num12 = inHigh[i] - num14 + (num13 - inLow[i]);
                             }
                             else
                             {
-                                num12 = 0.0f;
+                                num12 = Decimal.Zero;
                             }
 
                             num15 = num12;
@@ -464,16 +455,10 @@ namespace TALib
                     num17 = num16;
                 }
 
-                if (Globals.candleSettings[3].rangeType == RangeType.Shadows)
-                {
-                    num11 = 2.0;
-                }
-                else
-                {
-                    num11 = 1.0;
-                }
+                var num11 = Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.Shadows ? 2m : 1m;
 
-                if (Math.Abs((float) (inClose[i] - inOpen[i])) <= ((Globals.candleSettings[3].factor * num17) / num11))
+                if (Math.Abs(inClose[i] - inOpen[i]) <=
+                    (decimal) Globals.CandleSettings[(int) CandleSettingType.BodyDoji].Factor * num17 / num11)
                 {
                     outInteger[outIdx] = 100;
                     outIdx++;
@@ -484,24 +469,24 @@ namespace TALib
                     outIdx++;
                 }
 
-                if (Globals.candleSettings[3].rangeType == RangeType.RealBody)
+                if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.RealBody)
                 {
-                    num10 = Math.Abs((float) (inClose[i] - inOpen[i]));
+                    num10 = Math.Abs(inClose[i] - inOpen[i]);
                 }
                 else
                 {
-                    float num9;
-                    if (Globals.candleSettings[3].rangeType == RangeType.HighLow)
+                    decimal num9;
+                    if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.HighLow)
                     {
                         num9 = inHigh[i] - inLow[i];
                     }
                     else
                     {
-                        float num6;
-                        if (Globals.candleSettings[3].rangeType == RangeType.Shadows)
+                        decimal num6;
+                        if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.Shadows)
                         {
-                            float num7;
-                            float num8;
+                            decimal num7;
+                            decimal num8;
                             if (inClose[i] >= inOpen[i])
                             {
                                 num8 = inClose[i];
@@ -520,11 +505,11 @@ namespace TALib
                                 num7 = inClose[i];
                             }
 
-                            num6 = (inHigh[i] - num8) + (num7 - inLow[i]);
+                            num6 = inHigh[i] - num8 + (num7 - inLow[i]);
                         }
                         else
                         {
-                            num6 = 0.0f;
+                            num6 = Decimal.Zero;
                         }
 
                         num9 = num6;
@@ -533,47 +518,47 @@ namespace TALib
                     num10 = num9;
                 }
 
-                if (Globals.candleSettings[3].rangeType == RangeType.RealBody)
+                if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.RealBody)
                 {
-                    num5 = Math.Abs((float) (inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx]));
+                    num5 = Math.Abs(inClose[bodyDojiTrailingIdx] - inOpen[bodyDojiTrailingIdx]);
                 }
                 else
                 {
-                    float num4;
-                    if (Globals.candleSettings[3].rangeType == RangeType.HighLow)
+                    decimal num4;
+                    if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.HighLow)
                     {
-                        num4 = inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx];
+                        num4 = inHigh[bodyDojiTrailingIdx] - inLow[bodyDojiTrailingIdx];
                     }
                     else
                     {
-                        float num;
-                        if (Globals.candleSettings[3].rangeType == RangeType.Shadows)
+                        decimal num;
+                        if (Globals.CandleSettings[(int) CandleSettingType.BodyDoji].RangeType == RangeType.Shadows)
                         {
-                            float num2;
-                            float num3;
-                            if (inClose[BodyDojiTrailingIdx] >= inOpen[BodyDojiTrailingIdx])
+                            decimal num2;
+                            decimal num3;
+                            if (inClose[bodyDojiTrailingIdx] >= inOpen[bodyDojiTrailingIdx])
                             {
-                                num3 = inClose[BodyDojiTrailingIdx];
+                                num3 = inClose[bodyDojiTrailingIdx];
                             }
                             else
                             {
-                                num3 = inOpen[BodyDojiTrailingIdx];
+                                num3 = inOpen[bodyDojiTrailingIdx];
                             }
 
-                            if (inClose[BodyDojiTrailingIdx] >= inOpen[BodyDojiTrailingIdx])
+                            if (inClose[bodyDojiTrailingIdx] >= inOpen[bodyDojiTrailingIdx])
                             {
-                                num2 = inOpen[BodyDojiTrailingIdx];
+                                num2 = inOpen[bodyDojiTrailingIdx];
                             }
                             else
                             {
-                                num2 = inClose[BodyDojiTrailingIdx];
+                                num2 = inClose[bodyDojiTrailingIdx];
                             }
 
-                            num = (inHigh[BodyDojiTrailingIdx] - num3) + (num2 - inLow[BodyDojiTrailingIdx]);
+                            num = inHigh[bodyDojiTrailingIdx] - num3 + (num2 - inLow[bodyDojiTrailingIdx]);
                         }
                         else
                         {
-                            num = 0.0f;
+                            num = Decimal.Zero;
                         }
 
                         num4 = num;
@@ -582,9 +567,9 @@ namespace TALib
                     num5 = num4;
                 }
 
-                BodyDojiPeriodTotal += num10 - num5;
+                bodyDojiPeriodTotal += num10 - num5;
                 i++;
-                BodyDojiTrailingIdx++;
+                bodyDojiTrailingIdx++;
             } while (i <= endIdx);
 
             outNBElement = outIdx;
@@ -594,7 +579,7 @@ namespace TALib
 
         public static int CdlDojiLookback()
         {
-            return Globals.candleSettings[3].avgPeriod;
+            return Globals.CandleSettings[(int) CandleSettingType.BodyDoji].AvgPeriod;
         }
     }
 }

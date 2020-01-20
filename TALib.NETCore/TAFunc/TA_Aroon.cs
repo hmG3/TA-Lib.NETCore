@@ -1,11 +1,9 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Aroon(int startIdx, int endIdx, double[] inHigh, double[] inLow, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, double[] outAroonDown, double[] outAroonUp)
+        public static RetCode Aroon(int startIdx, int endIdx, double[] inHigh, double[] inLow, ref int outBegIdx, ref int outNBElement,
+            double[] outAroonDown, double[] outAroonUp, int optInTimePeriod = 14)
         {
             int i;
             if (startIdx < 0)
@@ -13,21 +11,17 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if ((inHigh == null) || (inLow == null))
+            if (inHigh == null || inLow == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -54,14 +48,14 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
             int trailingIdx = startIdx - optInTimePeriod;
             int lowestIdx = -1;
             int highestIdx = -1;
-            double lowest = 0.0;
-            double highest = 0.0;
-            double factor = 100.0 / ((double) optInTimePeriod);
+            double lowest = default;
+            double highest = default;
+            double factor = 100.0 / optInTimePeriod;
             Label_00BB:
             if (today > endIdx)
             {
@@ -138,8 +132,8 @@ namespace TALib
             goto Label_00BB;
         }
 
-        public static RetCode Aroon(int startIdx, int endIdx, float[] inHigh, float[] inLow, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, double[] outAroonDown, double[] outAroonUp)
+        public static RetCode Aroon(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, ref int outBegIdx, ref int outNBElement,
+            decimal[] outAroonDown, decimal[] outAroonUp, int optInTimePeriod = 14)
         {
             int i;
             if (startIdx < 0)
@@ -147,21 +141,17 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if ((inHigh == null) || (inLow == null))
+            if (inHigh == null || inLow == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -188,14 +178,14 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
             int trailingIdx = startIdx - optInTimePeriod;
             int lowestIdx = -1;
             int highestIdx = -1;
-            double lowest = 0.0;
-            double highest = 0.0;
-            double factor = 100.0 / ((double) optInTimePeriod);
+            decimal lowest = default;
+            decimal highest = default;
+            decimal factor = 100m / optInTimePeriod;
             Label_00BB:
             if (today > endIdx)
             {
@@ -204,7 +194,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double tmp = inLow[today];
+            decimal tmp = inLow[today];
             if (lowestIdx < trailingIdx)
             {
                 lowestIdx = trailingIdx;
@@ -272,13 +262,9 @@ namespace TALib
             goto Label_00BB;
         }
 
-        public static int AroonLookback(int optInTimePeriod)
+        public static int AroonLookback(int optInTimePeriod = 14)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }

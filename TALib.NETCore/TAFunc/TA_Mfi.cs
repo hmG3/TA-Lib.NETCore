@@ -5,30 +5,25 @@ namespace TALib
     public partial class Core
     {
         public static RetCode Mfi(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, double[] inVolume,
-            int optInTimePeriod, ref int outBegIdx, ref int outNBElement, double[] outReal)
+            ref int outBegIdx, ref int outNBElement, double[] outReal, int optInTimePeriod = 14)
         {
-            int mflow_Idx = 0;
-            int maxIdx_mflow = 0x31;
+            int mflowIdx = default;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || ((inClose == null) || (inVolume == null)))
+            if (inHigh == null || inLow == null || inClose == null || inVolume == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -38,26 +33,12 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod <= 0)
-            {
-                return RetCode.AllocErr;
-            }
+            var moneyFlow = new (double negative, double positive)[optInTimePeriod];
 
-            MoneyFlow[] mflow = new MoneyFlow[optInTimePeriod];
-            for (int _mflow_index = 0; _mflow_index < mflow.Length; _mflow_index++)
-            {
-                mflow[_mflow_index] = new MoneyFlow();
-            }
-
-            if (mflow == null)
-            {
-                return RetCode.AllocErr;
-            }
-
-            maxIdx_mflow = optInTimePeriod - 1;
+            var maxIdxMflow = optInTimePeriod - 1;
             outBegIdx = 0;
             outNBElement = 0;
-            int lookbackTotal = optInTimePeriod + ((int) Globals.unstablePeriod[14]);
+            int lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Mfi];
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -67,41 +48,41 @@ namespace TALib
             {
                 double tempValue1;
                 double tempValue2;
-                int outIdx = 0;
+                int outIdx = default;
                 int today = startIdx - lookbackTotal;
-                double prevValue = ((inHigh[today] + inLow[today]) + inClose[today]) / 3.0;
-                double posSumMF = 0.0;
-                double negSumMF = 0.0;
+                double prevValue = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+                double posSumMF = default;
+                double negSumMF = default;
                 today++;
-                for (int i = optInTimePeriod; i > 0; i--)
+                for (var i = optInTimePeriod; i > 0; i--)
                 {
-                    tempValue1 = ((inHigh[today] + inLow[today]) + inClose[today]) / 3.0;
+                    tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
                     tempValue2 = tempValue1 - prevValue;
                     prevValue = tempValue1;
                     tempValue1 *= inVolume[today];
                     today++;
                     if (tempValue2 < 0.0)
                     {
-                        mflow[mflow_Idx].negative = tempValue1;
+                        moneyFlow[mflowIdx].negative = tempValue1;
                         negSumMF += tempValue1;
-                        mflow[mflow_Idx].positive = 0.0;
+                        moneyFlow[mflowIdx].positive = 0.0;
                     }
                     else if (tempValue2 > 0.0)
                     {
-                        mflow[mflow_Idx].positive = tempValue1;
+                        moneyFlow[mflowIdx].positive = tempValue1;
                         posSumMF += tempValue1;
-                        mflow[mflow_Idx].negative = 0.0;
+                        moneyFlow[mflowIdx].negative = 0.0;
                     }
                     else
                     {
-                        mflow[mflow_Idx].positive = 0.0;
-                        mflow[mflow_Idx].negative = 0.0;
+                        moneyFlow[mflowIdx].positive = 0.0;
+                        moneyFlow[mflowIdx].negative = 0.0;
                     }
 
-                    mflow_Idx++;
-                    if (mflow_Idx > maxIdx_mflow)
+                    mflowIdx++;
+                    if (mflowIdx > maxIdxMflow)
                     {
-                        mflow_Idx = 0;
+                        mflowIdx = 0;
                     }
                 }
 
@@ -123,64 +104,64 @@ namespace TALib
                 {
                     while (today < startIdx)
                     {
-                        posSumMF -= mflow[mflow_Idx].positive;
-                        negSumMF -= mflow[mflow_Idx].negative;
-                        tempValue1 = ((inHigh[today] + inLow[today]) + inClose[today]) / 3.0;
+                        posSumMF -= moneyFlow[mflowIdx].positive;
+                        negSumMF -= moneyFlow[mflowIdx].negative;
+                        tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
                         tempValue2 = tempValue1 - prevValue;
                         prevValue = tempValue1;
                         tempValue1 *= inVolume[today];
                         today++;
                         if (tempValue2 < 0.0)
                         {
-                            mflow[mflow_Idx].negative = tempValue1;
+                            moneyFlow[mflowIdx].negative = tempValue1;
                             negSumMF += tempValue1;
-                            mflow[mflow_Idx].positive = 0.0;
+                            moneyFlow[mflowIdx].positive = 0.0;
                         }
                         else if (tempValue2 > 0.0)
                         {
-                            mflow[mflow_Idx].positive = tempValue1;
+                            moneyFlow[mflowIdx].positive = tempValue1;
                             posSumMF += tempValue1;
-                            mflow[mflow_Idx].negative = 0.0;
+                            moneyFlow[mflowIdx].negative = 0.0;
                         }
                         else
                         {
-                            mflow[mflow_Idx].positive = 0.0;
-                            mflow[mflow_Idx].negative = 0.0;
+                            moneyFlow[mflowIdx].positive = 0.0;
+                            moneyFlow[mflowIdx].negative = 0.0;
                         }
 
-                        mflow_Idx++;
-                        if (mflow_Idx > maxIdx_mflow)
+                        mflowIdx++;
+                        if (mflowIdx > maxIdxMflow)
                         {
-                            mflow_Idx = 0;
+                            mflowIdx = 0;
                         }
                     }
                 }
 
                 while (today <= endIdx)
                 {
-                    posSumMF -= mflow[mflow_Idx].positive;
-                    negSumMF -= mflow[mflow_Idx].negative;
-                    tempValue1 = ((inHigh[today] + inLow[today]) + inClose[today]) / 3.0;
+                    posSumMF -= moneyFlow[mflowIdx].positive;
+                    negSumMF -= moneyFlow[mflowIdx].negative;
+                    tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
                     tempValue2 = tempValue1 - prevValue;
                     prevValue = tempValue1;
                     tempValue1 *= inVolume[today];
                     today++;
                     if (tempValue2 < 0.0)
                     {
-                        mflow[mflow_Idx].negative = tempValue1;
+                        moneyFlow[mflowIdx].negative = tempValue1;
                         negSumMF += tempValue1;
-                        mflow[mflow_Idx].positive = 0.0;
+                        moneyFlow[mflowIdx].positive = 0.0;
                     }
                     else if (tempValue2 > 0.0)
                     {
-                        mflow[mflow_Idx].positive = tempValue1;
+                        moneyFlow[mflowIdx].positive = tempValue1;
                         posSumMF += tempValue1;
-                        mflow[mflow_Idx].negative = 0.0;
+                        moneyFlow[mflowIdx].negative = 0.0;
                     }
                     else
                     {
-                        mflow[mflow_Idx].positive = 0.0;
-                        mflow[mflow_Idx].negative = 0.0;
+                        moneyFlow[mflowIdx].positive = 0.0;
+                        moneyFlow[mflowIdx].negative = 0.0;
                     }
 
                     tempValue1 = posSumMF + negSumMF;
@@ -195,10 +176,10 @@ namespace TALib
                         outIdx++;
                     }
 
-                    mflow_Idx++;
-                    if (mflow_Idx > maxIdx_mflow)
+                    mflowIdx++;
+                    if (mflowIdx > maxIdxMflow)
                     {
-                        mflow_Idx = 0;
+                        mflowIdx = 0;
                     }
                 }
 
@@ -209,31 +190,26 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Mfi(int startIdx, int endIdx, float[] inHigh, float[] inLow, float[] inClose, float[] inVolume,
-            int optInTimePeriod, ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Mfi(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume,
+            ref int outBegIdx, ref int outNBElement, decimal[] outReal, int optInTimePeriod = 14)
         {
-            int mflow_Idx = 0;
-            int maxIdx_mflow = 0x31;
+            int mflowIdx = 0;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || ((inClose == null) || (inVolume == null)))
+            if (inHigh == null || inLow == null || inClose == null || inVolume == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -243,26 +219,12 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod <= 0)
-            {
-                return RetCode.AllocErr;
-            }
+            var moneyFlow = new (decimal negative, decimal positive)[optInTimePeriod];
 
-            MoneyFlow[] mflow = new MoneyFlow[optInTimePeriod];
-            for (int _mflow_index = 0; _mflow_index < mflow.Length; _mflow_index++)
-            {
-                mflow[_mflow_index] = new MoneyFlow();
-            }
-
-            if (mflow == null)
-            {
-                return RetCode.AllocErr;
-            }
-
-            maxIdx_mflow = optInTimePeriod - 1;
+            var maxIdxMflow = optInTimePeriod - 1;
             outBegIdx = 0;
             outNBElement = 0;
-            int lookbackTotal = optInTimePeriod + ((int) Globals.unstablePeriod[14]);
+            int lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Mfi];
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -270,57 +232,57 @@ namespace TALib
 
             if (startIdx <= endIdx)
             {
-                double tempValue1;
-                double tempValue2;
-                int outIdx = 0;
+                decimal tempValue1;
+                decimal tempValue2;
+                int outIdx = default;
                 int today = startIdx - lookbackTotal;
-                double prevValue = ((inHigh[today] + inLow[today]) + inClose[today]) / 3.0;
-                double posSumMF = 0.0;
-                double negSumMF = 0.0;
+                decimal prevValue = (inHigh[today] + inLow[today] + inClose[today]) / 3m;
+                decimal posSumMF = default;
+                decimal negSumMF = default;
                 today++;
-                for (int i = optInTimePeriod; i > 0; i--)
+                for (var i = optInTimePeriod; i > 0; i--)
                 {
-                    tempValue1 = ((inHigh[today] + inLow[today]) + inClose[today]) / 3.0;
+                    tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3m;
                     tempValue2 = tempValue1 - prevValue;
                     prevValue = tempValue1;
                     tempValue1 *= inVolume[today];
                     today++;
-                    if (tempValue2 < 0.0)
+                    if (tempValue2 < Decimal.Zero)
                     {
-                        mflow[mflow_Idx].negative = tempValue1;
+                        moneyFlow[mflowIdx].negative = tempValue1;
                         negSumMF += tempValue1;
-                        mflow[mflow_Idx].positive = 0.0;
+                        moneyFlow[mflowIdx].positive = Decimal.Zero;
                     }
-                    else if (tempValue2 > 0.0)
+                    else if (tempValue2 > Decimal.Zero)
                     {
-                        mflow[mflow_Idx].positive = tempValue1;
+                        moneyFlow[mflowIdx].positive = tempValue1;
                         posSumMF += tempValue1;
-                        mflow[mflow_Idx].negative = 0.0;
+                        moneyFlow[mflowIdx].negative = Decimal.Zero;
                     }
                     else
                     {
-                        mflow[mflow_Idx].positive = 0.0;
-                        mflow[mflow_Idx].negative = 0.0;
+                        moneyFlow[mflowIdx].positive = Decimal.Zero;
+                        moneyFlow[mflowIdx].negative = Decimal.Zero;
                     }
 
-                    mflow_Idx++;
-                    if (mflow_Idx > maxIdx_mflow)
+                    mflowIdx++;
+                    if (mflowIdx > maxIdxMflow)
                     {
-                        mflow_Idx = 0;
+                        mflowIdx = 0;
                     }
                 }
 
                 if (today > startIdx)
                 {
                     tempValue1 = posSumMF + negSumMF;
-                    if (tempValue1 < 1.0)
+                    if (tempValue1 < Decimal.One)
                     {
-                        outReal[outIdx] = 0.0;
+                        outReal[outIdx] = Decimal.Zero;
                         outIdx++;
                     }
                     else
                     {
-                        outReal[outIdx] = 100.0 * (posSumMF / tempValue1);
+                        outReal[outIdx] = 100m * (posSumMF / tempValue1);
                         outIdx++;
                     }
                 }
@@ -328,82 +290,82 @@ namespace TALib
                 {
                     while (today < startIdx)
                     {
-                        posSumMF -= mflow[mflow_Idx].positive;
-                        negSumMF -= mflow[mflow_Idx].negative;
-                        tempValue1 = ((inHigh[today] + inLow[today]) + inClose[today]) / 3.0;
+                        posSumMF -= moneyFlow[mflowIdx].positive;
+                        negSumMF -= moneyFlow[mflowIdx].negative;
+                        tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3m;
                         tempValue2 = tempValue1 - prevValue;
                         prevValue = tempValue1;
                         tempValue1 *= inVolume[today];
                         today++;
-                        if (tempValue2 < 0.0)
+                        if (tempValue2 < Decimal.Zero)
                         {
-                            mflow[mflow_Idx].negative = tempValue1;
+                            moneyFlow[mflowIdx].negative = tempValue1;
                             negSumMF += tempValue1;
-                            mflow[mflow_Idx].positive = 0.0;
+                            moneyFlow[mflowIdx].positive = Decimal.Zero;
                         }
-                        else if (tempValue2 > 0.0)
+                        else if (tempValue2 > Decimal.Zero)
                         {
-                            mflow[mflow_Idx].positive = tempValue1;
+                            moneyFlow[mflowIdx].positive = tempValue1;
                             posSumMF += tempValue1;
-                            mflow[mflow_Idx].negative = 0.0;
+                            moneyFlow[mflowIdx].negative = Decimal.Zero;
                         }
                         else
                         {
-                            mflow[mflow_Idx].positive = 0.0;
-                            mflow[mflow_Idx].negative = 0.0;
+                            moneyFlow[mflowIdx].positive = Decimal.Zero;
+                            moneyFlow[mflowIdx].negative = Decimal.Zero;
                         }
 
-                        mflow_Idx++;
-                        if (mflow_Idx > maxIdx_mflow)
+                        mflowIdx++;
+                        if (mflowIdx > maxIdxMflow)
                         {
-                            mflow_Idx = 0;
+                            mflowIdx = 0;
                         }
                     }
                 }
 
                 while (today <= endIdx)
                 {
-                    posSumMF -= mflow[mflow_Idx].positive;
-                    negSumMF -= mflow[mflow_Idx].negative;
-                    tempValue1 = ((inHigh[today] + inLow[today]) + inClose[today]) / 3.0;
+                    posSumMF -= moneyFlow[mflowIdx].positive;
+                    negSumMF -= moneyFlow[mflowIdx].negative;
+                    tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3m;
                     tempValue2 = tempValue1 - prevValue;
                     prevValue = tempValue1;
                     tempValue1 *= inVolume[today];
                     today++;
-                    if (tempValue2 < 0.0)
+                    if (tempValue2 < Decimal.Zero)
                     {
-                        mflow[mflow_Idx].negative = tempValue1;
+                        moneyFlow[mflowIdx].negative = tempValue1;
                         negSumMF += tempValue1;
-                        mflow[mflow_Idx].positive = 0.0;
+                        moneyFlow[mflowIdx].positive = Decimal.Zero;
                     }
-                    else if (tempValue2 > 0.0)
+                    else if (tempValue2 > Decimal.Zero)
                     {
-                        mflow[mflow_Idx].positive = tempValue1;
+                        moneyFlow[mflowIdx].positive = tempValue1;
                         posSumMF += tempValue1;
-                        mflow[mflow_Idx].negative = 0.0;
+                        moneyFlow[mflowIdx].negative = Decimal.Zero;
                     }
                     else
                     {
-                        mflow[mflow_Idx].positive = 0.0;
-                        mflow[mflow_Idx].negative = 0.0;
+                        moneyFlow[mflowIdx].positive = Decimal.Zero;
+                        moneyFlow[mflowIdx].negative = Decimal.Zero;
                     }
 
                     tempValue1 = posSumMF + negSumMF;
-                    if (tempValue1 < 1.0)
+                    if (tempValue1 < Decimal.One)
                     {
-                        outReal[outIdx] = 0.0;
+                        outReal[outIdx] = Decimal.Zero;
                         outIdx++;
                     }
                     else
                     {
-                        outReal[outIdx] = 100.0 * (posSumMF / tempValue1);
+                        outReal[outIdx] = 100m * (posSumMF / tempValue1);
                         outIdx++;
                     }
 
-                    mflow_Idx++;
-                    if (mflow_Idx > maxIdx_mflow)
+                    mflowIdx++;
+                    if (mflowIdx > maxIdxMflow)
                     {
-                        mflow_Idx = 0;
+                        mflowIdx = 0;
                     }
                 }
 
@@ -414,18 +376,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int MfiLookback(int optInTimePeriod)
+        public static int MfiLookback(int optInTimePeriod = 14)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod + ((int) Globals.unstablePeriod[14]));
+            return optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Mfi];
         }
     }
 }

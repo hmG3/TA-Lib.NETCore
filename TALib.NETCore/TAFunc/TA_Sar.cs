@@ -4,43 +4,29 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Sar(int startIdx, int endIdx, double[] inHigh, double[] inLow, double optInAcceleration, double optInMaximum,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Sar(int startIdx, int endIdx, double[] inHigh, double[] inLow, ref int outBegIdx, ref int outNBElement,
+            double[] outReal, double optInAcceleration = 0.02, double optInMaximum = 0.2)
         {
             double sar;
             double ep;
-            int isLong;
-            int tempInt = 0;
-            double[] ep_temp = new double[1];
+            int tempInt = default;
+            var epTemp = new double[1];
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if ((inHigh == null) || (inLow == null))
+            if (inHigh == null || inLow == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInAcceleration == -4E+37)
-            {
-                optInAcceleration = 0.02;
-            }
-            else if ((optInAcceleration < 0.0) || (optInAcceleration > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInMaximum == -4E+37)
-            {
-                optInMaximum = 0.2;
-            }
-            else if ((optInMaximum < 0.0) || (optInMaximum > 3E+37))
+            if (optInAcceleration < 0.0 || optInMaximum < 0.0)
             {
                 return RetCode.BadParam;
             }
@@ -69,15 +55,8 @@ namespace TALib
                 af = optInAcceleration;
             }
 
-            RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, 1, ref tempInt, ref tempInt, ep_temp);
-            if (ep_temp[0] > 0.0)
-            {
-                isLong = 0;
-            }
-            else
-            {
-                isLong = 1;
-            }
+            RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, ref tempInt, ref tempInt, epTemp, 1);
+            var isLong = epTemp[0] <= 0.0;
 
             if (retCode != RetCode.Success)
             {
@@ -87,11 +66,11 @@ namespace TALib
             }
 
             outBegIdx = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             int todayIdx = startIdx;
             double newHigh = inHigh[todayIdx - 1];
             double newLow = inLow[todayIdx - 1];
-            if (isLong == 1)
+            if (isLong)
             {
                 ep = inHigh[todayIdx];
                 sar = newLow;
@@ -111,11 +90,11 @@ namespace TALib
                 newLow = inLow[todayIdx];
                 newHigh = inHigh[todayIdx];
                 todayIdx++;
-                if (isLong == 1)
+                if (isLong)
                 {
                     if (newLow <= sar)
                     {
-                        isLong = 0;
+                        isLong = false;
                         sar = ep;
                         if (sar < prevHigh)
                         {
@@ -170,7 +149,7 @@ namespace TALib
                 }
                 else if (newHigh >= sar)
                 {
-                    isLong = 1;
+                    isLong = true;
                     sar = ep;
                     if (sar > prevLow)
                     {
@@ -228,43 +207,29 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Sar(int startIdx, int endIdx, float[] inHigh, float[] inLow, double optInAcceleration, double optInMaximum,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Sar(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, ref int outBegIdx, ref int outNBElement,
+            decimal[] outReal, decimal optInAcceleration = 0.02m, decimal optInMaximum = 0.2m)
         {
-            double sar;
-            double ep;
-            int isLong;
-            int tempInt = 0;
-            double[] ep_temp = new double[1];
+            decimal sar;
+            decimal ep;
+            int tempInt = default;
+            var epTemp = new decimal[1];
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if ((inHigh == null) || (inLow == null))
+            if (inHigh == null || inLow == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInAcceleration == -4E+37)
-            {
-                optInAcceleration = 0.02;
-            }
-            else if ((optInAcceleration < 0.0) || (optInAcceleration > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInMaximum == -4E+37)
-            {
-                optInMaximum = 0.2;
-            }
-            else if ((optInMaximum < 0.0) || (optInMaximum > 3E+37))
+            if (optInAcceleration < Decimal.Zero || optInMaximum < Decimal.Zero)
             {
                 return RetCode.BadParam;
             }
@@ -286,22 +251,15 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double af = optInAcceleration;
+            decimal af = optInAcceleration;
             if (af > optInMaximum)
             {
                 optInAcceleration = optInMaximum;
                 af = optInAcceleration;
             }
 
-            RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, 1, ref tempInt, ref tempInt, ep_temp);
-            if (ep_temp[0] > 0.0)
-            {
-                isLong = 0;
-            }
-            else
-            {
-                isLong = 1;
-            }
+            RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, ref tempInt, ref tempInt, epTemp, 1);
+            var isLong = epTemp[0] <= Decimal.Zero;
 
             if (retCode != RetCode.Success)
             {
@@ -311,11 +269,11 @@ namespace TALib
             }
 
             outBegIdx = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             int todayIdx = startIdx;
-            double newHigh = inHigh[todayIdx - 1];
-            double newLow = inLow[todayIdx - 1];
-            if (isLong == 1)
+            decimal newHigh = inHigh[todayIdx - 1];
+            decimal newLow = inLow[todayIdx - 1];
+            if (isLong)
             {
                 ep = inHigh[todayIdx];
                 sar = newLow;
@@ -330,16 +288,16 @@ namespace TALib
             newHigh = inHigh[todayIdx];
             while (todayIdx <= endIdx)
             {
-                double prevLow = newLow;
-                double prevHigh = newHigh;
+                decimal prevLow = newLow;
+                decimal prevHigh = newHigh;
                 newLow = inLow[todayIdx];
                 newHigh = inHigh[todayIdx];
                 todayIdx++;
-                if (isLong == 1)
+                if (isLong)
                 {
                     if (newLow <= sar)
                     {
-                        isLong = 0;
+                        isLong = false;
                         sar = ep;
                         if (sar < prevHigh)
                         {
@@ -394,7 +352,7 @@ namespace TALib
                 }
                 else if (newHigh >= sar)
                 {
-                    isLong = 1;
+                    isLong = true;
                     sar = ep;
                     if (sar > prevLow)
                     {
@@ -452,26 +410,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int SarLookback(double optInAcceleration, double optInMaximum)
+        public static int SarLookback()
         {
-            if (optInAcceleration == -4E+37)
-            {
-                optInAcceleration = 0.02;
-            }
-            else if ((optInAcceleration < 0.0) || (optInAcceleration > 3E+37))
-            {
-                return -1;
-            }
-
-            if (optInMaximum == -4E+37)
-            {
-                optInMaximum = 0.2;
-            }
-            else if ((optInMaximum < 0.0) || (optInMaximum > 3E+37))
-            {
-                return -1;
-            }
-
             return 1;
         }
     }

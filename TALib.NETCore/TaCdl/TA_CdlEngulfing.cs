@@ -1,5 +1,3 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
@@ -12,12 +10,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inOpen == null) || (inHigh == null)) || ((inLow == null) || (inClose == null)))
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
@@ -41,13 +39,11 @@ namespace TALib
             }
 
             int i = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             do
             {
-                if ((((inClose[i] >= inOpen[i]) && (((inClose[i - 1] < inOpen[i - 1]) ? -1 : 1) == -1)) &&
-                     ((inClose[i] > inOpen[i - 1]) && (inOpen[i] < inClose[i - 1]))) ||
-                    (((((inClose[i] < inOpen[i]) ? -1 : 1) == -1) && (inClose[i - 1] >= inOpen[i - 1])) &&
-                     ((inOpen[i] > inClose[i - 1]) && (inClose[i] < inOpen[i - 1]))))
+                if (inClose[i] >= inOpen[i] && inClose[i - 1] < inOpen[i - 1] && inClose[i] > inOpen[i - 1] && inOpen[i] < inClose[i - 1] ||
+                    inClose[i] < inOpen[i] && inClose[i - 1] >= inOpen[i - 1] && inOpen[i] > inClose[i - 1] && inClose[i] < inOpen[i - 1])
                 {
                     int num;
                     if (inClose[i] >= inOpen[i])
@@ -76,7 +72,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode CdlEngulfing(int startIdx, int endIdx, float[] inOpen, float[] inHigh, float[] inLow, float[] inClose,
+        public static RetCode CdlEngulfing(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose,
             ref int outBegIdx, ref int outNBElement, int[] outInteger)
         {
             if (startIdx < 0)
@@ -84,12 +80,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inOpen == null) || (inHigh == null)) || ((inLow == null) || (inClose == null)))
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
@@ -113,13 +109,11 @@ namespace TALib
             }
 
             int i = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             do
             {
-                if ((((inClose[i] >= inOpen[i]) && (((inClose[i - 1] < inOpen[i - 1]) ? -1 : 1) == -1)) &&
-                     ((inClose[i] > inOpen[i - 1]) && (inOpen[i] < inClose[i - 1]))) ||
-                    (((((inClose[i] < inOpen[i]) ? -1 : 1) == -1) && (inClose[i - 1] >= inOpen[i - 1])) &&
-                     ((inOpen[i] > inClose[i - 1]) && (inClose[i] < inOpen[i - 1]))))
+                if (inClose[i] >= inOpen[i] && inClose[i - 1] < inOpen[i - 1] && inClose[i] > inOpen[i - 1] && inOpen[i] < inClose[i - 1] ||
+                    inClose[i] < inOpen[i] && inClose[i - 1] >= inOpen[i - 1] && inOpen[i] > inClose[i - 1] && inClose[i] < inOpen[i - 1])
                 {
                     int num;
                     if (inClose[i] >= inOpen[i])

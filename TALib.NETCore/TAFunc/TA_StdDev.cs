@@ -4,8 +4,8 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode StdDev(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, double optInNbDev, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode StdDev(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
+            int optInTimePeriod = 5, double optInNbDev = 1.0)
         {
             int i;
             double tempReal;
@@ -14,7 +14,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -24,20 +24,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInNbDev == -4E+37)
-            {
-                optInNbDev = 1.0;
-            }
-            else if ((optInNbDev < -3E+37) || (optInNbDev > 3E+37))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -53,7 +40,7 @@ namespace TALib
                 return retCode;
             }
 
-            if (optInNbDev == 1.0)
+            if (optInNbDev.Equals(1.0))
             {
                 i = 0;
                 while (i < outNBElement)
@@ -90,17 +77,17 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode StdDev(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, double optInNbDev, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode StdDev(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
+            int optInTimePeriod = 5, decimal optInNbDev = 1m)
         {
             int i;
-            double tempReal;
+            decimal tempReal;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -110,20 +97,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInNbDev == -4E+37)
-            {
-                optInNbDev = 1.0;
-            }
-            else if ((optInNbDev < -3E+37) || (optInNbDev > 3E+37))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -139,19 +113,19 @@ namespace TALib
                 return retCode;
             }
 
-            if (optInNbDev == 1.0)
+            if (optInNbDev == Decimal.One)
             {
                 i = 0;
                 while (i < outNBElement)
                 {
                     tempReal = outReal[i];
-                    if (tempReal >= 1E-08)
+                    if (tempReal >= 1E-08m)
                     {
-                        outReal[i] = Math.Sqrt(tempReal);
+                        outReal[i] = DecimalMath.Sqrt(tempReal);
                     }
                     else
                     {
-                        outReal[i] = 0.0;
+                        outReal[i] = Decimal.Zero;
                     }
 
                     i++;
@@ -162,13 +136,13 @@ namespace TALib
                 for (i = 0; i < outNBElement; i++)
                 {
                     tempReal = outReal[i];
-                    if (tempReal >= 1E-08)
+                    if (tempReal >= 1E-08m)
                     {
-                        outReal[i] = Math.Sqrt(tempReal) * optInNbDev;
+                        outReal[i] = DecimalMath.Sqrt(tempReal) * optInNbDev;
                     }
                     else
                     {
-                        outReal[i] = 0.0;
+                        outReal[i] = Decimal.Zero;
                     }
                 }
             }
@@ -176,27 +150,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int StdDevLookback(int optInTimePeriod, double optInNbDev)
+        public static int StdDevLookback(int optInTimePeriod = 5)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            if (optInNbDev == -4E+37)
-            {
-                optInNbDev = 1.0;
-            }
-            else if ((optInNbDev < -3E+37) || (optInNbDev > 3E+37))
-            {
-                return -1;
-            }
-
-            return VarianceLookback(optInTimePeriod, optInNbDev);
+            return VarianceLookback(optInTimePeriod);
         }
     }
 }

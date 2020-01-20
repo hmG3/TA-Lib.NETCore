@@ -4,9 +4,9 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Stoch(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, int optInFastK_Period,
-            int optInSlowK_Period, MAType optInSlowK_MAType, int optInSlowD_Period, MAType optInSlowD_MAType, ref int outBegIdx,
-            ref int outNBElement, double[] outSlowK, double[] outSlowD)
+        public static RetCode Stoch(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, MAType optInSlowKMaType,
+            MAType optInSlowDMaType, ref int outBegIdx, ref int outNBElement, double[] outSlowK, double[] outSlowD,
+            int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
         {
             double[] tempBuffer;
             if (startIdx < 0)
@@ -14,39 +14,18 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || (inClose == null))
+            if (inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInFastK_Period == -2147483648)
-            {
-                optInFastK_Period = 5;
-            }
-            else if ((optInFastK_Period < 1) || (optInFastK_Period > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInSlowK_Period == -2147483648)
-            {
-                optInSlowK_Period = 3;
-            }
-            else if ((optInSlowK_Period < 1) || (optInSlowK_Period > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInSlowD_Period == -2147483648)
-            {
-                optInSlowD_Period = 3;
-            }
-            else if ((optInSlowD_Period < 1) || (optInSlowD_Period > 0x186a0))
+            if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 ||
+                optInSlowDPeriod < 1 || optInSlowDPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -61,10 +40,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookbackK = optInFastK_Period - 1;
-            int lookbackKSlow = MovingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
-            int lookbackDSlow = MovingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
-            int lookbackTotal = (lookbackK + lookbackDSlow) + lookbackKSlow;
+            int lookbackK = optInFastKPeriod - 1;
+            int lookbackKSlow = MovingAverageLookback(optInSlowKMaType, optInSlowKPeriod);
+            int lookbackDSlow = MovingAverageLookback(optInSlowDMaType, optInSlowDPeriod);
+            int lookbackTotal = lookbackK + lookbackDSlow + lookbackKSlow;
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -77,41 +56,41 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int trailingIdx = startIdx - lookbackTotal;
             int today = trailingIdx + lookbackK;
             int highestIdx = -1;
             int lowestIdx = highestIdx;
-            double lowest = 0.0;
+            double lowest = default;
             double highest = lowest;
             double diff = highest;
-            if (((outSlowK == inHigh) || (outSlowK == inLow)) || (outSlowK == inClose))
+            if (outSlowK == inHigh || outSlowK == inLow || outSlowK == inClose)
             {
                 tempBuffer = outSlowK;
             }
-            else if (((outSlowD == inHigh) || (outSlowD == inLow)) || (outSlowD == inClose))
+            else if (outSlowD == inHigh || outSlowD == inLow || outSlowD == inClose)
             {
                 tempBuffer = outSlowD;
             }
             else
             {
-                tempBuffer = new double[(endIdx - today) + 1];
+                tempBuffer = new double[endIdx - today + 1];
             }
 
             Label_0156:
             if (today > endIdx)
             {
-                RetCode retCode = MovingAverage(0, outIdx - 1, tempBuffer, optInSlowK_Period, optInSlowK_MAType, ref outBegIdx,
-                    ref outNBElement, tempBuffer);
-                if ((retCode != RetCode.Success) || (outNBElement == 0))
+                RetCode retCode = MovingAverage(0, outIdx - 1, tempBuffer, optInSlowKMaType, ref outBegIdx, ref outNBElement, tempBuffer,
+                    optInSlowKPeriod);
+                if (retCode != RetCode.Success || outNBElement == 0)
                 {
                     outBegIdx = 0;
                     outNBElement = 0;
                     return retCode;
                 }
 
-                retCode = MovingAverage(0, outNBElement - 1, tempBuffer, optInSlowD_Period, optInSlowD_MAType, ref outBegIdx,
-                    ref outNBElement, outSlowD);
+                retCode = MovingAverage(0, outNBElement - 1, tempBuffer, optInSlowDMaType, ref outBegIdx, ref outNBElement, outSlowD,
+                    optInSlowDPeriod);
                 Array.Copy(tempBuffer, lookbackDSlow, outSlowK, 0, outNBElement);
                 if (retCode != RetCode.Success)
                 {
@@ -188,7 +167,7 @@ namespace TALib
 
             diff = (highest - lowest) / 100.0;
             Label_0212:
-            if (diff != 0.0)
+            if (!diff.Equals(0.0))
             {
                 tempBuffer[outIdx] = (inClose[today] - lowest) / diff;
                 outIdx++;
@@ -204,48 +183,27 @@ namespace TALib
             goto Label_0156;
         }
 
-        public static RetCode Stoch(int startIdx, int endIdx, float[] inHigh, float[] inLow, float[] inClose, int optInFastK_Period,
-            int optInSlowK_Period, MAType optInSlowK_MAType, int optInSlowD_Period, MAType optInSlowD_MAType, ref int outBegIdx,
-            ref int outNBElement, double[] outSlowK, double[] outSlowD)
+        public static RetCode Stoch(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose,
+            MAType optInSlowKMAType, MAType optInSlowDMAType, ref int outBegIdx, ref int outNBElement, decimal[] outSlowK,
+            decimal[] outSlowD, int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || (inClose == null))
+            if (inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInFastK_Period == -2147483648)
-            {
-                optInFastK_Period = 5;
-            }
-            else if ((optInFastK_Period < 1) || (optInFastK_Period > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInSlowK_Period == -2147483648)
-            {
-                optInSlowK_Period = 3;
-            }
-            else if ((optInSlowK_Period < 1) || (optInSlowK_Period > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInSlowD_Period == -2147483648)
-            {
-                optInSlowD_Period = 3;
-            }
-            else if ((optInSlowD_Period < 1) || (optInSlowD_Period > 0x186a0))
+            if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 ||
+                optInSlowDPeriod < 1 || optInSlowDPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -260,10 +218,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookbackK = optInFastK_Period - 1;
-            int lookbackKSlow = MovingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
-            int lookbackDSlow = MovingAverageLookback(optInSlowD_Period, optInSlowD_MAType);
-            int lookbackTotal = (lookbackK + lookbackDSlow) + lookbackKSlow;
+            int lookbackK = optInFastKPeriod - 1;
+            int lookbackKSlow = MovingAverageLookback(optInSlowKMAType, optInSlowKPeriod);
+            int lookbackDSlow = MovingAverageLookback(optInSlowDMAType, optInSlowDPeriod);
+            int lookbackTotal = lookbackK + lookbackDSlow + lookbackKSlow;
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -276,29 +234,29 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int trailingIdx = startIdx - lookbackTotal;
             int today = trailingIdx + lookbackK;
             int highestIdx = -1;
             int lowestIdx = highestIdx;
-            double lowest = 0.0;
-            double highest = lowest;
-            double diff = highest;
-            double[] tempBuffer = new double[(endIdx - today) + 1];
+            decimal lowest = default;
+            decimal highest = lowest;
+            decimal diff = highest;
+            var tempBuffer = new decimal[endIdx - today + 1];
             Label_012A:
             if (today > endIdx)
             {
-                RetCode retCode = MovingAverage(0, outIdx - 1, tempBuffer, optInSlowK_Period, optInSlowK_MAType, ref outBegIdx,
-                    ref outNBElement, tempBuffer);
-                if ((retCode != RetCode.Success) || (outNBElement == 0))
+                RetCode retCode = MovingAverage(0, outIdx - 1, tempBuffer, optInSlowKMAType, ref outBegIdx, ref outNBElement, tempBuffer,
+                    optInSlowKPeriod);
+                if (retCode != RetCode.Success || outNBElement == 0)
                 {
                     outBegIdx = 0;
                     outNBElement = 0;
                     return retCode;
                 }
 
-                retCode = MovingAverage(0, outNBElement - 1, tempBuffer, optInSlowD_Period, optInSlowD_MAType, ref outBegIdx,
-                    ref outNBElement, outSlowD);
+                retCode = MovingAverage(0, outNBElement - 1, tempBuffer, optInSlowDMAType, ref outBegIdx, ref outNBElement, outSlowD,
+                    optInSlowDPeriod);
                 Array.Copy(tempBuffer, lookbackDSlow, outSlowK, 0, outNBElement);
                 if (retCode != RetCode.Success)
                 {
@@ -311,14 +269,14 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double tmp = inLow[today];
+            decimal tmp = inLow[today];
             if (lowestIdx >= trailingIdx)
             {
                 if (tmp <= lowest)
                 {
                     lowestIdx = today;
                     lowest = tmp;
-                    diff = (highest - lowest) / 100.0;
+                    diff = (highest - lowest) / 100m;
                 }
 
                 goto Label_018C;
@@ -341,7 +299,7 @@ namespace TALib
                 goto Label_0149;
             }
 
-            diff = (highest - lowest) / 100.0;
+            diff = (highest - lowest) / 100m;
             Label_018C:
             tmp = inHigh[today];
             if (highestIdx >= trailingIdx)
@@ -350,7 +308,7 @@ namespace TALib
                 {
                     highestIdx = today;
                     highest = tmp;
-                    diff = (highest - lowest) / 100.0;
+                    diff = (highest - lowest) / 100m;
                 }
 
                 goto Label_01EC;
@@ -373,16 +331,16 @@ namespace TALib
                 goto Label_01A5;
             }
 
-            diff = (highest - lowest) / 100.0;
+            diff = (highest - lowest) / 100m;
             Label_01EC:
-            if (diff != 0.0)
+            if (diff != Decimal.Zero)
             {
                 tempBuffer[outIdx] = (inClose[today] - lowest) / diff;
                 outIdx++;
             }
             else
             {
-                tempBuffer[outIdx] = 0.0;
+                tempBuffer[outIdx] = Decimal.Zero;
                 outIdx++;
             }
 
@@ -391,39 +349,19 @@ namespace TALib
             goto Label_012A;
         }
 
-        public static int StochLookback(int optInFastK_Period, int optInSlowK_Period, MAType optInSlowK_MAType, int optInSlowD_Period,
-            MAType optInSlowD_MAType)
+        public static int StochLookback(MAType optInSlowKMAType, MAType optInSlowDMAType, int optInFastKPeriod = 5,
+            int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
         {
-            if (optInFastK_Period == -2147483648)
-            {
-                optInFastK_Period = 5;
-            }
-            else if ((optInFastK_Period < 1) || (optInFastK_Period > 0x186a0))
+            if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 ||
+                optInSlowDPeriod < 1 || optInSlowDPeriod > 100000)
             {
                 return -1;
             }
 
-            if (optInSlowK_Period == -2147483648)
-            {
-                optInSlowK_Period = 3;
-            }
-            else if ((optInSlowK_Period < 1) || (optInSlowK_Period > 0x186a0))
-            {
-                return -1;
-            }
+            int retValue = optInFastKPeriod - 1;
+            retValue += MovingAverageLookback(optInSlowKMAType, optInSlowKPeriod);
 
-            if (optInSlowD_Period == -2147483648)
-            {
-                optInSlowD_Period = 3;
-            }
-            else if ((optInSlowD_Period < 1) || (optInSlowD_Period > 0x186a0))
-            {
-                return -1;
-            }
-
-            int retValue = optInFastK_Period - 1;
-            retValue += MovingAverageLookback(optInSlowK_Period, optInSlowK_MAType);
-            return (retValue + MovingAverageLookback(optInSlowD_Period, optInSlowD_MAType));
+            return retValue + MovingAverageLookback(optInSlowDMAType, optInSlowDPeriod);
         }
     }
 }

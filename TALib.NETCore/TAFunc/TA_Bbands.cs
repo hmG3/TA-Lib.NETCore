@@ -4,9 +4,9 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Bbands(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, double optInNbDevUp,
-            double optInNbDevDn, MAType optInMAType, ref int outBegIdx, ref int outNBElement, double[] outRealUpperBand,
-            double[] outRealMiddleBand, double[] outRealLowerBand)
+        public static RetCode Bbands(int startIdx, int endIdx, double[] inReal, MAType optInMAType, ref int outBegIdx, ref int outNBElement,
+            double[] outRealUpperBand, double[] outRealMiddleBand, double[] outRealLowerBand, int optInTimePeriod = 5,
+            double optInNbDevUp = 2.0, double optInNbDevDn = 2.0)
         {
             int i;
             double tempReal2;
@@ -18,7 +18,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -28,29 +28,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInNbDevUp == -4E+37)
-            {
-                optInNbDevUp = 2.0;
-            }
-            else if ((optInNbDevUp < -3E+37) || (optInNbDevUp > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInNbDevDn == -4E+37)
-            {
-                optInNbDevDn = 2.0;
-            }
-            else if ((optInNbDevDn < -3E+37) || (optInNbDevDn > 3E+37))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -91,14 +69,14 @@ namespace TALib
                 tempBuffer2 = outRealUpperBand;
             }
 
-            if ((tempBuffer1 == inReal) || (tempBuffer2 == inReal))
+            if (tempBuffer1 == inReal || tempBuffer2 == inReal)
             {
                 return RetCode.BadParam;
             }
 
-            RetCode retCode = MovingAverage(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, ref outBegIdx, ref outNBElement,
-                tempBuffer1);
-            if ((retCode != RetCode.Success) || (outNBElement == 0))
+            RetCode retCode = MovingAverage(startIdx, endIdx, inReal, optInMAType, ref outBegIdx, ref outNBElement, tempBuffer1,
+                optInTimePeriod);
+            if (retCode != RetCode.Success || outNBElement == 0)
             {
                 outNBElement = 0;
                 return retCode;
@@ -110,7 +88,7 @@ namespace TALib
             }
             else
             {
-                retCode = StdDev(outBegIdx, endIdx, inReal, optInTimePeriod, 1.0, ref outBegIdx, ref outNBElement, tempBuffer2);
+                retCode = StdDev(outBegIdx, endIdx, inReal, ref outBegIdx, ref outNBElement, tempBuffer2, optInTimePeriod);
                 if (retCode != RetCode.Success)
                 {
                     outNBElement = 0;
@@ -123,19 +101,19 @@ namespace TALib
                 Array.Copy(tempBuffer1, 0, outRealMiddleBand, 0, outNBElement);
             }
 
-            if (optInNbDevUp != optInNbDevDn)
+            if (!optInNbDevUp.Equals(optInNbDevDn))
             {
-                if (optInNbDevUp != 1.0)
+                if (!optInNbDevUp.Equals(1.0))
                 {
-                    if (optInNbDevDn != 1.0)
+                    if (!optInNbDevDn.Equals(1.0))
                     {
                         i = 0;
                         while (i < outNBElement)
                         {
                             tempReal = tempBuffer2[i];
                             tempReal2 = outRealMiddleBand[i];
-                            outRealUpperBand[i] = tempReal2 + (tempReal * optInNbDevUp);
-                            outRealLowerBand[i] = tempReal2 - (tempReal * optInNbDevDn);
+                            outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
+                            outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
                             i++;
                         }
 
@@ -150,7 +128,7 @@ namespace TALib
             }
             else
             {
-                if (optInNbDevUp != 1.0)
+                if (!optInNbDevUp.Equals(1.0))
                 {
                     i = 0;
                 }
@@ -191,7 +169,7 @@ namespace TALib
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
                 outRealUpperBand[i] = tempReal2 + tempReal;
-                outRealLowerBand[i] = tempReal2 - (tempReal * optInNbDevDn);
+                outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
                 i++;
             }
 
@@ -201,7 +179,7 @@ namespace TALib
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
                 outRealLowerBand[i] = tempReal2 - tempReal;
-                outRealUpperBand[i] = tempReal2 + (tempReal * optInNbDevUp);
+                outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
                 i++;
             }
 
@@ -209,19 +187,19 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Bbands(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, double optInNbDevUp,
-            double optInNbDevDn, MAType optInMAType, ref int outBegIdx, ref int outNBElement, double[] outRealUpperBand,
-            double[] outRealMiddleBand, double[] outRealLowerBand)
+        public static RetCode Bbands(int startIdx, int endIdx, decimal[] inReal, MAType optInMAType, ref int outBegIdx,
+            ref int outNBElement, decimal[] outRealUpperBand, decimal[] outRealMiddleBand, decimal[] outRealLowerBand,
+            int optInTimePeriod = 5, decimal optInNbDevUp = 2m, decimal optInNbDevDn = 2m)
         {
             int i;
-            double tempReal2;
-            double tempReal;
+            decimal tempReal2;
+            decimal tempReal;
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -231,29 +209,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInNbDevUp == -4E+37)
-            {
-                optInNbDevUp = 2.0;
-            }
-            else if ((optInNbDevUp < -3E+37) || (optInNbDevUp > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInNbDevDn == -4E+37)
-            {
-                optInNbDevDn = 2.0;
-            }
-            else if ((optInNbDevDn < -3E+37) || (optInNbDevDn > 3E+37))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -273,11 +229,11 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            double[] tempBuffer1 = outRealMiddleBand;
-            double[] tempBuffer2 = outRealLowerBand;
-            RetCode retCode = MovingAverage(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, ref outBegIdx, ref outNBElement,
-                tempBuffer1);
-            if ((retCode != RetCode.Success) || (outNBElement == 0))
+            decimal[] tempBuffer1 = outRealMiddleBand;
+            decimal[] tempBuffer2 = outRealLowerBand;
+            RetCode retCode = MovingAverage(startIdx, endIdx, inReal, optInMAType, ref outBegIdx, ref outNBElement, tempBuffer1,
+                optInTimePeriod);
+            if (retCode != RetCode.Success || outNBElement == 0)
             {
                 outNBElement = 0;
                 return retCode;
@@ -289,7 +245,7 @@ namespace TALib
             }
             else
             {
-                retCode = StdDev(outBegIdx, endIdx, inReal, optInTimePeriod, 1.0, ref outBegIdx, ref outNBElement, tempBuffer2);
+                retCode = StdDev(outBegIdx, endIdx, inReal, ref outBegIdx, ref outNBElement, tempBuffer2, optInTimePeriod);
                 if (retCode != RetCode.Success)
                 {
                     outNBElement = 0;
@@ -299,17 +255,17 @@ namespace TALib
 
             if (optInNbDevUp != optInNbDevDn)
             {
-                if (optInNbDevUp != 1.0)
+                if (optInNbDevUp != Decimal.One)
                 {
-                    if (optInNbDevDn != 1.0)
+                    if (optInNbDevDn != Decimal.One)
                     {
                         i = 0;
                         while (i < outNBElement)
                         {
                             tempReal = tempBuffer2[i];
                             tempReal2 = outRealMiddleBand[i];
-                            outRealUpperBand[i] = tempReal2 + (tempReal * optInNbDevUp);
-                            outRealLowerBand[i] = tempReal2 - (tempReal * optInNbDevDn);
+                            outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
+                            outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
                             i++;
                         }
 
@@ -324,7 +280,7 @@ namespace TALib
             }
             else
             {
-                if (optInNbDevUp != 1.0)
+                if (optInNbDevUp != Decimal.One)
                 {
                     i = 0;
                 }
@@ -365,7 +321,7 @@ namespace TALib
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
                 outRealUpperBand[i] = tempReal2 + tempReal;
-                outRealLowerBand[i] = tempReal2 - (tempReal * optInNbDevDn);
+                outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
                 i++;
             }
 
@@ -375,7 +331,7 @@ namespace TALib
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
                 outRealLowerBand[i] = tempReal2 - tempReal;
-                outRealUpperBand[i] = tempReal2 + (tempReal * optInNbDevUp);
+                outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
                 i++;
             }
 
@@ -383,36 +339,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int BbandsLookback(int optInTimePeriod, double optInNbDevUp, double optInNbDevDn, MAType optInMAType)
+        public static int BbandsLookback(MAType optInMAType, int optInTimePeriod = 5)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 5;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            if (optInNbDevUp == -4E+37)
-            {
-                optInNbDevUp = 2.0;
-            }
-            else if ((optInNbDevUp < -3E+37) || (optInNbDevUp > 3E+37))
-            {
-                return -1;
-            }
-
-            if (optInNbDevDn == -4E+37)
-            {
-                optInNbDevDn = 2.0;
-            }
-            else if ((optInNbDevDn < -3E+37) || (optInNbDevDn > 3E+37))
-            {
-                return -1;
-            }
-
-            return MovingAverageLookback(optInTimePeriod, optInMAType);
+            return MovingAverageLookback(optInMAType, optInTimePeriod);
         }
     }
 }

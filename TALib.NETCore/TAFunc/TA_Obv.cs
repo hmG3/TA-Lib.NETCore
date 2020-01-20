@@ -1,5 +1,3 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
@@ -12,7 +10,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -34,8 +32,8 @@ namespace TALib
 
             double prevOBV = inVolume[startIdx];
             double prevReal = inReal[startIdx];
-            int outIdx = 0;
-            for (int i = startIdx; i <= endIdx; i++)
+            int outIdx = default;
+            for (var i = startIdx; i <= endIdx; i++)
             {
                 double tempReal = inReal[i];
                 if (tempReal > prevReal)
@@ -57,15 +55,15 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Obv(int startIdx, int endIdx, float[] inReal, float[] inVolume, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode Obv(int startIdx, int endIdx, decimal[] inReal, decimal[] inVolume, ref int outBegIdx, ref int outNBElement,
+            decimal[] outReal)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -85,12 +83,12 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            double prevOBV = inVolume[startIdx];
-            double prevReal = inReal[startIdx];
-            int outIdx = 0;
-            for (int i = startIdx; i <= endIdx; i++)
+            decimal prevOBV = inVolume[startIdx];
+            decimal prevReal = inReal[startIdx];
+            int outIdx = default;
+            for (var i = startIdx; i <= endIdx; i++)
             {
-                double tempReal = inReal[i];
+                decimal tempReal = inReal[i];
                 if (tempReal > prevReal)
                 {
                     prevOBV += inVolume[i];

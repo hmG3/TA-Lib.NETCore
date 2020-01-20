@@ -1,35 +1,29 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Atr(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, int optInTimePeriod,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Atr(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, ref int outBegIdx,
+            ref int outNBElement, double[] outReal, int optInTimePeriod = 14)
         {
-            int outNbElement1 = 0;
-            int outBegIdx1 = 0;
-            double[] prevATRTemp = new double[1];
+            int outNbElement1 = default;
+            int outBegIdx1 = default;
+            var prevATRTemp = new double[1];
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || (inClose == null))
+            if (inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -57,8 +51,8 @@ namespace TALib
                 return TrueRange(startIdx, endIdx, inHigh, inLow, inClose, ref outBegIdx, ref outNBElement, outReal);
             }
 
-            double[] tempBuffer = new double[(lookbackTotal + (endIdx - startIdx)) + 1];
-            RetCode retCode = TrueRange((startIdx - lookbackTotal) + 1, endIdx, inHigh, inLow, inClose, ref outBegIdx1, ref outNbElement1,
+            var tempBuffer = new double[lookbackTotal + (endIdx - startIdx) + 1];
+            RetCode retCode = TrueRange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, ref outBegIdx1, ref outNbElement1,
                 tempBuffer);
             if (retCode == RetCode.Success)
             {
@@ -71,7 +65,7 @@ namespace TALib
 
                 double prevATR = prevATRTemp[0];
                 int today = optInTimePeriod;
-                int outIdx = (int) Globals.unstablePeriod[2];
+                int outIdx = (int) Globals.UnstablePeriod[(int) FuncUnstId.Atr];
                 while (true)
                 {
                     if (outIdx == 0)
@@ -82,13 +76,13 @@ namespace TALib
                     prevATR *= optInTimePeriod - 1;
                     prevATR += tempBuffer[today];
                     today++;
-                    prevATR /= (double) optInTimePeriod;
+                    prevATR /= optInTimePeriod;
                     outIdx--;
                 }
 
                 outIdx = 1;
                 outReal[0] = prevATR;
-                int nbATR = (endIdx - startIdx) + 1;
+                int nbATR = endIdx - startIdx + 1;
                 while (true)
                 {
                     nbATR--;
@@ -100,7 +94,7 @@ namespace TALib
                     prevATR *= optInTimePeriod - 1;
                     prevATR += tempBuffer[today];
                     today++;
-                    outReal[outIdx] = prevATR / ((double) optInTimePeriod);
+                    outReal[outIdx] = prevATR / optInTimePeriod;
                     outIdx++;
                 }
 
@@ -111,32 +105,28 @@ namespace TALib
             return retCode;
         }
 
-        public static RetCode Atr(int startIdx, int endIdx, float[] inHigh, float[] inLow, float[] inClose, int optInTimePeriod,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Atr(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, ref int outBegIdx,
+            ref int outNBElement, decimal[] outReal, int optInTimePeriod = 14)
         {
-            int outNbElement1 = 0;
-            int outBegIdx1 = 0;
-            double[] prevATRTemp = new double[1];
+            int outNbElement1 = default;
+            int outBegIdx1 = default;
+            var prevATRTemp = new decimal[1];
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || (inClose == null))
+            if (inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -164,9 +154,9 @@ namespace TALib
                 return TrueRange(startIdx, endIdx, inHigh, inLow, inClose, ref outBegIdx, ref outNBElement, outReal);
             }
 
-            double[] tempBuffer = new double[(lookbackTotal + (endIdx - startIdx)) + 1];
-            RetCode retCode = TrueRange((startIdx - lookbackTotal) + 1, endIdx, inHigh, inLow, inClose, ref outBegIdx1, ref outNbElement1,
-                tempBuffer);
+            var tempBuffer = new decimal[lookbackTotal + (endIdx - startIdx) + 1];
+            RetCode retCode = TrueRange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, ref outBegIdx1,
+                ref outNbElement1, tempBuffer);
             if (retCode == RetCode.Success)
             {
                 retCode = TA_INT_SMA(optInTimePeriod - 1, optInTimePeriod - 1, tempBuffer, optInTimePeriod, ref outBegIdx1,
@@ -176,9 +166,9 @@ namespace TALib
                     return retCode;
                 }
 
-                double prevATR = prevATRTemp[0];
+                decimal prevATR = prevATRTemp[0];
                 int today = optInTimePeriod;
-                int outIdx = (int) Globals.unstablePeriod[2];
+                int outIdx = (int) Globals.UnstablePeriod[(int) FuncUnstId.Atr];
                 while (true)
                 {
                     if (outIdx == 0)
@@ -189,13 +179,13 @@ namespace TALib
                     prevATR *= optInTimePeriod - 1;
                     prevATR += tempBuffer[today];
                     today++;
-                    prevATR /= (double) optInTimePeriod;
+                    prevATR /= optInTimePeriod;
                     outIdx--;
                 }
 
                 outIdx = 1;
                 outReal[0] = prevATR;
-                int nbATR = (endIdx - startIdx) + 1;
+                int nbATR = endIdx - startIdx + 1;
                 while (true)
                 {
                     nbATR--;
@@ -207,7 +197,7 @@ namespace TALib
                     prevATR *= optInTimePeriod - 1;
                     prevATR += tempBuffer[today];
                     today++;
-                    outReal[outIdx] = prevATR / ((double) optInTimePeriod);
+                    outReal[outIdx] = prevATR / optInTimePeriod;
                     outIdx++;
                 }
 
@@ -218,18 +208,14 @@ namespace TALib
             return retCode;
         }
 
-        public static int AtrLookback(int optInTimePeriod)
+        public static int AtrLookback(int optInTimePeriod = 14)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod + ((int) Globals.unstablePeriod[2]));
+            return optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Atr];
         }
     }
 }

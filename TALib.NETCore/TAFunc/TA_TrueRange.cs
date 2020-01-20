@@ -12,12 +12,12 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || (inClose == null))
+            if (inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
@@ -39,7 +39,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
             while (true)
             {
@@ -52,13 +52,13 @@ namespace TALib
                 double tempHT = inHigh[today];
                 double tempCY = inClose[today - 1];
                 double greatest = tempHT - tempLT;
-                double val2 = Math.Abs((double) (tempCY - tempHT));
+                double val2 = Math.Abs(tempCY - tempHT);
                 if (val2 > greatest)
                 {
                     greatest = val2;
                 }
 
-                double val3 = Math.Abs((double) (tempCY - tempLT));
+                double val3 = Math.Abs(tempCY - tempLT);
                 if (val3 > greatest)
                 {
                     greatest = val3;
@@ -74,20 +74,20 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode TrueRange(int startIdx, int endIdx, float[] inHigh, float[] inLow, float[] inClose, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode TrueRange(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, ref int outBegIdx,
+            ref int outNBElement, decimal[] outReal)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if (((inHigh == null) || (inLow == null)) || (inClose == null))
+            if (inHigh == null || inLow == null || inClose == null)
             {
                 return RetCode.BadParam;
             }
@@ -109,7 +109,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
             while (true)
             {
@@ -118,17 +118,17 @@ namespace TALib
                     break;
                 }
 
-                double tempLT = inLow[today];
-                double tempHT = inHigh[today];
-                double tempCY = inClose[today - 1];
-                double greatest = tempHT - tempLT;
-                double val2 = Math.Abs((double) (tempCY - tempHT));
+                decimal tempLT = inLow[today];
+                decimal tempHT = inHigh[today];
+                decimal tempCY = inClose[today - 1];
+                decimal greatest = tempHT - tempLT;
+                decimal val2 = Math.Abs(tempCY - tempHT);
                 if (val2 > greatest)
                 {
                     greatest = val2;
                 }
 
-                double val3 = Math.Abs((double) (tempCY - tempLT));
+                decimal val3 = Math.Abs(tempCY - tempLT);
                 if (val3 > greatest)
                 {
                     greatest = val3;

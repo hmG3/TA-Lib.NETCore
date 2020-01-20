@@ -4,15 +4,15 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode RocP(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode RocP(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
+            int optInTimePeriod = 10)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -22,11 +22,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 10;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -48,7 +44,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int inIdx = startIdx;
             int trailingIdx = startIdx - optInTimePeriod;
             while (true)
@@ -60,7 +56,7 @@ namespace TALib
 
                 double tempReal = inReal[trailingIdx];
                 trailingIdx++;
-                if (tempReal != 0.0)
+                if (!tempReal.Equals(0.0))
                 {
                     outReal[outIdx] = (inReal[inIdx] - tempReal) / tempReal;
                     outIdx++;
@@ -79,15 +75,15 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode RocP(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode RocP(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
+            int optInTimePeriod = 10)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -97,11 +93,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 10;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -123,7 +115,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int inIdx = startIdx;
             int trailingIdx = startIdx - optInTimePeriod;
             while (true)
@@ -133,16 +125,16 @@ namespace TALib
                     break;
                 }
 
-                double tempReal = inReal[trailingIdx];
+                decimal tempReal = inReal[trailingIdx];
                 trailingIdx++;
-                if (tempReal != 0.0)
+                if (tempReal != Decimal.Zero)
                 {
                     outReal[outIdx] = (inReal[inIdx] - tempReal) / tempReal;
                     outIdx++;
                 }
                 else
                 {
-                    outReal[outIdx] = 0.0;
+                    outReal[outIdx] = Decimal.Zero;
                     outIdx++;
                 }
 
@@ -154,13 +146,9 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int RocPLookback(int optInTimePeriod)
+        public static int RocPLookback(int optInTimePeriod = 10)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 10;
-            }
-            else if ((optInTimePeriod < 1) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return -1;
             }

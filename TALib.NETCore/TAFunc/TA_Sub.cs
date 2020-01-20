@@ -1,5 +1,3 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
@@ -12,7 +10,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -33,7 +31,7 @@ namespace TALib
             }
 
             int i = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             while (i <= endIdx)
             {
                 outReal[outIdx] = inReal0[i] - inReal1[i];
@@ -46,15 +44,15 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Sub(int startIdx, int endIdx, float[] inReal0, float[] inReal1, ref int outBegIdx, ref int outNBElement,
-            double[] outReal)
+        public static RetCode Sub(int startIdx, int endIdx, decimal[] inReal0, decimal[] inReal1, ref int outBegIdx, ref int outNBElement,
+            decimal[] outReal)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -75,7 +73,7 @@ namespace TALib
             }
 
             int i = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             while (i <= endIdx)
             {
                 outReal[outIdx] = inReal0[i] - inReal1[i];

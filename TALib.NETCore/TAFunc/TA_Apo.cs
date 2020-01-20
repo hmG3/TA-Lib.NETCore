@@ -1,18 +1,16 @@
-using System;
-
 namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Apo(int startIdx, int endIdx, double[] inReal, int optInFastPeriod, int optInSlowPeriod, MAType optInMAType,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Apo(int startIdx, int endIdx, double[] inReal, MAType optInMAType, ref int outBegIdx, ref int outNBElement,
+            double[] outReal, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -22,20 +20,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInFastPeriod == -2147483648)
-            {
-                optInFastPeriod = 12;
-            }
-            else if ((optInFastPeriod < 2) || (optInFastPeriod > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInSlowPeriod == -2147483648)
-            {
-                optInSlowPeriod = 0x1a;
-            }
-            else if ((optInSlowPeriod < 2) || (optInSlowPeriod > 0x186a0))
+            if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -45,25 +30,21 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            double[] tempBuffer = new double[(endIdx - startIdx) + 1];
-            if (tempBuffer == null)
-            {
-                return RetCode.AllocErr;
-            }
+            var tempBuffer = new double[endIdx - startIdx + 1];
 
             return TA_INT_PO(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, ref outBegIdx, ref outNBElement,
                 outReal, tempBuffer, 0);
         }
 
-        public static RetCode Apo(int startIdx, int endIdx, float[] inReal, int optInFastPeriod, int optInSlowPeriod, MAType optInMAType,
-            ref int outBegIdx, ref int outNBElement, double[] outReal)
+        public static RetCode Apo(int startIdx, int endIdx, decimal[] inReal, MAType optInMAType, ref int outBegIdx, ref int outNBElement,
+            decimal[] outReal, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -73,20 +54,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInFastPeriod == -2147483648)
-            {
-                optInFastPeriod = 12;
-            }
-            else if ((optInFastPeriod < 2) || (optInFastPeriod > 0x186a0))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInSlowPeriod == -2147483648)
-            {
-                optInSlowPeriod = 0x1a;
-            }
-            else if ((optInSlowPeriod < 2) || (optInSlowPeriod > 0x186a0))
+            if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -96,37 +64,20 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            double[] tempBuffer = new double[(endIdx - startIdx) + 1];
-            if (tempBuffer == null)
-            {
-                return RetCode.AllocErr;
-            }
+            var tempBuffer = new decimal[endIdx - startIdx + 1];
 
             return TA_INT_PO(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, ref outBegIdx, ref outNBElement,
                 outReal, tempBuffer, 0);
         }
 
-        public static int ApoLookback(int optInFastPeriod, int optInSlowPeriod, MAType optInMAType)
+        public static int ApoLookback(MAType optInMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
-            if (optInFastPeriod == -2147483648)
-            {
-                optInFastPeriod = 12;
-            }
-            else if ((optInFastPeriod < 2) || (optInFastPeriod > 0x186a0))
+            if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000)
             {
                 return -1;
             }
 
-            if (optInSlowPeriod == -2147483648)
-            {
-                optInSlowPeriod = 0x1a;
-            }
-            else if ((optInSlowPeriod < 2) || (optInSlowPeriod > 0x186a0))
-            {
-                return -1;
-            }
-
-            return MovingAverageLookback((optInSlowPeriod <= optInFastPeriod) ? optInFastPeriod : optInSlowPeriod, optInMAType);
+            return MovingAverageLookback(optInMAType, optInSlowPeriod <= optInFastPeriod ? optInFastPeriod : optInSlowPeriod);
         }
     }
 }

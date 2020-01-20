@@ -4,15 +4,15 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode LinearRegAngle(int startIdx, int endIdx, double[] inReal, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode LinearRegAngle(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement,
+            double[] outReal, int optInTimePeriod = 14)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -22,11 +22,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -49,11 +45,11 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
-            double SumX = (optInTimePeriod * (optInTimePeriod - 1)) * 0.5;
-            double SumXSqr = ((optInTimePeriod * (optInTimePeriod - 1)) * ((optInTimePeriod * 2) - 1)) / 6;
-            double Divisor = (SumX * SumX) - (optInTimePeriod * SumXSqr);
+            double sumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
+            double sumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (optInTimePeriod * 2 - 1) / 6.0;
+            double divisor = sumX * sumX - optInTimePeriod * sumXSqr;
             while (true)
             {
                 if (today > endIdx)
@@ -63,8 +59,8 @@ namespace TALib
                     return RetCode.Success;
                 }
 
-                double SumXY = 0.0;
-                double SumY = 0.0;
+                double sumXY = default;
+                double sumY = default;
                 int i = optInTimePeriod;
                 while (true)
                 {
@@ -75,26 +71,26 @@ namespace TALib
                     }
 
                     double tempValue1 = inReal[today - i];
-                    SumY += tempValue1;
-                    SumXY += i * tempValue1;
+                    sumY += tempValue1;
+                    sumXY += i * tempValue1;
                 }
 
-                double m = ((optInTimePeriod * SumXY) - (SumX * SumY)) / Divisor;
+                double m = (optInTimePeriod * sumXY - sumX * sumY) / divisor;
                 outReal[outIdx] = Math.Atan(m) * 57.295779513082323;
                 outIdx++;
                 today++;
             }
         }
 
-        public static RetCode LinearRegAngle(int startIdx, int endIdx, float[] inReal, int optInTimePeriod, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode LinearRegAngle(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement,
+            decimal[] outReal, int optInTimePeriod = 14)
         {
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
@@ -104,11 +100,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -131,11 +123,11 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            int outIdx = 0;
+            int outIdx = default;
             int today = startIdx;
-            double SumX = (optInTimePeriod * (optInTimePeriod - 1)) * 0.5;
-            double SumXSqr = ((optInTimePeriod * (optInTimePeriod - 1)) * ((optInTimePeriod * 2) - 1)) / 6;
-            double Divisor = (SumX * SumX) - (optInTimePeriod * SumXSqr);
+            decimal sumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5m;
+            decimal sumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (optInTimePeriod * 2 - 1) / 6m;
+            decimal divisor = sumX * sumX - optInTimePeriod * sumXSqr;
             while (true)
             {
                 if (today > endIdx)
@@ -145,8 +137,8 @@ namespace TALib
                     return RetCode.Success;
                 }
 
-                double SumXY = 0.0;
-                double SumY = 0.0;
+                decimal sumXY = default;
+                decimal sumY = default;
                 int i = optInTimePeriod;
                 while (true)
                 {
@@ -156,30 +148,26 @@ namespace TALib
                         break;
                     }
 
-                    double tempValue1 = inReal[today - i];
-                    SumY += tempValue1;
-                    SumXY += i * tempValue1;
+                    decimal tempValue1 = inReal[today - i];
+                    sumY += tempValue1;
+                    sumXY += i * tempValue1;
                 }
 
-                double m = ((optInTimePeriod * SumXY) - (SumX * SumY)) / Divisor;
-                outReal[outIdx] = Math.Atan(m) * 57.295779513082323;
+                decimal m = (optInTimePeriod * sumXY - sumX * sumY) / divisor;
+                outReal[outIdx] = DecimalMath.Atan(m) * 57.295779513082323m;
                 outIdx++;
                 today++;
             }
         }
 
-        public static int LinearRegAngleLookback(int optInTimePeriod)
+        public static int LinearRegAngleLookback(int optInTimePeriod = 14)
         {
-            if (optInTimePeriod == -2147483648)
-            {
-                optInTimePeriod = 14;
-            }
-            else if ((optInTimePeriod < 2) || (optInTimePeriod > 0x186a0))
+            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return (optInTimePeriod - 1);
+            return optInTimePeriod - 1;
         }
     }
 }

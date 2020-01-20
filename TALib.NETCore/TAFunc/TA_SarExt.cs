@@ -4,98 +4,33 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode SarExt(int startIdx, int endIdx, double[] inHigh, double[] inLow, double optInStartValue,
-            double optInOffsetOnReverse, double optInAccelerationInitLong, double optInAccelerationLong, double optInAccelerationMaxLong,
-            double optInAccelerationInitShort, double optInAccelerationShort, double optInAccelerationMaxShort, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode SarExt(int startIdx, int endIdx, double[] inHigh, double[] inLow, ref int outBegIdx, ref int outNBElement,
+            double[] outReal, double optInStartValue = 0.0, double optInOffsetOnReverse = 0.0, double optInAccelerationInitLong = 0.02,
+            double optInAccelerationLong = 0.02, double optInAccelerationMaxLong = 0.2, double optInAccelerationInitShort = 0.02,
+            double optInAccelerationShort = 0.02, double optInAccelerationMaxShort = 0.2)
         {
             double sar;
             double ep;
-            int isLong;
-            double[] ep_temp = new double[1];
+            bool isLong;
+            var epTemp = new double[1];
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if ((inHigh == null) || (inLow == null))
+            if (inHigh == null || inLow == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInStartValue == -4E+37)
-            {
-                optInStartValue = 0.0;
-            }
-            else if ((optInStartValue < -3E+37) || (optInStartValue > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInOffsetOnReverse == -4E+37)
-            {
-                optInOffsetOnReverse = 0.0;
-            }
-            else if ((optInOffsetOnReverse < 0.0) || (optInOffsetOnReverse > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationInitLong == -4E+37)
-            {
-                optInAccelerationInitLong = 0.02;
-            }
-            else if ((optInAccelerationInitLong < 0.0) || (optInAccelerationInitLong > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationLong == -4E+37)
-            {
-                optInAccelerationLong = 0.02;
-            }
-            else if ((optInAccelerationLong < 0.0) || (optInAccelerationLong > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationMaxLong == -4E+37)
-            {
-                optInAccelerationMaxLong = 0.2;
-            }
-            else if ((optInAccelerationMaxLong < 0.0) || (optInAccelerationMaxLong > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationInitShort == -4E+37)
-            {
-                optInAccelerationInitShort = 0.02;
-            }
-            else if ((optInAccelerationInitShort < 0.0) || (optInAccelerationInitShort > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationShort == -4E+37)
-            {
-                optInAccelerationShort = 0.02;
-            }
-            else if ((optInAccelerationShort < 0.0) || (optInAccelerationShort > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationMaxShort == -4E+37)
-            {
-                optInAccelerationMaxShort = 0.2;
-            }
-            else if ((optInAccelerationMaxShort < 0.0) || (optInAccelerationMaxShort > 3E+37))
+            if (optInOffsetOnReverse < 0.0 || optInAccelerationInitLong < 0.0 || optInAccelerationLong < 0.0 ||
+                optInAccelerationMaxLong < 0.0 || optInAccelerationInitShort < 0.0 || optInAccelerationShort < 0.0 ||
+                optInAccelerationMaxShort < 0.0)
             {
                 return RetCode.BadParam;
             }
@@ -141,18 +76,11 @@ namespace TALib
                 optInAccelerationShort = optInAccelerationMaxShort;
             }
 
-            if (optInStartValue == 0.0)
+            if (optInStartValue.Equals(0.0))
             {
-                int tempInt = 0;
-                RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, 1, ref tempInt, ref tempInt, ep_temp);
-                if (ep_temp[0] > 0.0)
-                {
-                    isLong = 0;
-                }
-                else
-                {
-                    isLong = 1;
-                }
+                int tempInt = default;
+                RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, ref tempInt, ref tempInt, epTemp, 1);
+                isLong = epTemp[0] <= 0.0;
 
                 if (retCode != RetCode.Success)
                 {
@@ -163,21 +91,21 @@ namespace TALib
             }
             else if (optInStartValue > 0.0)
             {
-                isLong = 1;
+                isLong = true;
             }
             else
             {
-                isLong = 0;
+                isLong = false;
             }
 
             outBegIdx = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             int todayIdx = startIdx;
             double newHigh = inHigh[todayIdx - 1];
             double newLow = inLow[todayIdx - 1];
-            if (optInStartValue == 0.0)
+            if (optInStartValue.Equals(0.0))
             {
-                if (isLong == 1)
+                if (isLong)
                 {
                     ep = inHigh[todayIdx];
                     sar = newLow;
@@ -208,11 +136,11 @@ namespace TALib
                 newLow = inLow[todayIdx];
                 newHigh = inHigh[todayIdx];
                 todayIdx++;
-                if (isLong == 1)
+                if (isLong)
                 {
                     if (newLow <= sar)
                     {
-                        isLong = 0;
+                        isLong = false;
                         sar = ep;
                         if (sar < prevHigh)
                         {
@@ -224,7 +152,7 @@ namespace TALib
                             sar = newHigh;
                         }
 
-                        if (optInOffsetOnReverse != 0.0)
+                        if (!optInOffsetOnReverse.Equals(0.0))
                         {
                             sar += sar * optInOffsetOnReverse;
                         }
@@ -272,7 +200,7 @@ namespace TALib
                 }
                 else if (newHigh >= sar)
                 {
-                    isLong = 1;
+                    isLong = true;
                     sar = ep;
                     if (sar > prevLow)
                     {
@@ -284,7 +212,7 @@ namespace TALib
                         sar = newLow;
                     }
 
-                    if (optInOffsetOnReverse != 0.0)
+                    if (!optInOffsetOnReverse.Equals(0.0))
                     {
                         sar -= sar * optInOffsetOnReverse;
                     }
@@ -335,98 +263,33 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode SarExt(int startIdx, int endIdx, float[] inHigh, float[] inLow, double optInStartValue,
-            double optInOffsetOnReverse, double optInAccelerationInitLong, double optInAccelerationLong, double optInAccelerationMaxLong,
-            double optInAccelerationInitShort, double optInAccelerationShort, double optInAccelerationMaxShort, ref int outBegIdx,
-            ref int outNBElement, double[] outReal)
+        public static RetCode SarExt(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, ref int outBegIdx, ref int outNBElement,
+            decimal[] outReal, decimal optInStartValue = Decimal.Zero, decimal optInOffsetOnReverse = Decimal.Zero,
+            decimal optInAccelerationInitLong = 0.02m, decimal optInAccelerationLong = 0.02m, decimal optInAccelerationMaxLong = 0.2m,
+            decimal optInAccelerationInitShort = 0.02m, decimal optInAccelerationShort = 0.02m, decimal optInAccelerationMaxShort = 0.2m)
         {
-            double sar;
-            double ep;
-            int isLong;
-            double[] ep_temp = new double[1];
+            decimal sar;
+            decimal ep;
+            bool isLong;
+            var epTemp = new decimal[1];
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if ((endIdx < 0) || (endIdx < startIdx))
+            if (endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeEndIndex;
             }
 
-            if ((inHigh == null) || (inLow == null))
+            if (inHigh == null || inLow == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInStartValue == -4E+37)
-            {
-                optInStartValue = 0.0;
-            }
-            else if ((optInStartValue < -3E+37) || (optInStartValue > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInOffsetOnReverse == -4E+37)
-            {
-                optInOffsetOnReverse = 0.0;
-            }
-            else if ((optInOffsetOnReverse < 0.0) || (optInOffsetOnReverse > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationInitLong == -4E+37)
-            {
-                optInAccelerationInitLong = 0.02;
-            }
-            else if ((optInAccelerationInitLong < 0.0) || (optInAccelerationInitLong > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationLong == -4E+37)
-            {
-                optInAccelerationLong = 0.02;
-            }
-            else if ((optInAccelerationLong < 0.0) || (optInAccelerationLong > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationMaxLong == -4E+37)
-            {
-                optInAccelerationMaxLong = 0.2;
-            }
-            else if ((optInAccelerationMaxLong < 0.0) || (optInAccelerationMaxLong > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationInitShort == -4E+37)
-            {
-                optInAccelerationInitShort = 0.02;
-            }
-            else if ((optInAccelerationInitShort < 0.0) || (optInAccelerationInitShort > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationShort == -4E+37)
-            {
-                optInAccelerationShort = 0.02;
-            }
-            else if ((optInAccelerationShort < 0.0) || (optInAccelerationShort > 3E+37))
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInAccelerationMaxShort == -4E+37)
-            {
-                optInAccelerationMaxShort = 0.2;
-            }
-            else if ((optInAccelerationMaxShort < 0.0) || (optInAccelerationMaxShort > 3E+37))
+            if (optInOffsetOnReverse < Decimal.Zero || optInAccelerationInitLong < Decimal.Zero || optInAccelerationLong < Decimal.Zero ||
+                optInAccelerationMaxLong < Decimal.Zero || optInAccelerationInitShort < Decimal.Zero ||
+                optInAccelerationShort < Decimal.Zero || optInAccelerationMaxShort < Decimal.Zero)
             {
                 return RetCode.BadParam;
             }
@@ -448,8 +311,8 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            double afLong = optInAccelerationInitLong;
-            double afShort = optInAccelerationInitShort;
+            decimal afLong = optInAccelerationInitLong;
+            decimal afShort = optInAccelerationInitShort;
             if (afLong > optInAccelerationMaxLong)
             {
                 optInAccelerationInitLong = optInAccelerationMaxLong;
@@ -472,18 +335,11 @@ namespace TALib
                 optInAccelerationShort = optInAccelerationMaxShort;
             }
 
-            if (optInStartValue == 0.0)
+            if (optInStartValue == Decimal.Zero)
             {
-                int tempInt = 0;
-                RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, 1, ref tempInt, ref tempInt, ep_temp);
-                if (ep_temp[0] > 0.0)
-                {
-                    isLong = 0;
-                }
-                else
-                {
-                    isLong = 1;
-                }
+                int tempInt = default;
+                RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, ref tempInt, ref tempInt, epTemp, 1);
+                isLong = epTemp[0] <= Decimal.Zero;
 
                 if (retCode != RetCode.Success)
                 {
@@ -492,23 +348,23 @@ namespace TALib
                     return retCode;
                 }
             }
-            else if (optInStartValue > 0.0)
+            else if (optInStartValue > Decimal.Zero)
             {
-                isLong = 1;
+                isLong = true;
             }
             else
             {
-                isLong = 0;
+                isLong = false;
             }
 
             outBegIdx = startIdx;
-            int outIdx = 0;
+            int outIdx = default;
             int todayIdx = startIdx;
-            double newHigh = inHigh[todayIdx - 1];
-            double newLow = inLow[todayIdx - 1];
-            if (optInStartValue == 0.0)
+            decimal newHigh = inHigh[todayIdx - 1];
+            decimal newLow = inLow[todayIdx - 1];
+            if (optInStartValue == Decimal.Zero)
             {
-                if (isLong == 1)
+                if (isLong)
                 {
                     ep = inHigh[todayIdx];
                     sar = newLow;
@@ -519,7 +375,7 @@ namespace TALib
                     sar = newHigh;
                 }
             }
-            else if (optInStartValue > 0.0)
+            else if (optInStartValue > Decimal.Zero)
             {
                 ep = inHigh[todayIdx];
                 sar = optInStartValue;
@@ -534,16 +390,16 @@ namespace TALib
             newHigh = inHigh[todayIdx];
             while (todayIdx <= endIdx)
             {
-                double prevLow = newLow;
-                double prevHigh = newHigh;
+                decimal prevLow = newLow;
+                decimal prevHigh = newHigh;
                 newLow = inLow[todayIdx];
                 newHigh = inHigh[todayIdx];
                 todayIdx++;
-                if (isLong == 1)
+                if (isLong)
                 {
                     if (newLow <= sar)
                     {
-                        isLong = 0;
+                        isLong = false;
                         sar = ep;
                         if (sar < prevHigh)
                         {
@@ -555,7 +411,7 @@ namespace TALib
                             sar = newHigh;
                         }
 
-                        if (optInOffsetOnReverse != 0.0)
+                        if (optInOffsetOnReverse != Decimal.Zero)
                         {
                             sar += sar * optInOffsetOnReverse;
                         }
@@ -603,7 +459,7 @@ namespace TALib
                 }
                 else if (newHigh >= sar)
                 {
-                    isLong = 1;
+                    isLong = true;
                     sar = ep;
                     if (sar > prevLow)
                     {
@@ -615,7 +471,7 @@ namespace TALib
                         sar = newLow;
                     }
 
-                    if (optInOffsetOnReverse != 0.0)
+                    if (optInOffsetOnReverse != Decimal.Zero)
                     {
                         sar -= sar * optInOffsetOnReverse;
                     }
@@ -666,82 +522,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int SarExtLookback(double optInStartValue, double optInOffsetOnReverse, double optInAccelerationInitLong,
-            double optInAccelerationLong, double optInAccelerationMaxLong, double optInAccelerationInitShort, double optInAccelerationShort,
-            double optInAccelerationMaxShort)
+        public static int SarExtLookback()
         {
-            if (optInStartValue == -4E+37)
-            {
-                optInStartValue = 0.0;
-            }
-            else if ((optInStartValue < -3E+37) || (optInStartValue > 3E+37))
-            {
-                return -1;
-            }
-
-            if (optInOffsetOnReverse == -4E+37)
-            {
-                optInOffsetOnReverse = 0.0;
-            }
-            else if ((optInOffsetOnReverse < 0.0) || (optInOffsetOnReverse > 3E+37))
-            {
-                return -1;
-            }
-
-            if (optInAccelerationInitLong == -4E+37)
-            {
-                optInAccelerationInitLong = 0.02;
-            }
-            else if ((optInAccelerationInitLong < 0.0) || (optInAccelerationInitLong > 3E+37))
-            {
-                return -1;
-            }
-
-            if (optInAccelerationLong == -4E+37)
-            {
-                optInAccelerationLong = 0.02;
-            }
-            else if ((optInAccelerationLong < 0.0) || (optInAccelerationLong > 3E+37))
-            {
-                return -1;
-            }
-
-            if (optInAccelerationMaxLong == -4E+37)
-            {
-                optInAccelerationMaxLong = 0.2;
-            }
-            else if ((optInAccelerationMaxLong < 0.0) || (optInAccelerationMaxLong > 3E+37))
-            {
-                return -1;
-            }
-
-            if (optInAccelerationInitShort == -4E+37)
-            {
-                optInAccelerationInitShort = 0.02;
-            }
-            else if ((optInAccelerationInitShort < 0.0) || (optInAccelerationInitShort > 3E+37))
-            {
-                return -1;
-            }
-
-            if (optInAccelerationShort == -4E+37)
-            {
-                optInAccelerationShort = 0.02;
-            }
-            else if ((optInAccelerationShort < 0.0) || (optInAccelerationShort > 3E+37))
-            {
-                return -1;
-            }
-
-            if (optInAccelerationMaxShort == -4E+37)
-            {
-                optInAccelerationMaxShort = 0.2;
-            }
-            else if ((optInAccelerationMaxShort < 0.0) || (optInAccelerationMaxShort > 3E+37))
-            {
-                return -1;
-            }
-
             return 1;
         }
     }
