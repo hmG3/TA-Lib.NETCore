@@ -1,3 +1,5 @@
+using System;
+
 namespace TALib
 {
     public partial class Core
@@ -5,22 +7,12 @@ namespace TALib
         public static RetCode CdlEngulfing(int startIdx, int endIdx, double[] inOpen, double[] inHigh, double[] inLow, double[] inClose,
             ref int outBegIdx, ref int outNBElement, int[] outInteger)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outInteger == null)
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
             {
                 return RetCode.BadParam;
             }
@@ -42,26 +34,29 @@ namespace TALib
             int outIdx = default;
             do
             {
-                if (inClose[i] >= inOpen[i] && inClose[i - 1] < inOpen[i - 1] && inClose[i] > inOpen[i - 1] && inOpen[i] < inClose[i - 1] ||
-                    inClose[i] < inOpen[i] && inClose[i - 1] >= inOpen[i - 1] && inOpen[i] > inClose[i - 1] && inClose[i] < inOpen[i - 1])
+                if (TA_CandleColor(inClose, inOpen, i) && !TA_CandleColor(inClose, inOpen, i - 1) &&            // white engulfs black
+                    (inClose[i] >= inOpen[i - 1] && inOpen[i] < inClose[i - 1] ||
+                     inClose[i] > inOpen[i - 1] && inOpen[i] <= inClose[i - 1]
+                    )
+                    ||
+                    !TA_CandleColor(inClose, inOpen, i) && TA_CandleColor(inClose, inOpen, i - 1) &&            // black engulfs white
+                    (inOpen[i] >= inClose[i - 1] && inClose[i] < inOpen[i - 1] ||
+                     inOpen[i] > inClose[i - 1] && inClose[i] <= inOpen[i - 1]
+                    )
+                )
                 {
-                    int num;
-                    if (inClose[i] >= inOpen[i])
+                    if (!inOpen[i].Equals(inClose[i - 1]) && !inClose[i].Equals(inOpen[i - 1]))
                     {
-                        num = 1;
+                        outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
                     }
                     else
                     {
-                        num = -1;
+                        outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 80;
                     }
-
-                    outInteger[outIdx] = num * 100;
-                    outIdx++;
                 }
                 else
                 {
-                    outInteger[outIdx] = 0;
-                    outIdx++;
+                    outInteger[outIdx++] = 0;
                 }
 
                 i++;
@@ -69,28 +64,19 @@ namespace TALib
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode CdlEngulfing(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose,
             ref int outBegIdx, ref int outNBElement, int[] outInteger)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outInteger == null)
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
             {
                 return RetCode.BadParam;
             }
@@ -112,26 +98,29 @@ namespace TALib
             int outIdx = default;
             do
             {
-                if (inClose[i] >= inOpen[i] && inClose[i - 1] < inOpen[i - 1] && inClose[i] > inOpen[i - 1] && inOpen[i] < inClose[i - 1] ||
-                    inClose[i] < inOpen[i] && inClose[i - 1] >= inOpen[i - 1] && inOpen[i] > inClose[i - 1] && inClose[i] < inOpen[i - 1])
+                if (TA_CandleColor(inClose, inOpen, i) && !TA_CandleColor(inClose, inOpen, i - 1) &&            // white engulfs black
+                    (inClose[i] >= inOpen[i - 1] && inOpen[i] < inClose[i - 1] ||
+                     inClose[i] > inOpen[i - 1] && inOpen[i] <= inClose[i - 1]
+                    )
+                    ||
+                    !TA_CandleColor(inClose, inOpen, i) && TA_CandleColor(inClose, inOpen, i - 1) &&            // black engulfs white
+                    (inOpen[i] >= inClose[i - 1] && inClose[i] < inOpen[i - 1] ||
+                     inOpen[i] > inClose[i - 1] && inClose[i] <= inOpen[i - 1]
+                    )
+                )
                 {
-                    int num;
-                    if (inClose[i] >= inOpen[i])
+                    if (inOpen[i] != inClose[i - 1] && inClose[i] != inOpen[i - 1])
                     {
-                        num = 1;
+                        outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
                     }
                     else
                     {
-                        num = -1;
+                        outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 80;
                     }
-
-                    outInteger[outIdx] = num * 100;
-                    outIdx++;
                 }
                 else
                 {
-                    outInteger[outIdx] = 0;
-                    outIdx++;
+                    outInteger[outIdx++] = 0;
                 }
 
                 i++;
@@ -139,6 +128,7 @@ namespace TALib
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 

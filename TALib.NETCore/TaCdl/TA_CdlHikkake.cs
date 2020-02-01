@@ -5,22 +5,12 @@ namespace TALib
         public static RetCode CdlHikkake(int startIdx, int endIdx, double[] inOpen, double[] inHigh, double[] inLow, double[] inClose,
             ref int outBegIdx, ref int outNBElement, int[] outInteger)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outInteger == null)
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
             {
                 return RetCode.BadParam;
             }
@@ -41,21 +31,21 @@ namespace TALib
             int patternIdx = default;
             int patternResult = default;
             int i = startIdx - 3;
-            while (true)
+            while (i < startIdx)
             {
-                if (i >= startIdx)
+                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 1st + 2nd: lower high and higher low
+                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] // (bull) 3rd: lower high and lower low
+                     ||
+                     inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1])) // (bear) 3rd: higher high and higher low
                 {
-                    break;
-                }
-
-                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] &&
-                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1]))
-                {
-                    patternResult = (inHigh[i] >= inHigh[i - 1] ? -1 : 1) * 100;
+                    patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                     patternIdx = i;
                 }
-                else if (i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] ||
-                                                 patternResult < 0 && inClose[i] < inLow[patternIdx - 1]))
+                /* search for confirmation if hikkake was no more than 3 bars ago */
+                else if (i <= patternIdx + 3 &&
+                         (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] // close higher than the high of 2nd
+                          ||
+                          patternResult < 0 && inClose[i] < inLow[patternIdx - 1])) // close lower than the low of 2nd
                 {
                     patternIdx = 0;
                 }
@@ -67,35 +57,29 @@ namespace TALib
             int outIdx = default;
             do
             {
-                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] &&
-                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1]))
+                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 1st + 2nd: lower high and higher low
+                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] // (bull) 3rd: lower high and lower low
+                     ||
+                     inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] // (bear) 3rd: higher high and higher low
+                    )
+                )
                 {
-                    patternResult = (inHigh[i] >= inHigh[i - 1] ? -1 : 1) * 100;
+                    patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                     patternIdx = i;
-                    outInteger[outIdx] = patternResult;
-                    outIdx++;
+                    outInteger[outIdx++] = patternResult;
                 }
-                else if (i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] ||
-                                                 patternResult < 0 && inClose[i] < inLow[patternIdx - 1]))
+                /* search for confirmation if hikkake was no more than 3 bars ago */
+                else if (i <= patternIdx + 3 &&
+                         (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] // close higher than the high of 2nd
+                          ||
+                          patternResult < 0 && inClose[i] < inLow[patternIdx - 1])) // close lower than the low of 2nd
                 {
-                    int num;
-                    if (patternResult > 0)
-                    {
-                        num = 1;
-                    }
-                    else
-                    {
-                        num = -1;
-                    }
-
-                    outInteger[outIdx] = patternResult + num * 100;
-                    outIdx++;
+                    outInteger[outIdx++] = patternResult + 100 * (patternResult > 0 ? 1 : -1);
                     patternIdx = 0;
                 }
                 else
                 {
-                    outInteger[outIdx] = 0;
-                    outIdx++;
+                    outInteger[outIdx++] = 0;
                 }
 
                 i++;
@@ -103,28 +87,19 @@ namespace TALib
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode CdlHikkake(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose,
             ref int outBegIdx, ref int outNBElement, int[] outInteger)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inOpen == null || inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outInteger == null)
+            if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
             {
                 return RetCode.BadParam;
             }
@@ -145,21 +120,21 @@ namespace TALib
             int patternIdx = default;
             int patternResult = default;
             int i = startIdx - 3;
-            while (true)
+            while (i < startIdx)
             {
-                if (i >= startIdx)
+                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 1st + 2nd: lower high and higher low
+                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] // (bull) 3rd: lower high and lower low
+                     ||
+                     inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1])) // (bear) 3rd: higher high and higher low
                 {
-                    break;
-                }
-
-                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] &&
-                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1]))
-                {
-                    patternResult = (inHigh[i] >= inHigh[i - 1] ? -1 : 1) * 100;
+                    patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                     patternIdx = i;
                 }
-                else if (i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] ||
-                                                 patternResult < 0 && inClose[i] < inLow[patternIdx - 1]))
+                /* search for confirmation if hikkake was no more than 3 bars ago */
+                else if (i <= patternIdx + 3 &&
+                         (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] // close higher than the high of 2nd
+                          ||
+                          patternResult < 0 && inClose[i] < inLow[patternIdx - 1])) // close lower than the low of 2nd
                 {
                     patternIdx = 0;
                 }
@@ -171,35 +146,29 @@ namespace TALib
             int outIdx = default;
             do
             {
-                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] &&
-                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1]))
+                if (inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 1st + 2nd: lower high and higher low
+                    (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] // (bull) 3rd: lower high and lower low
+                     ||
+                     inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] // (bear) 3rd: higher high and higher low
+                    )
+                )
                 {
-                    patternResult = (inHigh[i] >= inHigh[i - 1] ? -1 : 1) * 100;
+                    patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                     patternIdx = i;
-                    outInteger[outIdx] = patternResult;
-                    outIdx++;
+                    outInteger[outIdx++] = patternResult;
                 }
-                else if (i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] ||
-                                                 patternResult < 0 && inClose[i] < inLow[patternIdx - 1]))
+                /* search for confirmation if hikkake was no more than 3 bars ago */
+                else if (i <= patternIdx + 3 &&
+                         (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] // close higher than the high of 2nd
+                          ||
+                          patternResult < 0 && inClose[i] < inLow[patternIdx - 1])) // close lower than the low of 2nd
                 {
-                    int num;
-                    if (patternResult > 0)
-                    {
-                        num = 1;
-                    }
-                    else
-                    {
-                        num = -1;
-                    }
-
-                    outInteger[outIdx] = patternResult + num * 100;
-                    outIdx++;
+                    outInteger[outIdx++] = patternResult + 100 * (patternResult > 0 ? 1 : -1);
                     patternIdx = 0;
                 }
                 else
                 {
-                    outInteger[outIdx] = 0;
-                    outIdx++;
+                    outInteger[outIdx++] = 0;
                 }
 
                 i++;
@@ -207,6 +176,7 @@ namespace TALib
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 
