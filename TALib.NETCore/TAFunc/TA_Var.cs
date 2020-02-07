@@ -2,8 +2,8 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode Variance(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
-            int optInTimePeriod = 5, double optInNbDev = 1.0)
+        public static RetCode Var(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
+            int optInTimePeriod = 5)
         {
             if (startIdx < 0)
             {
@@ -33,8 +33,8 @@ namespace TALib
             return TA_INT_VAR(startIdx, endIdx, inReal, optInTimePeriod, ref outBegIdx, ref outNBElement, outReal);
         }
 
-        public static RetCode Variance(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement,
-            decimal[] outReal, int optInTimePeriod = 5, decimal optInNbDev = 1m)
+        public static RetCode Var(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement,
+            decimal[] outReal, int optInTimePeriod = 5)
         {
             if (startIdx < 0)
             {
@@ -64,7 +64,7 @@ namespace TALib
             return TA_INT_VAR(startIdx, endIdx, inReal, optInTimePeriod, ref outBegIdx, ref outNBElement, outReal);
         }
 
-        public static int VarianceLookback(int optInTimePeriod = 5)
+        public static int VarLookback(int optInTimePeriod = 5)
         {
             if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {

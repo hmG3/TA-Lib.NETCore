@@ -8,39 +8,19 @@ namespace TALib
             ref int outBegIdx, ref int outNBElement, double[] outFastK, double[] outFastD, int optInFastKPeriod = 5,
             int optInFastDPeriod = 3)
         {
-            double[] tempBuffer;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInFastDPeriod < 1 || optInFastDPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outFastK == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outFastD == null)
+            if (inHigh == null || inLow == null || inClose == null || outFastK == null || outFastD == null || optInFastKPeriod < 1 ||
+                optInFastKPeriod > 100000 || optInFastDPeriod < 1 || optInFastDPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
             int lookbackK = optInFastKPeriod - 1;
-            int lookbackFastD = MovingAverageLookback(optInFastDMAType, optInFastDPeriod);
+            int lookbackFastD = MaLookback(optInFastDMAType, optInFastDPeriod);
             int lookbackTotal = lookbackK + lookbackFastD;
             if (startIdx < lookbackTotal)
             {
@@ -59,9 +39,9 @@ namespace TALib
             int today = trailingIdx + lookbackK;
             int highestIdx = -1;
             int lowestIdx = highestIdx;
-            double lowest = default;
-            double highest = lowest;
-            double diff = highest;
+            double highest, lowest;
+            double diff = highest = lowest = default;
+            double[] tempBuffer;
             if (outFastK == inHigh || outFastK == inLow || outFastK == inClose)
             {
                 tempBuffer = outFastK;
@@ -75,146 +55,103 @@ namespace TALib
                 tempBuffer = new double[endIdx - today + 1];
             }
 
-            Label_0124:
-            if (today > endIdx)
+            while (today <= endIdx)
             {
-                RetCode retCode = MovingAverage(0, outIdx - 1, tempBuffer, optInFastDMAType, ref outBegIdx, ref outNBElement, outFastD,
-                    optInFastDPeriod);
-                if (retCode != RetCode.Success || outNBElement == 0)
+                double tmp = inLow[today];
+                if (lowestIdx < trailingIdx)
                 {
-                    outBegIdx = 0;
-                    outNBElement = 0;
-                    return retCode;
+                    lowestIdx = trailingIdx;
+                    lowest = inLow[lowestIdx];
+                    int i = lowestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inLow[i];
+                        if (tmp < lowest)
+                        {
+                            lowestIdx = i;
+                            lowest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / 100.0;
                 }
-
-                Array.Copy(tempBuffer, lookbackFastD, outFastK, 0, outNBElement);
-                if (retCode != RetCode.Success)
-                {
-                    outBegIdx = 0;
-                    outNBElement = 0;
-                    return retCode;
-                }
-
-                outBegIdx = startIdx;
-                return RetCode.Success;
-            }
-
-            double tmp = inLow[today];
-            if (lowestIdx >= trailingIdx)
-            {
-                if (tmp <= lowest)
+                else if (tmp <= lowest)
                 {
                     lowestIdx = today;
                     lowest = tmp;
                     diff = (highest - lowest) / 100.0;
                 }
 
-                goto Label_0183;
-            }
-
-            lowestIdx = trailingIdx;
-            lowest = inLow[lowestIdx];
-            int i = lowestIdx;
-            Label_0141:
-            i++;
-            if (i <= today)
-            {
-                tmp = inLow[i];
-                if (tmp < lowest)
+                tmp = inHigh[today];
+                if (highestIdx < trailingIdx)
                 {
-                    lowestIdx = i;
-                    lowest = tmp;
+                    highestIdx = trailingIdx;
+                    highest = inHigh[highestIdx];
+                    int i = highestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inHigh[i];
+                        if (tmp > highest)
+                        {
+                            highestIdx = i;
+                            highest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / 100.0;
                 }
-
-                goto Label_0141;
-            }
-
-            diff = (highest - lowest) / 100.0;
-            Label_0183:
-            tmp = inHigh[today];
-            if (highestIdx >= trailingIdx)
-            {
-                if (tmp >= highest)
+                else if (tmp >= highest)
                 {
                     highestIdx = today;
                     highest = tmp;
                     diff = (highest - lowest) / 100.0;
                 }
 
-                goto Label_01E0;
+                tempBuffer[outIdx++] = !diff.Equals(0.0) ? (inClose[today] - lowest) / diff : 0.0;
+
+                trailingIdx++;
+                today++;
             }
 
-            highestIdx = trailingIdx;
-            highest = inHigh[highestIdx];
-            i = highestIdx;
-            Label_019A:
-            i++;
-            if (i <= today)
+            RetCode retCode = Ma(0, outIdx - 1, tempBuffer, optInFastDMAType, ref outBegIdx, ref outNBElement, outFastD,
+                optInFastDPeriod);
+            if (retCode != RetCode.Success || outNBElement == 0)
             {
-                tmp = inHigh[i];
-                if (tmp > highest)
-                {
-                    highestIdx = i;
-                    highest = tmp;
-                }
-
-                goto Label_019A;
+                outBegIdx = 0;
+                outNBElement = 0;
+                return retCode;
             }
 
-            diff = (highest - lowest) / 100.0;
-            Label_01E0:
-            if (!diff.Equals(0.0))
+            Array.Copy(tempBuffer, lookbackFastD, outFastK, 0, outNBElement);
+            if (retCode != RetCode.Success)
             {
-                tempBuffer[outIdx] = (inClose[today] - lowest) / diff;
-                outIdx++;
-            }
-            else
-            {
-                tempBuffer[outIdx] = 0.0;
-                outIdx++;
+                outBegIdx = 0;
+                outNBElement = 0;
+                return retCode;
             }
 
-            trailingIdx++;
-            today++;
-            goto Label_0124;
+            outBegIdx = startIdx;
+
+            return RetCode.Success;
         }
 
         public static RetCode StochF(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose,
-            MAType optInFastDMaType, ref int outBegIdx, ref int outNBElement, decimal[] outFastK, decimal[] outFastD,
+            MAType optInFastDMAType, ref int outBegIdx, ref int outNBElement, decimal[] outFastK, decimal[] outFastD,
             int optInFastKPeriod = 5, int optInFastDPeriod = 3)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInFastDPeriod < 1 || optInFastDPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outFastK == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outFastD == null)
+            if (inHigh == null || inLow == null || inClose == null || outFastK == null || outFastD == null || optInFastKPeriod < 1 ||
+                optInFastKPeriod > 100000 || optInFastDPeriod < 1 || optInFastDPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
             int lookbackK = optInFastKPeriod - 1;
-            int lookbackFastD = MovingAverageLookback(optInFastDMaType, optInFastDPeriod);
+            int lookbackFastD = MaLookback(optInFastDMAType, optInFastDPeriod);
             int lookbackTotal = lookbackK + lookbackFastD;
             if (startIdx < lookbackTotal)
             {
@@ -233,112 +170,100 @@ namespace TALib
             int today = trailingIdx + lookbackK;
             int highestIdx = -1;
             int lowestIdx = highestIdx;
-            decimal lowest = default;
-            decimal highest = lowest;
-            decimal diff = highest;
-            var tempBuffer = new decimal[endIdx - today + 1];
-            Label_00F8:
-            if (today > endIdx)
+            decimal highest, lowest;
+            decimal diff = highest = lowest = default;
+            decimal[] tempBuffer;
+            if (outFastK == inHigh || outFastK == inLow || outFastK == inClose)
             {
-                RetCode retCode = MovingAverage(0, outIdx - 1, tempBuffer, optInFastDMaType, ref outBegIdx, ref outNBElement, outFastD,
-                    optInFastDPeriod);
-                if (retCode != RetCode.Success || outNBElement == 0)
-                {
-                    outBegIdx = 0;
-                    outNBElement = 0;
-                    return retCode;
-                }
-
-                Array.Copy(tempBuffer, lookbackFastD, outFastK, 0, outNBElement);
-                if (retCode != RetCode.Success)
-                {
-                    outBegIdx = 0;
-                    outNBElement = 0;
-                    return retCode;
-                }
-
-                outBegIdx = startIdx;
-                return RetCode.Success;
+                tempBuffer = outFastK;
+            }
+            else if (outFastD == inHigh || outFastD == inLow || outFastD == inClose)
+            {
+                tempBuffer = outFastD;
+            }
+            else
+            {
+                tempBuffer = new decimal[endIdx - today + 1];
             }
 
-            decimal tmp = inLow[today];
-            if (lowestIdx >= trailingIdx)
+            while (today <= endIdx)
             {
-                if (tmp <= lowest)
+                decimal tmp = inLow[today];
+                if (lowestIdx < trailingIdx)
+                {
+                    lowestIdx = trailingIdx;
+                    lowest = inLow[lowestIdx];
+                    int i = lowestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inLow[i];
+                        if (tmp < lowest)
+                        {
+                            lowestIdx = i;
+                            lowest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / 100m;
+                }
+                else if (tmp <= lowest)
                 {
                     lowestIdx = today;
                     lowest = tmp;
                     diff = (highest - lowest) / 100m;
                 }
 
-                goto Label_015A;
-            }
-
-            lowestIdx = trailingIdx;
-            lowest = inLow[lowestIdx];
-            int i = lowestIdx;
-            Label_0117:
-            i++;
-            if (i <= today)
-            {
-                tmp = inLow[i];
-                if (tmp < lowest)
+                tmp = inHigh[today];
+                if (highestIdx < trailingIdx)
                 {
-                    lowestIdx = i;
-                    lowest = tmp;
+                    highestIdx = trailingIdx;
+                    highest = inHigh[highestIdx];
+                    int i = highestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inHigh[i];
+                        if (tmp > highest)
+                        {
+                            highestIdx = i;
+                            highest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / 100m;
                 }
-
-                goto Label_0117;
-            }
-
-            diff = (highest - lowest) / 100m;
-            Label_015A:
-            tmp = inHigh[today];
-            if (highestIdx >= trailingIdx)
-            {
-                if (tmp >= highest)
+                else if (tmp >= highest)
                 {
                     highestIdx = today;
                     highest = tmp;
                     diff = (highest - lowest) / 100m;
                 }
 
-                goto Label_01BA;
+                tempBuffer[outIdx++] = diff != Decimal.Zero ? (inClose[today] - lowest) / diff : Decimal.Zero;
+
+                trailingIdx++;
+                today++;
             }
 
-            highestIdx = trailingIdx;
-            highest = inHigh[highestIdx];
-            i = highestIdx;
-            Label_0173:
-            i++;
-            if (i <= today)
+            RetCode retCode = Ma(0, outIdx - 1, tempBuffer, optInFastDMAType, ref outBegIdx, ref outNBElement, outFastD,
+                optInFastDPeriod);
+            if (retCode != RetCode.Success || outNBElement == 0)
             {
-                tmp = inHigh[i];
-                if (tmp > highest)
-                {
-                    highestIdx = i;
-                    highest = tmp;
-                }
-
-                goto Label_0173;
+                outBegIdx = 0;
+                outNBElement = 0;
+                return retCode;
             }
 
-            diff = (highest - lowest) / 100m;
-            Label_01BA:
-            if (diff != Decimal.Zero)
+            Array.Copy(tempBuffer, lookbackFastD, outFastK, 0, outNBElement);
+            if (retCode != RetCode.Success)
             {
-                tempBuffer[outIdx] = (inClose[today] - lowest) / diff;
-                outIdx++;
-            }
-            else
-            {
-                tempBuffer[outIdx] = Decimal.Zero;
-                outIdx++;
+                outBegIdx = 0;
+                outNBElement = 0;
+                return retCode;
             }
 
-            trailingIdx++;
-            today++;
-            goto Label_00F8;
+            outBegIdx = startIdx;
+
+            return RetCode.Success;
         }
 
         public static int StochFLookback(MAType optInFastDMAType, int optInFastKPeriod = 5, int optInFastDPeriod = 3)
@@ -350,7 +275,7 @@ namespace TALib
 
             int retValue = optInFastKPeriod - 1;
 
-            return retValue + MovingAverageLookback(optInFastDMAType, optInFastDPeriod);
+            return retValue + MaLookback(optInFastDMAType, optInFastDPeriod);
         }
     }
 }

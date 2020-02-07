@@ -7,46 +7,17 @@ namespace TALib
         public static RetCode PlusDM(int startIdx, int endIdx, double[] inHigh, double[] inLow, ref int outBegIdx, ref int outNBElement,
             double[] outReal, int optInTimePeriod = 14)
         {
-            double tempReal;
-            int today;
-            double diffP;
-            double prevLow;
-            double prevHigh;
-            double diffM;
-            int lookbackTotal;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null)
+            if (inHigh == null || inLow == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod > 1)
-            {
-                lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.PlusDM] - 1;
-            }
-            else
-            {
-                lookbackTotal = 1;
-            }
+            int lookbackTotal = PlusDMLookback(optInTimePeriod);
 
             if (startIdx < lookbackTotal)
             {
@@ -60,6 +31,11 @@ namespace TALib
                 return RetCode.Success;
             }
 
+            int today;
+            double diffP;
+            double prevLow;
+            double prevHigh;
+            double diffM;
             int outIdx = default;
             if (optInTimePeriod <= 1)
             {
@@ -70,22 +46,13 @@ namespace TALib
                 while (today < endIdx)
                 {
                     today++;
-                    tempReal = inHigh[today];
+                    double tempReal = inHigh[today];
                     diffP = tempReal - prevHigh;
                     prevHigh = tempReal;
                     tempReal = inLow[today];
                     diffM = prevLow - tempReal;
                     prevLow = tempReal;
-                    if (diffP > 0.0 && diffP > diffM)
-                    {
-                        outReal[outIdx] = diffP;
-                        outIdx++;
-                    }
-                    else
-                    {
-                        outReal[outIdx] = 0.0;
-                        outIdx++;
-                    }
+                    outReal[outIdx++] = diffP > 0.0 && diffP > diffM ? diffP : 0.0;
                 }
 
                 outNBElement = outIdx;
@@ -98,12 +65,10 @@ namespace TALib
             prevHigh = inHigh[today];
             prevLow = inLow[today];
             int i = optInTimePeriod - 1;
-            Label_0138:
-            i--;
-            if (i > 0)
+            while (i-- > 0)
             {
                 today++;
-                tempReal = inHigh[today];
+                double tempReal = inHigh[today];
                 diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
@@ -113,17 +78,13 @@ namespace TALib
                 {
                     prevPlusDM += diffP;
                 }
-
-                goto Label_0138;
             }
 
             i = (int) Globals.UnstablePeriod[(int) FuncUnstId.PlusDM];
-            Label_0186:
-            i--;
-            if (i != 0)
+            while (i-- != 0)
             {
                 today++;
-                tempReal = inHigh[today];
+                double tempReal = inHigh[today];
                 diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
@@ -137,21 +98,15 @@ namespace TALib
                 {
                     prevPlusDM -= prevPlusDM / optInTimePeriod;
                 }
-
-                goto Label_0186;
             }
 
             outReal[0] = prevPlusDM;
             outIdx = 1;
-            while (true)
-            {
-                if (today >= endIdx)
-                {
-                    break;
-                }
 
+            while (today < endIdx)
+            {
                 today++;
-                tempReal = inHigh[today];
+                double tempReal = inHigh[today];
                 diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
@@ -166,57 +121,28 @@ namespace TALib
                     prevPlusDM -= prevPlusDM / optInTimePeriod;
                 }
 
-                outReal[outIdx] = prevPlusDM;
-                outIdx++;
+                outReal[outIdx++] = prevPlusDM;
             }
 
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode PlusDM(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, ref int outBegIdx, ref int outNBElement,
             decimal[] outReal, int optInTimePeriod = 14)
         {
-            decimal tempReal;
-            int today;
-            decimal diffP;
-            decimal prevLow;
-            decimal prevHigh;
-            decimal diffM;
-            int lookbackTotal;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null)
+            if (inHigh == null || inLow == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod > 1)
-            {
-                lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.PlusDM] - 1;
-            }
-            else
-            {
-                lookbackTotal = 1;
-            }
+            int lookbackTotal = PlusDMLookback(optInTimePeriod);
 
             if (startIdx < lookbackTotal)
             {
@@ -230,6 +156,11 @@ namespace TALib
                 return RetCode.Success;
             }
 
+            int today;
+            decimal diffP;
+            decimal prevLow;
+            decimal prevHigh;
+            decimal diffM;
             int outIdx = default;
             if (optInTimePeriod <= 1)
             {
@@ -240,22 +171,13 @@ namespace TALib
                 while (today < endIdx)
                 {
                     today++;
-                    tempReal = inHigh[today];
+                    decimal tempReal = inHigh[today];
                     diffP = tempReal - prevHigh;
                     prevHigh = tempReal;
                     tempReal = inLow[today];
                     diffM = prevLow - tempReal;
                     prevLow = tempReal;
-                    if (diffP > Decimal.Zero && diffP > diffM)
-                    {
-                        outReal[outIdx] = diffP;
-                        outIdx++;
-                    }
-                    else
-                    {
-                        outReal[outIdx] = Decimal.Zero;
-                        outIdx++;
-                    }
+                    outReal[outIdx++] = diffP > Decimal.Zero && diffP > diffM ? diffP : Decimal.Zero;
                 }
 
                 outNBElement = outIdx;
@@ -268,12 +190,10 @@ namespace TALib
             prevHigh = inHigh[today];
             prevLow = inLow[today];
             int i = optInTimePeriod - 1;
-            Label_0141:
-            i--;
-            if (i > 0)
+            while (i-- > 0)
             {
                 today++;
-                tempReal = inHigh[today];
+                decimal tempReal = inHigh[today];
                 diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
@@ -283,17 +203,13 @@ namespace TALib
                 {
                     prevPlusDM += diffP;
                 }
-
-                goto Label_0141;
             }
 
             i = (int) Globals.UnstablePeriod[(int) FuncUnstId.PlusDM];
-            Label_0191:
-            i--;
-            if (i != 0)
+            while (i-- != 0)
             {
                 today++;
-                tempReal = inHigh[today];
+                decimal tempReal = inHigh[today];
                 diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
@@ -307,21 +223,15 @@ namespace TALib
                 {
                     prevPlusDM -= prevPlusDM / optInTimePeriod;
                 }
-
-                goto Label_0191;
             }
 
             outReal[0] = prevPlusDM;
             outIdx = 1;
-            while (true)
-            {
-                if (today >= endIdx)
-                {
-                    break;
-                }
 
+            while (today < endIdx)
+            {
                 today++;
-                tempReal = inHigh[today];
+                decimal tempReal = inHigh[today];
                 diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
@@ -336,11 +246,11 @@ namespace TALib
                     prevPlusDM -= prevPlusDM / optInTimePeriod;
                 }
 
-                outReal[outIdx] = prevPlusDM;
-                outIdx++;
+                outReal[outIdx++] = prevPlusDM;
             }
 
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 

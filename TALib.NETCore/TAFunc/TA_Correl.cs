@@ -7,34 +7,12 @@ namespace TALib
         public static RetCode Correl(int startIdx, int endIdx, double[] inReal0, double[] inReal1, ref int outBegIdx, ref int outNBElement,
             double[] outReal, int optInTimePeriod = 30)
         {
-            double y;
-            double x;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal0 == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (inReal1 == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal0 == null || inReal1 == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -54,29 +32,26 @@ namespace TALib
 
             outBegIdx = startIdx;
             int trailingIdx = startIdx - lookbackTotal;
-            double sumY2 = default;
-            double sumX2 = sumY2;
-            double sumY = sumX2;
-            double sumX = sumY;
-            double sumXY = sumX;
-            int today = trailingIdx;
-            while (today <= startIdx)
+
+            double sumX, sumY, sumX2, sumY2;
+            double sumXY = sumX = sumY = sumX2 = sumY2 = default;
+            int today;
+            for (today = trailingIdx; today <= startIdx; today++)
             {
-                x = inReal0[today];
+                double x = inReal0[today];
                 sumX += x;
                 sumX2 += x * x;
-                y = inReal1[today];
+
+                double y = inReal1[today];
                 sumXY += x * y;
                 sumY += y;
                 sumY2 += y * y;
-                today++;
             }
 
             double trailingX = inReal0[trailingIdx];
-            double trailingY = inReal1[trailingIdx];
-            trailingIdx++;
+            double trailingY = inReal1[trailingIdx++];
             double tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-            if (tempReal >= 1E-08)
+            if (!TA_IsZeroOrNeg(tempReal))
             {
                 outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal);
             }
@@ -90,68 +65,47 @@ namespace TALib
             {
                 sumX -= trailingX;
                 sumX2 -= trailingX * trailingX;
+
                 sumXY -= trailingX * trailingY;
                 sumY -= trailingY;
                 sumY2 -= trailingY * trailingY;
-                x = inReal0[today];
+
+                double x = inReal0[today];
                 sumX += x;
                 sumX2 += x * x;
-                y = inReal1[today];
-                today++;
+
+                double y = inReal1[today++];
                 sumXY += x * y;
                 sumY += y;
                 sumY2 += y * y;
+
                 trailingX = inReal0[trailingIdx];
-                trailingY = inReal1[trailingIdx];
-                trailingIdx++;
+                trailingY = inReal1[trailingIdx++];
                 tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-                if (tempReal >= 1E-08)
+                if (!TA_IsZeroOrNeg(tempReal))
                 {
-                    outReal[outIdx] = (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal);
-                    outIdx++;
+                    outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal);
                 }
                 else
                 {
-                    outReal[outIdx] = 0.0;
-                    outIdx++;
+                    outReal[outIdx++] = 0.0;
                 }
             }
 
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode Correl(int startIdx, int endIdx, decimal[] inReal0, decimal[] inReal1, ref int outBegIdx,
             ref int outNBElement, decimal[] outReal, int optInTimePeriod = 30)
         {
-            decimal y;
-            decimal x;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal0 == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (inReal1 == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal0 == null || inReal1 == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -171,29 +125,26 @@ namespace TALib
 
             outBegIdx = startIdx;
             int trailingIdx = startIdx - lookbackTotal;
-            decimal sumY2 = default;
-            decimal sumX2 = sumY2;
-            decimal sumY = sumX2;
-            decimal sumX = sumY;
-            decimal sumXY = sumX;
-            int today = trailingIdx;
-            while (today <= startIdx)
+
+            decimal sumX, sumY, sumX2, sumY2;
+            decimal sumXY = sumX = sumY = sumX2 = sumY2 = default;
+            int today;
+            for (today = trailingIdx; today <= startIdx; today++)
             {
-                x = inReal0[today];
+                decimal x = inReal0[today];
                 sumX += x;
                 sumX2 += x * x;
-                y = inReal1[today];
+
+                decimal y = inReal1[today];
                 sumXY += x * y;
                 sumY += y;
                 sumY2 += y * y;
-                today++;
             }
 
             decimal trailingX = inReal0[trailingIdx];
-            decimal trailingY = inReal1[trailingIdx];
-            trailingIdx++;
+            decimal trailingY = inReal1[trailingIdx++];
             decimal tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-            if (tempReal >= 1E-08m)
+            if (!TA_IsZeroOrNeg(tempReal))
             {
                 outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal);
             }
@@ -207,34 +158,35 @@ namespace TALib
             {
                 sumX -= trailingX;
                 sumX2 -= trailingX * trailingX;
+
                 sumXY -= trailingX * trailingY;
                 sumY -= trailingY;
                 sumY2 -= trailingY * trailingY;
-                x = inReal0[today];
+
+                decimal x = inReal0[today];
                 sumX += x;
                 sumX2 += x * x;
-                y = inReal1[today];
-                today++;
+
+                decimal y = inReal1[today++];
                 sumXY += x * y;
                 sumY += y;
                 sumY2 += y * y;
+
                 trailingX = inReal0[trailingIdx];
-                trailingY = inReal1[trailingIdx];
-                trailingIdx++;
+                trailingY = inReal1[trailingIdx++];
                 tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-                if (tempReal >= 1E-08m)
+                if (!TA_IsZeroOrNeg(tempReal))
                 {
-                    outReal[outIdx] = (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal);
-                    outIdx++;
+                    outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal);
                 }
                 else
                 {
-                    outReal[outIdx] = Decimal.Zero;
-                    outIdx++;
+                    outReal[outIdx++] = Decimal.Zero;
                 }
             }
 
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 

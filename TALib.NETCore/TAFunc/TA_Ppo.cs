@@ -5,27 +5,13 @@ namespace TALib
         public static RetCode Ppo(int startIdx, int endIdx, double[] inReal, MAType optInMAType, ref int outBegIdx, ref int outNBElement,
             double[] outReal, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 ||
+                optInSlowPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -39,27 +25,13 @@ namespace TALib
         public static RetCode Ppo(int startIdx, int endIdx, decimal[] inReal, MAType optInMAType, ref int outBegIdx, ref int outNBElement,
             decimal[] outReal, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 ||
+                optInSlowPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -70,14 +42,14 @@ namespace TALib
                 outReal, tempBuffer, 1);
         }
 
-        public static int PpoLookback(MAType optInMAType, int optInFastPeriod = 12 , int optInSlowPeriod = 26)
+        public static int PpoLookback(MAType optInMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
             if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000)
             {
                 return -1;
             }
 
-            return MovingAverageLookback(optInMAType, optInSlowPeriod <= optInFastPeriod ? optInFastPeriod : optInSlowPeriod);
+            return MaLookback(optInMAType, optInSlowPeriod <= optInFastPeriod ? optInFastPeriod : optInSlowPeriod);
         }
     }
 }

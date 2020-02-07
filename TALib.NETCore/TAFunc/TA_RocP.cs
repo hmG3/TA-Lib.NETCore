@@ -7,27 +7,12 @@ namespace TALib
         public static RetCode RocP(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
             int optInTimePeriod = 10)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -47,58 +32,28 @@ namespace TALib
             int outIdx = default;
             int inIdx = startIdx;
             int trailingIdx = startIdx - optInTimePeriod;
-            while (true)
+            while (inIdx <= endIdx)
             {
-                if (inIdx > endIdx)
-                {
-                    break;
-                }
-
-                double tempReal = inReal[trailingIdx];
-                trailingIdx++;
-                if (!tempReal.Equals(0.0))
-                {
-                    outReal[outIdx] = (inReal[inIdx] - tempReal) / tempReal;
-                    outIdx++;
-                }
-                else
-                {
-                    outReal[outIdx] = 0.0;
-                    outIdx++;
-                }
-
+                double tempReal = inReal[trailingIdx++];
+                outReal[outIdx++] = !tempReal.Equals(0.0) ? (inReal[inIdx] - tempReal) / tempReal : 0.0;
                 inIdx++;
             }
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode RocP(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
             int optInTimePeriod = 10)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -118,31 +73,16 @@ namespace TALib
             int outIdx = default;
             int inIdx = startIdx;
             int trailingIdx = startIdx - optInTimePeriod;
-            while (true)
+            while (inIdx <= endIdx)
             {
-                if (inIdx > endIdx)
-                {
-                    break;
-                }
-
-                decimal tempReal = inReal[trailingIdx];
-                trailingIdx++;
-                if (tempReal != Decimal.Zero)
-                {
-                    outReal[outIdx] = (inReal[inIdx] - tempReal) / tempReal;
-                    outIdx++;
-                }
-                else
-                {
-                    outReal[outIdx] = Decimal.Zero;
-                    outIdx++;
-                }
-
+                decimal tempReal = inReal[trailingIdx++];
+                outReal[outIdx++] = tempReal != Decimal.Zero ? (inReal[inIdx] - tempReal) / tempReal : Decimal.Zero;
                 inIdx++;
             }
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 

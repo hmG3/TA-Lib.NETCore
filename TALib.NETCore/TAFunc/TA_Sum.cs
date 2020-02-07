@@ -5,27 +5,12 @@ namespace TALib
         public static RetCode Sum(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
             int optInTimePeriod = 30)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -50,52 +35,34 @@ namespace TALib
             {
                 while (i < startIdx)
                 {
-                    periodTotal += inReal[i];
-                    i++;
+                    periodTotal += inReal[i++];
                 }
             }
 
             int outIdx = default;
             do
             {
-                periodTotal += inReal[i];
-                i++;
+                periodTotal += inReal[i++];
                 double tempReal = periodTotal;
-                periodTotal -= inReal[trailingIdx];
-                trailingIdx++;
-                outReal[outIdx] = tempReal;
-                outIdx++;
+                periodTotal -= inReal[trailingIdx++];
+                outReal[outIdx++] = tempReal;
             } while (i <= endIdx);
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode Sum(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
             int optInTimePeriod = 30)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -120,25 +87,22 @@ namespace TALib
             {
                 while (i < startIdx)
                 {
-                    periodTotal += inReal[i];
-                    i++;
+                    periodTotal += inReal[i++];
                 }
             }
 
             int outIdx = default;
             do
             {
-                periodTotal += inReal[i];
-                i++;
+                periodTotal += inReal[i++];
                 decimal tempReal = periodTotal;
-                periodTotal -= inReal[trailingIdx];
-                trailingIdx++;
-                outReal[outIdx] = tempReal;
-                outIdx++;
+                periodTotal -= inReal[trailingIdx++];
+                outReal[outIdx++] = tempReal;
             } while (i <= endIdx);
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 

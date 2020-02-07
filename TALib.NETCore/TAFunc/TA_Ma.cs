@@ -2,30 +2,15 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode MovingAverage(int startIdx, int endIdx, double[] inReal, MAType optInMAType, ref int outBegIdx,
+        public static RetCode Ma(int startIdx, int endIdx, double[] inReal, MAType optInMAType, ref int outBegIdx,
             ref int outNBElement, double[] outReal, int optInTimePeriod = 30)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -73,30 +58,15 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode MovingAverage(int startIdx, int endIdx, decimal[] inReal, MAType optInMAType, ref int outBegIdx,
+        public static RetCode Ma(int startIdx, int endIdx, decimal[] inReal, MAType optInMAType, ref int outBegIdx,
             ref int outNBElement, decimal[] outReal, int optInTimePeriod = 30)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -144,47 +114,31 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int MovingAverageLookback(MAType optInMAType, int optInTimePeriod = 30)
+        public static int MaLookback(MAType optInMAType, int optInTimePeriod = 30)
         {
             if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            if (optInTimePeriod > 1)
+            if (optInTimePeriod <= 1)
             {
-                switch (optInMAType)
-                {
-                    case MAType.Sma:
-                        return SmaLookback(optInTimePeriod);
-
-                    case MAType.Ema:
-                        return EmaLookback(optInTimePeriod);
-
-                    case MAType.Wma:
-                        return WmaLookback(optInTimePeriod);
-
-                    case MAType.Dema:
-                        return DemaLookback(optInTimePeriod);
-
-                    case MAType.Tema:
-                        return TemaLookback(optInTimePeriod);
-
-                    case MAType.Trima:
-                        return TrimaLookback(optInTimePeriod);
-
-                    case MAType.Kama:
-                        return KamaLookback(optInTimePeriod);
-
-                    case MAType.Mama:
-                        return MamaLookback();
-
-                    case MAType.T3:
-                        return T3Lookback(optInTimePeriod);
-                }
+                return 0;
             }
 
-            return 0;
+            return optInMAType switch
+            {
+                MAType.Sma => SmaLookback(optInTimePeriod),
+                MAType.Ema => EmaLookback(optInTimePeriod),
+                MAType.Wma => WmaLookback(optInTimePeriod),
+                MAType.Dema => DemaLookback(optInTimePeriod),
+                MAType.Tema => TemaLookback(optInTimePeriod),
+                MAType.Trima => TrimaLookback(optInTimePeriod),
+                MAType.Kama => KamaLookback(optInTimePeriod),
+                MAType.Mama => MamaLookback(),
+                MAType.T3 => T3Lookback(optInTimePeriod),
+                _ => 0
+            };
         }
     }
 }

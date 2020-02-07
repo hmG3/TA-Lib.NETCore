@@ -7,32 +7,17 @@ namespace TALib
         public static RetCode WillR(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, ref int outBegIdx,
             ref int outNBElement, double[] outReal, int optInTimePeriod = 14)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
+            if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            int nbInitialElementNeeded = optInTimePeriod - 1;
+            int nbInitialElementNeeded = WillRLookback(optInTimePeriod);
             if (startIdx < nbInitialElementNeeded)
             {
                 startIdx = nbInitialElementNeeded;
@@ -50,126 +35,87 @@ namespace TALib
             int trailingIdx = startIdx - nbInitialElementNeeded;
             int highestIdx = -1;
             int lowestIdx = highestIdx;
-            double lowest = default;
-            double highest = lowest;
-            var diff = highest;
-            Label_00B1:
-            if (today > endIdx)
-            {
-                outBegIdx = startIdx;
-                outNBElement = outIdx;
-                return RetCode.Success;
-            }
+            double highest, lowest;
+            double diff = highest = lowest = default;
 
-            double tmp = inLow[today];
-            if (lowestIdx >= trailingIdx)
+            while (today <= endIdx)
             {
-                if (tmp <= lowest)
+                double tmp = inLow[today];
+                if (lowestIdx < trailingIdx)
+                {
+                    lowestIdx = trailingIdx;
+                    lowest = inLow[lowestIdx];
+                    int i = lowestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inLow[i];
+                        if (tmp < lowest)
+                        {
+                            lowestIdx = i;
+                            lowest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / -100.0;
+                }
+                else if (tmp <= lowest)
                 {
                     lowestIdx = today;
                     lowest = tmp;
                     diff = (highest - lowest) / -100.0;
                 }
 
-                goto Label_0112;
-            }
-
-            lowestIdx = trailingIdx;
-            lowest = inLow[lowestIdx];
-            int i = lowestIdx;
-            Label_00D0:
-            i++;
-            if (i <= today)
-            {
-                tmp = inLow[i];
-                if (tmp < lowest)
+                tmp = inHigh[today];
+                if (highestIdx < trailingIdx)
                 {
-                    lowestIdx = i;
-                    lowest = tmp;
+                    highestIdx = trailingIdx;
+                    highest = inHigh[highestIdx];
+                    int i = highestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inHigh[i];
+                        if (tmp > highest)
+                        {
+                            highestIdx = i;
+                            highest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / -100.0;
                 }
-
-                goto Label_00D0;
-            }
-
-            diff = (highest - lowest) / -100.0;
-            Label_0112:
-            tmp = inHigh[today];
-            if (highestIdx >= trailingIdx)
-            {
-                if (tmp >= highest)
+                else if (tmp >= highest)
                 {
                     highestIdx = today;
                     highest = tmp;
                     diff = (highest - lowest) / -100.0;
                 }
 
-                goto Label_016B;
+                outReal[outIdx++] = !diff.Equals(0.0) ? (highest - inClose[today]) / diff : 0.0;
+
+                trailingIdx++;
+                today++;
             }
 
-            highestIdx = trailingIdx;
-            highest = inHigh[highestIdx];
-            i = highestIdx;
-            Label_0129:
-            i++;
-            if (i <= today)
-            {
-                tmp = inHigh[i];
-                if (tmp > highest)
-                {
-                    highestIdx = i;
-                    highest = tmp;
-                }
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
 
-                goto Label_0129;
-            }
-
-            diff = (highest - lowest) / -100.0;
-            Label_016B:
-            if (!diff.Equals(0.0))
-            {
-                outReal[outIdx] = (highest - inClose[today]) / diff;
-                outIdx++;
-            }
-            else
-            {
-                outReal[outIdx] = 0.0;
-                outIdx++;
-            }
-
-            trailingIdx++;
-            today++;
-            goto Label_00B1;
+            return RetCode.Success;
         }
 
         public static RetCode WillR(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, ref int outBegIdx,
             ref int outNBElement, decimal[] outReal, int optInTimePeriod = 14)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
+            if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            int nbInitialElementNeeded = optInTimePeriod - 1;
+            int nbInitialElementNeeded = WillRLookback(optInTimePeriod);
             if (startIdx < nbInitialElementNeeded)
             {
                 startIdx = nbInitialElementNeeded;
@@ -187,95 +133,71 @@ namespace TALib
             int trailingIdx = startIdx - nbInitialElementNeeded;
             int highestIdx = -1;
             int lowestIdx = highestIdx;
-            decimal lowest = default;
-            decimal highest = lowest;
-            var diff = highest;
-            Label_00B1:
-            if (today > endIdx)
-            {
-                outBegIdx = startIdx;
-                outNBElement = outIdx;
-                return RetCode.Success;
-            }
+            decimal highest, lowest;
+            decimal diff = highest = lowest = default;
 
-            decimal tmp = inLow[today];
-            if (lowestIdx >= trailingIdx)
+            while (today <= endIdx)
             {
-                if (tmp <= lowest)
+                decimal tmp = inLow[today];
+                if (lowestIdx < trailingIdx)
+                {
+                    lowestIdx = trailingIdx;
+                    lowest = inLow[lowestIdx];
+                    int i = lowestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inLow[i];
+                        if (tmp < lowest)
+                        {
+                            lowestIdx = i;
+                            lowest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / -100m;
+                }
+                else if (tmp <= lowest)
                 {
                     lowestIdx = today;
                     lowest = tmp;
                     diff = (highest - lowest) / -100m;
                 }
 
-                goto Label_0115;
-            }
-
-            lowestIdx = trailingIdx;
-            lowest = inLow[lowestIdx];
-            int i = lowestIdx;
-            Label_00D2:
-            i++;
-            if (i <= today)
-            {
-                tmp = inLow[i];
-                if (tmp < lowest)
+                tmp = inHigh[today];
+                if (highestIdx < trailingIdx)
                 {
-                    lowestIdx = i;
-                    lowest = tmp;
+                    highestIdx = trailingIdx;
+                    highest = inHigh[highestIdx];
+                    int i = highestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inHigh[i];
+                        if (tmp > highest)
+                        {
+                            highestIdx = i;
+                            highest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / -100m;
                 }
-
-                goto Label_00D2;
-            }
-
-            diff = (highest - lowest) / -100m;
-            Label_0115:
-            tmp = inHigh[today];
-            if (highestIdx >= trailingIdx)
-            {
-                if (tmp >= highest)
+                else if (tmp >= highest)
                 {
                     highestIdx = today;
                     highest = tmp;
                     diff = (highest - lowest) / -100m;
                 }
 
-                goto Label_0171;
+                outReal[outIdx++] = diff != Decimal.Zero ? (highest - inClose[today]) / diff : Decimal.Zero;
+
+                trailingIdx++;
+                today++;
             }
 
-            highestIdx = trailingIdx;
-            highest = inHigh[highestIdx];
-            i = highestIdx;
-            Label_012E:
-            i++;
-            if (i <= today)
-            {
-                tmp = inHigh[i];
-                if (tmp > highest)
-                {
-                    highestIdx = i;
-                    highest = tmp;
-                }
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
 
-                goto Label_012E;
-            }
-
-            diff = (highest - lowest) / -100m;
-            Label_0171:
-            if (diff != Decimal.Zero)
-            {
-                outReal[outIdx] = (highest - inClose[today]) / diff;
-                outIdx++;
-            }
-            else
-            {
-                outReal[outIdx] = Decimal.Zero;
-                outIdx++;
-            }
-
-            trailingIdx++;
-            today++;
-            goto Label_00B1;
+            return RetCode.Success;
         }
 
         public static int WillRLookback(int optInTimePeriod = 14)

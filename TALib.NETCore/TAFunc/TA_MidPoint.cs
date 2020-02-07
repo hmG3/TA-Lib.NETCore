@@ -5,27 +5,12 @@ namespace TALib
         public static RetCode MidPoint(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
             int optInTimePeriod = 14)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -46,19 +31,11 @@ namespace TALib
             int outIdx = default;
             int today = startIdx;
             int trailingIdx = startIdx - nbInitialElementNeeded;
-            while (true)
+            while (today <= endIdx)
             {
-                if (today > endIdx)
-                {
-                    outBegIdx = startIdx;
-                    outNBElement = outIdx;
-                    return RetCode.Success;
-                }
-
-                double lowest = inReal[trailingIdx];
-                trailingIdx++;
+                double lowest = inReal[trailingIdx++];
                 double highest = lowest;
-                for (var i = trailingIdx; i <= today; i++)
+                for (int i = trailingIdx; i <= today; i++)
                 {
                     double tmp = inReal[i];
                     if (tmp < lowest)
@@ -71,36 +48,25 @@ namespace TALib
                     }
                 }
 
-                outReal[outIdx] = (highest + lowest) / 2.0;
-                outIdx++;
+                outReal[outIdx++] = (highest + lowest) / 2.0;
                 today++;
             }
+
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
+
+            return RetCode.Success;
         }
 
         public static RetCode MidPoint(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement,
             decimal[] outReal, int optInTimePeriod = 14)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -121,19 +87,11 @@ namespace TALib
             int outIdx = default;
             int today = startIdx;
             int trailingIdx = startIdx - nbInitialElementNeeded;
-            while (true)
+            while (today <= endIdx)
             {
-                if (today > endIdx)
-                {
-                    outBegIdx = startIdx;
-                    outNBElement = outIdx;
-                    return RetCode.Success;
-                }
-
-                decimal lowest = inReal[trailingIdx];
-                trailingIdx++;
+                decimal lowest = inReal[trailingIdx++];
                 decimal highest = lowest;
-                for (var i = trailingIdx; i <= today; i++)
+                for (int i = trailingIdx; i <= today; i++)
                 {
                     decimal tmp = inReal[i];
                     if (tmp < lowest)
@@ -146,10 +104,14 @@ namespace TALib
                     }
                 }
 
-                outReal[outIdx] = (highest + lowest) / 2m;
-                outIdx++;
+                outReal[outIdx++] = (highest + lowest) / 2m;
                 today++;
             }
+
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
+
+            return RetCode.Success;
         }
 
         public static int MidPointLookback(int optInTimePeriod = 14)

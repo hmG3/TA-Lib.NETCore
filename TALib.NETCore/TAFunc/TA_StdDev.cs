@@ -7,29 +7,12 @@ namespace TALib
         public static RetCode StdDev(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
             int optInTimePeriod = 5, double optInNbDev = 1.0)
         {
-            int i;
-            double tempReal;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -40,37 +23,20 @@ namespace TALib
                 return retCode;
             }
 
-            if (optInNbDev.Equals(1.0))
+            if (!optInNbDev.Equals(1.0))
             {
-                i = 0;
-                while (i < outNBElement)
+                for (var i = 0; i < outNBElement; i++)
                 {
-                    tempReal = outReal[i];
-                    if (tempReal >= 1E-08)
-                    {
-                        outReal[i] = Math.Sqrt(tempReal);
-                    }
-                    else
-                    {
-                        outReal[i] = 0.0;
-                    }
-
-                    i++;
+                    double tempReal = outReal[i];
+                    outReal[i] = !TA_IsZeroOrNeg(tempReal) ? Math.Sqrt(tempReal) * optInNbDev : 0.0;
                 }
             }
             else
             {
-                for (i = 0; i < outNBElement; i++)
+                for (var i = 0; i < outNBElement; i++)
                 {
-                    tempReal = outReal[i];
-                    if (tempReal >= 1E-08)
-                    {
-                        outReal[i] = Math.Sqrt(tempReal) * optInNbDev;
-                    }
-                    else
-                    {
-                        outReal[i] = 0.0;
-                    }
+                    double tempReal = outReal[i];
+                    outReal[i] = !TA_IsZeroOrNeg(tempReal) ? Math.Sqrt(tempReal) : 0.0;
                 }
             }
 
@@ -80,29 +46,12 @@ namespace TALib
         public static RetCode StdDev(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
             int optInTimePeriod = 5, decimal optInNbDev = 1m)
         {
-            int i;
-            decimal tempReal;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -113,37 +62,20 @@ namespace TALib
                 return retCode;
             }
 
-            if (optInNbDev == Decimal.One)
+            if (optInNbDev != Decimal.One)
             {
-                i = 0;
-                while (i < outNBElement)
+                for (var i = 0; i < outNBElement; i++)
                 {
-                    tempReal = outReal[i];
-                    if (tempReal >= 1E-08m)
-                    {
-                        outReal[i] = DecimalMath.Sqrt(tempReal);
-                    }
-                    else
-                    {
-                        outReal[i] = Decimal.Zero;
-                    }
-
-                    i++;
+                    decimal tempReal = outReal[i];
+                    outReal[i] = !TA_IsZeroOrNeg(tempReal) ? DecimalMath.Sqrt(tempReal) * optInNbDev : Decimal.Zero;
                 }
             }
             else
             {
-                for (i = 0; i < outNBElement; i++)
+                for (var i = 0; i < outNBElement; i++)
                 {
-                    tempReal = outReal[i];
-                    if (tempReal >= 1E-08m)
-                    {
-                        outReal[i] = DecimalMath.Sqrt(tempReal) * optInNbDev;
-                    }
-                    else
-                    {
-                        outReal[i] = Decimal.Zero;
-                    }
+                    decimal tempReal = outReal[i];
+                    outReal[i] = !TA_IsZeroOrNeg(tempReal) ? DecimalMath.Sqrt(tempReal) : Decimal.Zero;
                 }
             }
 
@@ -157,7 +89,7 @@ namespace TALib
                 return -1;
             }
 
-            return VarianceLookback(optInTimePeriod);
+            return VarLookback(optInTimePeriod);
         }
     }
 }

@@ -5,28 +5,12 @@ namespace TALib
         public static RetCode AroonOsc(int startIdx, int endIdx, double[] inHigh, double[] inLow, ref int outBegIdx, ref int outNBElement,
             double[] outReal, int optInTimePeriod = 14)
         {
-            int i;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inHigh == null || inLow == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -51,106 +35,75 @@ namespace TALib
             double lowest = default;
             double highest = default;
             double factor = 100.0 / optInTimePeriod;
-            Label_00AF:
-            if (today > endIdx)
-            {
-                outBegIdx = startIdx;
-                outNBElement = outIdx;
-                return RetCode.Success;
-            }
 
-            double tmp = inLow[today];
-            if (lowestIdx < trailingIdx)
+            while (today <= endIdx)
             {
-                lowestIdx = trailingIdx;
-                lowest = inLow[lowestIdx];
-                i = lowestIdx;
-                while (true)
+                int i;
+                double tmp = inLow[today];
+                if (lowestIdx < trailingIdx)
                 {
-                    i++;
-                    if (i > today)
+                    lowestIdx = trailingIdx;
+                    lowest = inLow[lowestIdx];
+                    i = lowestIdx;
+                    while (++i <= today)
                     {
-                        goto Label_00F3;
-                    }
-
-                    tmp = inLow[i];
-                    if (tmp <= lowest)
-                    {
-                        lowestIdx = i;
-                        lowest = tmp;
+                        tmp = inLow[i];
+                        if (tmp <= lowest)
+                        {
+                            lowestIdx = i;
+                            lowest = tmp;
+                        }
                     }
                 }
-            }
-
-            if (tmp <= lowest)
-            {
-                lowestIdx = today;
-                lowest = tmp;
-            }
-
-            Label_00F3:
-            tmp = inHigh[today];
-            if (highestIdx < trailingIdx)
-            {
-                highestIdx = trailingIdx;
-                highest = inHigh[highestIdx];
-                i = highestIdx;
-                while (true)
+                else if (tmp <= lowest)
                 {
-                    i++;
-                    if (i > today)
-                    {
-                        goto Label_012A;
-                    }
+                    lowestIdx = today;
+                    lowest = tmp;
+                }
 
-                    tmp = inHigh[i];
-                    if (tmp >= highest)
+                tmp = inHigh[today];
+                if (highestIdx < trailingIdx)
+                {
+                    highestIdx = trailingIdx;
+                    highest = inHigh[highestIdx];
+                    i = highestIdx;
+                    while (++i <= today)
                     {
-                        highestIdx = i;
-                        highest = tmp;
+                        tmp = inHigh[i];
+                        if (tmp >= highest)
+                        {
+                            highestIdx = i;
+                            highest = tmp;
+                        }
                     }
                 }
+                else if (tmp >= highest)
+                {
+                    highestIdx = today;
+                    highest = tmp;
+                }
+
+                outReal[outIdx] = factor * (highestIdx - lowestIdx);
+                outIdx++;
+                trailingIdx++;
+                today++;
             }
 
-            if (tmp >= highest)
-            {
-                highestIdx = today;
-                highest = tmp;
-            }
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
 
-            Label_012A:
-            outReal[outIdx] = factor * (highestIdx - lowestIdx);
-            outIdx++;
-            trailingIdx++;
-            today++;
-            goto Label_00AF;
+            return RetCode.Success;
         }
 
         public static RetCode AroonOsc(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, ref int outBegIdx, ref int outNBElement,
             decimal[] outReal, int optInTimePeriod = 14)
         {
-            int i;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inHigh == null || inLow == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -175,79 +128,64 @@ namespace TALib
             decimal lowest = default;
             decimal highest = default;
             decimal factor = 100m / optInTimePeriod;
-            Label_00AF:
-            if (today > endIdx)
-            {
-                outBegIdx = startIdx;
-                outNBElement = outIdx;
-                return RetCode.Success;
-            }
 
-            decimal tmp = inLow[today];
-            if (lowestIdx < trailingIdx)
+            while (today <= endIdx)
             {
-                lowestIdx = trailingIdx;
-                lowest = inLow[lowestIdx];
-                i = lowestIdx;
-                while (true)
+                int i;
+                decimal tmp = inLow[today];
+                if (lowestIdx < trailingIdx)
                 {
-                    i++;
-                    if (i > today)
+                    lowestIdx = trailingIdx;
+                    lowest = inLow[lowestIdx];
+                    i = lowestIdx;
+                    while (++i <= today)
                     {
-                        goto Label_00F6;
-                    }
-
-                    tmp = inLow[i];
-                    if (tmp <= lowest)
-                    {
-                        lowestIdx = i;
-                        lowest = tmp;
+                        tmp = inLow[i];
+                        if (tmp <= lowest)
+                        {
+                            lowestIdx = i;
+                            lowest = tmp;
+                        }
                     }
                 }
-            }
-
-            if (tmp <= lowest)
-            {
-                lowestIdx = today;
-                lowest = tmp;
-            }
-
-            Label_00F6:
-            tmp = inHigh[today];
-            if (highestIdx < trailingIdx)
-            {
-                highestIdx = trailingIdx;
-                highest = inHigh[highestIdx];
-                i = highestIdx;
-                while (true)
+                else if (tmp <= lowest)
                 {
-                    i++;
-                    if (i > today)
-                    {
-                        goto Label_0130;
-                    }
+                    lowestIdx = today;
+                    lowest = tmp;
+                }
 
-                    tmp = inHigh[i];
-                    if (tmp >= highest)
+                tmp = inHigh[today];
+                if (highestIdx < trailingIdx)
+                {
+                    highestIdx = trailingIdx;
+                    highest = inHigh[highestIdx];
+                    i = highestIdx;
+                    while (++i <= today)
                     {
-                        highestIdx = i;
-                        highest = tmp;
+                        tmp = inHigh[i];
+                        if (tmp >= highest)
+                        {
+                            highestIdx = i;
+                            highest = tmp;
+                        }
                     }
                 }
+                else if (tmp >= highest)
+                {
+                    highestIdx = today;
+                    highest = tmp;
+                }
+
+                outReal[outIdx] = factor * (highestIdx - lowestIdx);
+                outIdx++;
+                trailingIdx++;
+                today++;
             }
 
-            if (tmp >= highest)
-            {
-                highestIdx = today;
-                highest = tmp;
-            }
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
 
-            Label_0130:
-            outReal[outIdx] = factor * (highestIdx - lowestIdx);
-            outIdx++;
-            trailingIdx++;
-            today++;
-            goto Label_00AF;
+            return RetCode.Success;
         }
 
         public static int AroonOscLookback(int optInTimePeriod = 14)

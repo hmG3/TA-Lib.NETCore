@@ -5,29 +5,12 @@ namespace TALib
         public static RetCode Trix(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
             int optInTimePeriod = 30)
         {
-            int nbElement = default;
-            int begIdx = default;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -47,6 +30,8 @@ namespace TALib
                 return RetCode.Success;
             }
 
+            int nbElement = default;
+            int begIdx = default;
             outBegIdx = startIdx;
             int nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
             var tempBuffer = new double[nbElementToOutput];
@@ -62,6 +47,7 @@ namespace TALib
             }
 
             nbElementToOutput--;
+
             nbElementToOutput -= emaLookback;
             retCode = TA_INT_EMA(0, nbElementToOutput, tempBuffer, optInTimePeriod, k, ref begIdx, ref nbElement, tempBuffer);
             if (retCode != RetCode.Success || nbElement == 0)
@@ -95,29 +81,12 @@ namespace TALib
         public static RetCode Trix(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
             int optInTimePeriod = 30)
         {
-            int nbElement = default;
-            int begIdx = default;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -137,6 +106,8 @@ namespace TALib
                 return RetCode.Success;
             }
 
+            int nbElement = default;
+            int begIdx = default;
             outBegIdx = startIdx;
             int nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
             var tempBuffer = new decimal[nbElementToOutput];
@@ -152,6 +123,7 @@ namespace TALib
             }
 
             nbElementToOutput--;
+
             nbElementToOutput -= emaLookback;
             retCode = TA_INT_EMA(0, nbElementToOutput, tempBuffer, optInTimePeriod, k, ref begIdx, ref nbElement, tempBuffer);
             if (retCode != RetCode.Success || nbElement == 0)

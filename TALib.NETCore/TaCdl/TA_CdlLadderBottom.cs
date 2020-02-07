@@ -1,5 +1,3 @@
-using System;
-
 namespace TALib
 {
     public partial class Core

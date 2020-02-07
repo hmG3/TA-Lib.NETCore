@@ -50,11 +50,11 @@ namespace TALib
 
             if (optInTimePeriod <= 1)
             {
-                return TrueRange(startIdx, endIdx, inHigh, inLow, inClose, ref outBegIdx, ref outNBElement, outReal);
+                return TRange(startIdx, endIdx, inHigh, inLow, inClose, ref outBegIdx, ref outNBElement, outReal);
             }
 
             var tempBuffer = new double[lookbackTotal + (endIdx - startIdx) + 1];
-            RetCode retCode = TrueRange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, ref outBegIdx1, ref outNbElement1,
+            RetCode retCode = TRange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, ref outBegIdx1, ref outNbElement1,
                 tempBuffer);
             if (retCode == RetCode.Success)
             {
@@ -172,11 +172,11 @@ namespace TALib
 
             if (optInTimePeriod <= 1)
             {
-                return TrueRange(startIdx, endIdx, inHigh, inLow, inClose, ref outBegIdx, ref outNBElement, outReal);
+                return TRange(startIdx, endIdx, inHigh, inLow, inClose, ref outBegIdx, ref outNBElement, outReal);
             }
 
             var tempBuffer = new decimal[lookbackTotal + (endIdx - startIdx) + 1];
-            RetCode retCode = TrueRange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, ref outBegIdx1, ref outNbElement1,
+            RetCode retCode = TRange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, ref outBegIdx1, ref outNbElement1,
                 tempBuffer);
             if (retCode == RetCode.Success)
             {

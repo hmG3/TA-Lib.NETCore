@@ -487,13 +487,13 @@ namespace TALib
                 optInFastPeriod0 = tempInteger;
             }
 
-            RetCode retCode = MovingAverage(startIdx, endIdx, inReal0, optInMethod2, ref outBegIdx2, ref outNbElement2, tempBuffer,
+            RetCode retCode = Ma(startIdx, endIdx, inReal0, optInMethod2, ref outBegIdx2, ref outNbElement2, tempBuffer,
                 optInFastPeriod0);
             if (retCode == RetCode.Success)
             {
                 int outNbElement1 = default;
                 int outBegIdx1 = default;
-                retCode = MovingAverage(startIdx, endIdx, inReal0, optInMethod2, ref outBegIdx1, ref outNbElement1, outReal0,
+                retCode = Ma(startIdx, endIdx, inReal0, optInMethod2, ref outBegIdx1, ref outNbElement1, outReal0,
                     optInSlowPeriod1);
                 if (retCode == RetCode.Success)
                 {
@@ -557,13 +557,13 @@ namespace TALib
                 optInFastPeriod0 = tempInteger;
             }
 
-            RetCode retCode = MovingAverage(startIdx, endIdx, inReal0, optInMethod2, ref outBegIdx2, ref outNbElement2, tempBuffer,
+            RetCode retCode = Ma(startIdx, endIdx, inReal0, optInMethod2, ref outBegIdx2, ref outNbElement2, tempBuffer,
                 optInFastPeriod0);
             if (retCode == RetCode.Success)
             {
                 int outNbElement1 = default;
                 int outBegIdx1 = default;
-                retCode = MovingAverage(startIdx, endIdx, inReal0, optInMethod2, ref outBegIdx1, ref outNbElement1, outReal0,
+                retCode = Ma(startIdx, endIdx, inReal0, optInMethod2, ref outBegIdx1, ref outNbElement1, outReal0,
                     optInSlowPeriod1);
                 if (retCode == RetCode.Success)
                 {
@@ -704,7 +704,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        private static void TA_INT_stddev_using_precalc_ma(double[] inReal, double[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement,
+        private static void TA_INT_StdDevUsingPrecalcMA(double[] inReal, double[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement,
             int timePeriod, double[] output)
         {
             double tempReal;
@@ -747,7 +747,7 @@ namespace TALib
             }
         }
 
-        private static void TA_INT_stddev_using_precalc_ma(decimal[] inReal, decimal[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement,
+        private static void TA_INT_StdDevUsingPrecalcMA(decimal[] inReal, decimal[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement,
             int timePeriod, decimal[] output)
         {
             decimal tempReal;

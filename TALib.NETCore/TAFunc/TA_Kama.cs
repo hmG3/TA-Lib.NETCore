@@ -7,36 +7,20 @@ namespace TALib
         public static RetCode Kama(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
             int optInTimePeriod = 30)
         {
-            double tempReal;
-            const double constMax = 0.064516129032258063;
-            const double constDiff = 0.66666666666666663 - constMax;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
+            double tempReal;
+            const double constMax = 2.0 / (30.0 + 1.0);
+            const double constDiff = 2.0 / (2.0 + 1.0) - constMax;
 
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            outBegIdx = 0;
-            outNBElement = 0;
             int lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Kama];
             if (startIdx < lookbackTotal)
             {
@@ -54,27 +38,21 @@ namespace TALib
             int today = startIdx - lookbackTotal;
             int trailingIdx = today;
             int i = optInTimePeriod;
-            while (true)
+            while (i-- > 0)
             {
-                i--;
-                if (i <= 0)
-                {
-                    break;
-                }
-
-                tempReal = inReal[today];
-                today++;
+                tempReal = inReal[today++];
                 tempReal -= inReal[today];
                 sumROC1 += Math.Abs(tempReal);
             }
 
             double prevKAMA = inReal[today - 1];
+
             tempReal = inReal[today];
-            double tempReal2 = inReal[trailingIdx];
-            trailingIdx++;
+            double tempReal2 = inReal[trailingIdx++];
             double periodROC = tempReal - tempReal2;
+
             double trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || -1E-08 < sumROC1 && sumROC1 < 1E-08)
+            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
             {
                 tempReal = 1.0;
             }
@@ -85,23 +63,19 @@ namespace TALib
 
             tempReal = tempReal * constDiff + constMax;
             tempReal *= tempReal;
-            prevKAMA = (inReal[today] - prevKAMA) * tempReal + prevKAMA;
-            today++;
-            while (true)
-            {
-                if (today > startIdx)
-                {
-                    break;
-                }
 
+            prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
+            while (today <= startIdx)
+            {
                 tempReal = inReal[today];
-                tempReal2 = inReal[trailingIdx];
-                trailingIdx++;
+                tempReal2 = inReal[trailingIdx++];
                 periodROC = tempReal - tempReal2;
+
                 sumROC1 -= Math.Abs(trailingValue - tempReal2);
                 sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
+
                 trailingValue = tempReal2;
-                if (sumROC1 <= periodROC || -1E-08 < sumROC1 && sumROC1 < 1E-08)
+                if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
                 {
                     tempReal = 1.0;
                 }
@@ -112,28 +86,24 @@ namespace TALib
 
                 tempReal = tempReal * constDiff + constMax;
                 tempReal *= tempReal;
-                prevKAMA = (inReal[today] - prevKAMA) * tempReal + prevKAMA;
-                today++;
+
+                prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
             }
 
             outReal[0] = prevKAMA;
             int outIdx = 1;
             outBegIdx = today - 1;
-            while (true)
+            while (today <= endIdx)
             {
-                if (today > endIdx)
-                {
-                    break;
-                }
-
                 tempReal = inReal[today];
-                tempReal2 = inReal[trailingIdx];
-                trailingIdx++;
+                tempReal2 = inReal[trailingIdx++];
                 periodROC = tempReal - tempReal2;
+
                 sumROC1 -= Math.Abs(trailingValue - tempReal2);
                 sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
+
                 trailingValue = tempReal2;
-                if (sumROC1 <= periodROC || -1E-08 < sumROC1 && sumROC1 < 1E-08)
+                if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
                 {
                     tempReal = 1.0;
                 }
@@ -144,49 +114,33 @@ namespace TALib
 
                 tempReal = tempReal * constDiff + constMax;
                 tempReal *= tempReal;
-                prevKAMA = (inReal[today] - prevKAMA) * tempReal + prevKAMA;
-                today++;
-                outReal[outIdx] = prevKAMA;
-                outIdx++;
+
+                prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
+                outReal[outIdx++] = prevKAMA;
             }
 
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode Kama(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
             int optInTimePeriod = 30)
         {
-            decimal tempReal;
-            const decimal constMax = 0.064516129032258063m;
-            const decimal constDiff = 0.66666666666666663m - constMax;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
+            decimal tempReal;
+            const decimal constMax = 2m / (30m + Decimal.One);
+            const decimal constDiff = 2m / (2m + Decimal.One) - constMax;
 
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            outBegIdx = 0;
-            outNBElement = 0;
             int lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Kama];
             if (startIdx < lookbackTotal)
             {
@@ -204,27 +158,21 @@ namespace TALib
             int today = startIdx - lookbackTotal;
             int trailingIdx = today;
             int i = optInTimePeriod;
-            while (true)
+            while (i-- > 0)
             {
-                i--;
-                if (i <= 0)
-                {
-                    break;
-                }
-
-                tempReal = inReal[today];
-                today++;
+                tempReal = inReal[today++];
                 tempReal -= inReal[today];
                 sumROC1 += Math.Abs(tempReal);
             }
 
             decimal prevKAMA = inReal[today - 1];
+
             tempReal = inReal[today];
-            decimal tempReal2 = inReal[trailingIdx];
-            trailingIdx++;
+            decimal tempReal2 = inReal[trailingIdx++];
             decimal periodROC = tempReal - tempReal2;
+
             decimal trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || -1E-08m < sumROC1 && sumROC1 < 1E-08m)
+            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
             {
                 tempReal = Decimal.One;
             }
@@ -235,23 +183,19 @@ namespace TALib
 
             tempReal = tempReal * constDiff + constMax;
             tempReal *= tempReal;
-            prevKAMA = (inReal[today] - prevKAMA) * tempReal + prevKAMA;
-            today++;
-            while (true)
-            {
-                if (today > startIdx)
-                {
-                    break;
-                }
 
+            prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
+            while (today <= startIdx)
+            {
                 tempReal = inReal[today];
-                tempReal2 = inReal[trailingIdx];
-                trailingIdx++;
+                tempReal2 = inReal[trailingIdx++];
                 periodROC = tempReal - tempReal2;
+
                 sumROC1 -= Math.Abs(trailingValue - tempReal2);
                 sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
+
                 trailingValue = tempReal2;
-                if (sumROC1 <= periodROC || -1E-08m < sumROC1 && sumROC1 < 1E-08m)
+                if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
                 {
                     tempReal = Decimal.One;
                 }
@@ -262,28 +206,24 @@ namespace TALib
 
                 tempReal = tempReal * constDiff + constMax;
                 tempReal *= tempReal;
-                prevKAMA = (inReal[today] - prevKAMA) * tempReal + prevKAMA;
-                today++;
+
+                prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
             }
 
             outReal[0] = prevKAMA;
             int outIdx = 1;
             outBegIdx = today - 1;
-            while (true)
+            while (today <= endIdx)
             {
-                if (today > endIdx)
-                {
-                    break;
-                }
-
                 tempReal = inReal[today];
-                tempReal2 = inReal[trailingIdx];
-                trailingIdx++;
+                tempReal2 = inReal[trailingIdx++];
                 periodROC = tempReal - tempReal2;
+
                 sumROC1 -= Math.Abs(trailingValue - tempReal2);
                 sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
+
                 trailingValue = tempReal2;
-                if (sumROC1 <= periodROC || -1E-08m < sumROC1 && sumROC1 < 1E-08m)
+                if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
                 {
                     tempReal = Decimal.One;
                 }
@@ -294,13 +234,13 @@ namespace TALib
 
                 tempReal = tempReal * constDiff + constMax;
                 tempReal *= tempReal;
-                prevKAMA = (inReal[today] - prevKAMA) * tempReal + prevKAMA;
-                today++;
-                outReal[outIdx] = prevKAMA;
-                outIdx++;
+
+                prevKAMA = (inReal[today++] - prevKAMA) * tempReal + prevKAMA;
+                outReal[outIdx++] = prevKAMA;
             }
 
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 

@@ -7,27 +7,12 @@ namespace TALib
         public static RetCode Rsi(int startIdx, in int endIdx, in double[] inReal, ref int outBegIdx, ref int outNBElement,
             double[] outReal, int optInTimePeriod = 14)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -40,78 +25,34 @@ namespace TALib
                 startIdx = lookbackTotal;
             }
 
-            if (startIdx <= endIdx)
+            if (startIdx > endIdx)
             {
+                return RetCode.Success;
+            }
+
+            int outIdx = default;
+            if (optInTimePeriod == 1)
+            {
+                outBegIdx = startIdx;
+                outNBElement = endIdx - startIdx + 1;
+                Array.Copy(inReal, startIdx, outReal, 0, endIdx - startIdx + 1);
+                return RetCode.Success;
+            }
+
+            int today = startIdx - lookbackTotal;
+            double prevValue = inReal[today];
+            double prevGain;
+            double prevLoss;
+            if (Globals.UnstablePeriod[(int) FuncUnstId.Rsi] == 0 && Globals.Compatibility == Compatibility.Metastock)
+            {
+                double savePrevValue = prevValue;
                 double tempValue1;
-                double prevGain;
-                double prevLoss;
                 double tempValue2;
-                int i;
-                int outIdx = default;
-                if (optInTimePeriod == 1)
+                prevGain = default;
+                prevLoss = default;
+                for (int i = optInTimePeriod; i > 0; i--)
                 {
-                    outBegIdx = startIdx;
-                    i = endIdx - startIdx + 1;
-                    outNBElement = i;
-                    Array.Copy(inReal, startIdx, outReal, 0, i);
-                    return RetCode.Success;
-                }
-
-                int today = startIdx - lookbackTotal;
-                double prevValue = inReal[today];
-                if (Globals.UnstablePeriod[(int) FuncUnstId.Rsi] == 0 && Globals.Compatibility == Compatibility.Metastock)
-                {
-                    double savePrevValue = prevValue;
-                    prevGain = 0.0;
-                    prevLoss = 0.0;
-                    for (i = optInTimePeriod; i > 0; i--)
-                    {
-                        tempValue1 = inReal[today];
-                        today++;
-                        tempValue2 = tempValue1 - prevValue;
-                        prevValue = tempValue1;
-                        if (tempValue2 < 0.0)
-                        {
-                            prevLoss -= tempValue2;
-                        }
-                        else
-                        {
-                            prevGain += tempValue2;
-                        }
-                    }
-
-                    tempValue1 = prevLoss / optInTimePeriod;
-                    tempValue2 = prevGain / optInTimePeriod;
-                    tempValue1 = tempValue2 + tempValue1;
-                    if (-1E-08 >= tempValue1 || tempValue1 >= 1E-08)
-                    {
-                        outReal[outIdx] = 100.0 * (tempValue2 / tempValue1);
-                        outIdx++;
-                    }
-                    else
-                    {
-                        outReal[outIdx] = 0.0;
-                        outIdx++;
-                    }
-
-                    if (today > endIdx)
-                    {
-                        outBegIdx = startIdx;
-                        outNBElement = outIdx;
-                        return RetCode.Success;
-                    }
-
-                    today -= optInTimePeriod;
-                    prevValue = savePrevValue;
-                }
-
-                prevGain = 0.0;
-                prevLoss = 0.0;
-                today++;
-                for (i = optInTimePeriod; i > 0; i--)
-                {
-                    tempValue1 = inReal[today];
-                    today++;
+                    tempValue1 = inReal[today++];
                     tempValue2 = tempValue1 - prevValue;
                     prevValue = tempValue1;
                     if (tempValue2 < 0.0)
@@ -124,52 +65,57 @@ namespace TALib
                     }
                 }
 
-                prevLoss /= optInTimePeriod;
-                prevGain /= optInTimePeriod;
-                if (today > startIdx)
+                tempValue1 = prevLoss / optInTimePeriod;
+                tempValue2 = prevGain / optInTimePeriod;
+
+                tempValue1 = tempValue2 + tempValue1;
+                outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100.0 * (tempValue2 / tempValue1) : 0.0;
+
+                if (today > endIdx)
                 {
-                    tempValue1 = prevGain + prevLoss;
-                    if (-1E-08 >= tempValue1 || tempValue1 >= 1E-08)
-                    {
-                        outReal[outIdx] = 100.0 * (prevGain / tempValue1);
-                        outIdx++;
-                    }
-                    else
-                    {
-                        outReal[outIdx] = 0.0;
-                        outIdx++;
-                    }
+                    outBegIdx = startIdx;
+                    outNBElement = outIdx;
+                    return RetCode.Success;
+                }
+
+                today -= optInTimePeriod;
+                prevValue = savePrevValue;
+            }
+
+            prevGain = default;
+            prevLoss = default;
+            today++;
+            for (int i = optInTimePeriod; i > 0; i--)
+            {
+                double tempValue1 = inReal[today++];
+                double tempValue2 = tempValue1 - prevValue;
+                prevValue = tempValue1;
+                if (tempValue2 < 0.0)
+                {
+                    prevLoss -= tempValue2;
                 }
                 else
                 {
-                    while (today < startIdx)
-                    {
-                        tempValue1 = inReal[today];
-                        tempValue2 = tempValue1 - prevValue;
-                        prevValue = tempValue1;
-                        prevLoss *= optInTimePeriod - 1;
-                        prevGain *= optInTimePeriod - 1;
-                        if (tempValue2 < 0.0)
-                        {
-                            prevLoss -= tempValue2;
-                        }
-                        else
-                        {
-                            prevGain += tempValue2;
-                        }
-
-                        prevLoss /= optInTimePeriod;
-                        prevGain /= optInTimePeriod;
-                        today++;
-                    }
+                    prevGain += tempValue2;
                 }
+            }
 
-                while (today <= endIdx)
+            prevLoss /= optInTimePeriod;
+            prevGain /= optInTimePeriod;
+
+            if (today > startIdx)
+            {
+                double tempValue1 = prevGain + prevLoss;
+                outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100.0 * (prevGain / tempValue1) : 0.0;
+            }
+            else
+            {
+                while (today < startIdx)
                 {
-                    tempValue1 = inReal[today];
-                    today++;
-                    tempValue2 = tempValue1 - prevValue;
+                    double tempValue1 = inReal[today];
+                    double tempValue2 = tempValue1 - prevValue;
                     prevValue = tempValue1;
+
                     prevLoss *= optInTimePeriod - 1;
                     prevGain *= optInTimePeriod - 1;
                     if (tempValue2 < 0.0)
@@ -183,22 +129,36 @@ namespace TALib
 
                     prevLoss /= optInTimePeriod;
                     prevGain /= optInTimePeriod;
-                    tempValue1 = prevGain + prevLoss;
-                    if (-1E-08 >= tempValue1 || tempValue1 >= 1E-08)
-                    {
-                        outReal[outIdx] = 100.0 * (prevGain / tempValue1);
-                        outIdx++;
-                    }
-                    else
-                    {
-                        outReal[outIdx] = 0.0;
-                        outIdx++;
-                    }
+
+                    today++;
+                }
+            }
+
+            while (today <= endIdx)
+            {
+                double tempValue1 = inReal[today++];
+                double tempValue2 = tempValue1 - prevValue;
+                prevValue = tempValue1;
+
+                prevLoss *= optInTimePeriod - 1;
+                prevGain *= optInTimePeriod - 1;
+                if (tempValue2 < 0.0)
+                {
+                    prevLoss -= tempValue2;
+                }
+                else
+                {
+                    prevGain += tempValue2;
                 }
 
-                outBegIdx = startIdx;
-                outNBElement = outIdx;
+                prevLoss /= optInTimePeriod;
+                prevGain /= optInTimePeriod;
+                tempValue1 = prevGain + prevLoss;
+                outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100.0 * (prevGain / tempValue1) : 0.0;
             }
+
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
 
             return RetCode.Success;
         }
@@ -206,27 +166,12 @@ namespace TALib
         public static RetCode Rsi(int startIdx, in int endIdx, in decimal[] inReal, ref int outBegIdx, ref int outNBElement,
             decimal[] outReal, int optInTimePeriod = 14)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -239,78 +184,34 @@ namespace TALib
                 startIdx = lookbackTotal;
             }
 
-            if (startIdx <= endIdx)
+            if (startIdx > endIdx)
             {
+                return RetCode.Success;
+            }
+
+            int outIdx = default;
+            if (optInTimePeriod == 1)
+            {
+                outBegIdx = startIdx;
+                outNBElement = endIdx - startIdx + 1;
+                Array.Copy(inReal, startIdx, outReal, 0, endIdx - startIdx + 1);
+                return RetCode.Success;
+            }
+
+            int today = startIdx - lookbackTotal;
+            decimal prevValue = inReal[today];
+            decimal prevGain;
+            decimal prevLoss;
+            if (Globals.UnstablePeriod[(int) FuncUnstId.Rsi] == 0 && Globals.Compatibility == Compatibility.Metastock)
+            {
+                decimal savePrevValue = prevValue;
                 decimal tempValue1;
-                decimal prevGain;
-                decimal prevLoss;
                 decimal tempValue2;
-                int i;
-                int outIdx = default;
-                if (optInTimePeriod == 1)
+                prevGain = default;
+                prevLoss = default;
+                for (int i = optInTimePeriod; i > 0; i--)
                 {
-                    outBegIdx = startIdx;
-                    i = endIdx - startIdx + 1;
-                    outNBElement = i;
-                    Array.Copy(inReal, startIdx, outReal, 0, i);
-                    return RetCode.Success;
-                }
-
-                int today = startIdx - lookbackTotal;
-                decimal prevValue = inReal[today];
-                if (Globals.UnstablePeriod[(int) FuncUnstId.Rsi] == 0 && Globals.Compatibility == Compatibility.Metastock)
-                {
-                    decimal savePrevValue = prevValue;
-                    prevGain = Decimal.Zero;
-                    prevLoss = Decimal.Zero;
-                    for (i = optInTimePeriod; i > 0; i--)
-                    {
-                        tempValue1 = inReal[today];
-                        today++;
-                        tempValue2 = tempValue1 - prevValue;
-                        prevValue = tempValue1;
-                        if (tempValue2 < Decimal.Zero)
-                        {
-                            prevLoss -= tempValue2;
-                        }
-                        else
-                        {
-                            prevGain += tempValue2;
-                        }
-                    }
-
-                    tempValue1 = prevLoss / optInTimePeriod;
-                    tempValue2 = prevGain / optInTimePeriod;
-                    tempValue1 = tempValue2 + tempValue1;
-                    if (-1E-08m >= tempValue1 || tempValue1 >= 1E-08m)
-                    {
-                        outReal[outIdx] = 100m * (tempValue2 / tempValue1);
-                        outIdx++;
-                    }
-                    else
-                    {
-                        outReal[outIdx] = Decimal.Zero;
-                        outIdx++;
-                    }
-
-                    if (today > endIdx)
-                    {
-                        outBegIdx = startIdx;
-                        outNBElement = outIdx;
-                        return RetCode.Success;
-                    }
-
-                    today -= optInTimePeriod;
-                    prevValue = savePrevValue;
-                }
-
-                prevGain = Decimal.Zero;
-                prevLoss = Decimal.Zero;
-                today++;
-                for (i = optInTimePeriod; i > 0; i--)
-                {
-                    tempValue1 = inReal[today];
-                    today++;
+                    tempValue1 = inReal[today++];
                     tempValue2 = tempValue1 - prevValue;
                     prevValue = tempValue1;
                     if (tempValue2 < Decimal.Zero)
@@ -323,52 +224,57 @@ namespace TALib
                     }
                 }
 
-                prevLoss /= optInTimePeriod;
-                prevGain /= optInTimePeriod;
-                if (today > startIdx)
+                tempValue1 = prevLoss / optInTimePeriod;
+                tempValue2 = prevGain / optInTimePeriod;
+
+                tempValue1 = tempValue2 + tempValue1;
+                outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100m * (tempValue2 / tempValue1) : Decimal.Zero;
+
+                if (today > endIdx)
                 {
-                    tempValue1 = prevGain + prevLoss;
-                    if (-1E-08m >= tempValue1 || tempValue1 >= 1E-08m)
-                    {
-                        outReal[outIdx] = 100m * (prevGain / tempValue1);
-                        outIdx++;
-                    }
-                    else
-                    {
-                        outReal[outIdx] = Decimal.Zero;
-                        outIdx++;
-                    }
+                    outBegIdx = startIdx;
+                    outNBElement = outIdx;
+                    return RetCode.Success;
+                }
+
+                today -= optInTimePeriod;
+                prevValue = savePrevValue;
+            }
+
+            prevGain = default;
+            prevLoss = default;
+            today++;
+            for (int i = optInTimePeriod; i > 0; i--)
+            {
+                decimal tempValue1 = inReal[today++];
+                decimal tempValue2 = tempValue1 - prevValue;
+                prevValue = tempValue1;
+                if (tempValue2 < Decimal.Zero)
+                {
+                    prevLoss -= tempValue2;
                 }
                 else
                 {
-                    while (today < startIdx)
-                    {
-                        tempValue1 = inReal[today];
-                        tempValue2 = tempValue1 - prevValue;
-                        prevValue = tempValue1;
-                        prevLoss *= optInTimePeriod - 1;
-                        prevGain *= optInTimePeriod - 1;
-                        if (tempValue2 < Decimal.Zero)
-                        {
-                            prevLoss -= tempValue2;
-                        }
-                        else
-                        {
-                            prevGain += tempValue2;
-                        }
-
-                        prevLoss /= optInTimePeriod;
-                        prevGain /= optInTimePeriod;
-                        today++;
-                    }
+                    prevGain += tempValue2;
                 }
+            }
 
-                while (today <= endIdx)
+            prevLoss /= optInTimePeriod;
+            prevGain /= optInTimePeriod;
+
+            if (today > startIdx)
+            {
+                decimal tempValue1 = prevGain + prevLoss;
+                outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100m * (prevGain / tempValue1) : Decimal.Zero;
+            }
+            else
+            {
+                while (today < startIdx)
                 {
-                    tempValue1 = inReal[today];
-                    today++;
-                    tempValue2 = tempValue1 - prevValue;
+                    decimal tempValue1 = inReal[today];
+                    decimal tempValue2 = tempValue1 - prevValue;
                     prevValue = tempValue1;
+
                     prevLoss *= optInTimePeriod - 1;
                     prevGain *= optInTimePeriod - 1;
                     if (tempValue2 < Decimal.Zero)
@@ -382,22 +288,36 @@ namespace TALib
 
                     prevLoss /= optInTimePeriod;
                     prevGain /= optInTimePeriod;
-                    tempValue1 = prevGain + prevLoss;
-                    if (-1E-08m >= tempValue1 || tempValue1 >= 1E-08m)
-                    {
-                        outReal[outIdx] = 100m * (prevGain / tempValue1);
-                        outIdx++;
-                    }
-                    else
-                    {
-                        outReal[outIdx] = Decimal.Zero;
-                        outIdx++;
-                    }
+
+                    today++;
+                }
+            }
+
+            while (today <= endIdx)
+            {
+                decimal tempValue1 = inReal[today++];
+                decimal tempValue2 = tempValue1 - prevValue;
+                prevValue = tempValue1;
+
+                prevLoss *= optInTimePeriod - 1;
+                prevGain *= optInTimePeriod - 1;
+                if (tempValue2 < Decimal.Zero)
+                {
+                    prevLoss -= tempValue2;
+                }
+                else
+                {
+                    prevGain += tempValue2;
                 }
 
-                outBegIdx = startIdx;
-                outNBElement = outIdx;
+                prevLoss /= optInTimePeriod;
+                prevGain /= optInTimePeriod;
+                tempValue1 = prevGain + prevLoss;
+                outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100m * (prevGain / tempValue1) : Decimal.Zero;
             }
+
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
 
             return RetCode.Success;
         }

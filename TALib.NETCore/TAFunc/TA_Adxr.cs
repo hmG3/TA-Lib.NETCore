@@ -5,27 +5,12 @@ namespace TALib
         public static RetCode Adxr(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, ref int outBegIdx,
             ref int outNBElement, double[] outReal, int optInTimePeriod = 14)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -56,49 +41,26 @@ namespace TALib
             int j = default;
             int outIdx = default;
             int nbElement = endIdx - startIdx + 2;
-            while (true)
+            while (--nbElement != 0)
             {
-                nbElement--;
-                if (nbElement == 0)
-                {
-                    break;
-                }
-
-                outReal[outIdx] = (adx[i] + adx[j]) / 2.0;
-                outIdx++;
-                j++;
-                i++;
+                outReal[outIdx++] = (adx[i++] + adx[j++]) / 2.0;
             }
 
             outBegIdx = startIdx;
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode Adxr(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, ref int outBegIdx,
             ref int outNBElement, decimal[] outReal, int optInTimePeriod = 14)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -129,22 +91,14 @@ namespace TALib
             int j = default;
             int outIdx = default;
             int nbElement = endIdx - startIdx + 2;
-            while (true)
+            while (--nbElement != 0)
             {
-                nbElement--;
-                if (nbElement == 0)
-                {
-                    break;
-                }
-
-                outReal[outIdx] = (adx[i] + adx[j]) / 2m;
-                outIdx++;
-                j++;
-                i++;
+                outReal[outIdx++] = (adx[i++] + adx[j++]) / 2m;
             }
 
             outBegIdx = startIdx;
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 

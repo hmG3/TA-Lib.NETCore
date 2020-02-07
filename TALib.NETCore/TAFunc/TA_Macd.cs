@@ -5,38 +5,14 @@ namespace TALib
         public static RetCode Macd(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outMACD,
             double[] outMACDSignal, double[] outMACDHist, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000 ||
-                optInSignalPeriod < 1 || optInSignalPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACD == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACDSignal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACDHist == null)
+            if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInFastPeriod < 2 ||
+                optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000 || optInSignalPeriod < 1 ||
+                optInSignalPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -48,38 +24,14 @@ namespace TALib
         public static RetCode Macd(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outMACD,
             decimal[] outMACDSignal, decimal[] outMACDHist, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000 ||
-                optInSignalPeriod < 1 || optInSignalPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACD == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACDSignal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACDHist == null)
+            if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInFastPeriod < 2 ||
+                optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000 || optInSignalPeriod < 1 ||
+                optInSignalPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -95,10 +47,12 @@ namespace TALib
             {
                 return -1;
             }
+
             if (optInSlowPeriod < optInFastPeriod)
             {
                 int tempInteger = optInSlowPeriod;
                 optInSlowPeriod = optInFastPeriod;
+                //TODO check
                 optInFastPeriod = tempInteger;
             }
 

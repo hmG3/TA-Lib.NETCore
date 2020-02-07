@@ -6,73 +6,49 @@ namespace TALib
     {
         public static RetCode Sin(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || outReal == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            int i = startIdx;
             int outIdx = default;
-            while (i <= endIdx)
+            for (int i = startIdx; i <= endIdx; i++)
             {
-                outReal[outIdx] = Math.Sin(inReal[i]);
-                i++;
-                outIdx++;
+                outReal[outIdx++] = Math.Sin(inReal[i]);
             }
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode Sin(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || outReal == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            int i = startIdx;
             int outIdx = default;
-            while (i <= endIdx)
+            for (int i = startIdx; i <= endIdx; i++)
             {
-                outReal[outIdx] = DecimalMath.Sin(inReal[i]);
-                i++;
-                outIdx++;
+                outReal[outIdx++] = DecimalMath.Sin(inReal[i]);
             }
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 

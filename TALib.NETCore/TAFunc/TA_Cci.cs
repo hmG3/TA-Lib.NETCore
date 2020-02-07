@@ -7,28 +7,12 @@ namespace TALib
         public static RetCode Cci(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, ref int outBegIdx,
             ref int outNBElement, double[] outReal, int optInTimePeriod = 14)
         {
-            int circBufferIdx = default;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -47,16 +31,15 @@ namespace TALib
             }
 
             var circBuffer = new double[optInTimePeriod];
-
+            int circBufferIdx = default;
             var maxIdxCircBuffer = optInTimePeriod - 1;
             int i = startIdx - lookbackTotal;
             if (optInTimePeriod > 1)
             {
                 while (i < startIdx)
                 {
-                    circBuffer[circBufferIdx] = (inHigh[i] + inLow[i] + inClose[i]) / 3.0;
+                    circBuffer[circBufferIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / 3.0;
                     i++;
-                    circBufferIdx++;
                     if (circBufferIdx > maxIdxCircBuffer)
                     {
                         circBufferIdx = 0;
@@ -68,16 +51,16 @@ namespace TALib
             do
             {
                 double lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3.0;
-                circBuffer[circBufferIdx] = lastValue;
+                circBuffer[circBufferIdx++] = lastValue;
+
+                int j;
                 double theAverage = default;
-                int j = default;
-                while (j < optInTimePeriod)
+                for (j = 0; j < optInTimePeriod; j++)
                 {
                     theAverage += circBuffer[j];
-                    j++;
                 }
-
                 theAverage /= optInTimePeriod;
+
                 double tempReal2 = default;
                 for (j = 0; j < optInTimePeriod; j++)
                 {
@@ -87,16 +70,13 @@ namespace TALib
                 double tempReal = lastValue - theAverage;
                 if (!tempReal.Equals(0.0) && !tempReal2.Equals(0.0))
                 {
-                    outReal[outIdx] = tempReal / (0.015 * (tempReal2 / optInTimePeriod));
-                    outIdx++;
+                    outReal[outIdx++] = tempReal / (0.015 * (tempReal2 / optInTimePeriod));
                 }
                 else
                 {
-                    outReal[outIdx] = 0.0;
-                    outIdx++;
+                    outReal[outIdx++] = 0.0;
                 }
 
-                circBufferIdx++;
                 if (circBufferIdx > maxIdxCircBuffer)
                 {
                     circBufferIdx = 0;
@@ -107,34 +87,19 @@ namespace TALib
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode Cci(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, ref int outBegIdx,
             ref int outNBElement, decimal[] outReal, int optInTimePeriod = 14)
         {
-            int circBufferIdx = default;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -153,16 +118,15 @@ namespace TALib
             }
 
             var circBuffer = new decimal[optInTimePeriod];
-
+            int circBufferIdx = default;
             var maxIdxCircBuffer = optInTimePeriod - 1;
             int i = startIdx - lookbackTotal;
             if (optInTimePeriod > 1)
             {
                 while (i < startIdx)
                 {
-                    circBuffer[circBufferIdx] = (inHigh[i] + inLow[i] + inClose[i]) / 3m;
+                    circBuffer[circBufferIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / 3m;
                     i++;
-                    circBufferIdx++;
                     if (circBufferIdx > maxIdxCircBuffer)
                     {
                         circBufferIdx = 0;
@@ -174,16 +138,16 @@ namespace TALib
             do
             {
                 decimal lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3m;
-                circBuffer[circBufferIdx] = lastValue;
+                circBuffer[circBufferIdx++] = lastValue;
+
+                int j;
                 decimal theAverage = default;
-                int j = default;
-                while (j < optInTimePeriod)
+                for (j = 0; j < optInTimePeriod; j++)
                 {
                     theAverage += circBuffer[j];
-                    j++;
                 }
-
                 theAverage /= optInTimePeriod;
+
                 decimal tempReal2 = default;
                 for (j = 0; j < optInTimePeriod; j++)
                 {
@@ -193,16 +157,13 @@ namespace TALib
                 decimal tempReal = lastValue - theAverage;
                 if (tempReal != Decimal.Zero && tempReal2 != Decimal.Zero)
                 {
-                    outReal[outIdx] = tempReal / (0.015m * (tempReal2 / optInTimePeriod));
-                    outIdx++;
+                    outReal[outIdx++] = tempReal / (0.015m * (tempReal2 / optInTimePeriod));
                 }
                 else
                 {
-                    outReal[outIdx] = Decimal.Zero;
-                    outIdx++;
+                    outReal[outIdx++] = Decimal.Zero;
                 }
 
-                circBufferIdx++;
                 if (circBufferIdx > maxIdxCircBuffer)
                 {
                     circBufferIdx = 0;
@@ -213,6 +174,7 @@ namespace TALib
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 

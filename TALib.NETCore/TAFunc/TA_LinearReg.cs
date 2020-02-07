@@ -5,27 +5,12 @@ namespace TALib
         public static RetCode LinearReg(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement,
             double[] outReal, int optInTimePeriod = 14)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -45,29 +30,16 @@ namespace TALib
 
             int outIdx = default;
             int today = startIdx;
+
             double sumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
             double sumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (optInTimePeriod * 2 - 1) / 6.0;
             double divisor = sumX * sumX - optInTimePeriod * sumXSqr;
-            while (true)
+            while (today <= endIdx)
             {
-                if (today > endIdx)
-                {
-                    outBegIdx = startIdx;
-                    outNBElement = outIdx;
-                    return RetCode.Success;
-                }
-
                 double sumXY = default;
                 double sumY = default;
-                int i = optInTimePeriod;
-                while (true)
+                for (int i = optInTimePeriod; i != 0; i--)
                 {
-                    i--;
-                    if (i == 0)
-                    {
-                        break;
-                    }
-
                     double tempValue1 = inReal[today - i];
                     sumY += tempValue1;
                     sumXY += i * tempValue1;
@@ -75,36 +47,25 @@ namespace TALib
 
                 double m = (optInTimePeriod * sumXY - sumX * sumY) / divisor;
                 double b = (sumY - m * sumX) / optInTimePeriod;
-                outReal[outIdx] = b + m * (optInTimePeriod - 1);
-                outIdx++;
+                outReal[outIdx++] = b + m * (optInTimePeriod - 1);
                 today++;
             }
+
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
+
+            return RetCode.Success;
         }
 
         public static RetCode LinearReg(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement,
             decimal[] outReal, int optInTimePeriod = 14)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -124,29 +85,16 @@ namespace TALib
 
             int outIdx = default;
             int today = startIdx;
+
             decimal sumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5m;
             decimal sumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (optInTimePeriod * 2 - 1) / 6m;
             decimal divisor = sumX * sumX - optInTimePeriod * sumXSqr;
-            while (true)
+            while (today <= endIdx)
             {
-                if (today > endIdx)
-                {
-                    outBegIdx = startIdx;
-                    outNBElement = outIdx;
-                    return RetCode.Success;
-                }
-
                 decimal sumXY = default;
                 decimal sumY = default;
-                int i = optInTimePeriod;
-                while (true)
+                for (int i = optInTimePeriod; i != 0; i--)
                 {
-                    i--;
-                    if (i == 0)
-                    {
-                        break;
-                    }
-
                     decimal tempValue1 = inReal[today - i];
                     sumY += tempValue1;
                     sumXY += i * tempValue1;
@@ -154,10 +102,14 @@ namespace TALib
 
                 decimal m = (optInTimePeriod * sumXY - sumX * sumY) / divisor;
                 decimal b = (sumY - m * sumX) / optInTimePeriod;
-                outReal[outIdx] = b + m * (optInTimePeriod - 1);
-                outIdx++;
+                outReal[outIdx++] = b + m * (optInTimePeriod - 1);
                 today++;
             }
+
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
+
+            return RetCode.Success;
         }
 
         public static int LinearRegLookback(int optInTimePeriod = 14)

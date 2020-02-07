@@ -7,33 +7,17 @@ namespace TALib
         public static RetCode Wma(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
             int optInTimePeriod = 30)
         {
-            double tempReal;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            int lookbackTotal = optInTimePeriod - 1;
+            int lookbackTotal = WmaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -55,81 +39,54 @@ namespace TALib
             }
 
             int divider = (optInTimePeriod * (optInTimePeriod + 1)) >> 1;
+
             int outIdx = default;
             int trailingIdx = startIdx - lookbackTotal;
+
             double periodSub = default;
             double periodSum = periodSub;
             int inIdx = trailingIdx;
             int i = 1;
-            while (true)
+            while (inIdx < startIdx)
             {
-                if (inIdx >= startIdx)
-                {
-                    break;
-                }
-
-                tempReal = inReal[inIdx];
-                inIdx++;
+                double tempReal = inReal[inIdx++];
                 periodSub += tempReal;
                 periodSum += tempReal * i;
                 i++;
             }
-
             double trailingValue = default;
-            while (true)
-            {
-                if (inIdx > endIdx)
-                {
-                    break;
-                }
 
-                tempReal = inReal[inIdx];
-                inIdx++;
+            while (inIdx <= endIdx)
+            {
+                double tempReal = inReal[inIdx++];
                 periodSub += tempReal;
                 periodSub -= trailingValue;
                 periodSum += tempReal * optInTimePeriod;
-                trailingValue = inReal[trailingIdx];
-                trailingIdx++;
-                outReal[outIdx] = periodSum / divider;
-                outIdx++;
+                trailingValue = inReal[trailingIdx++];
+                outReal[outIdx++] = periodSum / divider;
                 periodSum -= periodSub;
             }
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode Wma(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
             int optInTimePeriod = 30)
         {
-            decimal tempReal;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            int lookbackTotal = optInTimePeriod - 1;
+            int lookbackTotal = WmaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -151,48 +108,37 @@ namespace TALib
             }
 
             int divider = (optInTimePeriod * (optInTimePeriod + 1)) >> 1;
+
             int outIdx = default;
             int trailingIdx = startIdx - lookbackTotal;
+
             decimal periodSub = default;
             decimal periodSum = periodSub;
             int inIdx = trailingIdx;
             int i = 1;
-            while (true)
+            while (inIdx < startIdx)
             {
-                if (inIdx >= startIdx)
-                {
-                    break;
-                }
-
-                tempReal = inReal[inIdx];
-                inIdx++;
+                decimal tempReal = inReal[inIdx++];
                 periodSub += tempReal;
                 periodSum += tempReal * i;
                 i++;
             }
-
             decimal trailingValue = default;
-            while (true)
-            {
-                if (inIdx > endIdx)
-                {
-                    break;
-                }
 
-                tempReal = inReal[inIdx];
-                inIdx++;
+            while (inIdx <= endIdx)
+            {
+                decimal tempReal = inReal[inIdx++];
                 periodSub += tempReal;
                 periodSub -= trailingValue;
                 periodSum += tempReal * optInTimePeriod;
-                trailingValue = inReal[trailingIdx];
-                trailingIdx++;
-                outReal[outIdx] = periodSum / divider;
-                outIdx++;
+                trailingValue = inReal[trailingIdx++];
+                outReal[outIdx++] = periodSum / divider;
                 periodSum -= periodSub;
             }
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 

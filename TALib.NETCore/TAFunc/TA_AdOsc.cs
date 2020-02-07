@@ -7,32 +7,18 @@ namespace TALib
         public static RetCode AdOsc(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, double[] inVolume,
             ref int outBegIdx, ref int outNBElement, double[] outReal, int optInFastPeriod = 3, int optInSlowPeriod = 10)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null || inVolume == null)
+            if (inHigh == null || inLow == null || inClose == null || inVolume == null || optInFastPeriod < 2 || optInFastPeriod > 100000 ||
+                optInSlowPeriod < 2 || optInSlowPeriod > 100000 || outReal == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            var slowestPeriod = optInFastPeriod < optInSlowPeriod ? optInSlowPeriod : optInFastPeriod;
+            int slowestPeriod = optInFastPeriod < optInSlowPeriod ? optInSlowPeriod : optInFastPeriod;
 
             int lookbackTotal = EmaLookback(slowestPeriod);
             if (startIdx < lookbackTotal)
@@ -49,101 +35,69 @@ namespace TALib
 
             outBegIdx = startIdx;
             int today = startIdx - lookbackTotal;
+
             double ad = default;
+
             double fastk = 2.0 / (optInFastPeriod + 1);
             double oneMinusFastk = 1.0 - fastk;
+
             double slowk = 2.0 / (optInSlowPeriod + 1);
             double oneMinusSlowk = 1.0 - slowk;
-            double high = inHigh[today];
-            double low = inLow[today];
-            double tmp = high - low;
-            double close = inClose[today];
-            if (tmp > 0.0)
-            {
-                ad += (close - low - (high - close)) / tmp * inVolume[today];
-            }
 
-            today++;
+            CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
             double fastEMA = ad;
             double slowEMA = ad;
-            while (true)
+            while (today < startIdx)
             {
-                if (today >= startIdx)
-                {
-                    break;
-                }
-
-                high = inHigh[today];
-                low = inLow[today];
-                tmp = high - low;
-                close = inClose[today];
-                if (tmp > 0.0)
-                {
-                    ad += (close - low - (high - close)) / tmp * inVolume[today];
-                }
-
-                today++;
+                CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
                 fastEMA = fastk * ad + oneMinusFastk * fastEMA;
                 slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
             }
 
             int outIdx = default;
-            while (true)
+            while (today <= startIdx)
             {
-                if (today > endIdx)
-                {
-                    break;
-                }
-
-                high = inHigh[today];
-                low = inLow[today];
-                tmp = high - low;
-                close = inClose[today];
-                if (tmp > 0.0)
-                {
-                    ad += (close - low - (high - close)) / tmp * inVolume[today];
-                }
-
-                today++;
+                CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
                 fastEMA = fastk * ad + oneMinusFastk * fastEMA;
                 slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
-                outReal[outIdx] = fastEMA - slowEMA;
-                outIdx++;
+
+                outReal[outIdx++] = fastEMA - slowEMA;
             }
 
             outNBElement = outIdx;
+
             return RetCode.Success;
+
+            void CalculateAd(in double[] high, in double[] low, in double[] close, in double[] volume, ref int t)
+            {
+                double h = high[t];
+                double l = low[t];
+                double tmp = h - l;
+                double c = close[t];
+                if (tmp > 0.0)
+                {
+                    ad += (c - l - (h - c)) / tmp * volume[t];
+                }
+
+                t++;
+            }
         }
 
         public static RetCode AdOsc(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume,
             ref int outBegIdx, ref int outNBElement, decimal[] outReal, int optInFastPeriod = 3, int optInSlowPeriod = 10)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null || inVolume == null)
+            if (inHigh == null || inLow == null || inClose == null || inVolume == null || optInFastPeriod < 2 || optInFastPeriod > 100000 ||
+                optInSlowPeriod < 2 || optInSlowPeriod > 100000 || outReal == null)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            var slowestPeriod = optInFastPeriod < optInSlowPeriod ? optInSlowPeriod : optInFastPeriod;
+            int slowestPeriod = optInFastPeriod < optInSlowPeriod ? optInSlowPeriod : optInFastPeriod;
 
             int lookbackTotal = EmaLookback(slowestPeriod);
             if (startIdx < lookbackTotal)
@@ -160,70 +114,52 @@ namespace TALib
 
             outBegIdx = startIdx;
             int today = startIdx - lookbackTotal;
+
             decimal ad = default;
+
             decimal fastk = 2m / (optInFastPeriod + 1);
             decimal oneMinusFastk = Decimal.One - fastk;
+
             decimal slowk = 2m / (optInSlowPeriod + 1);
             decimal oneMinusSlowk = Decimal.One - slowk;
-            decimal high = inHigh[today];
-            decimal low = inLow[today];
-            decimal tmp = high - low;
-            decimal close = inClose[today];
-            if (tmp > Decimal.Zero)
-            {
-                ad += (close - low - (high - close)) / tmp * inVolume[today];
-            }
 
-            today++;
+            CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
             decimal fastEMA = ad;
             decimal slowEMA = ad;
-            while (true)
+            while (today < startIdx)
             {
-                if (today >= startIdx)
-                {
-                    break;
-                }
-
-                high = inHigh[today];
-                low = inLow[today];
-                tmp = high - low;
-                close = inClose[today];
-                if (tmp > Decimal.Zero)
-                {
-                    ad += (close - low - (high - close)) / tmp * inVolume[today];
-                }
-
-                today++;
+                CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
                 fastEMA = fastk * ad + oneMinusFastk * fastEMA;
                 slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
             }
 
             int outIdx = default;
-            while (true)
+            while (today <= startIdx)
             {
-                if (today > endIdx)
-                {
-                    break;
-                }
-
-                high = inHigh[today];
-                low = inLow[today];
-                tmp = high - low;
-                close = inClose[today];
-                if (tmp > Decimal.Zero)
-                {
-                    ad += (close - low - (high - close)) / tmp * inVolume[today];
-                }
-
-                today++;
+                CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
                 fastEMA = fastk * ad + oneMinusFastk * fastEMA;
                 slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
-                outReal[outIdx] = fastEMA - slowEMA;
-                outIdx++;
+
+                outReal[outIdx++] = fastEMA - slowEMA;
             }
 
             outNBElement = outIdx;
+
             return RetCode.Success;
+
+            void CalculateAd(in decimal[] high, in decimal[] low, in decimal[] close, in decimal[] volume, ref int t)
+            {
+                decimal h = high[t];
+                decimal l = low[t];
+                decimal tmp = h - l;
+                decimal c = close[t];
+                if (tmp > Decimal.Zero)
+                {
+                    ad += (c - l - (h - c)) / tmp * volume[t];
+                }
+
+                t++;
+            }
         }
 
         public static int AdOscLookback(int optInFastPeriod = 3, int optInSlowPeriod = 10)

@@ -5,27 +5,12 @@ namespace TALib
         public static RetCode Min(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
             int optInTimePeriod = 30)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -48,75 +33,52 @@ namespace TALib
             int trailingIdx = startIdx - nbInitialElementNeeded;
             int lowestIdx = -1;
             double lowest = default;
-            Label_008A:
-            if (today > endIdx)
-            {
-                outBegIdx = startIdx;
-                outNBElement = outIdx;
-                return RetCode.Success;
-            }
 
-            double tmp = inReal[today];
-            if (lowestIdx < trailingIdx)
+            while (today <= endIdx)
             {
-                lowestIdx = trailingIdx;
-                lowest = inReal[lowestIdx];
-                int i = lowestIdx;
-                while (true)
+                double tmp = inReal[today];
+
+                if (lowestIdx < trailingIdx)
                 {
-                    i++;
-                    if (i > today)
+                    lowestIdx = trailingIdx;
+                    lowest = inReal[lowestIdx];
+                    int i = lowestIdx;
+                    while (++i <= today)
                     {
-                        goto Label_00CC;
-                    }
-
-                    tmp = inReal[i];
-                    if (tmp < lowest)
-                    {
-                        lowestIdx = i;
-                        lowest = tmp;
+                        tmp = inReal[i];
+                        if (tmp < lowest)
+                        {
+                            lowestIdx = i;
+                            lowest = tmp;
+                        }
                     }
                 }
+                else if (tmp <= lowest)
+                {
+                    lowestIdx = today;
+                    lowest = tmp;
+                }
+
+                outReal[outIdx++] = lowest;
+                trailingIdx++;
+                today++;
             }
 
-            if (tmp <= lowest)
-            {
-                lowestIdx = today;
-                lowest = tmp;
-            }
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
 
-            Label_00CC:
-            outReal[outIdx] = lowest;
-            outIdx++;
-            trailingIdx++;
-            today++;
-            goto Label_008A;
+            return RetCode.Success;
         }
 
         public static RetCode Min(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
             int optInTimePeriod = 30)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -139,49 +101,41 @@ namespace TALib
             int trailingIdx = startIdx - nbInitialElementNeeded;
             int lowestIdx = -1;
             decimal lowest = default;
-            Label_008A:
-            if (today > endIdx)
-            {
-                outBegIdx = startIdx;
-                outNBElement = outIdx;
-                return RetCode.Success;
-            }
 
-            decimal tmp = inReal[today];
-            if (lowestIdx < trailingIdx)
+            while (today <= endIdx)
             {
-                lowestIdx = trailingIdx;
-                lowest = inReal[lowestIdx];
-                int i = lowestIdx;
-                while (true)
+                decimal tmp = inReal[today];
+
+                if (lowestIdx < trailingIdx)
                 {
-                    i++;
-                    if (i > today)
+                    lowestIdx = trailingIdx;
+                    lowest = inReal[lowestIdx];
+                    int i = lowestIdx;
+                    while (++i <= today)
                     {
-                        goto Label_00CF;
-                    }
-
-                    tmp = inReal[i];
-                    if (tmp < lowest)
-                    {
-                        lowestIdx = i;
-                        lowest = tmp;
+                        tmp = inReal[i];
+                        if (tmp < lowest)
+                        {
+                            lowestIdx = i;
+                            lowest = tmp;
+                        }
                     }
                 }
+                else if (tmp <= lowest)
+                {
+                    lowestIdx = today;
+                    lowest = tmp;
+                }
+
+                outReal[outIdx++] = lowest;
+                trailingIdx++;
+                today++;
             }
 
-            if (tmp <= lowest)
-            {
-                lowestIdx = today;
-                lowest = tmp;
-            }
+            outBegIdx = startIdx;
+            outNBElement = outIdx;
 
-            Label_00CF:
-            outReal[outIdx] = lowest;
-            outIdx++;
-            trailingIdx++;
-            today++;
-            goto Label_008A;
+            return RetCode.Success;
         }
 
         public static int MinLookback(int optInTimePeriod = 30)

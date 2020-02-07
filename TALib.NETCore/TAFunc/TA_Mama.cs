@@ -7,49 +7,18 @@ namespace TALib
         public static RetCode Mama(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outMAMA,
             double[] outFAMA, double optInFastLimit = 0.5, double optInSlowLimit = 0.05)
         {
-            double smoothedValue;
-            const double a = 0.0962;
-            const double b = 0.5769;
-            var detrenderOdd = new double[3];
-            var detrenderEven = new double[3];
-            var q1Odd = new double[3];
-            var q1Even = new double[3];
-            var jIOdd = new double[3];
-            var jIEven = new double[3];
-            var jQOdd = new double[3];
-            var jQEven = new double[3];
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || outMAMA == null || outFAMA == null || optInFastLimit < 0.01 || optInFastLimit > 0.99 ||
+                optInSlowLimit < 0.01 || optInSlowLimit > 0.99)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInFastLimit < 0.01 || optInFastLimit > 0.99 || optInSlowLimit < 0.01 || optInSlowLimit > 0.99)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMAMA == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outFAMA == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            double rad2Deg = 180.0 / (4.0 * Math.Atan(1.0));
-            int lookbackTotal = (int) Globals.UnstablePeriod[(int) FuncUnstId.Mama] + 32;
+            int lookbackTotal = MamaLookback();
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -62,142 +31,71 @@ namespace TALib
                 return RetCode.Success;
             }
 
+            const double rad2Deg = 180.0 / Math.PI;
+
             outBegIdx = startIdx;
+
             int trailingWMAIdx = startIdx - lookbackTotal;
             int today = trailingWMAIdx;
-            double tempReal = inReal[today];
-            today++;
+
+            double tempReal = inReal[today++];
             double periodWMASub = tempReal;
             double periodWMASum = tempReal;
-            tempReal = inReal[today];
-            today++;
+            tempReal = inReal[today++];
             periodWMASub += tempReal;
             periodWMASum += tempReal * 2.0;
-            tempReal = inReal[today];
-            today++;
+            tempReal = inReal[today++];
             periodWMASub += tempReal;
             periodWMASum += tempReal * 3.0;
+
             double trailingWMAValue = default;
             int i = 9;
             do
             {
                 tempReal = inReal[today];
-                today++;
-                periodWMASub += tempReal;
-                periodWMASub -= trailingWMAValue;
-                periodWMASum += tempReal * 4.0;
-                trailingWMAValue = inReal[trailingWMAIdx];
-                trailingWMAIdx++;
-                smoothedValue = periodWMASum * 0.1;
-                periodWMASum -= periodWMASub;
-                i--;
-            } while (i != 0);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, out var _, tempReal);
+            } while (--i != 0);
 
             int hilbertIdx = default;
-            double prevDetrenderOdd = default;
-            double prevDetrenderEven = default;
-            double prevDetrenderInputOdd = default;
-            double prevDetrenderInputEven = default;
-            double prevQ1Odd = default;
-            double prevQ1Even = default;
-            double prevQ1InputOdd = default;
-            double prevQ1InputEven = default;
-            double prevJIOdd = default;
-            double prevJIEven = default;
-            double prevJIInputOdd = default;
-            double prevJIInputEven = default;
-            double prevJQOdd = default;
-            double prevJQEven = default;
-            double prevJQInputOdd = default;
-            double prevJQInputEven = default;
-            double period = default;
+            var hilbertVariables = InitHilbertVariables<double>();
+
             int outIdx = default;
-            double prevQ2 = default;
-            double prevI2 = prevQ2;
-            double im = default;
-            double re = im;
-            double fama = default;
-            double mama = fama;
-            double i1ForEvenPrev3 = default;
-            double i1ForOddPrev3 = i1ForEvenPrev3;
-            double i1ForEvenPrev2 = default;
-            double i1ForOddPrev2 = i1ForEvenPrev2;
-            double prevPhase = default;
-            while (true)
+
+            double prevI2, prevQ2, re, im, mama, fama, i1ForOddPrev3, i1ForEvenPrev3, i1ForOddPrev2, i1ForEvenPrev2, prevPhase;
+            double period = prevI2 = prevQ2
+                = re = im = mama = fama = i1ForOddPrev3 = i1ForEvenPrev3 = i1ForOddPrev2 = i1ForEvenPrev2 = prevPhase = default;
+            while (today <= endIdx)
             {
-                double hilbertTempReal;
                 double tempReal2;
                 double i2;
                 double q2;
-                if (today > endIdx)
-                {
-                    break;
-                }
 
                 double adjustedPrevPeriod = 0.075 * period + 0.54;
+
                 double todayValue = inReal[today];
-                periodWMASub += todayValue;
-                periodWMASub -= trailingWMAValue;
-                periodWMASum += todayValue * 4.0;
-                trailingWMAValue = inReal[trailingWMAIdx];
-                trailingWMAIdx++;
-                smoothedValue = periodWMASum * 0.1;
-                periodWMASum -= periodWMASub;
-                double detrender;
-                double q1;
-                double jQ;
-                double jI;
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, out var smoothedValue,
+                    todayValue);
                 if (today % 2 == 0)
                 {
-                    hilbertTempReal = a * smoothedValue;
-                    detrender = -detrenderEven[hilbertIdx];
-                    detrenderEven[hilbertIdx] = hilbertTempReal;
-                    detrender += hilbertTempReal;
-                    detrender -= prevDetrenderEven;
-                    prevDetrenderEven = b * prevDetrenderInputEven;
-                    detrender += prevDetrenderEven;
-                    prevDetrenderInputEven = smoothedValue;
-                    detrender *= adjustedPrevPeriod;
-                    hilbertTempReal = a * detrender;
-                    q1 = -q1Even[hilbertIdx];
-                    q1Even[hilbertIdx] = hilbertTempReal;
-                    q1 += hilbertTempReal;
-                    q1 -= prevQ1Even;
-                    prevQ1Even = b * prevQ1InputEven;
-                    q1 += prevQ1Even;
-                    prevQ1InputEven = detrender;
-                    q1 *= adjustedPrevPeriod;
-                    hilbertTempReal = a * i1ForEvenPrev3;
-                    jI = -jIEven[hilbertIdx];
-                    jIEven[hilbertIdx] = hilbertTempReal;
-                    jI += hilbertTempReal;
-                    jI -= prevJIEven;
-                    prevJIEven = b * prevJIInputEven;
-                    jI += prevJIEven;
-                    prevJIInputEven = i1ForEvenPrev3;
-                    jI *= adjustedPrevPeriod;
-                    hilbertTempReal = a * q1;
-                    jQ = -jQEven[hilbertIdx];
-                    jQEven[hilbertIdx] = hilbertTempReal;
-                    jQ += hilbertTempReal;
-                    jQ -= prevJQEven;
-                    prevJQEven = b * prevJQInputEven;
-                    jQ += prevJQEven;
-                    prevJQInputEven = q1;
-                    jQ *= adjustedPrevPeriod;
-                    hilbertIdx++;
-                    if (hilbertIdx == 3)
+                    DoHilbertEven(hilbertVariables, "detrender", smoothedValue, hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertEven(hilbertVariables, "q1", hilbertVariables["detrender"], hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertEven(hilbertVariables, "jI", i1ForEvenPrev3, hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertEven(hilbertVariables, "jQ", hilbertVariables["q1"], hilbertIdx, adjustedPrevPeriod);
+
+                    if (++hilbertIdx == 3)
                     {
                         hilbertIdx = 0;
                     }
 
-                    q2 = 0.2 * (q1 + jI) + 0.8 * prevQ2;
-                    i2 = 0.2 * (i1ForEvenPrev3 - jQ) + 0.8 * prevI2;
+                    q2 = 0.2 * (hilbertVariables["q1"] + hilbertVariables["jI"]) + 0.8 * prevQ2;
+                    i2 = 0.2 * (i1ForEvenPrev3 - hilbertVariables["jQ"]) + 0.8 * prevI2;
+
                     i1ForOddPrev3 = i1ForOddPrev2;
-                    i1ForOddPrev2 = detrender;
+                    i1ForOddPrev2 = hilbertVariables["detrender"];
+
                     if (!i1ForEvenPrev3.Equals(0.0))
                     {
-                        tempReal2 = Math.Atan(q1 / i1ForEvenPrev3) * rad2Deg;
+                        tempReal2 = Math.Atan(hilbertVariables["q1"] / i1ForEvenPrev3) * rad2Deg;
                     }
                     else
                     {
@@ -206,49 +104,19 @@ namespace TALib
                 }
                 else
                 {
-                    hilbertTempReal = a * smoothedValue;
-                    detrender = -detrenderOdd[hilbertIdx];
-                    detrenderOdd[hilbertIdx] = hilbertTempReal;
-                    detrender += hilbertTempReal;
-                    detrender -= prevDetrenderOdd;
-                    prevDetrenderOdd = b * prevDetrenderInputOdd;
-                    detrender += prevDetrenderOdd;
-                    prevDetrenderInputOdd = smoothedValue;
-                    detrender *= adjustedPrevPeriod;
-                    hilbertTempReal = a * detrender;
-                    q1 = -q1Odd[hilbertIdx];
-                    q1Odd[hilbertIdx] = hilbertTempReal;
-                    q1 += hilbertTempReal;
-                    q1 -= prevQ1Odd;
-                    prevQ1Odd = b * prevQ1InputOdd;
-                    q1 += prevQ1Odd;
-                    prevQ1InputOdd = detrender;
-                    q1 *= adjustedPrevPeriod;
-                    hilbertTempReal = a * i1ForOddPrev3;
-                    jI = -jIOdd[hilbertIdx];
-                    jIOdd[hilbertIdx] = hilbertTempReal;
-                    jI += hilbertTempReal;
-                    jI -= prevJIOdd;
-                    prevJIOdd = b * prevJIInputOdd;
-                    jI += prevJIOdd;
-                    prevJIInputOdd = i1ForOddPrev3;
-                    jI *= adjustedPrevPeriod;
-                    hilbertTempReal = a * q1;
-                    jQ = -jQOdd[hilbertIdx];
-                    jQOdd[hilbertIdx] = hilbertTempReal;
-                    jQ += hilbertTempReal;
-                    jQ -= prevJQOdd;
-                    prevJQOdd = b * prevJQInputOdd;
-                    jQ += prevJQOdd;
-                    prevJQInputOdd = q1;
-                    jQ *= adjustedPrevPeriod;
-                    q2 = 0.2 * (q1 + jI) + 0.8 * prevQ2;
-                    i2 = 0.2 * (i1ForOddPrev3 - jQ) + 0.8 * prevI2;
+                    DoHilbertOdd(hilbertVariables, "detrender", smoothedValue, hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertOdd(hilbertVariables, "q1", hilbertVariables["detrender"], hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertOdd(hilbertVariables, "jI", i1ForOddPrev3, hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertOdd(hilbertVariables, "jQ", hilbertVariables["q1"], hilbertIdx, adjustedPrevPeriod);
+
+                    q2 = 0.2 * (hilbertVariables["q1"] + hilbertVariables["jI"]) + 0.8 * prevQ2;
+                    i2 = 0.2 * (i1ForOddPrev3 - hilbertVariables["jQ"]) + 0.8 * prevI2;
+
                     i1ForEvenPrev3 = i1ForEvenPrev2;
-                    i1ForEvenPrev2 = detrender;
+                    i1ForEvenPrev2 = hilbertVariables["detrender"];
                     if (!i1ForOddPrev3.Equals(0.0))
                     {
-                        tempReal2 = Math.Atan(q1 / i1ForOddPrev3) * rad2Deg;
+                        tempReal2 = Math.Atan(hilbertVariables["q1"] / i1ForOddPrev3) * rad2Deg;
                     }
                     else
                     {
@@ -322,55 +190,25 @@ namespace TALib
             }
 
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode Mama(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outMAMA,
             decimal[] outFAMA, decimal optInFastLimit = 0.5m, decimal optInSlowLimit = 0.05m)
         {
-            decimal smoothedValue;
-            const decimal a = 0.0962m;
-            const decimal b = 0.5769m;
-            var detrenderOdd = new decimal[3];
-            var detrenderEven = new decimal[3];
-            var q1Odd = new decimal[3];
-            var q1Even = new decimal[3];
-            var jIOdd = new decimal[3];
-            var jIEven = new decimal[3];
-            var jQOdd = new decimal[3];
-            var jQEven = new decimal[3];
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || outMAMA == null || outFAMA == null || optInFastLimit < 0.01m || optInFastLimit > 0.99m ||
+                optInSlowLimit < 0.01m || optInSlowLimit > 0.99m)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInFastLimit < 0.01m || optInFastLimit > 0.99m || optInSlowLimit < 0.01m || optInSlowLimit > 0.99m)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMAMA == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outFAMA == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            decimal rad2Deg = 180m / (4m * DecimalMath.Atan(Decimal.One));
-            int lookbackTotal = (int) Globals.UnstablePeriod[(int) FuncUnstId.Mama] + 32;
+            int lookbackTotal = MamaLookback();
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -383,142 +221,71 @@ namespace TALib
                 return RetCode.Success;
             }
 
+            const decimal rad2Deg = 180m / DecimalMath.PI;
+
             outBegIdx = startIdx;
+
             int trailingWMAIdx = startIdx - lookbackTotal;
             int today = trailingWMAIdx;
-            decimal tempReal = inReal[today];
-            today++;
+
+            decimal tempReal = inReal[today++];
             decimal periodWMASub = tempReal;
             decimal periodWMASum = tempReal;
-            tempReal = inReal[today];
-            today++;
+            tempReal = inReal[today++];
             periodWMASub += tempReal;
             periodWMASum += tempReal * 2m;
-            tempReal = inReal[today];
-            today++;
+            tempReal = inReal[today++];
             periodWMASub += tempReal;
             periodWMASum += tempReal * 3m;
+
             decimal trailingWMAValue = default;
             int i = 9;
             do
             {
                 tempReal = inReal[today];
-                today++;
-                periodWMASub += tempReal;
-                periodWMASub -= trailingWMAValue;
-                periodWMASum += tempReal * 4m;
-                trailingWMAValue = inReal[trailingWMAIdx];
-                trailingWMAIdx++;
-                smoothedValue = periodWMASum * 0.1m;
-                periodWMASum -= periodWMASub;
-                i--;
-            } while (i != 0);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, out var _, tempReal);
+            } while (--i != 0);
 
             int hilbertIdx = default;
-            decimal prevDetrenderOdd = default;
-            decimal prevDetrenderEven = default;
-            decimal prevDetrenderInputOdd = default;
-            decimal prevDetrenderInputEven = default;
-            decimal prevQ1Odd = default;
-            decimal prevQ1Even = default;
-            decimal prevQ1InputOdd = default;
-            decimal prevQ1InputEven = default;
-            decimal prevJIOdd = default;
-            decimal prevJIEven = default;
-            decimal prevJIInputOdd = default;
-            decimal prevJIInputEven = default;
-            decimal prevJQOdd = default;
-            decimal prevJQEven = default;
-            decimal prevJQInputOdd = default;
-            decimal prevJQInputEven = default;
-            decimal period = default;
+            var hilbertVariables = InitHilbertVariables<decimal>();
+
             int outIdx = default;
-            decimal prevQ2 = default;
-            decimal prevI2 = prevQ2;
-            decimal im = default;
-            decimal re = im;
-            decimal fama = default;
-            decimal mama = fama;
-            decimal i1ForEvenPrev3 = default;
-            decimal i1ForOddPrev3 = i1ForEvenPrev3;
-            decimal i1ForEvenPrev2 = default;
-            decimal i1ForOddPrev2 = i1ForEvenPrev2;
-            decimal prevPhase = default;
-            while (true)
+
+            decimal prevI2, prevQ2, re, im, mama, fama, i1ForOddPrev3, i1ForEvenPrev3, i1ForOddPrev2, i1ForEvenPrev2, prevPhase;
+            decimal period = prevI2 = prevQ2
+                = re = im = mama = fama = i1ForOddPrev3 = i1ForEvenPrev3 = i1ForOddPrev2 = i1ForEvenPrev2 = prevPhase = default;
+            while (today <= endIdx)
             {
-                decimal hilbertTempReal;
                 decimal tempReal2;
                 decimal i2;
                 decimal q2;
-                if (today > endIdx)
-                {
-                    break;
-                }
 
                 decimal adjustedPrevPeriod = 0.075m * period + 0.54m;
+
                 decimal todayValue = inReal[today];
-                periodWMASub += todayValue;
-                periodWMASub -= trailingWMAValue;
-                periodWMASum += todayValue * 4m;
-                trailingWMAValue = inReal[trailingWMAIdx];
-                trailingWMAIdx++;
-                smoothedValue = periodWMASum * 0.1m;
-                periodWMASum -= periodWMASub;
-                decimal detrender;
-                decimal q1;
-                decimal jI;
-                decimal jQ;
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, out var smoothedValue,
+                    todayValue);
                 if (today % 2 == 0)
                 {
-                    hilbertTempReal = a * smoothedValue;
-                    detrender = -detrenderEven[hilbertIdx];
-                    detrenderEven[hilbertIdx] = hilbertTempReal;
-                    detrender += hilbertTempReal;
-                    detrender -= prevDetrenderEven;
-                    prevDetrenderEven = b * prevDetrenderInputEven;
-                    detrender += prevDetrenderEven;
-                    prevDetrenderInputEven = smoothedValue;
-                    detrender *= adjustedPrevPeriod;
-                    hilbertTempReal = a * detrender;
-                    q1 = -q1Even[hilbertIdx];
-                    q1Even[hilbertIdx] = hilbertTempReal;
-                    q1 += hilbertTempReal;
-                    q1 -= prevQ1Even;
-                    prevQ1Even = b * prevQ1InputEven;
-                    q1 += prevQ1Even;
-                    prevQ1InputEven = detrender;
-                    q1 *= adjustedPrevPeriod;
-                    hilbertTempReal = a * i1ForEvenPrev3;
-                    jI = -jIEven[hilbertIdx];
-                    jIEven[hilbertIdx] = hilbertTempReal;
-                    jI += hilbertTempReal;
-                    jI -= prevJIEven;
-                    prevJIEven = b * prevJIInputEven;
-                    jI += prevJIEven;
-                    prevJIInputEven = i1ForEvenPrev3;
-                    jI *= adjustedPrevPeriod;
-                    hilbertTempReal = a * q1;
-                    jQ = -jQEven[hilbertIdx];
-                    jQEven[hilbertIdx] = hilbertTempReal;
-                    jQ += hilbertTempReal;
-                    jQ -= prevJQEven;
-                    prevJQEven = b * prevJQInputEven;
-                    jQ += prevJQEven;
-                    prevJQInputEven = q1;
-                    jQ *= adjustedPrevPeriod;
-                    hilbertIdx++;
-                    if (hilbertIdx == 3)
+                    DoHilbertEven(hilbertVariables, "detrender", smoothedValue, hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertEven(hilbertVariables, "q1", hilbertVariables["detrender"], hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertEven(hilbertVariables, "jI", i1ForEvenPrev3, hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertEven(hilbertVariables, "jQ", hilbertVariables["q1"], hilbertIdx, adjustedPrevPeriod);
+
+                    if (++hilbertIdx == 3)
                     {
                         hilbertIdx = 0;
                     }
 
-                    q2 = 0.2m * (q1 + jI) + 0.8m * prevQ2;
-                    i2 = 0.2m * (i1ForEvenPrev3 - jQ) + 0.8m * prevI2;
+                    q2 = 0.2m * (hilbertVariables["q1"] + hilbertVariables["jI"]) + 0.8m * prevQ2;
+                    i2 = 0.2m * (i1ForEvenPrev3 - hilbertVariables["jQ"]) + 0.8m * prevI2;
+
                     i1ForOddPrev3 = i1ForOddPrev2;
-                    i1ForOddPrev2 = detrender;
-                    if (i1ForEvenPrev3 != Decimal.Zero)
+                    i1ForOddPrev2 = hilbertVariables["detrender"];
+
+                    if (i1ForEvenPrev3 !=  Decimal.Zero)
                     {
-                        tempReal2 = DecimalMath.Atan(q1 / i1ForEvenPrev3) * rad2Deg;
+                        tempReal2 = DecimalMath.Atan(hilbertVariables["q1"] / i1ForEvenPrev3) * rad2Deg;
                     }
                     else
                     {
@@ -527,49 +294,19 @@ namespace TALib
                 }
                 else
                 {
-                    hilbertTempReal = a * smoothedValue;
-                    detrender = -detrenderOdd[hilbertIdx];
-                    detrenderOdd[hilbertIdx] = hilbertTempReal;
-                    detrender += hilbertTempReal;
-                    detrender -= prevDetrenderOdd;
-                    prevDetrenderOdd = b * prevDetrenderInputOdd;
-                    detrender += prevDetrenderOdd;
-                    prevDetrenderInputOdd = smoothedValue;
-                    detrender *= adjustedPrevPeriod;
-                    hilbertTempReal = a * detrender;
-                    q1 = -q1Odd[hilbertIdx];
-                    q1Odd[hilbertIdx] = hilbertTempReal;
-                    q1 += hilbertTempReal;
-                    q1 -= prevQ1Odd;
-                    prevQ1Odd = b * prevQ1InputOdd;
-                    q1 += prevQ1Odd;
-                    prevQ1InputOdd = detrender;
-                    q1 *= adjustedPrevPeriod;
-                    hilbertTempReal = a * i1ForOddPrev3;
-                    jI = -jIOdd[hilbertIdx];
-                    jIOdd[hilbertIdx] = hilbertTempReal;
-                    jI += hilbertTempReal;
-                    jI -= prevJIOdd;
-                    prevJIOdd = b * prevJIInputOdd;
-                    jI += prevJIOdd;
-                    prevJIInputOdd = i1ForOddPrev3;
-                    jI *= adjustedPrevPeriod;
-                    hilbertTempReal = a * q1;
-                    jQ = -jQOdd[hilbertIdx];
-                    jQOdd[hilbertIdx] = hilbertTempReal;
-                    jQ += hilbertTempReal;
-                    jQ -= prevJQOdd;
-                    prevJQOdd = b * prevJQInputOdd;
-                    jQ += prevJQOdd;
-                    prevJQInputOdd = q1;
-                    jQ *= adjustedPrevPeriod;
-                    q2 = 0.2m * (q1 + jI) + 0.8m * prevQ2;
-                    i2 = 0.2m * (i1ForOddPrev3 - jQ) + 0.8m * prevI2;
+                    DoHilbertOdd(hilbertVariables, "detrender", smoothedValue, hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertOdd(hilbertVariables, "q1", hilbertVariables["detrender"], hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertOdd(hilbertVariables, "jI", i1ForOddPrev3, hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertOdd(hilbertVariables, "jQ", hilbertVariables["q1"], hilbertIdx, adjustedPrevPeriod);
+
+                    q2 = 0.2m * (hilbertVariables["q1"] + hilbertVariables["jI"]) + 0.8m * prevQ2;
+                    i2 = 0.2m * (i1ForOddPrev3 - hilbertVariables["jQ"]) + 0.8m * prevI2;
+
                     i1ForEvenPrev3 = i1ForEvenPrev2;
-                    i1ForEvenPrev2 = detrender;
+                    i1ForEvenPrev2 = hilbertVariables["detrender"];
                     if (i1ForOddPrev3 != Decimal.Zero)
                     {
-                        tempReal2 = DecimalMath.Atan(q1 / i1ForOddPrev3) * rad2Deg;
+                        tempReal2 = DecimalMath.Atan(hilbertVariables["q1"] / i1ForOddPrev3) * rad2Deg;
                     }
                     else
                     {
@@ -643,6 +380,7 @@ namespace TALib
             }
 
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 

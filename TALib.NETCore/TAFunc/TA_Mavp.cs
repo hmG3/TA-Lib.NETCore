@@ -2,41 +2,21 @@ namespace TALib
 {
     public partial class Core
     {
-        public static RetCode MovingAverageVariablePeriod(int startIdx, int endIdx, double[] inReal, double[] inPeriods, MAType optInMAType,
+        public static RetCode Mavp(int startIdx, int endIdx, double[] inReal, double[] inPeriods, MAType optInMAType,
             ref int outBegIdx, ref int outNBElement, double[] outReal, int optInMinPeriod = 2, int optInMaxPeriod = 30)
         {
-            int i;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || inPeriods == null || outReal == null || optInMinPeriod < 2 || optInMinPeriod > 100000 ||
+                optInMaxPeriod < 2 || optInMaxPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (inPeriods == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInMinPeriod < 2 || optInMinPeriod > 100000 || optInMaxPeriod < 2 || optInMaxPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            int lookbackTotal = MovingAverageLookback(optInMAType, optInMaxPeriod);
+            int lookbackTotal = MaLookback(optInMAType, optInMaxPeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -50,7 +30,6 @@ namespace TALib
             }
 
             var tempInt = lookbackTotal > startIdx ? lookbackTotal : startIdx;
-
             if (tempInt > endIdx)
             {
                 outBegIdx = 0;
@@ -61,7 +40,7 @@ namespace TALib
             int outputSize = endIdx - tempInt + 1;
             var localOutputArray = new double[outputSize];
             int[] localPeriodArray = new int[outputSize];
-            for (i = 0; i < outputSize; i++)
+            for (var i = 0; i < outputSize; i++)
             {
                 tempInt = (int) inPeriods[startIdx + i];
                 if (tempInt < optInMinPeriod)
@@ -76,22 +55,14 @@ namespace TALib
                 localPeriodArray[i] = tempInt;
             }
 
-            i = 0;
-            while (true)
+            for (var i = 0; i < outputSize; i++)
             {
-                if (i >= outputSize)
-                {
-                    outBegIdx = startIdx;
-                    outNBElement = outputSize;
-                    return RetCode.Success;
-                }
-
                 int curPeriod = localPeriodArray[i];
                 if (curPeriod != 0)
                 {
                     int localNbElement = default;
                     int localBegIdx = default;
-                    RetCode retCode = MovingAverage(startIdx, endIdx, inReal, optInMAType, ref localBegIdx, ref localNbElement,
+                    RetCode retCode = Ma(startIdx, endIdx, inReal, optInMAType, ref localBegIdx, ref localNbElement,
                         localOutputArray, curPeriod);
                     if (retCode != RetCode.Success)
                     {
@@ -110,46 +81,29 @@ namespace TALib
                         }
                     }
                 }
-
-                i++;
             }
+
+            outBegIdx = startIdx;
+            outNBElement = outputSize;
+
+            return RetCode.Success;
         }
 
-        public static RetCode MovingAverageVariablePeriod(int startIdx, int endIdx, decimal[] inReal, decimal[] inPeriods,
+        public static RetCode Mavp(int startIdx, int endIdx, decimal[] inReal, decimal[] inPeriods,
             MAType optInMAType, ref int outBegIdx, ref int outNBElement, decimal[] outReal, int optInMinPeriod = 2, int optInMaxPeriod = 30)
         {
-            int i;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || inPeriods == null || outReal == null || optInMinPeriod < 2 || optInMinPeriod > 100000 ||
+                optInMaxPeriod < 2 || optInMaxPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (inPeriods == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInMinPeriod < 2 || optInMinPeriod > 100000 || optInMaxPeriod < 2 || optInMaxPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            int lookbackTotal = MovingAverageLookback(optInMAType, optInMaxPeriod);
+            int lookbackTotal = MaLookback(optInMAType, optInMaxPeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -163,7 +117,6 @@ namespace TALib
             }
 
             var tempInt = lookbackTotal > startIdx ? lookbackTotal : startIdx;
-
             if (tempInt > endIdx)
             {
                 outBegIdx = 0;
@@ -174,7 +127,7 @@ namespace TALib
             int outputSize = endIdx - tempInt + 1;
             var localOutputArray = new decimal[outputSize];
             int[] localPeriodArray = new int[outputSize];
-            for (i = 0; i < outputSize; i++)
+            for (var i = 0; i < outputSize; i++)
             {
                 tempInt = (int) inPeriods[startIdx + i];
                 if (tempInt < optInMinPeriod)
@@ -189,22 +142,14 @@ namespace TALib
                 localPeriodArray[i] = tempInt;
             }
 
-            i = 0;
-            while (true)
+            for (var i = 0; i < outputSize; i++)
             {
-                if (i >= outputSize)
-                {
-                    outBegIdx = startIdx;
-                    outNBElement = outputSize;
-                    return RetCode.Success;
-                }
-
                 int curPeriod = localPeriodArray[i];
                 if (curPeriod != 0)
                 {
                     int localNbElement = default;
                     int localBegIdx = default;
-                    RetCode retCode = MovingAverage(startIdx, endIdx, inReal, optInMAType, ref localBegIdx, ref localNbElement,
+                    RetCode retCode = Ma(startIdx, endIdx, inReal, optInMAType, ref localBegIdx, ref localNbElement,
                         localOutputArray, curPeriod);
                     if (retCode != RetCode.Success)
                     {
@@ -223,19 +168,22 @@ namespace TALib
                         }
                     }
                 }
-
-                i++;
             }
+
+            outBegIdx = startIdx;
+            outNBElement = outputSize;
+
+            return RetCode.Success;
         }
 
-        public static int MovingAverageVariablePeriodLookback(MAType optInMAType, int optInMaxPeriod = 30)
+        public static int MavpLookback(MAType optInMAType, int optInMaxPeriod = 30)
         {
             if (optInMaxPeriod < 2 || optInMaxPeriod > 100000)
             {
                 return -1;
             }
 
-            return MovingAverageLookback(optInMAType, optInMaxPeriod);
+            return MaLookback(optInMAType, optInMaxPeriod);
         }
     }
 }

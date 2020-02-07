@@ -5,37 +5,13 @@ namespace TALib
         public static RetCode MacdFix(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outMACD,
             double[] outMACDSignal, double[] outMACDHist, int optInSignalPeriod = 9)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInSignalPeriod < 1 || optInSignalPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACD == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACDSignal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACDHist == null)
+            if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInSignalPeriod < 1 ||
+                optInSignalPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -47,37 +23,13 @@ namespace TALib
         public static RetCode MacdFix(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement,
             decimal[] outMACD, decimal[] outMACDSignal, decimal[] outMACDHist, int optInSignalPeriod = 9)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInSignalPeriod < 1 || optInSignalPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACD == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACDSignal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outMACDHist == null)
+            if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInSignalPeriod < 1 ||
+                optInSignalPeriod > 100000)
             {
                 return RetCode.BadParam;
             }

@@ -8,42 +8,23 @@ namespace TALib
             MAType optInSlowDMaType, ref int outBegIdx, ref int outNBElement, double[] outSlowK, double[] outSlowD,
             int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
         {
-            double[] tempBuffer;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 ||
-                optInSlowDPeriod < 1 || optInSlowDPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outSlowK == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outSlowD == null)
+            if (inHigh == null || inLow == null || inClose == null || outSlowK == null || outSlowD == null || optInFastKPeriod < 1 ||
+                optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 || optInSlowDPeriod < 1 ||
+                optInSlowDPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
             int lookbackK = optInFastKPeriod - 1;
-            int lookbackKSlow = MovingAverageLookback(optInSlowKMaType, optInSlowKPeriod);
-            int lookbackDSlow = MovingAverageLookback(optInSlowDMaType, optInSlowDPeriod);
+            int lookbackKSlow = MaLookback(optInSlowKMaType, optInSlowKPeriod);
+            int lookbackDSlow = MaLookback(optInSlowDMaType, optInSlowDPeriod);
             int lookbackTotal = lookbackK + lookbackDSlow + lookbackKSlow;
+
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -61,9 +42,9 @@ namespace TALib
             int today = trailingIdx + lookbackK;
             int highestIdx = -1;
             int lowestIdx = highestIdx;
-            double lowest = default;
-            double highest = lowest;
-            double diff = highest;
+            double highest, lowest;
+            double diff = highest = lowest = default;
+            double[] tempBuffer;
             if (outSlowK == inHigh || outSlowK == inLow || outSlowK == inClose)
             {
                 tempBuffer = outSlowK;
@@ -77,151 +58,116 @@ namespace TALib
                 tempBuffer = new double[endIdx - today + 1];
             }
 
-            Label_0156:
-            if (today > endIdx)
+            while (today <= endIdx)
             {
-                RetCode retCode = MovingAverage(0, outIdx - 1, tempBuffer, optInSlowKMaType, ref outBegIdx, ref outNBElement, tempBuffer,
-                    optInSlowKPeriod);
-                if (retCode != RetCode.Success || outNBElement == 0)
+                double tmp = inLow[today];
+                if (lowestIdx < trailingIdx)
                 {
-                    outBegIdx = 0;
-                    outNBElement = 0;
-                    return retCode;
+                    lowestIdx = trailingIdx;
+                    lowest = inLow[lowestIdx];
+                    int i = lowestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inLow[i];
+                        if (tmp < lowest)
+                        {
+                            lowestIdx = i;
+                            lowest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / 100.0;
                 }
-
-                retCode = MovingAverage(0, outNBElement - 1, tempBuffer, optInSlowDMaType, ref outBegIdx, ref outNBElement, outSlowD,
-                    optInSlowDPeriod);
-                Array.Copy(tempBuffer, lookbackDSlow, outSlowK, 0, outNBElement);
-                if (retCode != RetCode.Success)
-                {
-                    outBegIdx = 0;
-                    outNBElement = 0;
-                    return retCode;
-                }
-
-                outBegIdx = startIdx;
-                return RetCode.Success;
-            }
-
-            double tmp = inLow[today];
-            if (lowestIdx >= trailingIdx)
-            {
-                if (tmp <= lowest)
+                else if (tmp <= lowest)
                 {
                     lowestIdx = today;
                     lowest = tmp;
                     diff = (highest - lowest) / 100.0;
                 }
 
-                goto Label_01B5;
-            }
-
-            lowestIdx = trailingIdx;
-            lowest = inLow[lowestIdx];
-            int i = lowestIdx;
-            Label_0173:
-            i++;
-            if (i <= today)
-            {
-                tmp = inLow[i];
-                if (tmp < lowest)
+                tmp = inHigh[today];
+                if (highestIdx < trailingIdx)
                 {
-                    lowestIdx = i;
-                    lowest = tmp;
+                    highestIdx = trailingIdx;
+                    highest = inHigh[highestIdx];
+                    int i = highestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inHigh[i];
+                        if (tmp > highest)
+                        {
+                            highestIdx = i;
+                            highest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / 100.0;
                 }
-
-                goto Label_0173;
-            }
-
-            diff = (highest - lowest) / 100.0;
-            Label_01B5:
-            tmp = inHigh[today];
-            if (highestIdx >= trailingIdx)
-            {
-                if (tmp >= highest)
+                else if (tmp >= highest)
                 {
                     highestIdx = today;
                     highest = tmp;
                     diff = (highest - lowest) / 100.0;
                 }
 
-                goto Label_0212;
-            }
-
-            highestIdx = trailingIdx;
-            highest = inHigh[highestIdx];
-            i = highestIdx;
-            Label_01CC:
-            i++;
-            if (i <= today)
-            {
-                tmp = inHigh[i];
-                if (tmp > highest)
+                if (!diff.Equals(0.0))
                 {
-                    highestIdx = i;
-                    highest = tmp;
+                    tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
+                }
+                else
+                {
+                    tempBuffer[outIdx++] = 0.0;
                 }
 
-                goto Label_01CC;
+                trailingIdx++;
+                today++;
             }
 
-            diff = (highest - lowest) / 100.0;
-            Label_0212:
-            if (!diff.Equals(0.0))
+            RetCode retCode = Ma(0, outIdx - 1, tempBuffer, optInSlowKMaType, ref outBegIdx, ref outNBElement, tempBuffer,
+                optInSlowKPeriod);
+            if (retCode != RetCode.Success || outNBElement == 0)
             {
-                tempBuffer[outIdx] = (inClose[today] - lowest) / diff;
-                outIdx++;
-            }
-            else
-            {
-                tempBuffer[outIdx] = 0.0;
-                outIdx++;
+                outBegIdx = 0;
+                outNBElement = 0;
+                return retCode;
             }
 
-            trailingIdx++;
-            today++;
-            goto Label_0156;
+            retCode = Ma(0, outNBElement - 1, tempBuffer, optInSlowDMaType, ref outBegIdx, ref outNBElement, outSlowD,
+                optInSlowDPeriod);
+            Array.Copy(tempBuffer, lookbackDSlow, outSlowK, 0, outNBElement);
+            if (retCode != RetCode.Success)
+            {
+                outBegIdx = 0;
+                outNBElement = 0;
+                return retCode;
+            }
+
+            outBegIdx = startIdx;
+
+            return RetCode.Success;
         }
 
         public static RetCode Stoch(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose,
-            MAType optInSlowKMAType, MAType optInSlowDMAType, ref int outBegIdx, ref int outNBElement, decimal[] outSlowK,
+            MAType optInSlowKMaType, MAType optInSlowDMaType, ref int outBegIdx, ref int outNBElement, decimal[] outSlowK,
             decimal[] outSlowD, int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 ||
-                optInSlowDPeriod < 1 || optInSlowDPeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outSlowK == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outSlowD == null)
+            if (inHigh == null || inLow == null || inClose == null || outSlowK == null || outSlowD == null || optInFastKPeriod < 1 ||
+                optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 || optInSlowDPeriod < 1 ||
+                optInSlowDPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
             int lookbackK = optInFastKPeriod - 1;
-            int lookbackKSlow = MovingAverageLookback(optInSlowKMAType, optInSlowKPeriod);
-            int lookbackDSlow = MovingAverageLookback(optInSlowDMAType, optInSlowDPeriod);
+            int lookbackKSlow = MaLookback(optInSlowKMaType, optInSlowKPeriod);
+            int lookbackDSlow = MaLookback(optInSlowDMaType, optInSlowDPeriod);
             int lookbackTotal = lookbackK + lookbackDSlow + lookbackKSlow;
+
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -239,114 +185,109 @@ namespace TALib
             int today = trailingIdx + lookbackK;
             int highestIdx = -1;
             int lowestIdx = highestIdx;
-            decimal lowest = default;
-            decimal highest = lowest;
-            decimal diff = highest;
-            var tempBuffer = new decimal[endIdx - today + 1];
-            Label_012A:
-            if (today > endIdx)
+            decimal highest, lowest;
+            decimal diff = highest = lowest = default;
+            decimal[] tempBuffer;
+            if (outSlowK == inHigh || outSlowK == inLow || outSlowK == inClose)
             {
-                RetCode retCode = MovingAverage(0, outIdx - 1, tempBuffer, optInSlowKMAType, ref outBegIdx, ref outNBElement, tempBuffer,
-                    optInSlowKPeriod);
-                if (retCode != RetCode.Success || outNBElement == 0)
-                {
-                    outBegIdx = 0;
-                    outNBElement = 0;
-                    return retCode;
-                }
-
-                retCode = MovingAverage(0, outNBElement - 1, tempBuffer, optInSlowDMAType, ref outBegIdx, ref outNBElement, outSlowD,
-                    optInSlowDPeriod);
-                Array.Copy(tempBuffer, lookbackDSlow, outSlowK, 0, outNBElement);
-                if (retCode != RetCode.Success)
-                {
-                    outBegIdx = 0;
-                    outNBElement = 0;
-                    return retCode;
-                }
-
-                outBegIdx = startIdx;
-                return RetCode.Success;
+                tempBuffer = outSlowK;
+            }
+            else if (outSlowD == inHigh || outSlowD == inLow || outSlowD == inClose)
+            {
+                tempBuffer = outSlowD;
+            }
+            else
+            {
+                tempBuffer = new decimal[endIdx - today + 1];
             }
 
-            decimal tmp = inLow[today];
-            if (lowestIdx >= trailingIdx)
+            while (today <= endIdx)
             {
-                if (tmp <= lowest)
+                decimal tmp = inLow[today];
+                if (lowestIdx < trailingIdx)
+                {
+                    lowestIdx = trailingIdx;
+                    lowest = inLow[lowestIdx];
+                    int i = lowestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inLow[i];
+                        if (tmp < lowest)
+                        {
+                            lowestIdx = i;
+                            lowest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / 100m;
+                }
+                else if (tmp <= lowest)
                 {
                     lowestIdx = today;
                     lowest = tmp;
                     diff = (highest - lowest) / 100m;
                 }
 
-                goto Label_018C;
-            }
-
-            lowestIdx = trailingIdx;
-            lowest = inLow[lowestIdx];
-            int i = lowestIdx;
-            Label_0149:
-            i++;
-            if (i <= today)
-            {
-                tmp = inLow[i];
-                if (tmp < lowest)
+                tmp = inHigh[today];
+                if (highestIdx < trailingIdx)
                 {
-                    lowestIdx = i;
-                    lowest = tmp;
+                    highestIdx = trailingIdx;
+                    highest = inHigh[highestIdx];
+                    int i = highestIdx;
+                    while (++i <= today)
+                    {
+                        tmp = inHigh[i];
+                        if (tmp > highest)
+                        {
+                            highestIdx = i;
+                            highest = tmp;
+                        }
+                    }
+
+                    diff = (highest - lowest) / 100m;
                 }
-
-                goto Label_0149;
-            }
-
-            diff = (highest - lowest) / 100m;
-            Label_018C:
-            tmp = inHigh[today];
-            if (highestIdx >= trailingIdx)
-            {
-                if (tmp >= highest)
+                else if (tmp >= highest)
                 {
                     highestIdx = today;
                     highest = tmp;
                     diff = (highest - lowest) / 100m;
                 }
 
-                goto Label_01EC;
-            }
-
-            highestIdx = trailingIdx;
-            highest = inHigh[highestIdx];
-            i = highestIdx;
-            Label_01A5:
-            i++;
-            if (i <= today)
-            {
-                tmp = inHigh[i];
-                if (tmp > highest)
+                if (diff != Decimal.Zero)
                 {
-                    highestIdx = i;
-                    highest = tmp;
+                    tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
+                }
+                else
+                {
+                    tempBuffer[outIdx++] = Decimal.Zero;
                 }
 
-                goto Label_01A5;
+                trailingIdx++;
+                today++;
             }
 
-            diff = (highest - lowest) / 100m;
-            Label_01EC:
-            if (diff != Decimal.Zero)
+            RetCode retCode = Ma(0, outIdx - 1, tempBuffer, optInSlowKMaType, ref outBegIdx, ref outNBElement, tempBuffer,
+                optInSlowKPeriod);
+            if (retCode != RetCode.Success || outNBElement == 0)
             {
-                tempBuffer[outIdx] = (inClose[today] - lowest) / diff;
-                outIdx++;
-            }
-            else
-            {
-                tempBuffer[outIdx] = Decimal.Zero;
-                outIdx++;
+                outBegIdx = 0;
+                outNBElement = 0;
+                return retCode;
             }
 
-            trailingIdx++;
-            today++;
-            goto Label_012A;
+            retCode = Ma(0, outNBElement - 1, tempBuffer, optInSlowDMaType, ref outBegIdx, ref outNBElement, outSlowD,
+                optInSlowDPeriod);
+            Array.Copy(tempBuffer, lookbackDSlow, outSlowK, 0, outNBElement);
+            if (retCode != RetCode.Success)
+            {
+                outBegIdx = 0;
+                outNBElement = 0;
+                return retCode;
+            }
+
+            outBegIdx = startIdx;
+
+            return RetCode.Success;
         }
 
         public static int StochLookback(MAType optInSlowKMAType, MAType optInSlowDMAType, int optInFastKPeriod = 5,
@@ -359,9 +300,10 @@ namespace TALib
             }
 
             int retValue = optInFastKPeriod - 1;
-            retValue += MovingAverageLookback(optInSlowKMAType, optInSlowKPeriod);
+            retValue += MaLookback(optInSlowKMAType, optInSlowKPeriod);
+            retValue += MaLookback(optInSlowDMAType, optInSlowDPeriod);
 
-            return retValue + MovingAverageLookback(optInSlowDMAType, optInSlowDPeriod);
+            return retValue;
         }
     }
 }

@@ -7,41 +7,17 @@ namespace TALib
         public static RetCode Trima(int startIdx, int endIdx, double[] inReal, ref int outBegIdx, ref int outNBElement, double[] outReal,
             int optInTimePeriod = 30)
         {
-            int i;
-            double tempReal;
-            double numerator;
-            double numeratorAdd;
-            double numeratorSub;
-            int middleIdx;
-            int trailingIdx;
-            int todayIdx;
-            double factor;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            int lookbackTotal = optInTimePeriod - 1;
+            int lookbackTotal = TrimaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -54,70 +30,22 @@ namespace TALib
                 return RetCode.Success;
             }
 
+            int middleIdx;
+            int trailingIdx;
+            int todayIdx;
             int outIdx;
-            if (optInTimePeriod % 2 != 1)
+            if (optInTimePeriod % 2 == 1)
             {
-                i = optInTimePeriod >> 1;
-                factor = i * (i + 1);
+                int i = optInTimePeriod >> 1;
+                double factor = (i + 1) * (i + 1);
                 factor = 1.0 / factor;
-                trailingIdx = startIdx - lookbackTotal;
-                middleIdx = trailingIdx + i - 1;
-                todayIdx = middleIdx + i;
-                numerator = 0.0;
-                numeratorSub = 0.0;
-                i = middleIdx;
-                while (i >= trailingIdx)
-                {
-                    tempReal = inReal[i];
-                    numeratorSub += tempReal;
-                    numerator += numeratorSub;
-                    i--;
-                }
 
-                numeratorAdd = 0.0;
-                middleIdx++;
-                for (i = middleIdx; i <= todayIdx; i++)
-                {
-                    tempReal = inReal[i];
-                    numeratorAdd += tempReal;
-                    numerator += numeratorAdd;
-                }
-
-                outIdx = 0;
-                tempReal = inReal[trailingIdx];
-                trailingIdx++;
-                outReal[outIdx] = numerator * factor;
-                outIdx++;
-                todayIdx++;
-                while (todayIdx <= endIdx)
-                {
-                    numerator -= numeratorSub;
-                    numeratorSub -= tempReal;
-                    tempReal = inReal[middleIdx];
-                    middleIdx++;
-                    numeratorSub += tempReal;
-                    numeratorAdd -= tempReal;
-                    numerator += numeratorAdd;
-                    tempReal = inReal[todayIdx];
-                    todayIdx++;
-                    numeratorAdd += tempReal;
-                    numerator += tempReal;
-                    tempReal = inReal[trailingIdx];
-                    trailingIdx++;
-                    outReal[outIdx] = numerator * factor;
-                    outIdx++;
-                }
-            }
-            else
-            {
-                i = optInTimePeriod >> 1;
-                factor = (i + 1) * (i + 1);
-                factor = 1.0 / factor;
                 trailingIdx = startIdx - lookbackTotal;
                 middleIdx = trailingIdx + i;
                 todayIdx = middleIdx + i;
-                numerator = 0.0;
-                numeratorSub = 0.0;
+                double numerator = default;
+                double numeratorSub = default;
+                double tempReal;
                 for (i = middleIdx; i >= trailingIdx; i--)
                 {
                     tempReal = inReal[i];
@@ -125,7 +53,7 @@ namespace TALib
                     numerator += numeratorSub;
                 }
 
-                numeratorAdd = 0.0;
+                double numeratorAdd = default;
                 middleIdx++;
                 for (i = middleIdx; i <= todayIdx; i++)
                 {
@@ -135,74 +63,99 @@ namespace TALib
                 }
 
                 outIdx = 0;
-                tempReal = inReal[trailingIdx];
-                trailingIdx++;
-                outReal[outIdx] = numerator * factor;
-                outIdx++;
+                tempReal = inReal[trailingIdx++];
+                outReal[outIdx++] = numerator * factor;
                 todayIdx++;
                 while (todayIdx <= endIdx)
                 {
                     numerator -= numeratorSub;
                     numeratorSub -= tempReal;
-                    tempReal = inReal[middleIdx];
-                    middleIdx++;
+                    tempReal = inReal[middleIdx++];
                     numeratorSub += tempReal;
+
                     numerator += numeratorAdd;
                     numeratorAdd -= tempReal;
-                    tempReal = inReal[todayIdx];
-                    todayIdx++;
+                    tempReal = inReal[todayIdx++];
                     numeratorAdd += tempReal;
+
                     numerator += tempReal;
-                    tempReal = inReal[trailingIdx];
-                    trailingIdx++;
-                    outReal[outIdx] = numerator * factor;
-                    outIdx++;
+
+                    tempReal = inReal[trailingIdx++];
+                    outReal[outIdx++] = numerator * factor;
+                }
+            }
+            else
+            {
+                int i = optInTimePeriod >> 1;
+                double factor = i * (i + 1);
+                factor = 1.0 / factor;
+
+                trailingIdx = startIdx - lookbackTotal;
+                middleIdx = trailingIdx + i - 1;
+                todayIdx = middleIdx + i;
+                double numerator = default;
+
+                double numeratorSub = default;
+                double tempReal;
+                for (i = middleIdx; i >= trailingIdx; i--)
+                {
+                    tempReal = inReal[i];
+                    numeratorSub += tempReal;
+                    numerator += numeratorSub;
+                }
+                double numeratorAdd = default;
+                middleIdx++;
+                for (i = middleIdx; i <= todayIdx; i++)
+                {
+                    tempReal = inReal[i];
+                    numeratorAdd += tempReal;
+                    numerator += numeratorAdd;
+                }
+
+                outIdx = 0;
+                tempReal = inReal[trailingIdx++];
+                outReal[outIdx++] = numerator * factor;
+                todayIdx++;
+
+                while (todayIdx <= endIdx)
+                {
+                    numerator -= numeratorSub;
+                    numeratorSub -= tempReal;
+                    tempReal = inReal[middleIdx++];
+                    numeratorSub += tempReal;
+
+                    numeratorAdd -= tempReal;
+                    numerator += numeratorAdd;
+                    tempReal = inReal[todayIdx++];
+                    numeratorAdd += tempReal;
+
+                    numerator += tempReal;
+
+                    tempReal = inReal[trailingIdx++];
+                    outReal[outIdx++] = numerator * factor;
                 }
             }
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode Trima(int startIdx, int endIdx, decimal[] inReal, ref int outBegIdx, ref int outNBElement, decimal[] outReal,
             int optInTimePeriod = 30)
         {
-            int i;
-            decimal tempReal;
-            decimal numerator;
-            decimal numeratorAdd;
-            decimal numeratorSub;
-            int middleIdx;
-            int trailingIdx;
-            int todayIdx;
-            decimal factor;
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
+            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            int lookbackTotal = optInTimePeriod - 1;
+            int lookbackTotal = TrimaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -215,70 +168,22 @@ namespace TALib
                 return RetCode.Success;
             }
 
+            int middleIdx;
+            int trailingIdx;
+            int todayIdx;
             int outIdx;
-            if (optInTimePeriod % 2 != 1)
+            if (optInTimePeriod % 2 == 1)
             {
-                i = optInTimePeriod >> 1;
-                factor = i * (i + 1);
+                int i = optInTimePeriod >> 1;
+                decimal factor = (i + 1) * (i + 1);
                 factor = Decimal.One / factor;
-                trailingIdx = startIdx - lookbackTotal;
-                middleIdx = trailingIdx + i - 1;
-                todayIdx = middleIdx + i;
-                numerator = Decimal.Zero;
-                numeratorSub = Decimal.Zero;
-                i = middleIdx;
-                while (i >= trailingIdx)
-                {
-                    tempReal = inReal[i];
-                    numeratorSub += tempReal;
-                    numerator += numeratorSub;
-                    i--;
-                }
 
-                numeratorAdd = Decimal.Zero;
-                middleIdx++;
-                for (i = middleIdx; i <= todayIdx; i++)
-                {
-                    tempReal = inReal[i];
-                    numeratorAdd += tempReal;
-                    numerator += numeratorAdd;
-                }
-
-                outIdx = 0;
-                tempReal = inReal[trailingIdx];
-                trailingIdx++;
-                outReal[outIdx] = numerator * factor;
-                outIdx++;
-                todayIdx++;
-                while (todayIdx <= endIdx)
-                {
-                    numerator -= numeratorSub;
-                    numeratorSub -= tempReal;
-                    tempReal = inReal[middleIdx];
-                    middleIdx++;
-                    numeratorSub += tempReal;
-                    numeratorAdd -= tempReal;
-                    numerator += numeratorAdd;
-                    tempReal = inReal[todayIdx];
-                    todayIdx++;
-                    numeratorAdd += tempReal;
-                    numerator += tempReal;
-                    tempReal = inReal[trailingIdx];
-                    trailingIdx++;
-                    outReal[outIdx] = numerator * factor;
-                    outIdx++;
-                }
-            }
-            else
-            {
-                i = optInTimePeriod >> 1;
-                factor = (i + 1) * (i + 1);
-                factor = Decimal.One / factor;
                 trailingIdx = startIdx - lookbackTotal;
                 middleIdx = trailingIdx + i;
                 todayIdx = middleIdx + i;
-                numerator = Decimal.Zero;
-                numeratorSub = Decimal.Zero;
+                decimal numerator = default;
+                decimal numeratorSub = default;
+                decimal tempReal;
                 for (i = middleIdx; i >= trailingIdx; i--)
                 {
                     tempReal = inReal[i];
@@ -286,7 +191,7 @@ namespace TALib
                     numerator += numeratorSub;
                 }
 
-                numeratorAdd = Decimal.Zero;
+                decimal numeratorAdd = default;
                 middleIdx++;
                 for (i = middleIdx; i <= todayIdx; i++)
                 {
@@ -296,33 +201,82 @@ namespace TALib
                 }
 
                 outIdx = 0;
-                tempReal = inReal[trailingIdx];
-                trailingIdx++;
-                outReal[outIdx] = numerator * factor;
-                outIdx++;
+                tempReal = inReal[trailingIdx++];
+                outReal[outIdx++] = numerator * factor;
                 todayIdx++;
                 while (todayIdx <= endIdx)
                 {
                     numerator -= numeratorSub;
                     numeratorSub -= tempReal;
-                    tempReal = inReal[middleIdx];
-                    middleIdx++;
+                    tempReal = inReal[middleIdx++];
                     numeratorSub += tempReal;
+
                     numerator += numeratorAdd;
                     numeratorAdd -= tempReal;
-                    tempReal = inReal[todayIdx];
-                    todayIdx++;
+                    tempReal = inReal[todayIdx++];
                     numeratorAdd += tempReal;
+
                     numerator += tempReal;
-                    tempReal = inReal[trailingIdx];
-                    trailingIdx++;
-                    outReal[outIdx] = numerator * factor;
-                    outIdx++;
+
+                    tempReal = inReal[trailingIdx++];
+                    outReal[outIdx++] = numerator * factor;
+                }
+            }
+            else
+            {
+                int i = optInTimePeriod >> 1;
+                decimal factor = i * (i + 1);
+                factor = Decimal.One / factor;
+
+                trailingIdx = startIdx - lookbackTotal;
+                middleIdx = trailingIdx + i - 1;
+                todayIdx = middleIdx + i;
+                decimal numerator = default;
+
+                decimal numeratorSub = default;
+                decimal tempReal;
+                for (i = middleIdx; i >= trailingIdx; i--)
+                {
+                    tempReal = inReal[i];
+                    numeratorSub += tempReal;
+                    numerator += numeratorSub;
+                }
+                decimal numeratorAdd = default;
+                middleIdx++;
+                for (i = middleIdx; i <= todayIdx; i++)
+                {
+                    tempReal = inReal[i];
+                    numeratorAdd += tempReal;
+                    numerator += numeratorAdd;
+                }
+
+                outIdx = 0;
+                tempReal = inReal[trailingIdx++];
+                outReal[outIdx++] = numerator * factor;
+                todayIdx++;
+
+                while (todayIdx <= endIdx)
+                {
+                    numerator -= numeratorSub;
+                    numeratorSub -= tempReal;
+                    tempReal = inReal[middleIdx++];
+                    numeratorSub += tempReal;
+
+                    numeratorAdd -= tempReal;
+                    numerator += numeratorAdd;
+                    tempReal = inReal[todayIdx++];
+                    numeratorAdd += tempReal;
+
+                    numerator += tempReal;
+
+                    tempReal = inReal[trailingIdx++];
+                    outReal[outIdx++] = numerator * factor;
                 }
             }
 
             outNBElement = outIdx;
             outBegIdx = startIdx;
+
             return RetCode.Success;
         }
 

@@ -5,27 +5,12 @@ namespace TALib
         public static RetCode Obv(int startIdx, int endIdx, double[] inReal, double[] inVolume, ref int outBegIdx, ref int outNBElement,
             double[] outReal)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (inVolume == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || inVolume == null || outReal == null)
             {
                 return RetCode.BadParam;
             }
@@ -33,7 +18,8 @@ namespace TALib
             double prevOBV = inVolume[startIdx];
             double prevReal = inReal[startIdx];
             int outIdx = default;
-            for (var i = startIdx; i <= endIdx; i++)
+
+            for (int i = startIdx; i <= endIdx; i++)
             {
                 double tempReal = inReal[i];
                 if (tempReal > prevReal)
@@ -45,40 +31,25 @@ namespace TALib
                     prevOBV -= inVolume[i];
                 }
 
-                outReal[outIdx] = prevOBV;
-                outIdx++;
+                outReal[outIdx++] = prevOBV;
                 prevReal = tempReal;
             }
 
             outBegIdx = startIdx;
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 
         public static RetCode Obv(int startIdx, int endIdx, decimal[] inReal, decimal[] inVolume, ref int outBegIdx, ref int outNBElement,
             decimal[] outReal)
         {
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (inVolume == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inReal == null || inVolume == null || outReal == null)
             {
                 return RetCode.BadParam;
             }
@@ -86,7 +57,8 @@ namespace TALib
             decimal prevOBV = inVolume[startIdx];
             decimal prevReal = inReal[startIdx];
             int outIdx = default;
-            for (var i = startIdx; i <= endIdx; i++)
+
+            for (int i = startIdx; i <= endIdx; i++)
             {
                 decimal tempReal = inReal[i];
                 if (tempReal > prevReal)
@@ -98,13 +70,13 @@ namespace TALib
                     prevOBV -= inVolume[i];
                 }
 
-                outReal[outIdx] = prevOBV;
-                outIdx++;
+                outReal[outIdx++] = prevOBV;
                 prevReal = tempReal;
             }
 
             outBegIdx = startIdx;
             outNBElement = outIdx;
+
             return RetCode.Success;
         }
 
