@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode SarExt(int startIdx, int endIdx, double[] inHigh, double[] inLow, out int outBegIdx, out int outNbElement,
-            double[] outReal, double optInStartValue = 0.0, double optInOffsetOnReverse = 0.0, double optInAccelerationInitLong = 0.02,
+        public static RetCode SarExt(double[] inHigh, double[] inLow, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+            out int outNbElement, double optInStartValue = 0.0, double optInOffsetOnReverse = 0.0, double optInAccelerationInitLong = 0.02,
             double optInAccelerationLong = 0.02, double optInAccelerationMaxLong = 0.2, double optInAccelerationInitShort = 0.02,
             double optInAccelerationShort = 0.02, double optInAccelerationMaxShort = 0.2)
         {
@@ -65,7 +65,7 @@ namespace TALib
             {
                 int _ = default;
                 var epTemp = new double[1];
-                RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, out _, out _, epTemp, 1);
+                RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
                 if (retCode != RetCode.Success)
                 {
                     outBegIdx = outNbElement = 0;
@@ -258,8 +258,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode SarExt(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, out int outBegIdx, out int outNbElement,
-            decimal[] outReal, decimal optInStartValue = Decimal.Zero, decimal optInOffsetOnReverse = Decimal.Zero,
+        public static RetCode SarExt(decimal[] inHigh, decimal[] inLow, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+            out int outNbElement, decimal optInStartValue = Decimal.Zero, decimal optInOffsetOnReverse = Decimal.Zero,
             decimal optInAccelerationInitLong = 0.02m, decimal optInAccelerationLong = 0.02m, decimal optInAccelerationMaxLong = 0.2m,
             decimal optInAccelerationInitShort = 0.02m, decimal optInAccelerationShort = 0.02m, decimal optInAccelerationMaxShort = 0.2m)
         {
@@ -320,7 +320,7 @@ namespace TALib
             {
                 int _ = default;
                 var epTemp = new decimal[1];
-                RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, out _, out _, epTemp, 1);
+                RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
                 if (retCode != RetCode.Success)
                 {
                     outBegIdx = outNbElement = 0;

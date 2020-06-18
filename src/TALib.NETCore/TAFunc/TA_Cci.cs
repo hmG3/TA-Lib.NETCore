@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Cci(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, out int outBegIdx,
-            out int outNbElement, double[] outReal, int optInTimePeriod = 14)
+        public static RetCode Cci(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -56,6 +56,7 @@ namespace TALib
                 {
                     theAverage += circBuffer[j];
                 }
+
                 theAverage /= optInTimePeriod;
 
                 double tempReal2 = default;
@@ -88,8 +89,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Cci(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, out int outBegIdx,
-            out int outNbElement, decimal[] outReal, int optInTimePeriod = 14)
+        public static RetCode Cci(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -142,6 +143,7 @@ namespace TALib
                 {
                     theAverage += circBuffer[j];
                 }
+
                 theAverage /= optInTimePeriod;
 
                 decimal tempReal2 = default;

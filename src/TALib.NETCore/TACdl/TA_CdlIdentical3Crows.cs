@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
         public static RetCode CdlIdentical3Crows(int startIdx, int endIdx, double[] inOpen, double[] inHigh, double[] inLow,
-            double[] inClose, out int outBegIdx, out int outNbElement, int[] outInteger)
+            double[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -117,7 +117,7 @@ namespace TALib
         }
 
         public static RetCode CdlIdentical3Crows(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, out int outBegIdx, out int outNbElement, int[] outInteger)
+            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 

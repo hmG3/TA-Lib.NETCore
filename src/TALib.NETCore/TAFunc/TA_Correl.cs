@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Correl(int startIdx, int endIdx, double[] inReal0, double[] inReal1, out int outBegIdx, out int outNbElement,
-            double[] outReal, int optInTimePeriod = 30)
+        public static RetCode Correl(double[] inReal0, double[] inReal1, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+            out int outNbElement, int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
 
@@ -97,8 +97,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Correl(int startIdx, int endIdx, decimal[] inReal0, decimal[] inReal1, out int outBegIdx,
-            out int outNbElement, decimal[] outReal, int optInTimePeriod = 30)
+        public static RetCode Correl(decimal[] inReal0, decimal[] inReal1, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+            out int outNbElement, int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
 

@@ -1,8 +1,8 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Dema(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement, double[] outReal,
+        public static RetCode Dema(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
@@ -41,8 +41,8 @@ namespace TALib
             }
 
             double k = 2.0 / (optInTimePeriod + 1);
-            RetCode retCode = TA_INT_EMA(startIdx - lookbackEMA, endIdx, inReal, optInTimePeriod, k, out var firstEMABegIdx,
-                out var firstEMANbElement, firstEMA);
+            RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA, endIdx, firstEMA, out var firstEMABegIdx,
+                out var firstEMANbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || firstEMANbElement == 0)
             {
                 return retCode;
@@ -50,8 +50,8 @@ namespace TALib
 
             var secondEMA = new double[firstEMANbElement];
 
-            retCode = TA_INT_EMA(0, firstEMANbElement - 1, firstEMA, optInTimePeriod, k, out var secondEMABegIdx,
-                out var secondEMANbElement, secondEMA);
+            retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx,
+                out var secondEMANbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || secondEMANbElement == 0)
             {
                 return retCode;
@@ -71,7 +71,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Dema(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement, decimal[] outReal,
+        public static RetCode Dema(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
@@ -112,8 +112,8 @@ namespace TALib
             }
 
             decimal k = 2m / (optInTimePeriod + 1);
-            RetCode retCode = TA_INT_EMA(startIdx - lookbackEMA, endIdx, inReal, optInTimePeriod, k, out var firstEMABegIdx,
-                out var firstEMANbElement, firstEMA);
+            RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA, endIdx, firstEMA, out var firstEMABegIdx,
+                out var firstEMANbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || firstEMANbElement == 0)
             {
                 return retCode;
@@ -121,8 +121,8 @@ namespace TALib
 
             var secondEMA = new decimal[firstEMANbElement];
 
-            retCode = TA_INT_EMA(0, firstEMANbElement - 1, firstEMA, optInTimePeriod, k, out var secondEMABegIdx,
-                out var secondEMANbElement, secondEMA);
+            retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx,
+                out var secondEMANbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || secondEMANbElement == 0)
             {
                 return retCode;

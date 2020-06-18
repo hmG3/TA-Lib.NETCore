@@ -1,8 +1,8 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Trix(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement, double[] outReal,
+        public static RetCode Trix(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
@@ -35,8 +35,8 @@ namespace TALib
             var tempBuffer = new double[nbElementToOutput];
 
             double k = 2.0 / (optInTimePeriod + 1);
-            RetCode retCode = TA_INT_EMA(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, k, out _, out var nbElement,
-                tempBuffer);
+            RetCode retCode = TA_INT_EMA(inReal, startIdx - totalLookback, endIdx, tempBuffer, out _,
+                out var nbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || nbElement == 0)
             {
                 return retCode;
@@ -45,21 +45,21 @@ namespace TALib
             nbElementToOutput--;
 
             nbElementToOutput -= emaLookback;
-            retCode = TA_INT_EMA(0, nbElementToOutput, tempBuffer, optInTimePeriod, k, out _, out nbElement, tempBuffer);
+            retCode = TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || nbElement == 0)
             {
                 return retCode;
             }
 
             nbElementToOutput -= emaLookback;
-            retCode = TA_INT_EMA(0, nbElementToOutput, tempBuffer, optInTimePeriod, k, out _, out nbElement, tempBuffer);
+            retCode = TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || nbElement == 0)
             {
                 return retCode;
             }
 
             nbElementToOutput -= emaLookback;
-            retCode = Roc(0, nbElementToOutput, tempBuffer, out _, out outNbElement, outReal, 1);
+            retCode = Roc(tempBuffer, 0, nbElementToOutput, outReal, out _, out outNbElement, 1);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
                 outBegIdx = outNbElement = 0;
@@ -70,7 +70,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Trix(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement, decimal[] outReal,
+        public static RetCode Trix(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
@@ -103,8 +103,8 @@ namespace TALib
             var tempBuffer = new decimal[nbElementToOutput];
 
             decimal k = 2m / (optInTimePeriod + 1);
-            RetCode retCode = TA_INT_EMA(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, k, out _, out var nbElement,
-                tempBuffer);
+            RetCode retCode = TA_INT_EMA(inReal, startIdx - totalLookback, endIdx, tempBuffer, out _, out var nbElement, optInTimePeriod,
+                k);
             if (retCode != RetCode.Success || nbElement == 0)
             {
                 return retCode;
@@ -113,21 +113,21 @@ namespace TALib
             nbElementToOutput--;
 
             nbElementToOutput -= emaLookback;
-            retCode = TA_INT_EMA(0, nbElementToOutput, tempBuffer, optInTimePeriod, k, out _, out nbElement, tempBuffer);
+            retCode = TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || nbElement == 0)
             {
                 return retCode;
             }
 
             nbElementToOutput -= emaLookback;
-            retCode = TA_INT_EMA(0, nbElementToOutput, tempBuffer, optInTimePeriod, k, out _, out nbElement, tempBuffer);
+            retCode = TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || nbElement == 0)
             {
                 return retCode;
             }
 
             nbElementToOutput -= emaLookback;
-            retCode = Roc(0, nbElementToOutput, tempBuffer, out _, out outNbElement, outReal, 1);
+            retCode = Roc(tempBuffer, 0, nbElementToOutput, outReal, out _, out outNbElement, 1);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
                 outBegIdx = outNbElement = 0;

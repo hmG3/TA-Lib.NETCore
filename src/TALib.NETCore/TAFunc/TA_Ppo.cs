@@ -1,9 +1,9 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Ppo(int startIdx, int endIdx, double[] inReal, MAType optInMAType, out int outBegIdx, out int outNbElement,
-            double[] outReal, int optInFastPeriod = 12, int optInSlowPeriod = 26)
+        public static RetCode Ppo(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+            MAType optInMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
             outBegIdx = outNbElement = 0;
 
@@ -20,12 +20,12 @@ namespace TALib
 
             var tempBuffer = new double[endIdx - startIdx + 1];
 
-            return TA_INT_PO(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, out outBegIdx, out outNbElement,
-                outReal, tempBuffer, 1);
+            return TA_INT_PO(inReal, startIdx, endIdx, tempBuffer, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod,
+                optInMAType, outReal, true);
         }
 
-        public static RetCode Ppo(int startIdx, int endIdx, decimal[] inReal, MAType optInMAType, out int outBegIdx, out int outNbElement,
-            decimal[] outReal, int optInFastPeriod = 12, int optInSlowPeriod = 26)
+        public static RetCode Ppo(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+            MAType optInMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
             outBegIdx = outNbElement = 0;
 
@@ -42,8 +42,8 @@ namespace TALib
 
             var tempBuffer = new decimal[endIdx - startIdx + 1];
 
-            return TA_INT_PO(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, out outBegIdx, out outNbElement,
-                outReal, tempBuffer, 1);
+            return TA_INT_PO(inReal, startIdx, endIdx, tempBuffer, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod,
+                optInMAType, outReal, true);
         }
 
         public static int PpoLookback(MAType optInMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26)

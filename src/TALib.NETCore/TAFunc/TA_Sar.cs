@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Sar(int startIdx, int endIdx, double[] inHigh, double[] inLow, out int outBegIdx, out int outNbElement,
-            double[] outReal, double optInAcceleration = 0.02, double optInMaximum = 0.2)
+        public static RetCode Sar(double[] inHigh, double[] inLow, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+            out int outNbElement, double optInAcceleration = 0.02, double optInMaximum = 0.2)
         {
             outBegIdx = outNbElement = 0;
 
@@ -36,7 +36,7 @@ namespace TALib
             }
 
             var epTemp = new double[1];
-            RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, out _, out _, epTemp, 1);
+            RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
             if (retCode != RetCode.Success)
             {
                 outBegIdx = outNbElement = 0;
@@ -143,6 +143,7 @@ namespace TALib
                     {
                         sar = prevLow;
                     }
+
                     if (sar > newLow)
                     {
                         sar = newLow;
@@ -158,6 +159,7 @@ namespace TALib
                     {
                         sar = prevLow;
                     }
+
                     if (sar > newLow)
                     {
                         sar = newLow;
@@ -183,6 +185,7 @@ namespace TALib
                     {
                         sar = prevHigh;
                     }
+
                     if (sar < newHigh)
                     {
                         sar = newHigh;
@@ -195,8 +198,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Sar(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, out int outBegIdx, out int outNbElement,
-            decimal[] outReal, decimal optInAcceleration = 0.02m, decimal optInMaximum = 0.2m)
+        public static RetCode Sar(decimal[] inHigh, decimal[] inLow, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+            out int outNbElement, decimal optInAcceleration = 0.02m, decimal optInMaximum = 0.2m)
         {
             outBegIdx = outNbElement = 0;
 
@@ -228,7 +231,7 @@ namespace TALib
 
             int _ = default;
             var epTemp = new decimal[1];
-            RetCode retCode = MinusDM(startIdx, startIdx, inHigh, inLow, out _, out _, epTemp, 1);
+            RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
             if (retCode != RetCode.Success)
             {
                 outBegIdx = outNbElement = 0;
@@ -335,6 +338,7 @@ namespace TALib
                     {
                         sar = prevLow;
                     }
+
                     if (sar > newLow)
                     {
                         sar = newLow;
@@ -350,6 +354,7 @@ namespace TALib
                     {
                         sar = prevLow;
                     }
+
                     if (sar > newLow)
                     {
                         sar = newLow;
@@ -375,6 +380,7 @@ namespace TALib
                     {
                         sar = prevHigh;
                     }
+
                     if (sar < newHigh)
                     {
                         sar = newHigh;

@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode UltOsc(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, out int outBegIdx,
-            out int outNbElement, double[] outReal, int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28)
+        public static RetCode UltOsc(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28)
         {
             outBegIdx = outNbElement = 0;
 
@@ -108,10 +108,12 @@ namespace TALib
                 {
                     output += 4.0 * (a1Total / b1Total);
                 }
+
                 if (!TA_IsZero(b2Total))
                 {
                     output += 2.0 * (a2Total / b2Total);
                 }
+
                 if (!TA_IsZero(b3Total))
                 {
                     output += a3Total / b3Total;
@@ -142,8 +144,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode UltOsc(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, out int outBegIdx,
-            out int outNbElement, decimal[] outReal, int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28)
+        public static RetCode UltOsc(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28)
         {
             outBegIdx = outNbElement = 0;
 
@@ -246,10 +248,12 @@ namespace TALib
                 {
                     output += 4m * (a1Total / b1Total);
                 }
+
                 if (!TA_IsZero(b2Total))
                 {
                     output += 2m * (a2Total / b2Total);
                 }
+
                 if (!TA_IsZero(b3Total))
                 {
                     output += a3Total / b3Total;

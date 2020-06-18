@@ -1,9 +1,10 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Macd(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement, double[] outMacd,
-            double[] outMacdSignal, double[] outMacdHist, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
+        public static RetCode Macd(double[] inReal, int startIdx, int endIdx, double[] outMacd, double[] outMacdSignal,
+            double[] outMacdHist, out int outBegIdx, out int outNbElement, int optInFastPeriod = 12, int optInSlowPeriod = 26,
+            int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -19,12 +20,13 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            return TA_INT_MACD(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInSignalPeriod, out outBegIdx,
-                out outNbElement, outMacd, outMacdSignal, outMacdHist);
+            return TA_INT_MACD(inReal, startIdx, endIdx, outMacd, outMacdSignal, outMacdHist, out outBegIdx, out outNbElement,
+                optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
         }
 
-        public static RetCode Macd(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement, decimal[] outMacd,
-            decimal[] outMacdSignal, decimal[] outMacdHist, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
+        public static RetCode Macd(decimal[] inReal, int startIdx, int endIdx, decimal[] outMacd, decimal[] outMacdSignal,
+            decimal[] outMacdHist, out int outBegIdx, out int outNbElement, int optInFastPeriod = 12, int optInSlowPeriod = 26,
+            int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -40,8 +42,8 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            return TA_INT_MACD(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInSignalPeriod, out outBegIdx,
-                out outNbElement, outMacd, outMacdSignal, outMacdHist);
+            return TA_INT_MACD(inReal, startIdx, endIdx, outMacd, outMacdSignal, outMacdHist, out outBegIdx, out outNbElement,
+                optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
         }
 
         public static int MacdLookback(int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)

@@ -1,8 +1,8 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Tema(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement, double[] outReal,
+        public static RetCode Tema(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
@@ -33,23 +33,23 @@ namespace TALib
             double k = 2.0 / (optInTimePeriod + 1);
 
             var firstEMA = new double[tempInt];
-            RetCode retCode = TA_INT_EMA(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, k, out var firstEMABegIdx,
-                out var firstEMANbElement, firstEMA);
+            RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
+                out var firstEMANbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || firstEMANbElement == 0)
             {
                 return retCode;
             }
 
             var secondEMA = new double[firstEMANbElement];
-            retCode = TA_INT_EMA(0, firstEMANbElement - 1, firstEMA, optInTimePeriod, k, out var secondEMABegIdx,
-                out var secondEMANbElement, secondEMA);
+            retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx,
+                out var secondEMANbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || secondEMANbElement == 0)
             {
                 return retCode;
             }
 
-            retCode = TA_INT_EMA(0, secondEMANbElement - 1, secondEMA, optInTimePeriod, k, out var thirdEMABegIdx,
-                out var thirdEMANbElement, outReal);
+            retCode = TA_INT_EMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx,
+                out var thirdEMANbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || thirdEMANbElement == 0)
             {
                 return retCode;
@@ -69,7 +69,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Tema(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement, decimal[] outReal,
+        public static RetCode Tema(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
@@ -100,23 +100,23 @@ namespace TALib
             decimal k = 2m / (optInTimePeriod + 1);
 
             var firstEMA = new decimal[tempInt];
-            RetCode retCode = TA_INT_EMA(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, k, out var firstEMABegIdx,
-                out var firstEMANbElement, firstEMA);
+            RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
+                out var firstEMANbElement, optInTimePeriod, k);
             if (retCode != RetCode.Success || firstEMANbElement == 0)
             {
                 return retCode;
             }
 
             var secondEMA = new decimal[firstEMANbElement];
-            retCode = TA_INT_EMA(0, firstEMANbElement - 1, firstEMA, optInTimePeriod, k, out var secondEMABegIdx,
-                out var secondEMANbElement, secondEMA);
+            retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
+                optInTimePeriod, k);
             if (retCode != RetCode.Success || secondEMANbElement == 0)
             {
                 return retCode;
             }
 
-            retCode = TA_INT_EMA(0, secondEMANbElement - 1, secondEMA, optInTimePeriod, k, out var thirdEMABegIdx,
-                out var thirdEMANbElement, outReal);
+            retCode = TA_INT_EMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx, out var thirdEMANbElement,
+                optInTimePeriod, k);
             if (retCode != RetCode.Success || thirdEMANbElement == 0)
             {
                 return retCode;

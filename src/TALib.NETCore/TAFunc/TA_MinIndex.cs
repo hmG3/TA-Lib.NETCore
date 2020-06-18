@@ -1,8 +1,8 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode MinIndex(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement, int[] outInteger,
+        public static RetCode MinIndex(double[] inReal, int startIdx, int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
@@ -70,7 +70,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode MinIndex(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement,
+        public static RetCode MinIndex(decimal[] inReal, int startIdx, int endIdx, out int outBegIdx, out int outNbElement,
             int[] outInteger, int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;

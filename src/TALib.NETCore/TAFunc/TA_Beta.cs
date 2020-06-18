@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Beta(int startIdx, int endIdx, double[] inReal0, double[] inReal1, out int outBegIdx, out int outNbElement,
-            double[] outReal, int optInTimePeriod = 5)
+        public static RetCode Beta(double[] inReal0, double[] inReal1, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+            out int outNbElement, int optInTimePeriod = 5)
         {
             outBegIdx = outNbElement = 0;
 
@@ -49,6 +49,7 @@ namespace TALib
                 {
                     x = 0.0;
                 }
+
                 lastPriceX = tmpReal;
 
                 tmpReal = inReal1[i++];
@@ -60,6 +61,7 @@ namespace TALib
                 {
                     y = 0.0;
                 }
+
                 lastPriceY = tmpReal;
 
                 sxx += x * x;
@@ -109,6 +111,7 @@ namespace TALib
                 {
                     x = 0.0;
                 }
+
                 trailingLastPriceX = tmpReal;
 
                 tmpReal = inReal1[trailingIdx];
@@ -121,6 +124,7 @@ namespace TALib
                 {
                     y = 0.0;
                 }
+
                 trailingLastPriceY = tmpReal;
 
                 tmpReal = optInTimePeriod * sxx - sx * sx;
@@ -145,8 +149,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Beta(int startIdx, int endIdx, decimal[] inReal0, decimal[] inReal1, out int outBegIdx, out int outNbElement,
-            decimal[] outReal, int optInTimePeriod = 5)
+        public static RetCode Beta(decimal[] inReal0, decimal[] inReal1, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+            out int outNbElement, int optInTimePeriod = 5)
         {
             outBegIdx = outNbElement = 0;
 
@@ -190,6 +194,7 @@ namespace TALib
                 {
                     x = Decimal.Zero;
                 }
+
                 lastPriceX = tmpReal;
 
                 tmpReal = inReal1[i++];
@@ -201,6 +206,7 @@ namespace TALib
                 {
                     y = Decimal.Zero;
                 }
+
                 lastPriceY = tmpReal;
 
                 sxx += x * x;
@@ -250,6 +256,7 @@ namespace TALib
                 {
                     x = Decimal.Zero;
                 }
+
                 trailingLastPriceX = tmpReal;
 
                 tmpReal = inReal1[trailingIdx];
@@ -262,6 +269,7 @@ namespace TALib
                 {
                     y = Decimal.Zero;
                 }
+
                 trailingLastPriceY = tmpReal;
 
                 tmpReal = optInTimePeriod * sxx - sx * sx;

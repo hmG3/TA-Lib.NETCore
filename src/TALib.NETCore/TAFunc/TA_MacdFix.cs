@@ -1,9 +1,9 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode MacdFix(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement, double[] outMacd,
-            double[] outMacdSignal, double[] outMacdHist, int optInSignalPeriod = 9)
+        public static RetCode MacdFix(double[] inReal, int startIdx, int endIdx, double[] outMacd, double[] outMacdSignal,
+            double[] outMacdHist, out int outBegIdx, out int outNbElement, int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -18,12 +18,12 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            return TA_INT_MACD(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, out outBegIdx, out outNbElement, outMacd, outMacdSignal,
-                outMacdHist);
+            return TA_INT_MACD(inReal, startIdx, endIdx, outMacd, outMacdSignal, outMacdHist, out outBegIdx, out outNbElement, 0, 0,
+                optInSignalPeriod);
         }
 
-        public static RetCode MacdFix(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement,
-            decimal[] outMacd, decimal[] outMacdSignal, decimal[] outMacdHist, int optInSignalPeriod = 9)
+        public static RetCode MacdFix(decimal[] inReal, int startIdx, int endIdx, decimal[] outMacd, decimal[] outMacdSignal,
+            decimal[] outMacdHist, out int outBegIdx, out int outNbElement, int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -38,8 +38,8 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            return TA_INT_MACD(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, out outBegIdx, out outNbElement, outMacd, outMacdSignal,
-                outMacdHist);
+            return TA_INT_MACD(inReal, startIdx, endIdx, outMacd, outMacdSignal, outMacdHist, out outBegIdx, out outNbElement, 0, 0,
+                optInSignalPeriod);
         }
 
         public static int MacdFixLookback(int optInSignalPeriod) => EmaLookback(26) + EmaLookback(optInSignalPeriod);

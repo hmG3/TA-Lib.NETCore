@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Bbands(int startIdx, int endIdx, double[] inReal, MAType optInMAType, out int outBegIdx, out int outNbElement,
-            double[] outRealUpperBand, double[] outRealMiddleBand, double[] outRealLowerBand, int optInTimePeriod = 5,
+        public static RetCode Bbands(double[] inReal, int startIdx, int endIdx, double[] outRealUpperBand, double[] outRealMiddleBand,
+            double[] outRealLowerBand, out int outBegIdx, out int outNbElement, MAType optInMAType, int optInTimePeriod = 5,
             double optInNbDevUp = 2.0, double optInNbDevDn = 2.0)
         {
             outBegIdx = outNbElement = 0;
@@ -49,8 +49,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            RetCode retCode = Ma(startIdx, endIdx, inReal, optInMAType, out outBegIdx, out outNbElement, tempBuffer1,
-                optInTimePeriod);
+            RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInMAType, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
                 outNbElement = 0;
@@ -59,11 +58,11 @@ namespace TALib
 
             if (optInMAType == MAType.Sma)
             {
-                TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, optInTimePeriod, tempBuffer2);
+                TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
             }
             else
             {
-                retCode = StdDev(outBegIdx, endIdx, inReal, out outBegIdx, out outNbElement, tempBuffer2, optInTimePeriod);
+                retCode = StdDev(inReal, outBegIdx, endIdx, tempBuffer2, out outBegIdx, out outNbElement, optInTimePeriod);
                 if (retCode != RetCode.Success)
                 {
                     outNbElement = 0;
@@ -135,9 +134,9 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Bbands(int startIdx, int endIdx, decimal[] inReal, MAType optInMAType, out int outBegIdx,
-            out int outNbElement, decimal[] outRealUpperBand, decimal[] outRealMiddleBand, decimal[] outRealLowerBand,
-            int optInTimePeriod = 5, decimal optInNbDevUp = 2m, decimal optInNbDevDn = 2m)
+        public static RetCode Bbands(decimal[] inReal, int startIdx, int endIdx, decimal[] outRealUpperBand, decimal[] outRealMiddleBand,
+            decimal[] outRealLowerBand, out int outBegIdx, out int outNbElement, MAType optInMAType, int optInTimePeriod = 5,
+            decimal optInNbDevUp = 2m, decimal optInNbDevDn = 2m)
         {
             outBegIdx = outNbElement = 0;
 
@@ -180,8 +179,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            RetCode retCode = Ma(startIdx, endIdx, inReal, optInMAType, out outBegIdx, out outNbElement, tempBuffer1,
-                optInTimePeriod);
+            RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInMAType, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
                 outNbElement = 0;
@@ -190,11 +188,11 @@ namespace TALib
 
             if (optInMAType == MAType.Sma)
             {
-                TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, optInTimePeriod, tempBuffer2);
+                TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
             }
             else
             {
-                retCode = StdDev(outBegIdx, endIdx, inReal, out outBegIdx, out outNbElement, tempBuffer2, optInTimePeriod);
+                retCode = StdDev(inReal, outBegIdx, endIdx, tempBuffer2, out outBegIdx, out outNbElement, optInTimePeriod);
                 if (retCode != RetCode.Success)
                 {
                     outNbElement = 0;

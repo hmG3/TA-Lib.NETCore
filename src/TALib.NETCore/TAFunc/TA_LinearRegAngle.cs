@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode LinearRegAngle(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement,
-            double[] outReal, int optInTimePeriod = 14)
+        public static RetCode LinearRegAngle(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+            out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -58,8 +58,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode LinearRegAngle(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement,
-            decimal[] outReal, int optInTimePeriod = 14)
+        public static RetCode LinearRegAngle(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+            out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 

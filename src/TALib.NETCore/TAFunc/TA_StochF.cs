@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode StochF(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, MAType optInFastDMAType,
-            out int outBegIdx, out int outNbElement, double[] outFastK, double[] outFastD, int optInFastKPeriod = 5,
+        public static RetCode StochF(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outFastK,
+            double[] outFastD, out int outBegIdx, out int outNbElement, MAType optInFastDMAType, int optInFastKPeriod = 5,
             int optInFastDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
@@ -113,8 +113,7 @@ namespace TALib
                 today++;
             }
 
-            RetCode retCode = Ma(0, outIdx - 1, tempBuffer, optInFastDMAType, out _, out outNbElement, outFastD,
-                optInFastDPeriod);
+            RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDMAType, optInFastDPeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
                 outBegIdx = outNbElement = 0;
@@ -135,9 +134,9 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode StochF(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose,
-            MAType optInFastDMAType, out int outBegIdx, out int outNbElement, decimal[] outFastK, decimal[] outFastD,
-            int optInFastKPeriod = 5, int optInFastDPeriod = 3)
+        public static RetCode StochF(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outFastK,
+            decimal[] outFastD, out int outBegIdx, out int outNbElement, MAType optInFastDMAType, int optInFastKPeriod = 5,
+            int optInFastDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
 
@@ -244,8 +243,7 @@ namespace TALib
                 today++;
             }
 
-            RetCode retCode = Ma(0, outIdx - 1, tempBuffer, optInFastDMAType, out _, out outNbElement, outFastD,
-                optInFastDPeriod);
+            RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDMAType, optInFastDPeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
                 outBegIdx = outNbElement = 0;

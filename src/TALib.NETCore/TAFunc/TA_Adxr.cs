@@ -1,9 +1,9 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Adxr(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, out int outBegIdx,
-            out int outNbElement, double[] outReal, int optInTimePeriod = 14)
+        public static RetCode Adxr(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -30,7 +30,7 @@ namespace TALib
 
             var adx = new double[endIdx - startIdx + optInTimePeriod];
 
-            RetCode retCode = Adx(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, out outBegIdx, out outNbElement, adx,
+            RetCode retCode = Adx(inHigh, inLow, inClose, startIdx - (optInTimePeriod - 1), endIdx, adx, out outBegIdx, out outNbElement,
                 optInTimePeriod);
             if (retCode != RetCode.Success)
             {
@@ -52,8 +52,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Adxr(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, out int outBegIdx,
-            out int outNbElement, decimal[] outReal, int optInTimePeriod = 14)
+        public static RetCode Adxr(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -80,7 +80,7 @@ namespace TALib
 
             var adx = new decimal[endIdx - startIdx + optInTimePeriod];
 
-            RetCode retCode = Adx(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, out outBegIdx, out outNbElement, adx,
+            RetCode retCode = Adx(inHigh, inLow, inClose, startIdx - (optInTimePeriod - 1), endIdx, adx, out outBegIdx, out outNbElement,
                 optInTimePeriod);
             if (retCode != RetCode.Success)
             {

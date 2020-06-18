@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode PlusDM(int startIdx, int endIdx, double[] inHigh, double[] inLow, out int outBegIdx, out int outNbElement,
-            double[] outReal, int optInTimePeriod = 14)
+        public static RetCode PlusDM(double[] inHigh, double[] inLow, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+            out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -129,8 +129,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode PlusDM(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, out int outBegIdx, out int outNbElement,
-            decimal[] outReal, int optInTimePeriod = 14)
+        public static RetCode PlusDM(decimal[] inHigh, decimal[] inLow, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+            out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 

@@ -2,14 +2,13 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Natr(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, out int outBegIdx,
-            out int outNbElement, double[] outReal, int optInTimePeriod = 14)
+        public static RetCode Natr(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
-            var prevATRTemp = new double[1];
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
@@ -48,17 +47,18 @@ namespace TALib
 
             if (optInTimePeriod <= 1)
             {
-                return TRange(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNbElement, outReal);
+                return TRange(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
             }
 
             var tempBuffer = new double[lookbackTotal + (endIdx - startIdx) + 1];
-            RetCode retCode = TRange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, out _, out _, tempBuffer);
+            RetCode retCode = TRange(inHigh, inLow, inClose, startIdx - lookbackTotal + 1, endIdx, tempBuffer, out _, out _);
             if (retCode != RetCode.Success)
             {
                 return retCode;
             }
 
-            retCode = TA_INT_SMA(optInTimePeriod - 1, optInTimePeriod - 1, tempBuffer, optInTimePeriod, out _, out _, prevATRTemp);
+            var prevATRTemp = new double[1];
+            retCode = TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
             if (retCode != RetCode.Success)
             {
                 return retCode;
@@ -113,12 +113,11 @@ namespace TALib
             return retCode;
         }
 
-        public static RetCode Natr(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, out int outBegIdx,
-            out int outNbElement, decimal[] outReal, int optInTimePeriod = 14)
+        public static RetCode Natr(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
-            var prevATRTemp = new decimal[1];
             if (startIdx < 0)
             {
                 return RetCode.OutOfRangeStartIndex;
@@ -157,17 +156,18 @@ namespace TALib
 
             if (optInTimePeriod <= 1)
             {
-                return TRange(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNbElement, outReal);
+                return TRange(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
             }
 
             var tempBuffer = new decimal[lookbackTotal + (endIdx - startIdx) + 1];
-            RetCode retCode = TRange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, out _, out _, tempBuffer);
+            RetCode retCode = TRange(inHigh, inLow, inClose, startIdx - lookbackTotal + 1, endIdx, tempBuffer, out _, out _);
             if (retCode != RetCode.Success)
             {
                 return retCode;
             }
 
-            retCode = TA_INT_SMA(optInTimePeriod - 1, optInTimePeriod - 1, tempBuffer, optInTimePeriod, out _, out _, prevATRTemp);
+            var prevATRTemp = new decimal[1];
+            retCode = TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
             if (retCode != RetCode.Success)
             {
                 return retCode;

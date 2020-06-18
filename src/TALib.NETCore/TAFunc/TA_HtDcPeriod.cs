@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode HtDcPeriod(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement,
-            double[] outReal)
+        public static RetCode HtDcPeriod(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -154,8 +154,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode HtDcPeriod(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement,
-            decimal[] outReal)
+        public static RetCode HtDcPeriod(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 

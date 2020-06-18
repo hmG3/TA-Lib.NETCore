@@ -1,9 +1,9 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Aroon(int startIdx, int endIdx, double[] inHigh, double[] inLow, out int outBegIdx, out int outNbElement,
-            double[] outAroonDown, double[] outAroonUp, int optInTimePeriod = 14)
+        public static RetCode Aroon(double[] inHigh, double[] inLow, int startIdx, int endIdx, double[] outAroonDown, double[] outAroonUp,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -99,8 +99,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Aroon(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, out int outBegIdx, out int outNbElement,
-            decimal[] outAroonDown, decimal[] outAroonUp, int optInTimePeriod = 14)
+        public static RetCode Aroon(decimal[] inHigh, decimal[] inLow, int startIdx, int endIdx, decimal[] outAroonDown,
+            decimal[] outAroonUp, out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 

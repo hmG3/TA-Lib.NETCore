@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode AdOsc(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, double[] inVolume,
-            out int outBegIdx, out int outNbElement, double[] outReal, int optInFastPeriod = 3, int optInSlowPeriod = 10)
+        public static RetCode AdOsc(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] inVolume,
+            double[] outReal, out int outBegIdx, out int outNbElement, int optInFastPeriod = 3, int optInSlowPeriod = 10)
         {
             outBegIdx = outNbElement = 0;
 
@@ -81,8 +81,8 @@ namespace TALib
             }
         }
 
-        public static RetCode AdOsc(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume,
-            out int outBegIdx, out int outNbElement, decimal[] outReal, int optInFastPeriod = 3, int optInSlowPeriod = 10)
+        public static RetCode AdOsc(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] inVolume,
+            decimal[] outReal, out int outBegIdx, out int outNbElement, int optInFastPeriod = 3, int optInSlowPeriod = 10)
         {
             outBegIdx = outNbElement = 0;
 

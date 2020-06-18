@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode PlusDI(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, out int outBegIdx,
-            out int outNbElement, double[] outReal, int optInTimePeriod = 14)
+        public static RetCode PlusDI(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -157,8 +157,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode PlusDI(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, out int outBegIdx,
-            out int outNbElement, decimal[] outReal, int optInTimePeriod = 14)
+        public static RetCode PlusDI(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -210,11 +210,11 @@ namespace TALib
                     if (diffP > Decimal.Zero && diffP > diffM)
                     {
                         TrueRange(prevHigh, prevLow, prevClose, out tempReal);
-                        outReal[outIdx++] = TA_IsZero(tempReal) ?  Decimal.Zero : diffP / tempReal;
+                        outReal[outIdx++] = TA_IsZero(tempReal) ? Decimal.Zero : diffP / tempReal;
                     }
                     else
                     {
-                        outReal[outIdx++] =  Decimal.Zero;
+                        outReal[outIdx++] = Decimal.Zero;
                     }
 
                     prevClose = inClose[today];
@@ -244,7 +244,7 @@ namespace TALib
                 tempReal = inLow[today];
                 diffM = prevLow - tempReal;
                 prevLow = tempReal;
-                if (diffP >  Decimal.Zero && diffP > diffM)
+                if (diffP > Decimal.Zero && diffP > diffM)
                 {
                     prevPlusDM += diffP;
                 }
@@ -264,7 +264,7 @@ namespace TALib
                 tempReal = inLow[today];
                 diffM = prevLow - tempReal;
                 prevLow = tempReal;
-                if (diffP >  Decimal.Zero && diffP > diffM)
+                if (diffP > Decimal.Zero && diffP > diffM)
                 {
                     prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
                 }
@@ -278,7 +278,7 @@ namespace TALib
                 prevClose = inClose[today];
             }
 
-            outReal[0] = !TA_IsZero(prevTR) ? 100m * (prevPlusDM / prevTR) :  Decimal.Zero;
+            outReal[0] = !TA_IsZero(prevTR) ? 100m * (prevPlusDM / prevTR) : Decimal.Zero;
             outIdx = 1;
 
             while (today < endIdx)
@@ -290,7 +290,7 @@ namespace TALib
                 tempReal = inLow[today];
                 diffM = prevLow - tempReal;
                 prevLow = tempReal;
-                if (diffP >  Decimal.Zero && diffP > diffM)
+                if (diffP > Decimal.Zero && diffP > diffM)
                 {
                     prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
                 }
@@ -302,7 +302,7 @@ namespace TALib
                 TrueRange(prevHigh, prevLow, prevClose, out tempReal);
                 prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
                 prevClose = inClose[today];
-                outReal[outIdx++] = !TA_IsZero(prevTR) ? 100m * (prevPlusDM / prevTR) :  Decimal.Zero;
+                outReal[outIdx++] = !TA_IsZero(prevTR) ? 100m * (prevPlusDM / prevTR) : Decimal.Zero;
             }
 
             outNbElement = outIdx;

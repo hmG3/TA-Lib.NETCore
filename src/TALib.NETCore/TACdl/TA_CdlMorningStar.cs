@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode CdlMorningStar(int startIdx, int endIdx, double[] inOpen, double[] inHigh, double[] inLow, double[] inClose,
-            out int outBegIdx, out int outNbElement, int[] outInteger, double optInPenetration = 0.3)
+        public static RetCode CdlMorningStar(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+            int[] outInteger, out int outBegIdx, out int outNbElement, double optInPenetration = 0.3)
         {
             outBegIdx = outNbElement = 0;
 
@@ -95,7 +95,7 @@ namespace TALib
         }
 
         public static RetCode CdlMorningStar(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, out int outBegIdx, out int outNbElement, int[] outInteger, decimal optInPenetration = 0.3m)
+            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement, decimal optInPenetration = 0.3m)
         {
             outBegIdx = outNbElement = 0;
 

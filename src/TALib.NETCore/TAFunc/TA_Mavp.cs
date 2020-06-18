@@ -1,9 +1,9 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Mavp(int startIdx, int endIdx, double[] inReal, double[] inPeriods, MAType optInMAType,
-            out int outBegIdx, out int outNbElement, double[] outReal, int optInMinPeriod = 2, int optInMaxPeriod = 30)
+        public static RetCode Mavp(double[] inReal, int startIdx, int endIdx, double[] inPeriods, double[] outReal, out int outBegIdx,
+            out int outNbElement, MAType optInMAType, int optInMinPeriod = 2, int optInMaxPeriod = 30)
         {
             outBegIdx = outNbElement = 0;
 
@@ -58,7 +58,7 @@ namespace TALib
                 int curPeriod = localPeriodArray[i];
                 if (curPeriod != 0)
                 {
-                    RetCode retCode = Ma(startIdx, endIdx, inReal, optInMAType, out _, out _, localOutputArray, curPeriod);
+                    RetCode retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, optInMAType, curPeriod);
                     if (retCode != RetCode.Success)
                     {
                         outBegIdx = 0;
@@ -84,8 +84,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Mavp(int startIdx, int endIdx, decimal[] inReal, decimal[] inPeriods,
-            MAType optInMAType, out int outBegIdx, out int outNbElement, decimal[] outReal, int optInMinPeriod = 2, int optInMaxPeriod = 30)
+        public static RetCode Mavp(decimal[] inReal, int startIdx, int endIdx, decimal[] inPeriods, decimal[] outReal, out int outBegIdx,
+            out int outNbElement, MAType optInMAType, int optInMinPeriod = 2, int optInMaxPeriod = 30)
         {
             outBegIdx = outNbElement = 0;
 
@@ -140,7 +140,7 @@ namespace TALib
                 int curPeriod = localPeriodArray[i];
                 if (curPeriod != 0)
                 {
-                    RetCode retCode = Ma(startIdx, endIdx, inReal, optInMAType, out _, out _, localOutputArray, curPeriod);
+                    RetCode retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, optInMAType, curPeriod);
                     if (retCode != RetCode.Success)
                     {
                         outBegIdx = 0;

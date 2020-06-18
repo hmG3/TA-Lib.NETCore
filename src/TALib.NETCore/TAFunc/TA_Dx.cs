@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Dx(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, out int outBegIdx,
-            out int outNbElement, double[] outReal, int optInTimePeriod = 14)
+        public static RetCode Dx(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -19,15 +19,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookbackTotal;
-            if (optInTimePeriod > 1)
-            {
-                lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Dx];
-            }
-            else
-            {
-                lookbackTotal = 2;
-            }
+            var lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Dx];
 
             if (startIdx < lookbackTotal)
             {
@@ -176,8 +168,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Dx(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, out int outBegIdx,
-            out int outNbElement, decimal[] outReal, int optInTimePeriod = 14)
+        public static RetCode Dx(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outReal,
+            out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
 
@@ -191,15 +183,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookbackTotal;
-            if (optInTimePeriod > 1)
-            {
-                lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Dx];
-            }
-            else
-            {
-                lookbackTotal = 2;
-            }
+            int lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Dx];
 
             if (startIdx < lookbackTotal)
             {

@@ -1,9 +1,9 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode MedPrice(int startIdx, int endIdx, double[] inHigh, double[] inLow, out int outBegIdx, out int outNbElement,
-            double[] outReal)
+        public static RetCode MedPrice(double[] inHigh, double[] inLow, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -29,8 +29,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode MedPrice(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, out int outBegIdx, out int outNbElement,
-            decimal[] outReal)
+        public static RetCode MedPrice(decimal[] inHigh, decimal[] inLow, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 

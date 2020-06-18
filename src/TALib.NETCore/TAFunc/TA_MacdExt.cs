@@ -2,11 +2,11 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode MacdExt(int startIdx, int endIdx, double[] inReal, MAType optInFastMAType, MAType optInSlowMaType,
-            MAType optInSignalMaType, out int outBegIdx, out int outNbElement, double[] outMacd, double[] outMacdSignal,
-            double[] outMacdHist, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
+        public static RetCode MacdExt(double[] inReal, int startIdx, int endIdx, double[] outMacd, double[] outMacdSignal,
+            double[] outMacdHist, out int outBegIdx, out int outNbElement, MAType optInFastMAType, MAType optInSlowMaType,
+            MAType optInSignalMaType, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -52,7 +52,7 @@ namespace TALib
             var slowMABuffer = new double[tempInteger];
 
             tempInteger = startIdx - lookbackSignal;
-            RetCode retCode = Ma(tempInteger, endIdx, inReal, optInSlowMaType, out var outBegIdx1, out var outNbElement1, slowMABuffer,
+            RetCode retCode = Ma(inReal, tempInteger, endIdx, slowMABuffer, out var outBegIdx1, out var outNbElement1, optInSlowMaType,
                 optInSlowPeriod);
             if (retCode != RetCode.Success)
             {
@@ -61,14 +61,13 @@ namespace TALib
                 return retCode;
             }
 
-            retCode = Ma(tempInteger, endIdx, inReal, optInFastMAType, out var outBegIdx2, out var outNbElement2, fastMABuffer,
+            retCode = Ma(inReal, tempInteger, endIdx, fastMABuffer, out var outBegIdx2, out var outNbElement2, optInFastMAType,
                 optInFastPeriod);
             if (retCode != RetCode.Success)
             {
                 outBegIdx = outNbElement = 0;
 
                 return retCode;
-
             }
 
             if (outBegIdx1 != tempInteger || outBegIdx2 != tempInteger || outNbElement1 != outNbElement2 ||
@@ -85,7 +84,7 @@ namespace TALib
             }
 
             Array.Copy(fastMABuffer, lookbackSignal, outMacd, 0, endIdx - startIdx + 1);
-            retCode = Ma(0, outNbElement1 - 1, fastMABuffer, optInSignalMaType, out _, out outNbElement2, outMacdSignal, optInSignalPeriod);
+            retCode = Ma(fastMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalMaType, optInSignalPeriod);
             if (retCode != RetCode.Success)
             {
                 outBegIdx = outNbElement = 0;
@@ -104,9 +103,9 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode MacdExt(int startIdx, int endIdx, decimal[] inReal, MAType optInFastMAType, MAType optInSlowMaType,
-            MAType optInSignalMaType, out int outBegIdx, out int outNbElement, decimal[] outMacd, decimal[] outMacdSignal,
-            decimal[] outMacdHist, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
+        public static RetCode MacdExt(decimal[] inReal, int startIdx, int endIdx, decimal[] outMacd, decimal[] outMacdSignal,
+            decimal[] outMacdHist, out int outBegIdx, out int outNbElement, MAType optInFastMAType, MAType optInSlowMaType,
+            MAType optInSignalMaType, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -151,7 +150,7 @@ namespace TALib
             var slowMABuffer = new decimal[tempInteger];
 
             tempInteger = startIdx - lookbackSignal;
-            RetCode retCode = Ma(tempInteger, endIdx, inReal, optInSlowMaType, out var outBegIdx1, out var outNbElement1, slowMABuffer,
+            RetCode retCode = Ma(inReal, tempInteger, endIdx, slowMABuffer, out var outBegIdx1, out var outNbElement1, optInSlowMaType,
                 optInSlowPeriod);
             if (retCode != RetCode.Success)
             {
@@ -160,14 +159,13 @@ namespace TALib
                 return retCode;
             }
 
-            retCode = Ma(tempInteger, endIdx, inReal, optInFastMAType, out var outBegIdx2, out var outNbElement2, fastMABuffer,
+            retCode = Ma(inReal, tempInteger, endIdx, fastMABuffer, out var outBegIdx2, out var outNbElement2, optInFastMAType,
                 optInFastPeriod);
             if (retCode != RetCode.Success)
             {
                 outBegIdx = outNbElement = 0;
 
                 return retCode;
-
             }
 
             if (outBegIdx1 != tempInteger || outBegIdx2 != tempInteger || outNbElement1 != outNbElement2 ||
@@ -184,7 +182,7 @@ namespace TALib
             }
 
             Array.Copy(fastMABuffer, lookbackSignal, outMacd, 0, endIdx - startIdx + 1);
-            retCode = Ma(0, outNbElement1 - 1, fastMABuffer, optInSignalMaType, out _, out outNbElement2, outMacdSignal, optInSignalPeriod);
+            retCode = Ma(fastMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalMaType, optInSignalPeriod);
             if (retCode != RetCode.Success)
             {
                 outBegIdx = outNbElement = 0;

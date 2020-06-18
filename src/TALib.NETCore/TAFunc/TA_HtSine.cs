@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode HtSine(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement, double[] outSine,
-            double[] outLeadSine)
+        public static RetCode HtSine(double[] inReal, int startIdx, int endIdx, double[] outSine, double[] outLeadSine, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -218,8 +218,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode HtSine(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement, decimal[] outSine,
-            decimal[] outLeadSine)
+        public static RetCode HtSine(decimal[] inReal, int startIdx, int endIdx, decimal[] outSine, decimal[] outLeadSine,
+            out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 

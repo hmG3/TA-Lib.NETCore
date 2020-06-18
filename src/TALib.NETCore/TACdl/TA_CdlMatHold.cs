@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode CdlMatHold(int startIdx, int endIdx, double[] inOpen, double[] inHigh, double[] inLow, double[] inClose,
-            out int outBegIdx, out int outNbElement, int[] outInteger, double optInPenetration = 0.5)
+        public static RetCode CdlMatHold(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+            int[] outInteger, out int outBegIdx, out int outNbElement, double optInPenetration = 0.5)
         {
             outBegIdx = outNbElement = 0;
 
@@ -113,8 +113,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode CdlMatHold(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose,
-            out int outBegIdx, out int outNbElement, int[] outInteger, decimal optInPenetration = 0.5m)
+        public static RetCode CdlMatHold(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx,
+            int[] outInteger, out int outBegIdx, out int outNbElement, decimal optInPenetration = 0.5m)
         {
             outBegIdx = outNbElement = 0;
 

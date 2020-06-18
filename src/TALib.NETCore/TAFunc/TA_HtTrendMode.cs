@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode HtTrendMode(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement,
-            int[] outInteger)
+        public static RetCode HtTrendMode(double[] inReal, int startIdx, int endIdx, int[] outInteger, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -273,8 +273,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode HtTrendMode(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement,
-            int[] outInteger)
+        public static RetCode HtTrendMode(decimal[] inReal, int startIdx, int endIdx, int[] outInteger, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 

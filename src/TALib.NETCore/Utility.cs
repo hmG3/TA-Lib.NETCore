@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        private const double TA_Epsilon = 0.00000000000001;
+        private const double TA_EPSILON = 0.00000000000001;
 
         private static double TA_RealBody(in IReadOnlyList<double> close, in IReadOnlyList<double> open, int idx)
         {
@@ -117,27 +117,27 @@ namespace TALib
                    (TA_CandleRangeType(set) == RangeType.Shadows ? 2m : Decimal.One);
         }
 
-        private static bool TA_RealBodyGapUp(in IReadOnlyList<double> open, in IReadOnlyList<double> close, int idx2, int idx1)
+        private static bool TA_RealBodyGapUp(IReadOnlyList<double> open, IReadOnlyList<double> close, int idx2, int idx1)
         {
             return Math.Min(open[idx2], close[idx2]) > Math.Max(open[idx1], close[idx1]);
         }
 
-        private static bool TA_RealBodyGapUp(in IReadOnlyList<decimal> open, in IReadOnlyList<decimal> close, int idx2, int idx1)
+        private static bool TA_RealBodyGapUp(IReadOnlyList<decimal> open, IReadOnlyList<decimal> close, int idx2, int idx1)
         {
             return Math.Min(open[idx2], close[idx2]) > Math.Max(open[idx1], close[idx1]);
         }
 
-        private static bool TA_RealBodyGapDown(in IReadOnlyList<double> open, in IReadOnlyList<double> close, int idx2, int idx1)
+        private static bool TA_RealBodyGapDown(IReadOnlyList<double> open, IReadOnlyList<double> close, int idx2, int idx1)
         {
             return Math.Max(open[idx2], close[idx2]) < Math.Min(open[idx1], close[idx1]);
         }
 
-        private static bool TA_RealBodyGapDown(in IReadOnlyList<decimal> open, in IReadOnlyList<decimal> close, int idx2, int idx1)
+        private static bool TA_RealBodyGapDown(IReadOnlyList<decimal> open, IReadOnlyList<decimal> close, int idx2, int idx1)
         {
             return Math.Max(open[idx2], close[idx2]) < Math.Min(open[idx1], close[idx1]);
         }
 
-        private static bool TA_CandleGapUp(in IReadOnlyList<double> low, in IReadOnlyList<double> high, int idx2, int idx1)
+        private static bool TA_CandleGapUp(IReadOnlyList<double> low, IReadOnlyList<double> high, int idx2, int idx1)
         {
             return low[idx2] > high[idx1];
         }
@@ -157,17 +157,13 @@ namespace TALib
             return high[idx2] < low[idx1];
         }
 
-        private static bool TA_DoubleEq(double x, double v, double ep) => v - ep < x && x < v + ep;
+        private static bool TA_IsZero(double v) => -TA_EPSILON < v && v < TA_EPSILON;
 
-        private static bool TA_DecimalEq(decimal x, decimal v, decimal ep) => v - ep < x && x < v + ep;
+        private static bool TA_IsZero(decimal v) => -(decimal) TA_EPSILON < v && v < (decimal) TA_EPSILON;
 
-        private static bool TA_IsZero(double v) => -TA_Epsilon < v && v < TA_Epsilon;
+        private static bool TA_IsZeroOrNeg(double v) => v < TA_EPSILON;
 
-        private static bool TA_IsZero(decimal v) => -(decimal) TA_Epsilon < v && v < (decimal) TA_Epsilon;
-
-        private static bool TA_IsZeroOrNeg(double v) => v < TA_Epsilon;
-
-        private static bool TA_IsZeroOrNeg(decimal v) => v < (decimal) TA_Epsilon;
+        private static bool TA_IsZeroOrNeg(decimal v) => v < (decimal) TA_EPSILON;
 
         private static void TrueRange(double th, double tl, double yc, out double @out)
         {

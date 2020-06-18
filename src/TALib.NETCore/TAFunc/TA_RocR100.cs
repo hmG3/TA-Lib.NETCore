@@ -2,9 +2,9 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode RocR100(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement, double[] outReal,
+        public static RetCode RocR100(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 10)
         {
             outBegIdx = outNbElement = 0;
@@ -45,7 +45,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode RocR100(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement,
+        public static RetCode RocR100(decimal[] inReal, int startIdx, int endIdx, out int outBegIdx, out int outNbElement,
             decimal[] outReal, int optInTimePeriod = 10)
         {
             outBegIdx = outNbElement = 0;

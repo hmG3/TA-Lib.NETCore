@@ -2,10 +2,10 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Mama(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement, double[] outMama,
-            double[] outFama, double optInFastLimit = 0.5, double optInSlowLimit = 0.05)
+        public static RetCode Mama(double[] inReal, int startIdx, int endIdx, double[] outMama, double[] outFama, out int outBegIdx,
+            out int outNbElement, double optInFastLimit = 0.5, double optInSlowLimit = 0.05)
         {
             outBegIdx = outNbElement = 0;
 
@@ -194,8 +194,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Mama(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement, decimal[] outMama,
-            decimal[] outFama, decimal optInFastLimit = 0.5m, decimal optInSlowLimit = 0.05m)
+        public static RetCode Mama(decimal[] inReal, int startIdx, int endIdx, decimal[] outMama, decimal[] outFama, out int outBegIdx,
+            out int outNbElement, decimal optInFastLimit = 0.5m, decimal optInSlowLimit = 0.05m)
         {
             outBegIdx = outNbElement = 0;
 
@@ -283,7 +283,7 @@ namespace TALib
                     i1ForOddPrev3 = i1ForOddPrev2;
                     i1ForOddPrev2 = hilbertVariables["detrender"];
 
-                    if (i1ForEvenPrev3 !=  Decimal.Zero)
+                    if (i1ForEvenPrev3 != Decimal.Zero)
                     {
                         tempReal2 = DecimalMath.Atan(hilbertVariables["q1"] / i1ForEvenPrev3) * rad2Deg;
                     }

@@ -1,9 +1,9 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Accbands(int startIdx, int endIdx, double[] inHigh, double[] inLow, double[] inClose, out int outBegIdx,
-            out int outNbElement, double[] outRealUpperBand, double[] outRealMiddleBand, double[] outRealLowerBand,
+        public static RetCode Accbands(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+            double[] outRealUpperBand, double[] outRealMiddleBand, double[] outRealLowerBand, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 20)
         {
             outBegIdx = outNbElement = 0;
@@ -51,19 +51,19 @@ namespace TALib
                 }
             }
 
-            var retCode = Sma(startIdx, endIdx, inClose, out _, out var outNbElementDummy, outRealMiddleBand, optInTimePeriod);
+            var retCode = Sma(inClose, startIdx, endIdx, outRealMiddleBand, out _, out var outNbElementDummy, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElementDummy != outputSize)
             {
                 return retCode;
             }
 
-            retCode = Sma(0, bufferSize - 1, tempBuffer1, out _, out outNbElementDummy, outRealUpperBand, optInTimePeriod);
+            retCode = Sma(tempBuffer1, 0, bufferSize - 1, outRealUpperBand, out _, out outNbElementDummy, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElementDummy != outputSize)
             {
                 return retCode;
             }
 
-            retCode = Sma(0, bufferSize - 1, tempBuffer2, out _, out outNbElementDummy, outRealLowerBand, optInTimePeriod);
+            retCode = Sma(tempBuffer2, 0, bufferSize - 1, outRealLowerBand, out _, out outNbElementDummy, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElementDummy != outputSize)
             {
                 return retCode;
@@ -72,8 +72,9 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Accbands(int startIdx, int endIdx, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int optInTimePeriod,
-            out int outBegIdx, out int outNbElement, decimal[] outRealUpperBand, decimal[] outRealMiddleBand, decimal[] outRealLowerBand)
+        public static RetCode Accbands(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx,
+            decimal[] outRealUpperBand, decimal[] outRealMiddleBand, decimal[] outRealLowerBand, out int outBegIdx, out int outNbElement,
+            int optInTimePeriod = 20)
         {
             outBegIdx = outNbElement = 0;
 
@@ -120,19 +121,19 @@ namespace TALib
                 }
             }
 
-            var retCode = Sma(startIdx, endIdx, inClose, out _, out var outNbElementDummy, outRealMiddleBand, optInTimePeriod);
+            var retCode = Sma(inClose, startIdx, endIdx, outRealMiddleBand, out _, out var outNbElementDummy, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElementDummy != outputSize)
             {
                 return retCode;
             }
 
-            retCode = Sma(0, bufferSize - 1, tempBuffer1, out _, out outNbElementDummy, outRealUpperBand, optInTimePeriod);
+            retCode = Sma(tempBuffer1, 0, bufferSize - 1, outRealUpperBand, out _, out outNbElementDummy, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElementDummy != outputSize)
             {
                 return retCode;
             }
 
-            retCode = Sma(0, bufferSize - 1, tempBuffer2, out _, out outNbElementDummy, outRealLowerBand, optInTimePeriod);
+            retCode = Sma(tempBuffer2, 0, bufferSize - 1, outRealLowerBand, out _, out outNbElementDummy, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElementDummy != outputSize)
             {
                 return retCode;

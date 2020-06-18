@@ -1,9 +1,9 @@
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode Add(int startIdx, int endIdx, double[] inReal0, double[] inReal1, out int outBegIdx, out int outNbElement,
-            double[] outReal)
+        public static RetCode Add(double[] inReal0, double[] inReal1, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -29,8 +29,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Add(int startIdx, int endIdx, decimal[] inReal0, decimal[] inReal1, out int outBegIdx, out int outNbElement,
-            decimal[] outReal)
+        public static RetCode Add(decimal[] inReal0, decimal[] inReal1, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 

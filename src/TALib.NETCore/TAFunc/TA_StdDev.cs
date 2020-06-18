@@ -2,9 +2,9 @@ using System;
 
 namespace TALib
 {
-    public partial class Core
+    public static partial class Core
     {
-        public static RetCode StdDev(int startIdx, int endIdx, double[] inReal, out int outBegIdx, out int outNbElement, double[] outReal,
+        public static RetCode StdDev(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 5, double optInNbDev = 1.0)
         {
             outBegIdx = outNbElement = 0;
@@ -19,7 +19,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            RetCode retCode = TA_INT_VAR(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNbElement, outReal);
+            RetCode retCode = TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
             if (retCode != RetCode.Success)
             {
                 return retCode;
@@ -45,7 +45,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode StdDev(int startIdx, int endIdx, decimal[] inReal, out int outBegIdx, out int outNbElement, decimal[] outReal,
+        public static RetCode StdDev(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
             int optInTimePeriod = 5, decimal optInNbDev = 1m)
         {
             outBegIdx = outNbElement = 0;
@@ -60,7 +60,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            RetCode retCode = TA_INT_VAR(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNbElement, outReal);
+            RetCode retCode = TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
             if (retCode != RetCode.Success)
             {
                 return retCode;
