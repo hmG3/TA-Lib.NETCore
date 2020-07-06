@@ -2,8 +2,8 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode CdlConcealBabysWall(int startIdx, int endIdx, double[] inOpen, double[] inHigh, double[] inLow,
-            double[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlConcealBabysWall(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -88,14 +88,14 @@ namespace TALib
                 shadowVeryShortTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static RetCode CdlConcealBabysWall(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlConcealBabysWall(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -140,7 +140,7 @@ namespace TALib
                     !TA_CandleColor(inClose, inOpen, i - 2) && // 2nd black
                     !TA_CandleColor(inClose, inOpen, i - 1) && // 3rd black
                     !TA_CandleColor(inClose, inOpen, i) && // 4th black
-                                                           // 1st: marubozu
+                    // 1st: marubozu
                     TA_LowerShadow(inClose, inOpen, inLow, i - 3) < TA_CandleAverage(inOpen, inHigh, inLow, inOpen,
                         CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[3], i - 3) &&
                     TA_UpperShadow(inHigh, inClose, inOpen, i - 3) < TA_CandleAverage(inOpen, inHigh, inLow, inOpen,
@@ -151,7 +151,7 @@ namespace TALib
                     TA_UpperShadow(inHigh, inClose, inOpen, i - 2) < TA_CandleAverage(inOpen, inHigh, inLow, inOpen,
                         CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
                     TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && // 3rd: opens gapping down
-                                                                         //      and HAS an upper shadow
+                    //      and HAS an upper shadow
                     TA_UpperShadow(inHigh, inClose, inOpen, i - 1) > TA_CandleAverage(inOpen, inHigh, inLow, inOpen,
                         CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
                     inHigh[i - 1] > inClose[i - 2] && //      that extends into the prior body
@@ -180,8 +180,8 @@ namespace TALib
                 shadowVeryShortTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

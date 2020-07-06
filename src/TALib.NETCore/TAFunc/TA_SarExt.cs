@@ -23,9 +23,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < 1)
+            int lookbackTotal = SarExtLookback();
+            if (startIdx < lookbackTotal)
             {
-                startIdx = 1;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -63,13 +64,10 @@ namespace TALib
 
             if (optInStartValue.Equals(0.0))
             {
-                int _ = default;
                 var epTemp = new double[1];
                 RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
                 if (retCode != RetCode.Success)
                 {
-                    outBegIdx = outNbElement = 0;
-
                     return retCode;
                 }
 
@@ -89,8 +87,8 @@ namespace TALib
 
             int todayIdx = startIdx;
 
-            double newHigh = inHigh[--todayIdx];
-            double newLow = inLow[--todayIdx];
+            double newHigh = inHigh[todayIdx - 1];
+            double newLow = inLow[todayIdx - 1];
             if (optInStartValue.Equals(0.0))
             {
                 if (isLong)
@@ -278,9 +276,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < 1)
+            int lookbackTotal = SarExtLookback();
+            if (startIdx < lookbackTotal)
             {
-                startIdx = 1;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -318,13 +317,10 @@ namespace TALib
 
             if (optInStartValue == Decimal.Zero)
             {
-                int _ = default;
                 var epTemp = new decimal[1];
                 RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
                 if (retCode != RetCode.Success)
                 {
-                    outBegIdx = outNbElement = 0;
-
                     return retCode;
                 }
 
@@ -344,8 +340,8 @@ namespace TALib
 
             int todayIdx = startIdx;
 
-            decimal newHigh = inHigh[--todayIdx];
-            decimal newLow = inLow[--todayIdx];
+            decimal newHigh = inHigh[todayIdx - 1];
+            decimal newLow = inLow[todayIdx - 1];
             if (optInStartValue == Decimal.Zero)
             {
                 if (isLong)

@@ -83,8 +83,8 @@ namespace TALib
                 bodyLongTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -168,8 +168,8 @@ namespace TALib
                 bodyLongTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

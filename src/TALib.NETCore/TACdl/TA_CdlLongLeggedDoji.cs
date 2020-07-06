@@ -4,8 +4,8 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode CdlLongLeggedDoji(int startIdx, int endIdx, double[] inOpen, double[] inHigh, double[] inLow,
-            double[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlLongLeggedDoji(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -79,14 +79,14 @@ namespace TALib
                 shadowLongTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static RetCode CdlLongLeggedDoji(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlLongLeggedDoji(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -160,8 +160,8 @@ namespace TALib
                 shadowLongTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

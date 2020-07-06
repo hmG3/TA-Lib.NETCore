@@ -69,9 +69,8 @@ namespace TALib
 
                 double adjustedPrevPeriod = 0.075 * period + 0.54;
 
-                double todayValue = inReal[today];
-                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue,
-                    todayValue, out var smoothedValue);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
+                    out var smoothedValue);
                 if (today % 2 == 0)
                 {
                     DoHilbertEven(hilbertVariables, "detrender", smoothedValue, hilbertIdx, adjustedPrevPeriod);
@@ -222,9 +221,8 @@ namespace TALib
 
                 decimal adjustedPrevPeriod = 0.075m * period + 0.54m;
 
-                decimal todayValue = inReal[today];
-                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue,
-                    todayValue, out var smoothedValue);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
+                    out var smoothedValue);
                 if (today % 2 == 0)
                 {
                     DoHilbertEven(hilbertVariables, "detrender", smoothedValue, hilbertIdx, adjustedPrevPeriod);

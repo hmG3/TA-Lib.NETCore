@@ -17,10 +17,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int nbInitialElementNeeded = optInTimePeriod - 1;
-            if (startIdx < nbInitialElementNeeded)
+            int lookbackTotal = MaxLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = nbInitialElementNeeded;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -30,7 +30,7 @@ namespace TALib
 
             int outIdx = default;
             int today = startIdx;
-            int trailingIdx = startIdx - nbInitialElementNeeded;
+            int trailingIdx = startIdx - lookbackTotal;
             int highestIdx = -1;
             double highest = default;
 
@@ -69,7 +69,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Max(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement, int optInTimePeriod = 30)
+        public static RetCode Max(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+            int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
 
@@ -83,10 +84,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int nbInitialElementNeeded = optInTimePeriod - 1;
-            if (startIdx < nbInitialElementNeeded)
+            int lookbackTotal = MaxLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = nbInitialElementNeeded;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -96,7 +97,7 @@ namespace TALib
 
             int outIdx = default;
             int today = startIdx;
-            int trailingIdx = startIdx - nbInitialElementNeeded;
+            int trailingIdx = startIdx - lookbackTotal;
             int highestIdx = -1;
             decimal highest = default;
 

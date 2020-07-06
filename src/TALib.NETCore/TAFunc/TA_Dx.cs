@@ -19,8 +19,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            var lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Dx];
-
+            int lookbackTotal = DxLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -99,14 +98,7 @@ namespace TALib
                 double minusDI = 100.0 * (prevMinusDM / prevTR);
                 double plusDI = 100.0 * (prevPlusDM / prevTR);
                 double tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
-                {
-                    outReal[0] = 100.0 * (Math.Abs(minusDI - plusDI) / tempReal);
-                }
-                else
-                {
-                    outReal[0] = 0.0;
-                }
+                outReal[0] = !TA_IsZero(tempReal) ? 100.0 * (Math.Abs(minusDI - plusDI) / tempReal) : 0.0;
             }
             else
             {
@@ -183,8 +175,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookbackTotal = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Dx];
-
+            int lookbackTotal = DxLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -263,14 +254,7 @@ namespace TALib
                 decimal minusDI = 100m * (prevMinusDM / prevTR);
                 decimal plusDI = 100m * (prevPlusDM / prevTR);
                 decimal tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
-                {
-                    outReal[0] = 100m * (Math.Abs(minusDI - plusDI) / tempReal);
-                }
-                else
-                {
-                    outReal[0] = Decimal.Zero;
-                }
+                outReal[0] = !TA_IsZero(tempReal) ? 100m * (Math.Abs(minusDI - plusDI) / tempReal) : Decimal.Zero;
             }
             else
             {
@@ -339,7 +323,7 @@ namespace TALib
                 return -1;
             }
 
-            return optInTimePeriod > 1 ? optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Dx] : 2;
+            return optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Dx];
         }
     }
 }

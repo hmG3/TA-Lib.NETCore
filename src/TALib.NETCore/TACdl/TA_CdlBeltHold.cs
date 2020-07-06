@@ -83,8 +83,8 @@ namespace TALib
                 shadowVeryShortTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -168,13 +168,13 @@ namespace TALib
                 shadowVeryShortTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        private static int CdlBeltHoldLookback() =>
+        public static int CdlBeltHoldLookback() =>
             Math.Max(TA_CandleAvgPeriod(CandleSettingType.BodyLong), TA_CandleAvgPeriod(CandleSettingType.ShadowVeryShort));
     }
 }

@@ -24,8 +24,8 @@ namespace TALib
                 outReal[outIdx++] = Math.Sinh(inReal[i]);
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -50,8 +50,8 @@ namespace TALib
                 outReal[outIdx++] = DecimalMath.Sinh(inReal[i]);
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

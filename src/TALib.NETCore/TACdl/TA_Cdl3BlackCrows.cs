@@ -79,14 +79,14 @@ namespace TALib
                 shadowVeryShortTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static RetCode Cdl3BlackCrows(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode Cdl3BlackCrows(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -162,8 +162,8 @@ namespace TALib
                 shadowVeryShortTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

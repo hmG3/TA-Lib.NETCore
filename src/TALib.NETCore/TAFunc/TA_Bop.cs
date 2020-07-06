@@ -23,18 +23,11 @@ namespace TALib
             for (var i = startIdx; i <= endIdx; i++)
             {
                 double tempReal = inHigh[i] - inLow[i];
-                if (TA_IsZeroOrNeg(tempReal))
-                {
-                    outReal[outIdx++] = 0.0;
-                }
-                else
-                {
-                    outReal[outIdx++] = (inClose[i] - inOpen[i]) / tempReal;
-                }
+                outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal) ? (inClose[i] - inOpen[i]) / tempReal : 0.0;
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -58,18 +51,11 @@ namespace TALib
             for (var i = startIdx; i <= endIdx; i++)
             {
                 decimal tempReal = inHigh[i] - inLow[i];
-                if (TA_IsZeroOrNeg(tempReal))
-                {
-                    outReal[outIdx++] = Decimal.Zero;
-                }
-                else
-                {
-                    outReal[outIdx++] = (inClose[i] - inOpen[i]) / tempReal;
-                }
+                outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal) ? (inClose[i] - inOpen[i]) / tempReal : Decimal.Zero;
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

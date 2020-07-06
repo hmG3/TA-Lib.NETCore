@@ -19,9 +19,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < 1)
+            int lookbackTotal = SarLookback();
+            if (startIdx < lookbackTotal)
             {
-                startIdx = 1;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -39,8 +40,6 @@ namespace TALib
             RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
             if (retCode != RetCode.Success)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
@@ -51,8 +50,8 @@ namespace TALib
 
             int todayIdx = startIdx;
 
-            double newHigh = inHigh[--todayIdx];
-            double newLow = inLow[--todayIdx];
+            double newHigh = inHigh[todayIdx - 1];
+            double newLow = inLow[todayIdx - 1];
             var isLong = epTemp[0] <= 0.0;
             if (isLong)
             {
@@ -213,9 +212,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < 1)
+            int lookbackTotal = SarLookback();
+            if (startIdx < lookbackTotal)
             {
-                startIdx = 1;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -229,13 +229,10 @@ namespace TALib
                 af = optInAcceleration = optInMaximum;
             }
 
-            int _ = default;
             var epTemp = new decimal[1];
             RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
             if (retCode != RetCode.Success)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
@@ -246,8 +243,8 @@ namespace TALib
 
             int todayIdx = startIdx;
 
-            decimal newHigh = inHigh[--todayIdx];
-            decimal newLow = inLow[--todayIdx];
+            decimal newHigh = inHigh[todayIdx - 1];
+            decimal newLow = inLow[todayIdx - 1];
             var isLong = epTemp[0] <= Decimal.Zero;
             if (isLong)
             {

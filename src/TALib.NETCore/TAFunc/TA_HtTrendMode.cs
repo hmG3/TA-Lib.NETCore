@@ -19,8 +19,8 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            const int smoothPriceValue = 50;
-            var smoothPrice = new double[smoothPriceValue];
+            const int smoothPriceSize = 50;
+            var smoothPrice = new double[smoothPriceSize];
 
             const double rad2Deg = 180.0 / Math.PI;
             const double deg2Rad = 1.0 / rad2Deg;
@@ -81,9 +81,8 @@ namespace TALib
 
                 double adjustedPrevPeriod = 0.075 * period + 0.54;
 
-                double todayValue = inReal[today];
-                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue,
-                    todayValue, out var smoothedValue);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
+                    out var smoothedValue);
 
                 smoothPrice[smoothPriceIdx] = smoothedValue;
                 if (today % 2 == 0)
@@ -168,7 +167,7 @@ namespace TALib
                     imagPart += Math.Cos(tempReal) * tempReal2;
                     if (idx == 0)
                     {
-                        idx = smoothPriceValue - 1;
+                        idx = smoothPriceSize - 1;
                     }
                     else
                     {
@@ -260,7 +259,7 @@ namespace TALib
                     outInteger[outIdx++] = trend;
                 }
 
-                if (++smoothPriceIdx > smoothPriceValue - 1)
+                if (++smoothPriceIdx > smoothPriceSize - 1)
                 {
                     smoothPriceIdx = 0;
                 }
@@ -350,9 +349,8 @@ namespace TALib
 
                 decimal adjustedPrevPeriod = 0.075m * period + 0.54m;
 
-                decimal todayValue = inReal[today];
-                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue,
-                    todayValue, out var smoothedValue);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
+                    out var smoothedValue);
 
                 smoothPrice[smoothPriceIdx] = smoothedValue;
                 if (today % 2 == 0)

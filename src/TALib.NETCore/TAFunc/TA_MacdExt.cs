@@ -5,8 +5,8 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode MacdExt(double[] inReal, int startIdx, int endIdx, double[] outMacd, double[] outMacdSignal,
-            double[] outMacdHist, out int outBegIdx, out int outNbElement, MAType optInFastMAType, MAType optInSlowMaType,
-            MAType optInSignalMaType, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
+            double[] outMacdHist, out int outBegIdx, out int outNbElement, MAType optInFastMAType, MAType optInSlowMAType,
+            MAType optInSignalMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -29,13 +29,13 @@ namespace TALib
                 optInSlowPeriod = optInFastPeriod;
                 optInFastPeriod = tempInteger;
 
-                MAType tempMAType = optInSlowMaType;
-                optInSlowMaType = optInFastMAType;
+                MAType tempMAType = optInSlowMAType;
+                optInSlowMAType = optInFastMAType;
                 optInFastMAType = tempMAType;
             }
 
-            int lookbackSignal = MaLookback(optInSignalMaType, optInSignalPeriod);
-            int lookbackTotal = MacdExtLookback(optInFastMAType, optInSlowMaType, optInSignalMaType, optInFastPeriod, optInSlowPeriod,
+            int lookbackSignal = MaLookback(optInSignalMAType, optInSignalPeriod);
+            int lookbackTotal = MacdExtLookback(optInFastMAType, optInSlowMAType, optInSignalMAType, optInFastPeriod, optInSlowPeriod,
                 optInSignalPeriod);
             if (startIdx < lookbackTotal)
             {
@@ -52,12 +52,10 @@ namespace TALib
             var slowMABuffer = new double[tempInteger];
 
             tempInteger = startIdx - lookbackSignal;
-            RetCode retCode = Ma(inReal, tempInteger, endIdx, slowMABuffer, out var outBegIdx1, out var outNbElement1, optInSlowMaType,
+            RetCode retCode = Ma(inReal, tempInteger, endIdx, slowMABuffer, out var outBegIdx1, out var outNbElement1, optInSlowMAType,
                 optInSlowPeriod);
             if (retCode != RetCode.Success)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
@@ -65,16 +63,12 @@ namespace TALib
                 optInFastPeriod);
             if (retCode != RetCode.Success)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
             if (outBegIdx1 != tempInteger || outBegIdx2 != tempInteger || outNbElement1 != outNbElement2 ||
                 outNbElement1 != endIdx - startIdx + 1 + lookbackSignal)
             {
-                outBegIdx = outNbElement = 0;
-
                 return RetCode.InternalError;
             }
 
@@ -84,11 +78,9 @@ namespace TALib
             }
 
             Array.Copy(fastMABuffer, lookbackSignal, outMacd, 0, endIdx - startIdx + 1);
-            retCode = Ma(fastMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalMaType, optInSignalPeriod);
+            retCode = Ma(fastMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalMAType, optInSignalPeriod);
             if (retCode != RetCode.Success)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
@@ -104,8 +96,8 @@ namespace TALib
         }
 
         public static RetCode MacdExt(decimal[] inReal, int startIdx, int endIdx, decimal[] outMacd, decimal[] outMacdSignal,
-            decimal[] outMacdHist, out int outBegIdx, out int outNbElement, MAType optInFastMAType, MAType optInSlowMaType,
-            MAType optInSignalMaType, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
+            decimal[] outMacdHist, out int outBegIdx, out int outNbElement, MAType optInFastMAType, MAType optInSlowMAType,
+            MAType optInSignalMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -128,13 +120,14 @@ namespace TALib
                 optInSlowPeriod = optInFastPeriod;
                 optInFastPeriod = tempInteger;
 
-                MAType tempMAType = optInSlowMaType;
-                optInSlowMaType = optInFastMAType;
+                MAType tempMAType = optInSlowMAType;
+                optInSlowMAType = optInFastMAType;
                 optInFastMAType = tempMAType;
             }
 
-            int lookbackSignal = MaLookback(optInSignalMaType, optInSignalPeriod);
-            int lookbackTotal = MacdExtLookback(optInFastMAType, optInSlowMaType, optInSignalMaType, optInFastPeriod, optInSlowPeriod);
+            int lookbackSignal = MaLookback(optInSignalMAType, optInSignalPeriod);
+            int lookbackTotal = MacdExtLookback(optInFastMAType, optInSlowMAType, optInSignalMAType, optInFastPeriod, optInSlowPeriod,
+                optInSignalPeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -150,12 +143,10 @@ namespace TALib
             var slowMABuffer = new decimal[tempInteger];
 
             tempInteger = startIdx - lookbackSignal;
-            RetCode retCode = Ma(inReal, tempInteger, endIdx, slowMABuffer, out var outBegIdx1, out var outNbElement1, optInSlowMaType,
+            RetCode retCode = Ma(inReal, tempInteger, endIdx, slowMABuffer, out var outBegIdx1, out var outNbElement1, optInSlowMAType,
                 optInSlowPeriod);
             if (retCode != RetCode.Success)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
@@ -163,16 +154,12 @@ namespace TALib
                 optInFastPeriod);
             if (retCode != RetCode.Success)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
             if (outBegIdx1 != tempInteger || outBegIdx2 != tempInteger || outNbElement1 != outNbElement2 ||
                 outNbElement1 != endIdx - startIdx + 1 + lookbackSignal)
             {
-                outBegIdx = outNbElement = 0;
-
                 return RetCode.InternalError;
             }
 
@@ -182,11 +169,9 @@ namespace TALib
             }
 
             Array.Copy(fastMABuffer, lookbackSignal, outMacd, 0, endIdx - startIdx + 1);
-            retCode = Ma(fastMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalMaType, optInSignalPeriod);
+            retCode = Ma(fastMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalMAType, optInSignalPeriod);
             if (retCode != RetCode.Success)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
@@ -201,7 +186,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int MacdExtLookback(MAType optInFastMAType, MAType optInSlowMaType, MAType optInSignalMaType,
+        public static int MacdExtLookback(MAType optInFastMAType, MAType optInSlowMAType, MAType optInSignalMAType,
             int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
         {
             if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000 ||
@@ -211,13 +196,13 @@ namespace TALib
             }
 
             int lookbackLargest = MaLookback(optInFastMAType, optInFastPeriod);
-            int tempInteger = MaLookback(optInSlowMaType, optInSlowPeriod);
+            int tempInteger = MaLookback(optInSlowMAType, optInSlowPeriod);
             if (tempInteger > lookbackLargest)
             {
                 lookbackLargest = tempInteger;
             }
 
-            return lookbackLargest + MaLookback(optInSignalMaType, optInSignalPeriod);
+            return lookbackLargest + MaLookback(optInSignalMAType, optInSignalPeriod);
         }
     }
 }

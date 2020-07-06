@@ -4,8 +4,8 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode CdlStalledPattern(int startIdx, int endIdx, double[] inOpen, double[] inHigh, double[] inLow,
-            double[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlStalledPattern(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -126,14 +126,14 @@ namespace TALib
                 nearTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static RetCode CdlStalledPattern(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlStalledPattern(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -208,7 +208,7 @@ namespace TALib
                         bodyLongPeriodTotal[2], i - 2) && // 1st: long real body
                     TA_RealBody(inClose, inOpen, i - 1) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyLong,
                         bodyLongPeriodTotal[1], i - 1) && // 2nd: long real body
-                                                          // very short upper shadow
+                    // very short upper shadow
                     TA_UpperShadow(inHigh, inClose, inOpen, i - 1) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                         CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i - 1) &&
                     // opens within/near 1st real body
@@ -217,7 +217,7 @@ namespace TALib
                         nearPeriodTotal[2], i - 2) &&
                     TA_RealBody(inClose, inOpen, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort,
                         bodyShortPeriodTotal, i) && // 3rd: small real body
-                                                    // rides on the shoulder of 2nd real body
+                    // rides on the shoulder of 2nd real body
                     inOpen[i] >= inClose[i - 1] - TA_RealBody(inClose, inOpen, i) - TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                         CandleSettingType.Near, nearPeriodTotal[1], i - 1)
                 )
@@ -254,8 +254,8 @@ namespace TALib
                 nearTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

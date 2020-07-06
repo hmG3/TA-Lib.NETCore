@@ -61,8 +61,7 @@ namespace TALib
             int outIdx = default;
             while (outIdx < secondEMANbElement)
             {
-                outReal[outIdx] = 2.0 * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
-                outIdx++;
+                outReal[outIdx++] = 2.0 * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
             }
 
             outBegIdx = firstEMABegIdx + secondEMABegIdx;
@@ -86,8 +85,6 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            outNbElement = 0;
-            outBegIdx = 0;
             int lookbackEMA = EmaLookback(optInTimePeriod);
             int lookbackTotal = DemaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
@@ -132,8 +129,7 @@ namespace TALib
             int outIdx = default;
             while (outIdx < secondEMANbElement)
             {
-                outReal[outIdx] = 2m * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
-                outIdx++;
+                outReal[outIdx++] = 2m * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
             }
 
             outBegIdx = firstEMABegIdx + secondEMABegIdx;

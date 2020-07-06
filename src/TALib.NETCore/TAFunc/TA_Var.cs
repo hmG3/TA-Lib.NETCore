@@ -20,8 +20,8 @@ namespace TALib
             return TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
         }
 
-        public static RetCode Var(decimal[] inReal, int startIdx, int endIdx, out int outBegIdx, out int outNbElement,
-            decimal[] outReal, int optInTimePeriod = 5)
+        public static RetCode Var(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+            int optInTimePeriod = 5)
         {
             outBegIdx = outNbElement = 0;
 

@@ -5,7 +5,7 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode Stoch(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outSlowK,
-            double[] outSlowD, out int outBegIdx, out int outNbElement, MAType optInSlowKMaType, MAType optInSlowDMaType,
+            double[] outSlowD, out int outBegIdx, out int outNbElement, MAType optInSlowKMAType, MAType optInSlowDMAType,
             int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
@@ -23,9 +23,8 @@ namespace TALib
             }
 
             int lookbackK = optInFastKPeriod - 1;
-            int lookbackDSlow = MaLookback(optInSlowDMaType, optInSlowDPeriod);
-            int lookbackTotal = StochLookback(optInSlowKMaType, optInSlowDMaType, optInFastKPeriod, optInSlowKPeriod, optInSlowDPeriod);
-
+            int lookbackDSlow = MaLookback(optInSlowDMAType, optInSlowDPeriod);
+            int lookbackTotal = StochLookback(optInSlowKMAType, optInSlowDMAType, optInFastKPeriod, optInSlowKPeriod, optInSlowDPeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -109,32 +108,23 @@ namespace TALib
                     diff = (highest - lowest) / 100.0;
                 }
 
-                if (!diff.Equals(0.0))
-                {
-                    tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
-                }
-                else
-                {
-                    tempBuffer[outIdx++] = 0.0;
-                }
+                tempBuffer[outIdx++] = !diff.Equals(0.0) ? (inClose[today] - lowest) / diff : 0.0;
 
                 trailingIdx++;
                 today++;
             }
 
-            RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, tempBuffer, out _, out outNbElement, optInSlowKMaType, optInSlowKPeriod);
+            RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, tempBuffer, out _, out outNbElement, optInSlowKMAType, optInSlowKPeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
-            retCode = Ma(tempBuffer, 0, outNbElement - 1, outSlowD, out _, out outNbElement, optInSlowDMaType, optInSlowDPeriod);
+            retCode = Ma(tempBuffer, 0, outNbElement - 1, outSlowD, out _, out outNbElement, optInSlowDMAType, optInSlowDPeriod);
             Array.Copy(tempBuffer, lookbackDSlow, outSlowK, 0, outNbElement);
             if (retCode != RetCode.Success)
             {
-                outBegIdx = outNbElement = 0;
+                outNbElement = 0;
 
                 return retCode;
             }
@@ -145,7 +135,7 @@ namespace TALib
         }
 
         public static RetCode Stoch(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outSlowK,
-            decimal[] outSlowD, out int outBegIdx, out int outNbElement, MAType optInSlowKMaType, MAType optInSlowDMaType,
+            decimal[] outSlowD, out int outBegIdx, out int outNbElement, MAType optInSlowKMAType, MAType optInSlowDMAType,
             int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
@@ -163,9 +153,8 @@ namespace TALib
             }
 
             int lookbackK = optInFastKPeriod - 1;
-            int lookbackDSlow = MaLookback(optInSlowDMaType, optInSlowDPeriod);
-            int lookbackTotal = StochLookback(optInSlowKMaType, optInSlowDMaType, optInFastKPeriod, optInSlowKPeriod, optInSlowDPeriod);
-
+            int lookbackDSlow = MaLookback(optInSlowDMAType, optInSlowDPeriod);
+            int lookbackTotal = StochLookback(optInSlowKMAType, optInSlowDMAType, optInFastKPeriod, optInSlowKPeriod, optInSlowDPeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -249,32 +238,23 @@ namespace TALib
                     diff = (highest - lowest) / 100m;
                 }
 
-                if (diff != Decimal.Zero)
-                {
-                    tempBuffer[outIdx++] = (inClose[today] - lowest) / diff;
-                }
-                else
-                {
-                    tempBuffer[outIdx++] = Decimal.Zero;
-                }
+                tempBuffer[outIdx++] = diff != Decimal.Zero ? (inClose[today] - lowest) / diff : Decimal.Zero;
 
                 trailingIdx++;
                 today++;
             }
 
-            RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, tempBuffer, out _, out outNbElement, optInSlowKMaType, optInSlowKPeriod);
+            RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, tempBuffer, out _, out outNbElement, optInSlowKMAType, optInSlowKPeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
-            retCode = Ma(tempBuffer, 0, outNbElement - 1, outSlowD, out _, out outNbElement, optInSlowDMaType, optInSlowDPeriod);
+            retCode = Ma(tempBuffer, 0, outNbElement - 1, outSlowD, out _, out outNbElement, optInSlowDMAType, optInSlowDPeriod);
             Array.Copy(tempBuffer, lookbackDSlow, outSlowK, 0, outNbElement);
             if (retCode != RetCode.Success)
             {
-                outBegIdx = outNbElement = 0;
+                outNbElement = 0;
 
                 return retCode;
             }

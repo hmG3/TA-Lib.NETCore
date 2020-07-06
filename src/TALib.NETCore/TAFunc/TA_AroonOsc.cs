@@ -17,21 +17,20 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < optInTimePeriod)
+            int lookbackTotal = AroonOscLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = optInTimePeriod;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
                 return RetCode.Success;
             }
 
             int outIdx = default;
             int today = startIdx;
-            int trailingIdx = startIdx - optInTimePeriod;
+            int trailingIdx = startIdx - lookbackTotal;
             int lowestIdx = -1;
             int highestIdx = -1;
             double lowest = default;
@@ -84,8 +83,8 @@ namespace TALib
                     highest = tmp;
                 }
 
-                outReal[outIdx] = factor * (highestIdx - lowestIdx);
-                outIdx++;
+                outReal[outIdx++] = factor * (highestIdx - lowestIdx);
+
                 trailingIdx++;
                 today++;
             }
@@ -111,21 +110,20 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < optInTimePeriod)
+            int lookbackTotal = AroonOscLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = optInTimePeriod;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
                 return RetCode.Success;
             }
 
             int outIdx = default;
             int today = startIdx;
-            int trailingIdx = startIdx - optInTimePeriod;
+            int trailingIdx = startIdx - lookbackTotal;
             int lowestIdx = -1;
             int highestIdx = -1;
             decimal lowest = default;
@@ -178,8 +176,8 @@ namespace TALib
                     highest = tmp;
                 }
 
-                outReal[outIdx] = factor * (highestIdx - lowestIdx);
-                outIdx++;
+                outReal[outIdx++] = factor * (highestIdx - lowestIdx);
+
                 trailingIdx++;
                 today++;
             }

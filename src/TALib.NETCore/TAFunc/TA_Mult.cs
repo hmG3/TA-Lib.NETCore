@@ -23,8 +23,8 @@ namespace TALib
                 outReal[outIdx++] = inReal0[i] * inReal1[i];
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -50,8 +50,8 @@ namespace TALib
                 outReal[outIdx++] = inReal0[i] * inReal1[i];
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

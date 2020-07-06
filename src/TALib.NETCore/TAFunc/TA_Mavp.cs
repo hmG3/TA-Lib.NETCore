@@ -2,7 +2,7 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode Mavp(double[] inReal, int startIdx, int endIdx, double[] inPeriods, double[] outReal, out int outBegIdx,
+        public static RetCode Mavp(double[] inReal, double[] inPeriods, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
             out int outNbElement, MAType optInMAType, int optInMinPeriod = 2, int optInMaxPeriod = 30)
         {
             outBegIdx = outNbElement = 0;
@@ -61,8 +61,6 @@ namespace TALib
                     RetCode retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, optInMAType, curPeriod);
                     if (retCode != RetCode.Success)
                     {
-                        outBegIdx = 0;
-                        outNbElement = 0;
                         return retCode;
                     }
 
@@ -84,7 +82,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Mavp(decimal[] inReal, int startIdx, int endIdx, decimal[] inPeriods, decimal[] outReal, out int outBegIdx,
+        public static RetCode Mavp(decimal[] inReal, decimal[] inPeriods, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
             out int outNbElement, MAType optInMAType, int optInMinPeriod = 2, int optInMaxPeriod = 30)
         {
             outBegIdx = outNbElement = 0;
@@ -143,8 +141,6 @@ namespace TALib
                     RetCode retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, optInMAType, curPeriod);
                     if (retCode != RetCode.Success)
                     {
-                        outBegIdx = 0;
-                        outNbElement = 0;
                         return retCode;
                     }
 

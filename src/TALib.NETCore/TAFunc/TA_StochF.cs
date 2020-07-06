@@ -116,19 +116,10 @@ namespace TALib
             RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDMAType, optInFastDPeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
             Array.Copy(tempBuffer, lookbackFastD, outFastK, 0, outNbElement);
-            if (retCode != RetCode.Success)
-            {
-                outBegIdx = outNbElement = 0;
-
-                return retCode;
-            }
-
             outBegIdx = startIdx;
 
             return RetCode.Success;
@@ -246,19 +237,10 @@ namespace TALib
             RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDMAType, optInFastDPeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
             Array.Copy(tempBuffer, lookbackFastD, outFastK, 0, outNbElement);
-            if (retCode != RetCode.Success)
-            {
-                outBegIdx = outNbElement = 0;
-
-                return retCode;
-            }
-
             outBegIdx = startIdx;
 
             return RetCode.Success;

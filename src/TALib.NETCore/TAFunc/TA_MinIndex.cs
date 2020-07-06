@@ -17,10 +17,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int nbInitialElementNeeded = optInTimePeriod - 1;
-            if (startIdx < nbInitialElementNeeded)
+            int lookbackTotal = MinIndexLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = nbInitialElementNeeded;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -30,7 +30,7 @@ namespace TALib
 
             int outIdx = default;
             int today = startIdx;
-            int trailingIdx = startIdx - nbInitialElementNeeded;
+            int trailingIdx = startIdx - lookbackTotal;
             int lowestIdx = -1;
             double lowest = default;
 
@@ -70,8 +70,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode MinIndex(decimal[] inReal, int startIdx, int endIdx, out int outBegIdx, out int outNbElement,
-            int[] outInteger, int optInTimePeriod = 30)
+        public static RetCode MinIndex(decimal[] inReal, int startIdx, int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement,
+            int optInTimePeriod = 30)
         {
             outBegIdx = outNbElement = 0;
 
@@ -85,10 +85,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int nbInitialElementNeeded = optInTimePeriod - 1;
-            if (startIdx < nbInitialElementNeeded)
+            int lookbackTotal = MinIndexLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = nbInitialElementNeeded;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -98,7 +98,7 @@ namespace TALib
 
             int outIdx = default;
             int today = startIdx;
-            int trailingIdx = startIdx - nbInitialElementNeeded;
+            int trailingIdx = startIdx - lookbackTotal;
             int lowestIdx = -1;
             decimal lowest = default;
 

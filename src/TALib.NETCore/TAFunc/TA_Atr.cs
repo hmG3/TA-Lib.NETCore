@@ -28,7 +28,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            if (optInTimePeriod <= 1)
+            if (optInTimePeriod == 1)
             {
                 return TRange(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
             }
@@ -68,7 +68,8 @@ namespace TALib
             {
                 prevATR *= optInTimePeriod - 1;
                 prevATR += tempBuffer[today++];
-                outReal[outIdx++] = prevATR / optInTimePeriod;
+                prevATR /= optInTimePeriod;
+                outReal[outIdx++] = prevATR;
             }
 
             outBegIdx = startIdx;
@@ -103,7 +104,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            if (optInTimePeriod <= 1)
+            if (optInTimePeriod == 1)
             {
                 return TRange(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
             }
@@ -143,7 +144,8 @@ namespace TALib
             {
                 prevATR *= optInTimePeriod - 1;
                 prevATR += tempBuffer[today++];
-                outReal[outIdx++] = prevATR / optInTimePeriod;
+                prevATR /= optInTimePeriod;
+                outReal[outIdx++] = prevATR;
             }
 
             outBegIdx = startIdx;

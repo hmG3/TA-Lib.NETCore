@@ -3,8 +3,7 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode StochRsi(double[] inReal, int startIdx, int endIdx, double[] outFastK, double[] outFastD, out int outBegIdx,
-            out int outNbElement, MAType optInFastDMAType, int optInTimePeriod = 14, int optInFastKPeriod = 5,
-            int optInFastDPeriod = 3)
+            out int outNbElement, MAType optInFastDMAType, int optInTimePeriod = 14, int optInFastKPeriod = 5, int optInFastDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
 
@@ -34,21 +33,16 @@ namespace TALib
             outBegIdx = startIdx;
             int tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
             var tempRSIBuffer = new double[tempArraySize];
-            RetCode retCode = Rsi(inReal, startIdx - lookbackSTOCHF, endIdx, tempRSIBuffer,
-                out _, out var outNbElement1, optInTimePeriod);
+            RetCode retCode = Rsi(inReal, startIdx - lookbackSTOCHF, endIdx, tempRSIBuffer, out _, out var outNbElement1, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElement1 == 0)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
-            retCode = StochF(tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, 0, tempArraySize - 1, outFastK, outFastD,
-                out _, out outNbElement, optInFastDMAType, optInFastKPeriod, optInFastDPeriod);
+            retCode = StochF(tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, 0, tempArraySize - 1, outFastK, outFastD, out _, out outNbElement,
+                optInFastDMAType, optInFastKPeriod, optInFastDPeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
@@ -87,21 +81,16 @@ namespace TALib
             outBegIdx = startIdx;
             int tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
             var tempRSIBuffer = new decimal[tempArraySize];
-            RetCode retCode = Rsi(inReal, startIdx - lookbackSTOCHF, endIdx, tempRSIBuffer,
-                out _, out var outNbElement1, optInTimePeriod);
+            RetCode retCode = Rsi(inReal, startIdx - lookbackSTOCHF, endIdx, tempRSIBuffer, out _, out var outNbElement1, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElement1 == 0)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 
-            retCode = StochF(tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, 0, tempArraySize - 1, outFastK, outFastD,
-                out _, out outNbElement, optInFastDMAType, optInFastKPeriod, optInFastDPeriod);
+            retCode = StochF(tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, 0, tempArraySize - 1, outFastK, outFastD, out _, out outNbElement,
+                optInFastDMAType, optInFastKPeriod, optInFastDPeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
-                outBegIdx = outNbElement = 0;
-
                 return retCode;
             }
 

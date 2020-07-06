@@ -47,6 +47,7 @@ namespace TALib
                 {
                     todayDev += Math.Abs(inReal[today - i] - todaySum / optInTimePeriod);
                 }
+
                 outReal[outIdx++] = todayDev / optInTimePeriod;
                 today++;
             }
@@ -99,6 +100,7 @@ namespace TALib
                 {
                     todayDev += Math.Abs(inReal[today - i] - todaySum / optInTimePeriod);
                 }
+
                 outReal[outIdx++] = todayDev / optInTimePeriod;
                 today++;
             }

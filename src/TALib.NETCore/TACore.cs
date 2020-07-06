@@ -13,9 +13,35 @@ namespace TALib
 
         public static Compatibility GetCompatibility() => Globals.Compatibility;
 
+        public static RetCode SetCompatibility(Compatibility value)
+        {
+            Globals.Compatibility = value;
+
+            return RetCode.Success;
+        }
+
         public static long GetUnstablePeriod(FuncUnstId id) => id >= FuncUnstId.FuncUnstAll ? 0 : Globals.UnstablePeriod[(int) id];
 
-        public static RetCode RestoreCandleDefaultSettings(CandleSettingType settingType)
+        public static RetCode SetUnstablePeriod(FuncUnstId id, long unstablePeriod)
+        {
+            if (id > FuncUnstId.FuncUnstAll)
+            {
+                return RetCode.BadParam;
+            }
+
+            if (id != FuncUnstId.FuncUnstAll)
+            {
+                Globals.UnstablePeriod[(int) id] = unstablePeriod;
+            }
+            else
+            {
+                Array.Fill(Globals.UnstablePeriod, unstablePeriod);
+            }
+
+            return RetCode.Success;
+        }
+
+        private static RetCode RestoreCandleDefaultSettings(CandleSettingType settingType)
         {
             switch (settingType)
             {
@@ -70,7 +96,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode SetCandleSettings(CandleSettingType settingType, RangeType rangeType, int avgPeriod, double factor)
+        private static RetCode SetCandleSettings(CandleSettingType settingType, RangeType rangeType, int avgPeriod, double factor)
         {
             if (settingType >= CandleSettingType.AllCandleSettings)
             {
@@ -85,36 +111,11 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode SetCompatibility(Compatibility value)
-        {
-            Globals.Compatibility = value;
-            return RetCode.Success;
-        }
-
-        public static RetCode SetUnstablePeriod(FuncUnstId id, long unstablePeriod)
-        {
-            if (id > FuncUnstId.FuncUnstAll)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (id != FuncUnstId.FuncUnstAll)
-            {
-                Globals.UnstablePeriod[(int) id] = unstablePeriod;
-            }
-            else
-            {
-                Array.Fill(Globals.UnstablePeriod, unstablePeriod);
-            }
-
-            return RetCode.Success;
-        }
-
         private static RetCode TA_INT_EMA(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
             out int outNbElement, int optInTimePeriod, double optInK1)
         {
-            int today;
-            double prevMA;
+            outBegIdx = outNbElement = 0;
+
             int lookbackTotal = EmaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
@@ -123,12 +124,13 @@ namespace TALib
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
                 return RetCode.Success;
             }
 
             outBegIdx = startIdx;
+
+            int today;
+            double prevMA;
             if (Globals.Compatibility == Compatibility.Default)
             {
                 today = startIdx - lookbackTotal;
@@ -154,7 +156,7 @@ namespace TALib
 
             outReal[0] = prevMA;
             int outIdx = 1;
-            while (today <= startIdx)
+            while (today <= endIdx)
             {
                 prevMA = (inReal[today++] - prevMA) * optInK1 + prevMA;
                 outReal[outIdx++] = prevMA;
@@ -168,8 +170,8 @@ namespace TALib
         private static RetCode TA_INT_EMA(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
             out int outNbElement, int optInTimePeriod, decimal optInK1)
         {
-            int today;
-            decimal prevMA;
+            outBegIdx = outNbElement = 0;
+
             int lookbackTotal = EmaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
@@ -178,13 +180,13 @@ namespace TALib
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
-
                 return RetCode.Success;
             }
 
             outBegIdx = startIdx;
+
+            int today;
+            decimal prevMA;
             if (Globals.Compatibility == Compatibility.Default)
             {
                 today = startIdx - lookbackTotal;
@@ -210,7 +212,7 @@ namespace TALib
 
             outReal[0] = prevMA;
             int outIdx = 1;
-            while (today <= startIdx)
+            while (today <= endIdx)
             {
                 prevMA = (inReal[today++] - prevMA) * optInK1 + prevMA;
                 outReal[outIdx++] = prevMA;
@@ -227,8 +229,6 @@ namespace TALib
             outBegIdx = outNbElement = 0;
 
             int tempInteger;
-            double k2;
-            double k1;
             if (optInSlowPeriod < optInFastPeriod)
             {
                 tempInteger = optInSlowPeriod;
@@ -236,6 +236,8 @@ namespace TALib
                 optInFastPeriod = tempInteger;
             }
 
+            double k1;
+            double k2;
             if (optInSlowPeriod != 0)
             {
                 k1 = 2.0 / (optInSlowPeriod + 1);
@@ -270,7 +272,6 @@ namespace TALib
 
             tempInteger = endIdx - startIdx + 1 + lookbackSignal;
             var fastEMABuffer = new double[tempInteger];
-
             var slowEMABuffer = new double[tempInteger];
 
             tempInteger = startIdx - lookbackSignal;
@@ -324,8 +325,6 @@ namespace TALib
             outBegIdx = outNbElement = 0;
 
             int tempInteger;
-            decimal k2;
-            decimal k1;
             if (optInSlowPeriod < optInFastPeriod)
             {
                 tempInteger = optInSlowPeriod;
@@ -333,6 +332,8 @@ namespace TALib
                 optInFastPeriod = tempInteger;
             }
 
+            decimal k1;
+            decimal k2;
             if (optInSlowPeriod != 0)
             {
                 k1 = 2m / (optInSlowPeriod + 1);
@@ -367,7 +368,6 @@ namespace TALib
 
             tempInteger = endIdx - startIdx + 1 + lookbackSignal;
             var fastEMABuffer = new decimal[tempInteger];
-
             var slowEMABuffer = new decimal[tempInteger];
 
             tempInteger = startIdx - lookbackSignal;
@@ -510,6 +510,8 @@ namespace TALib
         private static RetCode TA_INT_SMA(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
             out int outNbElement, int optInTimePeriod)
         {
+            outBegIdx = outNbElement = 0;
+
             int lookbackTotal = SmaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
@@ -518,8 +520,6 @@ namespace TALib
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
                 return RetCode.Success;
             }
 
@@ -543,8 +543,8 @@ namespace TALib
                 outReal[outIdx++] = tempReal / optInTimePeriod;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -552,6 +552,8 @@ namespace TALib
         private static RetCode TA_INT_SMA(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
             out int outNbElement, int optInTimePeriod)
         {
+            outBegIdx = outNbElement = 0;
+
             int lookbackTotal = SmaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
@@ -560,8 +562,6 @@ namespace TALib
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
                 return RetCode.Success;
             }
 
@@ -585,8 +585,8 @@ namespace TALib
                 outReal[outIdx++] = tempReal / optInTimePeriod;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -594,20 +594,19 @@ namespace TALib
         private static void TA_INT_StdDevUsingPrecalcMA(double[] inReal, double[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement,
             double[] outReal, int optInTimePeriod)
         {
-            double tempReal;
             int startSum = inMovAvgBegIdx + 1 - optInTimePeriod;
             int endSum = inMovAvgBegIdx;
             double periodTotal2 = default;
             for (int outIdx = startSum; outIdx < endSum; outIdx++)
             {
-                tempReal = inReal[outIdx];
+                double tempReal = inReal[outIdx];
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
             }
 
             for (var outIdx = 0; outIdx < inMovAvgNbElement; outIdx++, startSum++, endSum++)
             {
-                tempReal = inReal[endSum];
+                double tempReal = inReal[endSum];
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
                 double meanValue2 = periodTotal2 / optInTimePeriod;
@@ -627,20 +626,19 @@ namespace TALib
         private static void TA_INT_StdDevUsingPrecalcMA(decimal[] inReal, decimal[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement,
             decimal[] outReal, int optInTimePeriod)
         {
-            decimal tempReal;
             int startSum = inMovAvgBegIdx + 1 - optInTimePeriod;
             int endSum = inMovAvgBegIdx;
             decimal periodTotal2 = default;
             for (int outIdx = startSum; outIdx < endSum; outIdx++)
             {
-                tempReal = inReal[outIdx];
+                decimal tempReal = inReal[outIdx];
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
             }
 
             for (var outIdx = 0; outIdx < inMovAvgNbElement; outIdx++, startSum++, endSum++)
             {
-                tempReal = inReal[endSum];
+                decimal tempReal = inReal[endSum];
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
                 decimal meanValue2 = periodTotal2 / optInTimePeriod;
@@ -660,7 +658,8 @@ namespace TALib
         private static RetCode TA_INT_VAR(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
             out int outNbElement, int optInTimePeriod)
         {
-            double tempReal;
+            outBegIdx = outNbElement = 0;
+
             int lookbackTotal = VarLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
@@ -669,9 +668,6 @@ namespace TALib
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
-
                 return RetCode.Success;
             }
 
@@ -683,7 +679,7 @@ namespace TALib
             {
                 while (i < startIdx)
                 {
-                    tempReal = inReal[i++];
+                    double tempReal = inReal[i++];
                     periodTotal1 += tempReal;
                     tempReal *= tempReal;
                     periodTotal2 += tempReal;
@@ -693,7 +689,7 @@ namespace TALib
             int outIdx = default;
             do
             {
-                tempReal = inReal[i++];
+                double tempReal = inReal[i++];
                 periodTotal1 += tempReal;
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
@@ -706,8 +702,8 @@ namespace TALib
                 outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -715,7 +711,8 @@ namespace TALib
         private static RetCode TA_INT_VAR(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
             out int outNbElement, int optInTimePeriod)
         {
-            decimal tempReal;
+            outBegIdx = outNbElement = 0;
+
             int lookbackTotal = VarLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
@@ -724,9 +721,6 @@ namespace TALib
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
-
                 return RetCode.Success;
             }
 
@@ -738,7 +732,7 @@ namespace TALib
             {
                 while (i < startIdx)
                 {
-                    tempReal = inReal[i++];
+                    decimal tempReal = inReal[i++];
                     periodTotal1 += tempReal;
                     tempReal *= tempReal;
                     periodTotal2 += tempReal;
@@ -748,7 +742,7 @@ namespace TALib
             int outIdx = default;
             do
             {
-                tempReal = inReal[i++];
+                decimal tempReal = inReal[i++];
                 periodTotal1 += tempReal;
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
@@ -761,8 +755,8 @@ namespace TALib
                 outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

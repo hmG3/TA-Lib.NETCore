@@ -4,7 +4,7 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode AdOsc(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] inVolume,
+        public static RetCode AdOsc(double[] inHigh, double[] inLow, double[] inClose, double[] inVolume, int startIdx, int endIdx,
             double[] outReal, out int outBegIdx, out int outNbElement, int optInFastPeriod = 3, int optInSlowPeriod = 10)
         {
             outBegIdx = outNbElement = 0;
@@ -42,20 +42,21 @@ namespace TALib
             double slowk = 2.0 / (optInSlowPeriod + 1);
             double oneMinusSlowk = 1.0 - slowk;
 
-            CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
+            CalculateAd();
             double fastEMA = ad;
             double slowEMA = ad;
+
             while (today < startIdx)
             {
-                CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
+                CalculateAd();
                 fastEMA = fastk * ad + oneMinusFastk * fastEMA;
                 slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
             }
 
             int outIdx = default;
-            while (today <= startIdx)
+            while (today <= endIdx)
             {
-                CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
+                CalculateAd();
                 fastEMA = fastk * ad + oneMinusFastk * fastEMA;
                 slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
 
@@ -66,22 +67,22 @@ namespace TALib
 
             return RetCode.Success;
 
-            void CalculateAd(double[] high, double[] low, double[] close, double[] volume, ref int t)
+            void CalculateAd()
             {
-                double h = high[t];
-                double l = low[t];
+                double h = inHigh[today];
+                double l = inLow[today];
                 double tmp = h - l;
-                double c = close[t];
+                double c = inClose[today];
                 if (tmp > 0.0)
                 {
-                    ad += (c - l - (h - c)) / tmp * volume[t];
+                    ad += (c - l - (h - c)) / tmp * inVolume[today];
                 }
 
-                t++;
+                today++;
             }
         }
 
-        public static RetCode AdOsc(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] inVolume,
+        public static RetCode AdOsc(decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume, int startIdx, int endIdx,
             decimal[] outReal, out int outBegIdx, out int outNbElement, int optInFastPeriod = 3, int optInSlowPeriod = 10)
         {
             outBegIdx = outNbElement = 0;
@@ -119,20 +120,21 @@ namespace TALib
             decimal slowk = 2m / (optInSlowPeriod + 1);
             decimal oneMinusSlowk = Decimal.One - slowk;
 
-            CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
+            CalculateAd();
             decimal fastEMA = ad;
             decimal slowEMA = ad;
+
             while (today < startIdx)
             {
-                CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
+                CalculateAd();
                 fastEMA = fastk * ad + oneMinusFastk * fastEMA;
                 slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
             }
 
             int outIdx = default;
-            while (today <= startIdx)
+            while (today <= endIdx)
             {
-                CalculateAd(inHigh, inLow, inClose, inVolume, ref today);
+                CalculateAd();
                 fastEMA = fastk * ad + oneMinusFastk * fastEMA;
                 slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
 
@@ -143,18 +145,18 @@ namespace TALib
 
             return RetCode.Success;
 
-            void CalculateAd(decimal[] high, decimal[] low, decimal[] close, decimal[] volume, ref int t)
+            void CalculateAd()
             {
-                decimal h = high[t];
-                decimal l = low[t];
+                decimal h = inHigh[today];
+                decimal l = inLow[today];
                 decimal tmp = h - l;
-                decimal c = close[t];
+                decimal c = inClose[today];
                 if (tmp > Decimal.Zero)
                 {
-                    ad += (c - l - (h - c)) / tmp * volume[t];
+                    ad += (c - l - (h - c)) / tmp * inVolume[today];
                 }
 
-                t++;
+                today++;
             }
         }
 

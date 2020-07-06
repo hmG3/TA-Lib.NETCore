@@ -4,8 +4,8 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode CdlKickingByLength(int startIdx, int endIdx, double[] inOpen, double[] inHigh, double[] inLow,
-            double[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlKickingByLength(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -75,7 +75,7 @@ namespace TALib
                      TA_CandleColor(inClose, inOpen, i - 1) && TA_CandleGapDown(inLow, inHigh, i, i - 1)))
                 {
                     outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen,
-                                               TA_RealBody(inClose, inOpen, i) > TA_RealBody(inClose, inOpen, i - 1) ? i : i - 1)) * 100;
+                        TA_RealBody(inClose, inOpen, i) > TA_RealBody(inClose, inOpen, i - 1) ? i : i - 1)) * 100;
                 }
                 else
                 {
@@ -101,14 +101,14 @@ namespace TALib
                 bodyLongTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static RetCode CdlKickingByLength(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlKickingByLength(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -178,7 +178,7 @@ namespace TALib
                      TA_CandleColor(inClose, inOpen, i - 1) && TA_CandleGapDown(inLow, inHigh, i, i - 1)))
                 {
                     outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen,
-                                               TA_RealBody(inClose, inOpen, i) > TA_RealBody(inClose, inOpen, i - 1) ? i : i - 1)) * 100;
+                        TA_RealBody(inClose, inOpen, i) > TA_RealBody(inClose, inOpen, i - 1) ? i : i - 1)) * 100;
                 }
                 else
                 {
@@ -204,8 +204,8 @@ namespace TALib
                 bodyLongTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

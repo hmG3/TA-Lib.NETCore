@@ -50,30 +50,23 @@ namespace TALib
                 double lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3.0;
                 circBuffer[circBufferIdx++] = lastValue;
 
-                int j;
                 double theAverage = default;
-                for (j = 0; j < optInTimePeriod; j++)
+                for (var j = 0; j < optInTimePeriod; j++)
                 {
                     theAverage += circBuffer[j];
                 }
-
                 theAverage /= optInTimePeriod;
 
                 double tempReal2 = default;
-                for (j = 0; j < optInTimePeriod; j++)
+                for (var j = 0; j < optInTimePeriod; j++)
                 {
                     tempReal2 += Math.Abs(circBuffer[j] - theAverage);
                 }
 
                 double tempReal = lastValue - theAverage;
-                if (!tempReal.Equals(0.0) && !tempReal2.Equals(0.0))
-                {
-                    outReal[outIdx++] = tempReal / (0.015 * (tempReal2 / optInTimePeriod));
-                }
-                else
-                {
-                    outReal[outIdx++] = 0.0;
-                }
+                outReal[outIdx++] = !tempReal.Equals(0.0) && !tempReal2.Equals(0.0)
+                    ? tempReal / (0.015 * (tempReal2 / optInTimePeriod))
+                    : 0.0;
 
                 if (circBufferIdx > maxIdxCircBuffer)
                 {
@@ -83,8 +76,8 @@ namespace TALib
                 i++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -112,8 +105,6 @@ namespace TALib
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
                 return RetCode.Success;
             }
 
@@ -137,9 +128,8 @@ namespace TALib
                 decimal lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3m;
                 circBuffer[circBufferIdx++] = lastValue;
 
-                int j;
                 decimal theAverage = default;
-                for (j = 0; j < optInTimePeriod; j++)
+                for (var j = 0; j < optInTimePeriod; j++)
                 {
                     theAverage += circBuffer[j];
                 }
@@ -147,20 +137,15 @@ namespace TALib
                 theAverage /= optInTimePeriod;
 
                 decimal tempReal2 = default;
-                for (j = 0; j < optInTimePeriod; j++)
+                for (var j = 0; j < optInTimePeriod; j++)
                 {
                     tempReal2 += Math.Abs(circBuffer[j] - theAverage);
                 }
 
                 decimal tempReal = lastValue - theAverage;
-                if (tempReal != Decimal.Zero && tempReal2 != Decimal.Zero)
-                {
-                    outReal[outIdx++] = tempReal / (0.015m * (tempReal2 / optInTimePeriod));
-                }
-                else
-                {
-                    outReal[outIdx++] = Decimal.Zero;
-                }
+                outReal[outIdx++] = tempReal != Decimal.Zero && tempReal2 != Decimal.Zero
+                    ? tempReal / (0.015m * (tempReal2 / optInTimePeriod))
+                    : Decimal.Zero;
 
                 if (circBufferIdx > maxIdxCircBuffer)
                 {
@@ -170,8 +155,8 @@ namespace TALib
                 i++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

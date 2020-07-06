@@ -4,7 +4,7 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode Mfi(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] inVolume,
+        public static RetCode Mfi(double[] inHigh, double[] inLow, double[] inClose, double[] inVolume, int startIdx, int endIdx,
             double[] outReal, out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
@@ -14,7 +14,8 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
+            if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null || optInTimePeriod < 2 ||
+                optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -76,14 +77,7 @@ namespace TALib
             if (today > startIdx)
             {
                 double tempValue1 = posSumMF + negSumMF;
-                if (tempValue1 < 1.0)
-                {
-                    outReal[outIdx++] = 0.0;
-                }
-                else
-                {
-                    outReal[outIdx++] = 100.0 * (posSumMF / tempValue1);
-                }
+                outReal[outIdx++] = tempValue1 >= 1.0 ? 100.0 * (posSumMF / tempValue1) : 0.0;
             }
             else
             {
@@ -91,6 +85,7 @@ namespace TALib
                 {
                     posSumMF -= moneyFlow[mflowIdx].positive;
                     negSumMF -= moneyFlow[mflowIdx].negative;
+
                     double tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
                     double tempValue2 = tempValue1 - prevValue;
                     prevValue = tempValue1;
@@ -124,6 +119,7 @@ namespace TALib
             {
                 posSumMF -= moneyFlow[mflowIdx].positive;
                 negSumMF -= moneyFlow[mflowIdx].negative;
+
                 double tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
                 double tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
@@ -147,14 +143,7 @@ namespace TALib
                 }
 
                 tempValue1 = posSumMF + negSumMF;
-                if (tempValue1 < 1.0)
-                {
-                    outReal[outIdx++] = 0.0;
-                }
-                else
-                {
-                    outReal[outIdx++] = 100.0 * (posSumMF / tempValue1);
-                }
+                outReal[outIdx++] = tempValue1 >= 1.0 ? 100.0 * (posSumMF / tempValue1) : 0.0;
 
                 if (++mflowIdx > maxIdxMflow)
                 {
@@ -168,7 +157,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Mfi(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] inVolume,
+        public static RetCode Mfi(decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume, int startIdx, int endIdx,
             decimal[] outReal, out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
@@ -178,7 +167,8 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
+            if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null || optInTimePeriod < 2 ||
+                optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -240,14 +230,7 @@ namespace TALib
             if (today > startIdx)
             {
                 decimal tempValue1 = posSumMF + negSumMF;
-                if (tempValue1 < Decimal.One)
-                {
-                    outReal[outIdx++] = Decimal.Zero;
-                }
-                else
-                {
-                    outReal[outIdx++] = 100m * (posSumMF / tempValue1);
-                }
+                outReal[outIdx++] = tempValue1 >= Decimal.One ? 100m * (posSumMF / tempValue1) : Decimal.Zero;
             }
             else
             {
@@ -255,6 +238,7 @@ namespace TALib
                 {
                     posSumMF -= moneyFlow[mflowIdx].positive;
                     negSumMF -= moneyFlow[mflowIdx].negative;
+
                     decimal tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3m;
                     decimal tempValue2 = tempValue1 - prevValue;
                     prevValue = tempValue1;
@@ -288,6 +272,7 @@ namespace TALib
             {
                 posSumMF -= moneyFlow[mflowIdx].positive;
                 negSumMF -= moneyFlow[mflowIdx].negative;
+
                 decimal tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3m;
                 decimal tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
@@ -311,14 +296,7 @@ namespace TALib
                 }
 
                 tempValue1 = posSumMF + negSumMF;
-                if (tempValue1 < Decimal.One)
-                {
-                    outReal[outIdx++] = Decimal.Zero;
-                }
-                else
-                {
-                    outReal[outIdx++] = 100m * (posSumMF / tempValue1);
-                }
+                outReal[outIdx++] = tempValue1 >= Decimal.One ? 100m * (posSumMF / tempValue1) : Decimal.Zero;
 
                 if (++mflowIdx > maxIdxMflow)
                 {

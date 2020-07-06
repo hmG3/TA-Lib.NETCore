@@ -18,21 +18,20 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < optInTimePeriod)
+            int lookbackTotal = AroonLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = optInTimePeriod;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
                 return RetCode.Success;
             }
 
             int outIdx = default;
             int today = startIdx;
-            int trailingIdx = startIdx - optInTimePeriod;
+            int trailingIdx = startIdx - lookbackTotal;
             int lowestIdx = -1;
             int highestIdx = -1;
             double lowest = default;
@@ -115,21 +114,20 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < optInTimePeriod)
+            int lookbackTotal = AroonLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = optInTimePeriod;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
             {
-                outBegIdx = 0;
-                outNbElement = 0;
                 return RetCode.Success;
             }
 
             int outIdx = default;
             int today = startIdx;
-            int trailingIdx = startIdx - optInTimePeriod;
+            int trailingIdx = startIdx - lookbackTotal;
             int lowestIdx = -1;
             int highestIdx = -1;
             decimal lowest = default;

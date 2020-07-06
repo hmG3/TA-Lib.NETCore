@@ -66,7 +66,6 @@ namespace TALib
                 }
 
                 TrueRange(prevHigh, prevLow, prevClose, out tempReal);
-
                 prevTR += tempReal;
                 prevClose = inClose[today];
             }
@@ -111,6 +110,7 @@ namespace TALib
             }
 
             double prevADX = sumDX / optInTimePeriod;
+
             i = (int) Globals.UnstablePeriod[(int) FuncUnstId.Adx];
             while (i-- > 0)
             {
@@ -153,6 +153,7 @@ namespace TALib
 
             outReal[0] = prevADX;
             var outIdx = 1;
+
             while (today < endIdx)
             {
                 today++;
@@ -178,7 +179,6 @@ namespace TALib
 
                 TrueRange(prevHigh, prevLow, prevClose, out tempReal);
                 prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
-
                 prevClose = inClose[today];
                 if (!TA_IsZero(prevTR))
                 {
@@ -262,7 +262,6 @@ namespace TALib
                 }
 
                 TrueRange(prevHigh, prevLow, prevClose, out tempReal);
-
                 prevTR += tempReal;
                 prevClose = inClose[today];
             }
@@ -307,6 +306,7 @@ namespace TALib
             }
 
             decimal prevADX = sumDX / optInTimePeriod;
+
             i = (int) Globals.UnstablePeriod[(int) FuncUnstId.Adx];
             while (i-- > 0)
             {
@@ -349,6 +349,7 @@ namespace TALib
 
             outReal[0] = prevADX;
             var outIdx = 1;
+
             while (today < endIdx)
             {
                 today++;
@@ -374,7 +375,6 @@ namespace TALib
 
                 TrueRange(prevHigh, prevLow, prevClose, out tempReal);
                 prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
-
                 prevClose = inClose[today];
                 if (!TA_IsZero(prevTR))
                 {

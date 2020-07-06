@@ -45,8 +45,8 @@ namespace TALib
                 outReal[outIdx++] = tempReal;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -94,8 +94,8 @@ namespace TALib
                 outReal[outIdx++] = tempReal;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

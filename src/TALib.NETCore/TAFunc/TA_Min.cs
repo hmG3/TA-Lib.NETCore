@@ -17,10 +17,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int nbInitialElementNeeded = optInTimePeriod - 1;
-            if (startIdx < nbInitialElementNeeded)
+            int lookbackTotal = MinLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = nbInitialElementNeeded;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -30,7 +30,7 @@ namespace TALib
 
             int outIdx = default;
             int today = startIdx;
-            int trailingIdx = startIdx - nbInitialElementNeeded;
+            int trailingIdx = startIdx - lookbackTotal;
             int lowestIdx = -1;
             double lowest = default;
 
@@ -85,10 +85,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int nbInitialElementNeeded = optInTimePeriod - 1;
-            if (startIdx < nbInitialElementNeeded)
+            int lookbackTotal = MinLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = nbInitialElementNeeded;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -98,7 +98,7 @@ namespace TALib
 
             int outIdx = default;
             int today = startIdx;
-            int trailingIdx = startIdx - nbInitialElementNeeded;
+            int trailingIdx = startIdx - lookbackTotal;
             int lowestIdx = -1;
             decimal lowest = default;
 

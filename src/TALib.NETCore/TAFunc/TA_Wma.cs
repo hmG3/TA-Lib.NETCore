@@ -57,8 +57,8 @@ namespace TALib
                 periodSum -= periodSub;
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -118,8 +118,8 @@ namespace TALib
                 periodSum -= periodSub;
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

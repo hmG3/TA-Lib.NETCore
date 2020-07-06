@@ -64,8 +64,8 @@ namespace TALib
                 bodyLongPeriodTotal++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -132,8 +132,8 @@ namespace TALib
                 bodyLongPeriodTotal++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

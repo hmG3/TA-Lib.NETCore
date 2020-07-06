@@ -21,31 +21,6 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            var usedFlag = new int[3];
-            var periods = new[] { optInTimePeriod1, optInTimePeriod2, optInTimePeriod3 };
-            var sortedPeriods = new int[3];
-
-            for (var i = 0; i < 3; ++i)
-            {
-                int longestPeriod = default;
-                int longestIndex = default;
-                for (var j = 0; j < 3; j++)
-                {
-                    if (usedFlag[j] == 0 && periods[j] > longestPeriod)
-                    {
-                        longestPeriod = periods[j];
-                        longestIndex = j;
-                    }
-                }
-
-                usedFlag[longestIndex] = 1;
-                sortedPeriods[i] = longestPeriod;
-            }
-
-            optInTimePeriod1 = sortedPeriods[2];
-            optInTimePeriod2 = sortedPeriods[1];
-            optInTimePeriod3 = sortedPeriods[0];
-
             int lookbackTotal = UltOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
             if (startIdx < lookbackTotal)
             {
@@ -56,6 +31,31 @@ namespace TALib
             {
                 return RetCode.Success;
             }
+
+            var usedFlag = new bool[3];
+            var periods = new[] { optInTimePeriod1, optInTimePeriod2, optInTimePeriod3 };
+            var sortedPeriods = new int[3];
+
+            for (var i = 0; i < 3; ++i)
+            {
+                int longestPeriod = default;
+                int longestIndex = default;
+                for (var j = 0; j < 3; j++)
+                {
+                    if (!usedFlag[j] && periods[j] > longestPeriod)
+                    {
+                        longestPeriod = periods[j];
+                        longestIndex = j;
+                    }
+                }
+
+                usedFlag[longestIndex] = true;
+                sortedPeriods[i] = longestPeriod;
+            }
+
+            optInTimePeriod1 = sortedPeriods[2];
+            optInTimePeriod2 = sortedPeriods[1];
+            optInTimePeriod3 = sortedPeriods[0];
 
             double trueRange;
             double closeMinusTrueLow;
@@ -138,8 +138,8 @@ namespace TALib
                 trailingIdx3++;
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -161,31 +161,6 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            var usedFlag = new int[3];
-            var periods = new[] { optInTimePeriod1, optInTimePeriod2, optInTimePeriod3 };
-            var sortedPeriods = new int[3];
-
-            for (var i = 0; i < 3; ++i)
-            {
-                int longestPeriod = default;
-                int longestIndex = default;
-                for (var j = 0; j < 3; j++)
-                {
-                    if (usedFlag[j] == 0 && periods[j] > longestPeriod)
-                    {
-                        longestPeriod = periods[j];
-                        longestIndex = j;
-                    }
-                }
-
-                usedFlag[longestIndex] = 1;
-                sortedPeriods[i] = longestPeriod;
-            }
-
-            optInTimePeriod1 = sortedPeriods[2];
-            optInTimePeriod2 = sortedPeriods[1];
-            optInTimePeriod3 = sortedPeriods[0];
-
             int lookbackTotal = UltOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
             if (startIdx < lookbackTotal)
             {
@@ -196,6 +171,31 @@ namespace TALib
             {
                 return RetCode.Success;
             }
+
+            var usedFlag = new bool[3];
+            var periods = new[] { optInTimePeriod1, optInTimePeriod2, optInTimePeriod3 };
+            var sortedPeriods = new int[3];
+
+            for (var i = 0; i < 3; ++i)
+            {
+                int longestPeriod = default;
+                int longestIndex = default;
+                for (var j = 0; j < 3; j++)
+                {
+                    if (!usedFlag[j] && periods[j] > longestPeriod)
+                    {
+                        longestPeriod = periods[j];
+                        longestIndex = j;
+                    }
+                }
+
+                usedFlag[longestIndex] = true;
+                sortedPeriods[i] = longestPeriod;
+            }
+
+            optInTimePeriod1 = sortedPeriods[2];
+            optInTimePeriod2 = sortedPeriods[1];
+            optInTimePeriod3 = sortedPeriods[0];
 
             decimal trueRange;
             decimal closeMinusTrueLow;
@@ -278,8 +278,8 @@ namespace TALib
                 trailingIdx3++;
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

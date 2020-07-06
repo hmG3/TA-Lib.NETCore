@@ -19,9 +19,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < 1)
+            int lookbackTotal = TRangeLookback();
+            if (startIdx < lookbackTotal)
             {
-                startIdx = 1;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -54,8 +55,8 @@ namespace TALib
                 today++;
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -75,9 +76,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < 1)
+            int lookbackTotal = TRangeLookback();
+            if (startIdx < lookbackTotal)
             {
-                startIdx = 1;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -110,12 +112,12 @@ namespace TALib
                 today++;
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static int TrueRangeLookback() => 1;
+        public static int TRangeLookback() => 1;
     }
 }

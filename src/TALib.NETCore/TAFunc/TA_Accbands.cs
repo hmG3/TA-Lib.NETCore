@@ -38,7 +38,7 @@ namespace TALib
             for (int j = 0, i = startIdx - lookbackTotal; i <= endIdx; i++, j++)
             {
                 double tempReal = inHigh[i] + inLow[i];
-                if (TA_IsZero(tempReal))
+                if (!TA_IsZero(tempReal))
                 {
                     tempReal = 4 * (inHigh[i] - inLow[i]) / tempReal;
                     tempBuffer1[j] = inHigh[i] * (1 + tempReal);
@@ -68,6 +68,9 @@ namespace TALib
             {
                 return retCode;
             }
+
+            outBegIdx = startIdx;
+            outNbElement = outputSize;
 
             return RetCode.Success;
         }
@@ -108,7 +111,7 @@ namespace TALib
             for (int j = 0, i = startIdx - lookbackTotal; i <= endIdx; i++, j++)
             {
                 decimal tempReal = inHigh[i] + inLow[i];
-                if (TA_IsZero(tempReal))
+                if (!TA_IsZero(tempReal))
                 {
                     tempReal = 4 * (inHigh[i] - inLow[i]) / tempReal;
                     tempBuffer1[j] = inHigh[i] * (1 + tempReal);
@@ -138,6 +141,9 @@ namespace TALib
             {
                 return retCode;
             }
+
+            outBegIdx = startIdx;
+            outNbElement = outputSize;
 
             return RetCode.Success;
         }

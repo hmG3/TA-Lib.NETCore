@@ -41,15 +41,15 @@ namespace TALib
             }
 
             var secondEMA = new double[firstEMANbElement];
-            retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx,
-                out var secondEMANbElement, optInTimePeriod, k);
+            retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
+                optInTimePeriod, k);
             if (retCode != RetCode.Success || secondEMANbElement == 0)
             {
                 return retCode;
             }
 
-            retCode = TA_INT_EMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx,
-                out var thirdEMANbElement, optInTimePeriod, k);
+            retCode = TA_INT_EMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx, out var thirdEMANbElement,
+                optInTimePeriod, k);
             if (retCode != RetCode.Success || thirdEMANbElement == 0)
             {
                 return retCode;

@@ -33,7 +33,7 @@ namespace TALib
             const int smoothPriceSize = 50;
             var smoothPrice = new double[smoothPriceSize];
 
-            const double rad2Deg = 45.0 / Math.PI / 4.0;
+            const double rad2Deg = 180.0 / Math.PI;
             const double deg2Rad = 1.0 / rad2Deg;
             const double constDeg2RadBy360 = 2.0 * Math.PI;
 
@@ -77,9 +77,8 @@ namespace TALib
 
                 double adjustedPrevPeriod = 0.075 * period + 0.54;
 
-                double todayValue = inReal[today];
-                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue,
-                    todayValue, out var smoothedValue);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
+                    out var smoothedValue);
                 smoothPrice[smoothPriceIdx] = smoothedValue;
                 if (today % 2 == 0)
                 {
@@ -162,7 +161,7 @@ namespace TALib
                     imagPart += Math.Cos(tempReal) * tempReal2;
                     if (idx == 0)
                     {
-                        idx = 49;
+                        idx = smoothPriceSize - 1;
                     }
                     else
                     {
@@ -233,13 +232,6 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            const int smoothPriceSize = 50;
-            var smoothPrice = new decimal[smoothPriceSize];
-
-            const decimal rad2Deg = 180m / DecimalMath.PI;
-            const decimal deg2Rad = Decimal.One / rad2Deg;
-            const decimal constDeg2RadBy360 = 2m * DecimalMath.PI;
-
             int lookbackTotal = HtSineLookback();
             if (startIdx < lookbackTotal)
             {
@@ -250,6 +242,13 @@ namespace TALib
             {
                 return RetCode.Success;
             }
+
+            const int smoothPriceSize = 50;
+            var smoothPrice = new decimal[smoothPriceSize];
+
+            const decimal rad2Deg = 180m / DecimalMath.PI;
+            const decimal deg2Rad = Decimal.One / rad2Deg;
+            const decimal constDeg2RadBy360 = 2m * DecimalMath.PI;
 
             outBegIdx = startIdx;
 
@@ -291,9 +290,7 @@ namespace TALib
 
                 decimal adjustedPrevPeriod = 0.075m * period + 0.54m;
 
-                decimal todayValue = inReal[today];
-                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue,
-                    todayValue, out var smoothedValue);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today], out var smoothedValue);
                 smoothPrice[smoothPriceIdx] = smoothedValue;
                 if (today % 2 == 0)
                 {

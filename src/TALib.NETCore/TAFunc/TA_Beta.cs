@@ -19,10 +19,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int nbInitialElementNeeded = optInTimePeriod;
-            if (startIdx < nbInitialElementNeeded)
+            int lookbackTotal = BetaLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = nbInitialElementNeeded;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -32,36 +32,21 @@ namespace TALib
 
             double x, y, tmpReal, sxy, sx, sy;
             double sxx = sxy = sx = sy = default;
-            int trailingIdx = startIdx - nbInitialElementNeeded;
+            int trailingIdx = startIdx - lookbackTotal;
             var trailingLastPriceX = inReal0[trailingIdx];
             var lastPriceX = trailingLastPriceX;
             var trailingLastPriceY = inReal1[trailingIdx];
             var lastPriceY = trailingLastPriceY;
+
             int i = ++trailingIdx;
             while (i < startIdx)
             {
                 tmpReal = inReal0[i];
-                if (!TA_IsZero(lastPriceX))
-                {
-                    x = (tmpReal - lastPriceX) / lastPriceX;
-                }
-                else
-                {
-                    x = 0.0;
-                }
-
+                x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : 0.0;
                 lastPriceX = tmpReal;
 
                 tmpReal = inReal1[i++];
-                if (!TA_IsZero(lastPriceY))
-                {
-                    y = (tmpReal - lastPriceY) / lastPriceY;
-                }
-                else
-                {
-                    y = 0.0;
-                }
-
+                y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : 0.0;
                 lastPriceY = tmpReal;
 
                 sxx += x * x;
@@ -74,27 +59,11 @@ namespace TALib
             do
             {
                 tmpReal = inReal0[i];
-                if (!TA_IsZero(lastPriceX))
-                {
-                    x = (tmpReal - lastPriceX) / lastPriceX;
-                }
-                else
-                {
-                    x = 0.0;
-                }
-
+                x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : 0.0;
                 lastPriceX = tmpReal;
 
                 tmpReal = inReal1[i++];
-                if (!TA_IsZero(lastPriceY))
-                {
-                    y = (tmpReal - lastPriceY) / lastPriceY;
-                }
-                else
-                {
-                    y = 0.0;
-                }
-
+                y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : 0.0;
                 lastPriceY = tmpReal;
 
                 sxx += x * x;
@@ -103,39 +72,15 @@ namespace TALib
                 sy += y;
 
                 tmpReal = inReal0[trailingIdx];
-                if (!TA_IsZero(trailingLastPriceX))
-                {
-                    x = (tmpReal - trailingLastPriceX) / trailingLastPriceX;
-                }
-                else
-                {
-                    x = 0.0;
-                }
-
+                x = !TA_IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : 0.0;
                 trailingLastPriceX = tmpReal;
 
-                tmpReal = inReal1[trailingIdx];
-                trailingIdx++;
-                if (!TA_IsZero(trailingLastPriceY))
-                {
-                    y = (tmpReal - trailingLastPriceY) / trailingLastPriceY;
-                }
-                else
-                {
-                    y = 0.0;
-                }
-
+                tmpReal = inReal1[trailingIdx++];
+                y = !TA_IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : 0.0;
                 trailingLastPriceY = tmpReal;
 
                 tmpReal = optInTimePeriod * sxx - sx * sx;
-                if (!TA_IsZero(tmpReal))
-                {
-                    outReal[outIdx++] = (optInTimePeriod * sxy - sx * sy) / tmpReal;
-                }
-                else
-                {
-                    outReal[outIdx++] = 0.0;
-                }
+                outReal[outIdx++] = !TA_IsZero(tmpReal) ? (optInTimePeriod * sxy - sx * sy) / tmpReal : 0.0;
 
                 sxx -= x * x;
                 sxy -= x * y;
@@ -143,8 +88,8 @@ namespace TALib
                 sy -= y;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -164,10 +109,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int nbInitialElementNeeded = optInTimePeriod;
-            if (startIdx < nbInitialElementNeeded)
+            int lookbackTotal = BetaLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = nbInitialElementNeeded;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -177,36 +122,21 @@ namespace TALib
 
             decimal x, y, tmpReal, sxy, sx, sy;
             decimal sxx = sxy = sx = sy = default;
-            int trailingIdx = startIdx - nbInitialElementNeeded;
+            int trailingIdx = startIdx - lookbackTotal;
             var trailingLastPriceX = inReal0[trailingIdx];
             var lastPriceX = trailingLastPriceX;
             var trailingLastPriceY = inReal1[trailingIdx];
             var lastPriceY = trailingLastPriceY;
+
             int i = ++trailingIdx;
             while (i < startIdx)
             {
                 tmpReal = inReal0[i];
-                if (!TA_IsZero(lastPriceX))
-                {
-                    x = (tmpReal - lastPriceX) / lastPriceX;
-                }
-                else
-                {
-                    x = Decimal.Zero;
-                }
-
+                x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : Decimal.Zero;
                 lastPriceX = tmpReal;
 
                 tmpReal = inReal1[i++];
-                if (!TA_IsZero(lastPriceY))
-                {
-                    y = (tmpReal - lastPriceY) / lastPriceY;
-                }
-                else
-                {
-                    y = Decimal.Zero;
-                }
-
+                y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : Decimal.Zero;
                 lastPriceY = tmpReal;
 
                 sxx += x * x;
@@ -219,27 +149,11 @@ namespace TALib
             do
             {
                 tmpReal = inReal0[i];
-                if (!TA_IsZero(lastPriceX))
-                {
-                    x = (tmpReal - lastPriceX) / lastPriceX;
-                }
-                else
-                {
-                    x = Decimal.Zero;
-                }
-
+                x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : Decimal.Zero;
                 lastPriceX = tmpReal;
 
                 tmpReal = inReal1[i++];
-                if (!TA_IsZero(lastPriceY))
-                {
-                    y = (tmpReal - lastPriceY) / lastPriceY;
-                }
-                else
-                {
-                    y = Decimal.Zero;
-                }
-
+                y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : Decimal.Zero;
                 lastPriceY = tmpReal;
 
                 sxx += x * x;
@@ -248,39 +162,15 @@ namespace TALib
                 sy += y;
 
                 tmpReal = inReal0[trailingIdx];
-                if (!TA_IsZero(trailingLastPriceX))
-                {
-                    x = (tmpReal - trailingLastPriceX) / trailingLastPriceX;
-                }
-                else
-                {
-                    x = Decimal.Zero;
-                }
-
+                x = !TA_IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : Decimal.Zero;
                 trailingLastPriceX = tmpReal;
 
-                tmpReal = inReal1[trailingIdx];
-                trailingIdx++;
-                if (!TA_IsZero(trailingLastPriceY))
-                {
-                    y = (tmpReal - trailingLastPriceY) / trailingLastPriceY;
-                }
-                else
-                {
-                    y = Decimal.Zero;
-                }
-
+                tmpReal = inReal1[trailingIdx++];
+                y = !TA_IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : Decimal.Zero;
                 trailingLastPriceY = tmpReal;
 
                 tmpReal = optInTimePeriod * sxx - sx * sx;
-                if (!TA_IsZero(tmpReal))
-                {
-                    outReal[outIdx++] = (optInTimePeriod * sxy - sx * sy) / tmpReal;
-                }
-                else
-                {
-                    outReal[outIdx++] = Decimal.Zero;
-                }
+                outReal[outIdx++] = !TA_IsZero(tmpReal) ? (optInTimePeriod * sxy - sx * sy) / tmpReal : Decimal.Zero;
 
                 sxx -= x * x;
                 sxy -= x * y;
@@ -288,8 +178,8 @@ namespace TALib
                 sy -= y;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

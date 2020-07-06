@@ -4,7 +4,8 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode HtDcPhase(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement)
+        public static RetCode HtDcPhase(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -19,7 +20,6 @@ namespace TALib
             }
 
             int lookbackTotal = HtDcPhaseLookback();
-
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -37,6 +37,7 @@ namespace TALib
             const double constDeg2RadBy360 = 2.0 * Math.PI;
 
             outBegIdx = startIdx;
+
             int trailingWMAIdx = startIdx - lookbackTotal;
             int today = trailingWMAIdx;
 
@@ -64,6 +65,7 @@ namespace TALib
             var hilbertVariables = InitHilbertVariables<double>();
 
             int outIdx = default;
+
             double prevI2, prevQ2, re, im, i1ForOddPrev3, i1ForEvenPrev3, i1ForOddPrev2, i1ForEvenPrev2, smoothPeriod, dcPhase;
             double period = prevI2 = prevQ2 =
                 re = im = i1ForOddPrev3 = i1ForEvenPrev3 = i1ForOddPrev2 = i1ForEvenPrev2 = smoothPeriod = dcPhase = default;
@@ -74,9 +76,8 @@ namespace TALib
 
                 double adjustedPrevPeriod = 0.075 * period + 0.54;
 
-                double todayValue = inReal[today];
-                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue,
-                    todayValue, out var smoothedValue);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
+                    out var smoothedValue);
 
                 smoothPrice[smoothPriceIdx] = smoothedValue;
                 if (today % 2 == 0)
@@ -215,7 +216,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode HtDcPhase(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement)
+        public static RetCode HtDcPhase(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -230,7 +232,6 @@ namespace TALib
             }
 
             int lookbackTotal = HtDcPhaseLookback();
-
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -248,6 +249,7 @@ namespace TALib
             const decimal constDeg2RadBy360 = 2m * DecimalMath.PI;
 
             outBegIdx = startIdx;
+
             int trailingWMAIdx = startIdx - lookbackTotal;
             int today = trailingWMAIdx;
 
@@ -286,9 +288,8 @@ namespace TALib
 
                 decimal adjustedPrevPeriod = 0.075m * period + 0.54m;
 
-                decimal todayValue = inReal[today];
-                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue,
-                    todayValue, out var smoothedValue);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
+                    out var smoothedValue);
 
                 smoothPrice[smoothPriceIdx] = smoothedValue;
                 if (today % 2 == 0)

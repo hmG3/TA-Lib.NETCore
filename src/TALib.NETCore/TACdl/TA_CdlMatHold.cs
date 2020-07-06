@@ -107,8 +107,8 @@ namespace TALib
                 bodyLongTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -190,7 +190,8 @@ namespace TALib
                     // 5th opens above the prior close
                     inOpen[i] > inClose[i - 1] &&
                     // 5th closes above the highest high of the reaction days
-                    inClose[i] > Math.Max(Math.Max(inHigh[i - 3], inHigh[i - 2]), inHigh[i - 1]))
+                    inClose[i] > Math.Max(Math.Max(inHigh[i - 3], inHigh[i - 2]), inHigh[i - 1])
+                )
                 {
                     outInteger[outIdx++] = 100;
                 }
@@ -216,8 +217,8 @@ namespace TALib
                 bodyLongTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

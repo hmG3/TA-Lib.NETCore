@@ -42,7 +42,8 @@ namespace TALib
             int outIdx = default;
             do
             {
-                if (TA_RealBody(inClose, inOpen, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
+                if (TA_RealBody(inClose, inOpen, i) <
+                    TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
                     TA_UpperShadow(inHigh, inClose, inOpen, i) > TA_RealBody(inClose, inOpen, i) &&
                     TA_LowerShadow(inClose, inOpen, inLow, i) > TA_RealBody(inClose, inOpen, i)
                 )
@@ -57,19 +58,20 @@ namespace TALib
                 /* add the current range and subtract the first range: this is done after the pattern recognition
                  * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
                  */
-                bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, i) - TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, bodyTrailingIdx);
+                bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, i) -
+                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, bodyTrailingIdx);
                 i++;
                 bodyTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static RetCode CdlSpinningTop(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlSpinningTop(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -106,7 +108,8 @@ namespace TALib
             int outIdx = default;
             do
             {
-                if (TA_RealBody(inClose, inOpen, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
+                if (TA_RealBody(inClose, inOpen, i) <
+                    TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
                     TA_UpperShadow(inHigh, inClose, inOpen, i) > TA_RealBody(inClose, inOpen, i) &&
                     TA_LowerShadow(inClose, inOpen, inLow, i) > TA_RealBody(inClose, inOpen, i)
                 )
@@ -121,13 +124,14 @@ namespace TALib
                 /* add the current range and subtract the first range: this is done after the pattern recognition
                  * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
                  */
-                bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, i) - TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, bodyTrailingIdx);
+                bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, i) -
+                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, bodyTrailingIdx);
                 i++;
                 bodyTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

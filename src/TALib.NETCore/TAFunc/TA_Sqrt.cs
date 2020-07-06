@@ -24,8 +24,8 @@ namespace TALib
                 outReal[outIdx++] = Math.Sqrt(inReal[i]);
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -50,8 +50,8 @@ namespace TALib
                 outReal[outIdx++] = DecimalMath.Sqrt(inReal[i]);
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

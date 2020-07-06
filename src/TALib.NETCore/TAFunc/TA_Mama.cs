@@ -52,7 +52,7 @@ namespace TALib
             int i = 9;
             do
             {
-                tempReal = inReal[today];
+                tempReal = inReal[today++];
                 DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, tempReal, out _);
             } while (--i != 0);
 
@@ -93,14 +93,7 @@ namespace TALib
                     i1ForOddPrev3 = i1ForOddPrev2;
                     i1ForOddPrev2 = hilbertVariables["detrender"];
 
-                    if (!i1ForEvenPrev3.Equals(0.0))
-                    {
-                        tempReal2 = Math.Atan(hilbertVariables["q1"] / i1ForEvenPrev3) * rad2Deg;
-                    }
-                    else
-                    {
-                        tempReal2 = 0.0;
-                    }
+                    tempReal2 = !i1ForEvenPrev3.Equals(0.0) ? Math.Atan(hilbertVariables["q1"] / i1ForEvenPrev3) * rad2Deg : 0.0;
                 }
                 else
                 {
@@ -114,14 +107,7 @@ namespace TALib
 
                     i1ForEvenPrev3 = i1ForEvenPrev2;
                     i1ForEvenPrev2 = hilbertVariables["detrender"];
-                    if (!i1ForOddPrev3.Equals(0.0))
-                    {
-                        tempReal2 = Math.Atan(hilbertVariables["q1"] / i1ForOddPrev3) * rad2Deg;
-                    }
-                    else
-                    {
-                        tempReal2 = 0.0;
-                    }
+                    tempReal2 = !i1ForOddPrev3.Equals(0.0) ? Math.Atan(hilbertVariables["q1"] / i1ForOddPrev3) * rad2Deg : 0.0;
                 }
 
                 tempReal = prevPhase - tempReal2;
@@ -150,8 +136,7 @@ namespace TALib
                 if (today >= startIdx)
                 {
                     outMama[outIdx] = mama;
-                    outFama[outIdx] = fama;
-                    outIdx++;
+                    outFama[outIdx++] = fama;
                 }
 
                 re = 0.2 * (i2 * prevI2 + q2 * prevQ2) + 0.8 * re;
@@ -242,7 +227,7 @@ namespace TALib
             int i = 9;
             do
             {
-                tempReal = inReal[today];
+                tempReal = inReal[today++];
                 DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, tempReal, out _);
             } while (--i != 0);
 
@@ -282,15 +267,9 @@ namespace TALib
 
                     i1ForOddPrev3 = i1ForOddPrev2;
                     i1ForOddPrev2 = hilbertVariables["detrender"];
-
-                    if (i1ForEvenPrev3 != Decimal.Zero)
-                    {
-                        tempReal2 = DecimalMath.Atan(hilbertVariables["q1"] / i1ForEvenPrev3) * rad2Deg;
-                    }
-                    else
-                    {
-                        tempReal2 = Decimal.Zero;
-                    }
+                    tempReal2 = i1ForEvenPrev3 != Decimal.Zero
+                        ? DecimalMath.Atan(hilbertVariables["q1"] / i1ForEvenPrev3) * rad2Deg
+                        : Decimal.Zero;
                 }
                 else
                 {
@@ -304,14 +283,9 @@ namespace TALib
 
                     i1ForEvenPrev3 = i1ForEvenPrev2;
                     i1ForEvenPrev2 = hilbertVariables["detrender"];
-                    if (i1ForOddPrev3 != Decimal.Zero)
-                    {
-                        tempReal2 = DecimalMath.Atan(hilbertVariables["q1"] / i1ForOddPrev3) * rad2Deg;
-                    }
-                    else
-                    {
-                        tempReal2 = Decimal.Zero;
-                    }
+                    tempReal2 = i1ForOddPrev3 != Decimal.Zero
+                        ? DecimalMath.Atan(hilbertVariables["q1"] / i1ForOddPrev3) * rad2Deg
+                        : Decimal.Zero;
                 }
 
                 tempReal = prevPhase - tempReal2;
@@ -340,8 +314,7 @@ namespace TALib
                 if (today >= startIdx)
                 {
                     outMama[outIdx] = mama;
-                    outFama[outIdx] = fama;
-                    outIdx++;
+                    outFama[outIdx++] = fama;
                 }
 
                 re = 0.2m * (i2 * prevI2 + q2 * prevQ2) + 0.8m * re;

@@ -78,9 +78,8 @@ namespace TALib
 
                 double adjustedPrevPeriod = 0.075 * period + 0.54;
 
-                double todayValue = inReal[today];
-                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue,
-                    todayValue, out var smoothedValue);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
+                    out var smoothedValue);
 
                 smoothPrice[smoothPriceIdx] = smoothedValue;
                 if (today % 2 == 0)
@@ -188,7 +187,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode HtTrendline(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement)
+        public static RetCode HtTrendline(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+            out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -261,9 +261,8 @@ namespace TALib
 
                 decimal adjustedPrevPeriod = 0.075m * period + 0.54m;
 
-                decimal todayValue = inReal[today];
-                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue,
-                    todayValue, out var smoothedValue);
+                DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
+                    out var smoothedValue);
 
                 smoothPrice[smoothPriceIdx] = smoothedValue;
                 if (today % 2 == 0)

@@ -20,7 +20,6 @@ namespace TALib
             }
 
             int lookbackTotal = MinusDILookback(optInTimePeriod);
-
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -38,7 +37,7 @@ namespace TALib
             double prevClose;
             double diffP;
             int outIdx = default;
-            if (optInTimePeriod <= 1)
+            if (optInTimePeriod == 1)
             {
                 outBegIdx = startIdx;
                 today = startIdx - 1;
@@ -57,7 +56,7 @@ namespace TALib
                     if (diffM > 0.0 && diffP < diffM)
                     {
                         TrueRange(prevHigh, prevLow, prevClose, out tempReal);
-                        outReal[outIdx++] = TA_IsZero(tempReal) ? 0.0 : diffM / tempReal;
+                        outReal[outIdx++] = !TA_IsZero(tempReal) ? diffM / tempReal : 0.0;
                     }
                     else
                     {
@@ -172,8 +171,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookbackTotal = MinusDILookback();
-
+            int lookbackTotal = MinusDILookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -191,7 +189,7 @@ namespace TALib
             decimal prevClose;
             decimal diffP;
             int outIdx = default;
-            if (optInTimePeriod <= 1)
+            if (optInTimePeriod == 1)
             {
                 outBegIdx = startIdx;
                 today = startIdx - 1;
@@ -210,7 +208,7 @@ namespace TALib
                     if (diffM > Decimal.Zero && diffP < diffM)
                     {
                         TrueRange(prevHigh, prevLow, prevClose, out tempReal);
-                        outReal[outIdx++] = TA_IsZero(tempReal) ? Decimal.Zero : diffM / tempReal;
+                        outReal[outIdx++] = !TA_IsZero(tempReal) ? diffM / tempReal : Decimal.Zero;
                     }
                     else
                     {

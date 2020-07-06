@@ -77,9 +77,9 @@ namespace TALib
                      !TA_CandleColor(inClose, inOpen, i - 2) &&
                      TA_CandleColor(inClose, inOpen, i) &&
                      inClose[i] > inClose[i - 2] +
-                     TA_RealBody(inClose, inOpen, i - 2) * optInPenetration && // 3rd closes well within 1st rb
-                     TA_CandleGapDown(inLow, inHigh, i - 1, i - 2) && // downside gap between 1st and 2nd
-                     TA_CandleGapUp(inLow, inHigh, i, i - 1) // upside gap between 2nd and 3rd
+                     TA_RealBody(inClose, inOpen, i - 2) * optInPenetration &&
+                     TA_CandleGapDown(inLow, inHigh, i - 1, i - 2) &&
+                     TA_CandleGapUp(inLow, inHigh, i, i - 1)
                     )
                 )
                 {
@@ -102,14 +102,14 @@ namespace TALib
                 bodyShortTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static RetCode CdlAbandonedBaby(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement, decimal optInPenetration = 0.3m)
+        public static RetCode CdlAbandonedBaby(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement, decimal optInPenetration = 0.3m)
         {
             outBegIdx = outNbElement = 0;
 
@@ -184,7 +184,8 @@ namespace TALib
                      inClose[i] > inClose[i - 2] +
                      TA_RealBody(inClose, inOpen, i - 2) * optInPenetration &&
                      TA_CandleGapDown(inLow, inHigh, i - 1, i - 2) &&
-                     TA_CandleGapUp(inLow, inHigh, i, i - 1)))
+                     TA_CandleGapUp(inLow, inHigh, i, i - 1))
+                )
                 {
                     outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
                 }
@@ -205,13 +206,13 @@ namespace TALib
                 bodyShortTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        private static int CdlAbandonedBabyLookback() =>
+        public static int CdlAbandonedBabyLookback() =>
             Math.Max(
                 Math.Max(TA_CandleAvgPeriod(CandleSettingType.BodyDoji), TA_CandleAvgPeriod(CandleSettingType.BodyLong)),
                 TA_CandleAvgPeriod(CandleSettingType.BodyShort)

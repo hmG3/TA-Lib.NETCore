@@ -109,7 +109,7 @@ namespace TALib
                 return -1;
             }
 
-            return optInTimePeriod > 1 ? optInTimePeriod + AdxLookback(optInTimePeriod) - 1 : 3;
+            return optInTimePeriod + AdxLookback(optInTimePeriod) - 1;
         }
     }
 }

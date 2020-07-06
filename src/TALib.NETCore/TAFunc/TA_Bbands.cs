@@ -52,7 +52,6 @@ namespace TALib
             RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInMAType, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
-                outNbElement = 0;
                 return retCode;
             }
 
@@ -66,6 +65,7 @@ namespace TALib
                 if (retCode != RetCode.Success)
                 {
                     outNbElement = 0;
+
                     return retCode;
                 }
             }
@@ -182,7 +182,6 @@ namespace TALib
             RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInMAType, optInTimePeriod);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
-                outNbElement = 0;
                 return retCode;
             }
 
@@ -196,6 +195,7 @@ namespace TALib
                 if (retCode != RetCode.Success)
                 {
                     outNbElement = 0;
+
                     return retCode;
                 }
             }

@@ -17,47 +17,44 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod != 1)
+            if (optInTimePeriod == 1)
             {
-                switch (optInMAType)
+                int nbElement = endIdx - startIdx + 1;
+                outNbElement = nbElement;
+                for (int todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx++, todayIdx++)
                 {
-                    case MAType.Sma:
-                        return Sma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Ema:
-                        return Ema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Wma:
-                        return Wma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Dema:
-                        return Dema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Tema:
-                        return Tema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Trima:
-                        return Trima(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Kama:
-                        return Kama(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Mama:
-                        var dummyBuffer = new double[endIdx - startIdx + 1];
-                        return Mama(inReal, startIdx, endIdx, outReal, dummyBuffer, out outBegIdx, out outNbElement);
-                    case MAType.T3:
-                        return T3(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                    outReal[outIdx] = inReal[todayIdx];
                 }
 
-                return RetCode.BadParam;
+                outBegIdx = startIdx;
+
+                return RetCode.Success;
             }
 
-            int nbElement = endIdx - startIdx + 1;
-            outNbElement = nbElement;
-            int todayIdx = startIdx;
-            int outIdx = default;
-            while (outIdx < nbElement)
+            switch (optInMAType)
             {
-                outReal[outIdx] = inReal[todayIdx];
-                outIdx++;
-                todayIdx++;
+                case MAType.Sma:
+                    return Sma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Ema:
+                    return Ema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Wma:
+                    return Wma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Dema:
+                    return Dema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Tema:
+                    return Tema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Trima:
+                    return Trima(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Kama:
+                    return Kama(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Mama:
+                    var dummyBuffer = new double[endIdx - startIdx + 1];
+                    return Mama(inReal, startIdx, endIdx, outReal, dummyBuffer, out outBegIdx, out outNbElement);
+                case MAType.T3:
+                    return T3(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                default:
+                    return RetCode.BadParam;
             }
-
-            outBegIdx = startIdx;
-            return RetCode.Success;
         }
 
         public static RetCode Ma(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
@@ -75,47 +72,44 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (optInTimePeriod != 1)
+            if (optInTimePeriod == 1)
             {
-                switch (optInMAType)
+                int nbElement = endIdx - startIdx + 1;
+                outNbElement = nbElement;
+                for (int todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx++, todayIdx++)
                 {
-                    case MAType.Sma:
-                        return Sma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Ema:
-                        return Ema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Wma:
-                        return Wma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Dema:
-                        return Dema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Tema:
-                        return Tema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Trima:
-                        return Trima(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Kama:
-                        return Kama(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-                    case MAType.Mama:
-                        var dummyBuffer = new decimal[endIdx - startIdx + 1];
-                        return Mama(inReal, startIdx, endIdx, outReal, dummyBuffer, out outBegIdx, out outNbElement);
-                    case MAType.T3:
-                        return T3(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                    outReal[outIdx] = inReal[todayIdx];
                 }
 
-                return RetCode.BadParam;
+                outBegIdx = startIdx;
+
+                return RetCode.Success;
             }
 
-            int nbElement = endIdx - startIdx + 1;
-            outNbElement = nbElement;
-            int todayIdx = startIdx;
-            int outIdx = default;
-            while (outIdx < nbElement)
+            switch (optInMAType)
             {
-                outReal[outIdx] = inReal[todayIdx];
-                outIdx++;
-                todayIdx++;
+                case MAType.Sma:
+                    return Sma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Ema:
+                    return Ema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Wma:
+                    return Wma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Dema:
+                    return Dema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Tema:
+                    return Tema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Trima:
+                    return Trima(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Kama:
+                    return Kama(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                case MAType.Mama:
+                    var dummyBuffer = new decimal[endIdx - startIdx + 1];
+                    return Mama(inReal, startIdx, endIdx, outReal, dummyBuffer, out outBegIdx, out outNbElement);
+                case MAType.T3:
+                    return T3(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                default:
+                    return RetCode.BadParam;
             }
-
-            outBegIdx = startIdx;
-            return RetCode.Success;
         }
 
         public static int MaLookback(MAType optInMAType, int optInTimePeriod = 30)
@@ -125,7 +119,7 @@ namespace TALib
                 return -1;
             }
 
-            if (optInTimePeriod <= 1)
+            if (optInTimePeriod == 1)
             {
                 return 0;
             }

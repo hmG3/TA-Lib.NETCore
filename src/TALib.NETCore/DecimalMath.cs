@@ -429,7 +429,7 @@ namespace TALib
             {
                 Decimal.Zero => PIdiv2,
                 Decimal.One => Decimal.Zero,
-                _ => (x < Decimal.Zero ? PI - Acos(-x) : PIdiv2 - Asin(x))
+                _ => x < Decimal.Zero ? PI - Acos(-x) : PIdiv2 - Asin(x)
             };
         }
 

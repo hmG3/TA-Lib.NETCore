@@ -19,9 +19,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < optInTimePeriod)
+            int lookbackTotal = RocRLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = optInTimePeriod;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -31,7 +32,7 @@ namespace TALib
 
             int outIdx = default;
             int inIdx = startIdx;
-            int trailingIdx = startIdx - optInTimePeriod;
+            int trailingIdx = startIdx - lookbackTotal;
             while (inIdx <= endIdx)
             {
                 double tempReal = inReal[trailingIdx++];
@@ -39,8 +40,8 @@ namespace TALib
                 inIdx++;
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -60,9 +61,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < optInTimePeriod)
+            int lookbackTotal = RocRLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = optInTimePeriod;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -72,7 +74,7 @@ namespace TALib
 
             int outIdx = default;
             int inIdx = startIdx;
-            int trailingIdx = startIdx - optInTimePeriod;
+            int trailingIdx = startIdx - lookbackTotal;
             while (inIdx <= endIdx)
             {
                 decimal tempReal = inReal[trailingIdx++];
@@ -80,8 +82,8 @@ namespace TALib
                 inIdx++;
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

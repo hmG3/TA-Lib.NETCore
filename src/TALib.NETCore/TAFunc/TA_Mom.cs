@@ -17,9 +17,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < optInTimePeriod)
+            int lookbackTotal = MomLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = optInTimePeriod;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -29,14 +30,14 @@ namespace TALib
 
             int outIdx = default;
             int inIdx = startIdx;
-            int trailingIdx = startIdx - optInTimePeriod;
+            int trailingIdx = startIdx - lookbackTotal;
             while (inIdx <= endIdx)
             {
                 outReal[outIdx++] = inReal[inIdx++] - inReal[trailingIdx++];
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
@@ -56,9 +57,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            if (startIdx < optInTimePeriod)
+            int lookbackTotal = MomLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = optInTimePeriod;
+                startIdx = lookbackTotal;
             }
 
             if (startIdx > endIdx)
@@ -68,14 +70,14 @@ namespace TALib
 
             int outIdx = default;
             int inIdx = startIdx;
-            int trailingIdx = startIdx - optInTimePeriod;
+            int trailingIdx = startIdx - lookbackTotal;
             while (inIdx <= endIdx)
             {
                 outReal[outIdx++] = inReal[inIdx++] - inReal[trailingIdx++];
             }
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

@@ -4,8 +4,8 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode CdlClosingMarubozu(int startIdx, int endIdx, double[] inOpen, double[] inHigh, double[] inLow,
-            double[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlClosingMarubozu(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -83,14 +83,14 @@ namespace TALib
                 shadowVeryShortTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static RetCode CdlClosingMarubozu(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh,
-            decimal[] inLow, decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlClosingMarubozu(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -138,7 +138,7 @@ namespace TALib
             {
                 if (TA_RealBody(inClose, inOpen, i) >
                     TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyLong, bodyLongPeriodTotal, i) && // long body
-                                                                                                                            // white body and very short lower shadow
+                    // white body and very short lower shadow
                     (TA_CandleColor(inClose, inOpen, i) &&
                      TA_UpperShadow(inHigh, inClose, inOpen, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                          CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i)
@@ -168,8 +168,8 @@ namespace TALib
                 shadowVeryShortTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

@@ -51,14 +51,7 @@ namespace TALib
             double trailingX = inReal0[trailingIdx];
             double trailingY = inReal1[trailingIdx++];
             double tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-            if (!TA_IsZeroOrNeg(tempReal))
-            {
-                outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal);
-            }
-            else
-            {
-                outReal[0] = 0.0;
-            }
+            outReal[0] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal) : 0.0;
 
             int outIdx = 1;
             while (today <= endIdx)
@@ -82,14 +75,7 @@ namespace TALib
                 trailingX = inReal0[trailingIdx];
                 trailingY = inReal1[trailingIdx++];
                 tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-                if (!TA_IsZeroOrNeg(tempReal))
-                {
-                    outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal);
-                }
-                else
-                {
-                    outReal[outIdx++] = 0.0;
-                }
+                outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal) : 0.0;
             }
 
             outNbElement = outIdx;
@@ -144,14 +130,7 @@ namespace TALib
             decimal trailingX = inReal0[trailingIdx];
             decimal trailingY = inReal1[trailingIdx++];
             decimal tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-            if (!TA_IsZeroOrNeg(tempReal))
-            {
-                outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal);
-            }
-            else
-            {
-                outReal[0] = Decimal.Zero;
-            }
+            outReal[0] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal) : Decimal.Zero;
 
             int outIdx = 1;
             while (today <= endIdx)
@@ -175,14 +154,9 @@ namespace TALib
                 trailingX = inReal0[trailingIdx];
                 trailingY = inReal1[trailingIdx++];
                 tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-                if (!TA_IsZeroOrNeg(tempReal))
-                {
-                    outReal[outIdx++] = (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal);
-                }
-                else
-                {
-                    outReal[outIdx++] = Decimal.Zero;
-                }
+                outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal)
+                    ? (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal)
+                    : Decimal.Zero;
             }
 
             outNbElement = outIdx;

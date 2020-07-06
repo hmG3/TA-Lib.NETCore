@@ -20,7 +20,6 @@ namespace TALib
             }
 
             int lookbackTotal = MinusDMLookback(optInTimePeriod);
-
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -37,7 +36,7 @@ namespace TALib
             double prevHigh;
             double diffP;
             int outIdx = default;
-            if (optInTimePeriod <= 1)
+            if (optInTimePeriod == 1)
             {
                 outBegIdx = startIdx;
                 today = startIdx - 1;
@@ -56,6 +55,7 @@ namespace TALib
                 }
 
                 outNbElement = outIdx;
+
                 return RetCode.Success;
             }
 
@@ -147,7 +147,6 @@ namespace TALib
             }
 
             int lookbackTotal = MinusDMLookback(optInTimePeriod);
-
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -164,7 +163,7 @@ namespace TALib
             decimal prevHigh;
             decimal diffP;
             int outIdx = default;
-            if (optInTimePeriod <= 1)
+            if (optInTimePeriod == 1)
             {
                 outBegIdx = startIdx;
                 today = startIdx - 1;
@@ -183,6 +182,7 @@ namespace TALib
                 }
 
                 outNbElement = outIdx;
+
                 return RetCode.Success;
             }
 

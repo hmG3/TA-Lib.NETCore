@@ -112,14 +112,14 @@ namespace TALib
                 i++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static RetCode CdlHikkakeMod(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlHikkakeMod(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -172,7 +172,7 @@ namespace TALib
                     patternIdx = i;
                 }
                 else
-                /* search for confirmation if modified hikkake was no more than 3 bars ago */
+                    /* search for confirmation if modified hikkake was no more than 3 bars ago */
                 if (i <= patternIdx + 3 &&
                     (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] // close higher than the high of 3rd
                      ||
@@ -206,7 +206,7 @@ namespace TALib
                     outInteger[outIdx++] = patternResult;
                 }
                 else
-                /* search for confirmation if modified hikkake was no more than 3 bars ago */
+                    /* search for confirmation if modified hikkake was no more than 3 bars ago */
                 if (i <= patternIdx + 3 &&
                     (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] // close higher than the high of 3rd
                      ||
@@ -226,8 +226,8 @@ namespace TALib
                 i++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }

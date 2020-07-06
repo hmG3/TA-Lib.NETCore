@@ -9,27 +9,12 @@ namespace TALib
         {
             outBegIdx = outNbElement = 0;
 
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -45,7 +30,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            if (optInTimePeriod <= 1)
+            if (optInTimePeriod == 1)
             {
                 return TRange(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
             }
@@ -70,29 +55,20 @@ namespace TALib
             while (outIdx != 0)
             {
                 prevATR *= optInTimePeriod - 1;
-                prevATR += tempBuffer[today];
-                today++;
+                prevATR += tempBuffer[today++];
                 prevATR /= optInTimePeriod;
                 outIdx--;
             }
 
             outIdx = 1;
             double tempValue = inClose[today];
-            if (!TA_IsZero(tempValue))
-            {
-                outReal[0] = prevATR / tempValue * 100.0;
-            }
-            else
-            {
-                outReal[0] = 0.0;
-            }
+            outReal[0] = !TA_IsZero(tempValue) ? prevATR / tempValue * 100.0 : 0.0;
 
             int nbATR = endIdx - startIdx + 1;
             while (--nbATR != 0)
             {
                 prevATR *= optInTimePeriod - 1;
-                prevATR += tempBuffer[today];
-                today++;
+                prevATR += tempBuffer[today++];
                 prevATR /= optInTimePeriod;
                 tempValue = inClose[today];
                 if (!TA_IsZero(tempValue))
@@ -118,27 +94,12 @@ namespace TALib
         {
             outBegIdx = outNbElement = 0;
 
-            if (startIdx < 0)
+            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
             {
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeEndIndex;
-            }
-
-            if (inHigh == null || inLow == null || inClose == null)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (optInTimePeriod < 1 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            if (outReal == null)
+            if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
                 return RetCode.BadParam;
             }
@@ -154,7 +115,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            if (optInTimePeriod <= 1)
+            if (optInTimePeriod == 1)
             {
                 return TRange(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
             }
@@ -179,29 +140,20 @@ namespace TALib
             while (outIdx != 0)
             {
                 prevATR *= optInTimePeriod - 1;
-                prevATR += tempBuffer[today];
-                today++;
+                prevATR += tempBuffer[today++];
                 prevATR /= optInTimePeriod;
                 outIdx--;
             }
 
             outIdx = 1;
             decimal tempValue = inClose[today];
-            if (!TA_IsZero(tempValue))
-            {
-                outReal[0] = prevATR / tempValue * 100m;
-            }
-            else
-            {
-                outReal[0] = Decimal.Zero;
-            }
+            outReal[0] = !TA_IsZero(tempValue) ? prevATR / tempValue * 100m : Decimal.Zero;
 
             int nbATR = endIdx - startIdx + 1;
             while (--nbATR != 0)
             {
                 prevATR *= optInTimePeriod - 1;
-                prevATR += tempBuffer[today];
-                today++;
+                prevATR += tempBuffer[today++];
                 prevATR /= optInTimePeriod;
                 tempValue = inClose[today];
                 if (!TA_IsZero(tempValue))

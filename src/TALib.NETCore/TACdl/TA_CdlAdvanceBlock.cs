@@ -172,14 +172,14 @@ namespace TALib
                 bodyLongTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        public static RetCode CdlAdvanceBlock(int startIdx, int endIdx, decimal[] inOpen, decimal[] inHigh, decimal[] inLow,
-            decimal[] inClose, int[] outInteger, out int outBegIdx, out int outNbElement)
+        public static RetCode CdlAdvanceBlock(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+            int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
 
@@ -346,13 +346,13 @@ namespace TALib
                 bodyLongTrailingIdx++;
             } while (i <= endIdx);
 
-            outNbElement = outIdx;
             outBegIdx = startIdx;
+            outNbElement = outIdx;
 
             return RetCode.Success;
         }
 
-        private static int CdlAdvanceBlockLookback() =>
+        public static int CdlAdvanceBlockLookback() =>
             Math.Max(
                 Math.Max(
                     Math.Max(TA_CandleAvgPeriod(CandleSettingType.ShadowLong), TA_CandleAvgPeriod(CandleSettingType.ShadowShort)),

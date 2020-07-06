@@ -38,7 +38,7 @@ namespace TALib
             {
                 double sumXY = default;
                 double sumY = default;
-                for (int i = optInTimePeriod; i != 0; i--)
+                for (int i = optInTimePeriod; i-- != 0;)
                 {
                     double tempValue1 = inReal[today - i];
                     sumY += tempValue1;
@@ -92,7 +92,7 @@ namespace TALib
             {
                 decimal sumXY = default;
                 decimal sumY = default;
-                for (int i = optInTimePeriod; i != 0; i--)
+                for (int i = optInTimePeriod; i-- != 0;)
                 {
                     decimal tempValue1 = inReal[today - i];
                     sumY += tempValue1;

@@ -7,56 +7,54 @@ namespace TALib
     {
         private const double TA_EPSILON = 0.00000000000001;
 
-        private static double TA_RealBody(in IReadOnlyList<double> close, in IReadOnlyList<double> open, int idx)
+        private static double TA_RealBody(IReadOnlyList<double> close, IReadOnlyList<double> open, int idx)
         {
             return Math.Abs(close[idx] - open[idx]);
         }
 
-        private static decimal TA_RealBody(in IReadOnlyList<decimal> close, in IReadOnlyList<decimal> open, int idx)
+        private static decimal TA_RealBody(IReadOnlyList<decimal> close, IReadOnlyList<decimal> open, int idx)
         {
             return Math.Abs(close[idx] - open[idx]);
         }
 
-        private static double TA_UpperShadow(in IReadOnlyList<double> high, in IReadOnlyList<double> close, in IReadOnlyList<double> open,
+        private static double TA_UpperShadow(IReadOnlyList<double> high, IReadOnlyList<double> close, IReadOnlyList<double> open, int idx)
+        {
+            return high[idx] - (close[idx] >= open[idx] ? close[idx] : open[idx]);
+        }
+
+        private static decimal TA_UpperShadow(IReadOnlyList<decimal> high, IReadOnlyList<decimal> close, IReadOnlyList<decimal> open,
             int idx)
         {
             return high[idx] - (close[idx] >= open[idx] ? close[idx] : open[idx]);
         }
 
-        private static decimal TA_UpperShadow(in IReadOnlyList<decimal> high, in IReadOnlyList<decimal> close,
-            in IReadOnlyList<decimal> open, int idx)
+        private static double TA_LowerShadow(IReadOnlyList<double> close, IReadOnlyList<double> open, IReadOnlyList<double> low, int idx)
         {
-            return high[idx] - (close[idx] >= open[idx] ? close[idx] : open[idx]);
+            return (close[idx] >= open[idx] ? open[idx] : close[idx]) - low[idx];
         }
 
-        private static double TA_LowerShadow(in IReadOnlyList<double> close, in IReadOnlyList<double> open, in IReadOnlyList<double> low,
+        private static decimal TA_LowerShadow(IReadOnlyList<decimal> close, IReadOnlyList<decimal> open, IReadOnlyList<decimal> low,
             int idx)
         {
             return (close[idx] >= open[idx] ? open[idx] : close[idx]) - low[idx];
         }
 
-        private static decimal TA_LowerShadow(in IReadOnlyList<decimal> close, in IReadOnlyList<decimal> open,
-            in IReadOnlyList<decimal> low, int idx)
-        {
-            return (close[idx] >= open[idx] ? open[idx] : close[idx]) - low[idx];
-        }
-
-        private static double TA_HighLowRange(in IReadOnlyList<double> high, in IReadOnlyList<double> low, int idx)
+        private static double TA_HighLowRange(IReadOnlyList<double> high, IReadOnlyList<double> low, int idx)
         {
             return high[idx] - low[idx];
         }
 
-        private static decimal TA_HighLowRange(in IReadOnlyList<decimal> high, in IReadOnlyList<decimal> low, int idx)
+        private static decimal TA_HighLowRange(IReadOnlyList<decimal> high, IReadOnlyList<decimal> low, int idx)
         {
             return high[idx] - low[idx];
         }
 
-        private static bool TA_CandleColor(in IReadOnlyList<double> close, in IReadOnlyList<double> open, int idx)
+        private static bool TA_CandleColor(IReadOnlyList<double> close, IReadOnlyList<double> open, int idx)
         {
             return close[idx] >= open[idx];
         }
 
-        private static bool TA_CandleColor(in IReadOnlyList<decimal> close, in IReadOnlyList<decimal> open, int idx)
+        private static bool TA_CandleColor(IReadOnlyList<decimal> close, IReadOnlyList<decimal> open, int idx)
         {
             return close[idx] >= open[idx];
         }
@@ -76,40 +74,40 @@ namespace TALib
             return Globals.CandleSettings[(int) set].Factor;
         }
 
-        private static double TA_CandleRange(in IReadOnlyList<double> open, in IReadOnlyList<double> high, in IReadOnlyList<double> low,
-            in IReadOnlyList<double> close, CandleSettingType set, int idx)
+        private static double TA_CandleRange(IReadOnlyList<double> open, IReadOnlyList<double> high, IReadOnlyList<double> low,
+            IReadOnlyList<double> close, CandleSettingType set, int idx)
         {
             return TA_CandleRangeType(set) switch
             {
                 RangeType.RealBody => TA_RealBody(close, open, idx),
                 RangeType.HighLow => TA_HighLowRange(high, low, idx),
-                RangeType.Shadows => (TA_UpperShadow(high, close, open, idx) + TA_LowerShadow(close, open, low, idx)),
+                RangeType.Shadows => TA_UpperShadow(high, close, open, idx) + TA_LowerShadow(close, open, low, idx),
                 _ => 0
             };
         }
 
-        private static decimal TA_CandleRange(in IReadOnlyList<decimal> open, in IReadOnlyList<decimal> high, in IReadOnlyList<decimal> low,
-            in IReadOnlyList<decimal> close, CandleSettingType set, int idx)
+        private static decimal TA_CandleRange(IReadOnlyList<decimal> open, IReadOnlyList<decimal> high, IReadOnlyList<decimal> low,
+            IReadOnlyList<decimal> close, CandleSettingType set, int idx)
         {
             return TA_CandleRangeType(set) switch
             {
                 RangeType.RealBody => TA_RealBody(close, open, idx),
                 RangeType.HighLow => TA_HighLowRange(high, low, idx),
-                RangeType.Shadows => (TA_UpperShadow(high, close, open, idx) + TA_LowerShadow(close, open, low, idx)),
+                RangeType.Shadows => TA_UpperShadow(high, close, open, idx) + TA_LowerShadow(close, open, low, idx),
                 _ => 0
             };
         }
 
-        private static double TA_CandleAverage(in IReadOnlyList<double> open, in IReadOnlyList<double> high, in IReadOnlyList<double> low,
-            in IReadOnlyList<double> close, CandleSettingType set, double sum, int idx)
+        private static double TA_CandleAverage(IReadOnlyList<double> open, IReadOnlyList<double> high, IReadOnlyList<double> low,
+            IReadOnlyList<double> close, CandleSettingType set, double sum, int idx)
         {
             return TA_CandleFactor(set) * (TA_CandleAvgPeriod(set) != 0
                 ? sum / TA_CandleAvgPeriod(set)
                 : TA_CandleRange(open, high, low, close, set, idx)) / (TA_CandleRangeType(set) == RangeType.Shadows ? 2.0 : 1.0);
         }
 
-        private static decimal TA_CandleAverage(in IReadOnlyList<decimal> open, in IReadOnlyList<decimal> high,
-            in IReadOnlyList<decimal> low, in IReadOnlyList<decimal> close, CandleSettingType set, decimal sum, int idx)
+        private static decimal TA_CandleAverage(IReadOnlyList<decimal> open, IReadOnlyList<decimal> high, IReadOnlyList<decimal> low,
+            IReadOnlyList<decimal> close, CandleSettingType set, decimal sum, int idx)
         {
             return (decimal) TA_CandleFactor(set) * (TA_CandleAvgPeriod(set) != 0
                        ? sum / TA_CandleAvgPeriod(set)
@@ -142,17 +140,17 @@ namespace TALib
             return low[idx2] > high[idx1];
         }
 
-        private static bool TA_CandleGapUp(in IReadOnlyList<decimal> low, in IReadOnlyList<decimal> high, int idx2, int idx1)
+        private static bool TA_CandleGapUp(IReadOnlyList<decimal> low, IReadOnlyList<decimal> high, int idx2, int idx1)
         {
             return low[idx2] > high[idx1];
         }
 
-        private static bool TA_CandleGapDown(in IReadOnlyList<double> low, in IReadOnlyList<double> high, int idx2, int idx1)
+        private static bool TA_CandleGapDown(IReadOnlyList<double> low, IReadOnlyList<double> high, int idx2, int idx1)
         {
             return high[idx2] < low[idx1];
         }
 
-        private static bool TA_CandleGapDown(in IReadOnlyList<decimal> low, in IReadOnlyList<decimal> high, int idx2, int idx1)
+        private static bool TA_CandleGapDown(IReadOnlyList<decimal> low, IReadOnlyList<decimal> high, int idx2, int idx1)
         {
             return high[idx2] < low[idx1];
         }
@@ -241,8 +239,8 @@ namespace TALib
             return variables;
         }
 
-        private static void DoHilbertTransform(IDictionary<string, double> variables, in string varName, double input,
-            in string oddOrEvenId, int hilbertIdx, double adjustedPrevPeriod)
+        private static void DoHilbertTransform(IDictionary<string, double> variables, string varName, double input, string oddOrEvenId,
+            int hilbertIdx, double adjustedPrevPeriod)
         {
             const double a = 0.0962;
             const double b = 0.5769;
@@ -258,8 +256,8 @@ namespace TALib
             variables[varName] *= adjustedPrevPeriod;
         }
 
-        private static void DoHilbertTransform(IDictionary<string, decimal> variables, in string varName, decimal input,
-            in string oddOrEvenId, int hilbertIdx, decimal adjustedPrevPeriod)
+        private static void DoHilbertTransform(IDictionary<string, decimal> variables, string varName, decimal input, string oddOrEvenId,
+            int hilbertIdx, decimal adjustedPrevPeriod)
         {
             const decimal a = 0.0962m;
             const decimal b = 0.5769m;
@@ -275,32 +273,32 @@ namespace TALib
             variables[varName] *= adjustedPrevPeriod;
         }
 
-        private static void DoHilbertOdd(IDictionary<string, double> variables, in string varName, double input, int hilbertIdx,
+        private static void DoHilbertOdd(IDictionary<string, double> variables, string varName, double input, int hilbertIdx,
             double adjustedPrevPeriod)
         {
             DoHilbertTransform(variables, varName, input, "Odd", hilbertIdx, adjustedPrevPeriod);
         }
 
-        private static void DoHilbertOdd(IDictionary<string, decimal> variables, in string varName, decimal input, int hilbertIdx,
+        private static void DoHilbertOdd(IDictionary<string, decimal> variables, string varName, decimal input, int hilbertIdx,
             decimal adjustedPrevPeriod)
         {
             DoHilbertTransform(variables, varName, input, "Odd", hilbertIdx, adjustedPrevPeriod);
         }
 
-        private static void DoHilbertEven(IDictionary<string, double> variables, in string varName, double input, int hilbertIdx,
+        private static void DoHilbertEven(IDictionary<string, double> variables, string varName, double input, int hilbertIdx,
             double adjustedPrevPeriod)
         {
             DoHilbertTransform(variables, varName, input, "Even", hilbertIdx, adjustedPrevPeriod);
         }
 
-        private static void DoHilbertEven(IDictionary<string, decimal> variables, in string varName, decimal input, int hilbertIdx,
+        private static void DoHilbertEven(IDictionary<string, decimal> variables, string varName, decimal input, int hilbertIdx,
             decimal adjustedPrevPeriod)
         {
             DoHilbertTransform(variables, varName, input, "Even", hilbertIdx, adjustedPrevPeriod);
         }
 
-        private static void CalcTerms(double[] inLow, double[] inHigh, double[] inClose, int day, out double trueRange,
-            out double closeMinusTrueLow)
+        private static void CalcTerms(IReadOnlyList<double> inLow, IReadOnlyList<double> inHigh, IReadOnlyList<double> inClose, int day,
+            out double trueRange, out double closeMinusTrueLow)
         {
             double tempLT = inLow[day];
             double tempHT = inHigh[day];
@@ -321,8 +319,8 @@ namespace TALib
             }
         }
 
-        private static void CalcTerms(decimal[] inLow, decimal[] inHigh, decimal[] inClose, int day, out decimal trueRange,
-            out decimal closeMinusTrueLow)
+        private static void CalcTerms(IReadOnlyList<decimal> inLow, IReadOnlyList<decimal> inHigh, IReadOnlyList<decimal> inClose, int day,
+            out decimal trueRange, out decimal closeMinusTrueLow)
         {
             decimal tempLT = inLow[day];
             decimal tempHT = inHigh[day];

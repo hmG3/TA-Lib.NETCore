@@ -2,7 +2,7 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode Obv(double[] inReal, int startIdx, int endIdx, double[] inVolume, double[] outReal, out int outBegIdx,
+        public static RetCode Obv(double[] inReal, double[] inVolume, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
             out int outNbElement)
         {
             outBegIdx = outNbElement = 0;
@@ -43,7 +43,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Obv(decimal[] inReal, int startIdx, int endIdx, decimal[] inVolume, decimal[] outReal, out int outBegIdx,
+        public static RetCode Obv(decimal[] inReal, decimal[] inVolume, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
             out int outNbElement)
         {
             outBegIdx = outNbElement = 0;

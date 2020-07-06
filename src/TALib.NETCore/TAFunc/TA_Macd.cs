@@ -56,10 +56,7 @@ namespace TALib
 
             if (optInSlowPeriod < optInFastPeriod)
             {
-                int tempInteger = optInSlowPeriod;
                 optInSlowPeriod = optInFastPeriod;
-                //TODO check
-                optInFastPeriod = tempInteger;
             }
 
             return EmaLookback(optInSlowPeriod) + EmaLookback(optInSignalPeriod);

@@ -19,10 +19,6 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            double tempReal;
-            const double constMax = 2.0 / (30.0 + 1.0);
-            const double constDiff = 2.0 / (2.0 + 1.0) - constMax;
-
             int lookbackTotal = KamaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
@@ -34,7 +30,11 @@ namespace TALib
                 return RetCode.Success;
             }
 
+            const double constMax = 2.0 / (30.0 + 1.0);
+            const double constDiff = 2.0 / (2.0 + 1.0) - constMax;
+
             double sumROC1 = default;
+            double tempReal;
             int today = startIdx - lookbackTotal;
             int trailingIdx = today;
             int i = optInTimePeriod;
@@ -139,10 +139,6 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            decimal tempReal;
-            const decimal constMax = 2m / (30m + Decimal.One);
-            const decimal constDiff = 2m / (2m + Decimal.One) - constMax;
-
             int lookbackTotal = KamaLookback(optInTimePeriod);
             if (startIdx < lookbackTotal)
             {
@@ -154,7 +150,11 @@ namespace TALib
                 return RetCode.Success;
             }
 
+            const decimal constMax = 2m / (30m + Decimal.One);
+            const decimal constDiff = 2m / (2m + Decimal.One) - constMax;
+
             decimal sumROC1 = default;
+            decimal tempReal;
             int today = startIdx - lookbackTotal;
             int trailingIdx = today;
             int i = optInTimePeriod;
@@ -244,7 +244,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        private static int KamaLookback(int optInTimePeriod = 30)
+        public static int KamaLookback(int optInTimePeriod = 30)
         {
             if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
