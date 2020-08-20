@@ -1,9 +1,11 @@
+using System;
+
 namespace TALib
 {
     public static partial class Core
     {
         public static RetCode Apo(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
-            MAType optInMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26)
+            MAType optInMAType = MAType.Sma, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
             outBegIdx = outNbElement = 0;
 
@@ -25,7 +27,7 @@ namespace TALib
         }
 
         public static RetCode Apo(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
-            MAType optInMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26)
+            MAType optInMAType = MAType.Sma, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
             outBegIdx = outNbElement = 0;
 
@@ -46,14 +48,14 @@ namespace TALib
                 optInMAType, tempBuffer, false);
         }
 
-        public static int ApoLookback(MAType optInMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26)
+        public static int ApoLookback(MAType optInMAType = MAType.Sma, int optInFastPeriod = 12, int optInSlowPeriod = 26)
         {
             if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000)
             {
                 return -1;
             }
 
-            return MaLookback(optInMAType, optInSlowPeriod <= optInFastPeriod ? optInFastPeriod : optInSlowPeriod);
+            return MaLookback(optInMAType, Math.Max(optInSlowPeriod, optInFastPeriod));
         }
     }
 }

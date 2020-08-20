@@ -42,6 +42,6 @@ namespace TALib
                 optInSignalPeriod);
         }
 
-        public static int MacdFixLookback(int optInSignalPeriod) => EmaLookback(26) + EmaLookback(optInSignalPeriod);
+        public static int MacdFixLookback(int optInSignalPeriod = 9) => EmaLookback(26) + EmaLookback(optInSignalPeriod);
     }
 }

@@ -5,7 +5,7 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode StochF(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outFastK,
-            double[] outFastD, out int outBegIdx, out int outNbElement, MAType optInFastDMAType, int optInFastKPeriod = 5,
+            double[] outFastD, out int outBegIdx, out int outNbElement, MAType optInFastDMAType = MAType.Sma, int optInFastKPeriod = 5,
             int optInFastDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
@@ -126,7 +126,7 @@ namespace TALib
         }
 
         public static RetCode StochF(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outFastK,
-            decimal[] outFastD, out int outBegIdx, out int outNbElement, MAType optInFastDMAType, int optInFastKPeriod = 5,
+            decimal[] outFastD, out int outBegIdx, out int outNbElement, MAType optInFastDMAType = MAType.Sma, int optInFastKPeriod = 5,
             int optInFastDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
@@ -246,7 +246,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int StochFLookback(MAType optInFastDMAType, int optInFastKPeriod = 5, int optInFastDPeriod = 3)
+        public static int StochFLookback(MAType optInFastDMAType = MAType.Sma, int optInFastKPeriod = 5, int optInFastDPeriod = 3)
         {
             if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInFastDPeriod < 1 || optInFastDPeriod > 100000)
             {

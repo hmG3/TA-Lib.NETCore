@@ -5,8 +5,8 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode Stoch(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outSlowK,
-            double[] outSlowD, out int outBegIdx, out int outNbElement, MAType optInSlowKMAType, MAType optInSlowDMAType,
-            int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
+            double[] outSlowD, out int outBegIdx, out int outNbElement, MAType optInSlowKMAType = MAType.Sma,
+            MAType optInSlowDMAType = MAType.Sma, int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
 
@@ -135,8 +135,8 @@ namespace TALib
         }
 
         public static RetCode Stoch(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outSlowK,
-            decimal[] outSlowD, out int outBegIdx, out int outNbElement, MAType optInSlowKMAType, MAType optInSlowDMAType,
-            int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
+            decimal[] outSlowD, out int outBegIdx, out int outNbElement, MAType optInSlowKMAType = MAType.Sma,
+            MAType optInSlowDMAType = MAType.Sma, int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
 
@@ -264,8 +264,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int StochLookback(MAType optInSlowKMAType, MAType optInSlowDmaType, int optInFastKPeriod = 5,
-            int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
+        public static int StochLookback(MAType optInSlowKMAType = MAType.Sma, MAType optInSlowDMAType = MAType.Sma,
+            int optInFastKPeriod = 5, int optInSlowKPeriod = 3, int optInSlowDPeriod = 3)
         {
             if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 ||
                 optInSlowDPeriod < 1 || optInSlowDPeriod > 100000)
@@ -275,7 +275,7 @@ namespace TALib
 
             int retValue = optInFastKPeriod - 1;
             retValue += MaLookback(optInSlowKMAType, optInSlowKPeriod);
-            retValue += MaLookback(optInSlowDmaType, optInSlowDPeriod);
+            retValue += MaLookback(optInSlowDMAType, optInSlowDPeriod);
 
             return retValue;
         }

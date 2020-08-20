@@ -3,7 +3,7 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode Mavp(double[] inReal, double[] inPeriods, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
-            out int outNbElement, MAType optInMAType, int optInMinPeriod = 2, int optInMaxPeriod = 30)
+            out int outNbElement, MAType optInMAType = MAType.Sma, int optInMinPeriod = 2, int optInMaxPeriod = 30)
         {
             outBegIdx = outNbElement = 0;
 
@@ -83,7 +83,7 @@ namespace TALib
         }
 
         public static RetCode Mavp(decimal[] inReal, decimal[] inPeriods, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
-            out int outNbElement, MAType optInMAType, int optInMinPeriod = 2, int optInMaxPeriod = 30)
+            out int outNbElement, MAType optInMAType = MAType.Sma, int optInMinPeriod = 2, int optInMaxPeriod = 30)
         {
             outBegIdx = outNbElement = 0;
 
@@ -162,7 +162,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int MavpLookback(MAType optInMAType, int optInMaxPeriod = 30)
+        public static int MavpLookback(MAType optInMAType = MAType.Sma, int optInMaxPeriod = 30)
         {
             if (optInMaxPeriod < 2 || optInMaxPeriod > 100000)
             {

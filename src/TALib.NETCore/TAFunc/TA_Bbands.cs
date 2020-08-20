@@ -5,7 +5,7 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode Bbands(double[] inReal, int startIdx, int endIdx, double[] outRealUpperBand, double[] outRealMiddleBand,
-            double[] outRealLowerBand, out int outBegIdx, out int outNbElement, MAType optInMAType, int optInTimePeriod = 5,
+            double[] outRealLowerBand, out int outBegIdx, out int outNbElement, MAType optInMAType = MAType.Sma, int optInTimePeriod = 5,
             double optInNbDevUp = 2.0, double optInNbDevDn = 2.0)
         {
             outBegIdx = outNbElement = 0;
@@ -135,7 +135,7 @@ namespace TALib
         }
 
         public static RetCode Bbands(decimal[] inReal, int startIdx, int endIdx, decimal[] outRealUpperBand, decimal[] outRealMiddleBand,
-            decimal[] outRealLowerBand, out int outBegIdx, out int outNbElement, MAType optInMAType, int optInTimePeriod = 5,
+            decimal[] outRealLowerBand, out int outBegIdx, out int outNbElement, MAType optInMAType = MAType.Sma, int optInTimePeriod = 5,
             decimal optInNbDevUp = 2m, decimal optInNbDevDn = 2m)
         {
             outBegIdx = outNbElement = 0;
@@ -264,7 +264,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int BbandsLookback(MAType optInMAType, int optInTimePeriod = 5)
+        public static int BbandsLookback(MAType optInMAType = MAType.Sma, int optInTimePeriod = 5)
         {
             if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {

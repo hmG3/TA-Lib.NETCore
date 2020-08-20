@@ -5,8 +5,9 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode MacdExt(double[] inReal, int startIdx, int endIdx, double[] outMacd, double[] outMacdSignal,
-            double[] outMacdHist, out int outBegIdx, out int outNbElement, MAType optInFastMAType, MAType optInSlowMAType,
-            MAType optInSignalMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
+            double[] outMacdHist, out int outBegIdx, out int outNbElement, MAType optInFastMAType = MAType.Sma,
+            MAType optInSlowMAType = MAType.Sma, MAType optInSignalMAType = MAType.Sma, int optInFastPeriod = 12, int optInSlowPeriod = 26,
+            int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -96,8 +97,9 @@ namespace TALib
         }
 
         public static RetCode MacdExt(decimal[] inReal, int startIdx, int endIdx, decimal[] outMacd, decimal[] outMacdSignal,
-            decimal[] outMacdHist, out int outBegIdx, out int outNbElement, MAType optInFastMAType, MAType optInSlowMAType,
-            MAType optInSignalMAType, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
+            decimal[] outMacdHist, out int outBegIdx, out int outNbElement, MAType optInFastMAType = MAType.Sma,
+            MAType optInSlowMAType = MAType.Sma, MAType optInSignalMAType = MAType.Sma, int optInFastPeriod = 12, int optInSlowPeriod = 26,
+            int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -186,8 +188,8 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int MacdExtLookback(MAType optInFastMAType, MAType optInSlowMAType, MAType optInSignalMAType,
-            int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
+        public static int MacdExtLookback(MAType optInFastMAType = MAType.Sma, MAType optInSlowMAType = MAType.Sma,
+            MAType optInSignalMAType = MAType.Sma, int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
         {
             if (optInFastPeriod < 2 || optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000 ||
                 optInSignalPeriod < 1 || optInSignalPeriod > 100000)

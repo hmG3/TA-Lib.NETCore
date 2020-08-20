@@ -3,7 +3,8 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode StochRsi(double[] inReal, int startIdx, int endIdx, double[] outFastK, double[] outFastD, out int outBegIdx,
-            out int outNbElement, MAType optInFastDMAType, int optInTimePeriod = 14, int optInFastKPeriod = 5, int optInFastDPeriod = 3)
+            out int outNbElement, MAType optInFastDMAType = MAType.Sma, int optInTimePeriod = 14, int optInFastKPeriod = 5,
+            int optInFastDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
 
@@ -50,8 +51,8 @@ namespace TALib
         }
 
         public static RetCode StochRsi(decimal[] inReal, int startIdx, int endIdx, decimal[] outFastK, decimal[] outFastD,
-            out int outBegIdx, out int outNbElement, MAType optInFastDMAType, int optInTimePeriod = 14, int optInFastKPeriod = 5,
-            int optInFastDPeriod = 3)
+            out int outBegIdx, out int outNbElement, MAType optInFastDMAType = MAType.Sma, int optInTimePeriod = 14,
+            int optInFastKPeriod = 5, int optInFastDPeriod = 3)
         {
             outBegIdx = outNbElement = 0;
 
@@ -97,7 +98,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int StochRsiLookback(MAType optInFastDMAType, int optInTimePeriod = 14, int optInFastKPeriod = 5,
+        public static int StochRsiLookback(MAType optInFastDMAType = MAType.Sma, int optInTimePeriod = 14, int optInFastKPeriod = 5,
             int optInFastDPeriod = 3)
         {
             if (optInTimePeriod < 2 || optInTimePeriod > 100000 || optInFastKPeriod < 1 || optInFastKPeriod > 100000 ||
