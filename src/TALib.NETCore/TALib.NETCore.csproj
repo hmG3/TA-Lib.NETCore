@@ -10,11 +10,11 @@
     <Copyright>TicTacTec LLC</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://ta-lib.org</PackageProjectUrl>
-    <Version>0.4.2</Version>
-    <RepositoryUrl>https://github.com/hmG3/TALib.NETCore</RepositoryUrl>
+    <Version>0.4.3</Version>
+    <RepositoryUrl>https://github.com/hmG3/TA-Lib.NETCore</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>talib.png</PackageIcon>
-    <PackageTags>talip;technical;analysis;financial;data;stock;market</PackageTags>
+    <PackageTags>talib;technical;analysis;financial;data;stock;market;pattern;recognition</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
