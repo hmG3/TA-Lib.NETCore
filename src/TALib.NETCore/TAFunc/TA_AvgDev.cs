@@ -19,10 +19,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookback = AvgDevLookback(optInTimePeriod);
-            if (startIdx < lookback)
+            int lookbackTotal = AvgDevLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = lookback;
+                startIdx = lookbackTotal;
             }
 
             int today = startIdx;
@@ -72,10 +72,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookback = AvgDevLookback(optInTimePeriod);
-            if (startIdx < lookback)
+            int lookbackTotal = AvgDevLookback(optInTimePeriod);
+            if (startIdx < lookbackTotal)
             {
-                startIdx = lookback;
+                startIdx = lookbackTotal;
             }
 
             int today = startIdx;

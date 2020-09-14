@@ -61,7 +61,8 @@ namespace TALib
             int outIdx = default;
             while (outIdx < secondEMANbElement)
             {
-                outReal[outIdx++] = 2.0 * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
+                outReal[outIdx] = 2.0 * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
+                outIdx++;
             }
 
             outBegIdx = firstEMABegIdx + secondEMABegIdx;
@@ -129,7 +130,8 @@ namespace TALib
             int outIdx = default;
             while (outIdx < secondEMANbElement)
             {
-                outReal[outIdx++] = 2m * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
+                outReal[outIdx] = 2m * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
+                outIdx++;
             }
 
             outBegIdx = firstEMABegIdx + secondEMABegIdx;

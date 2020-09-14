@@ -103,15 +103,11 @@ namespace TALib
                         outInPhase[outIdx++] = i1ForOddPrev3;
                     }
 
-                    DoHilbertOdd(hilbertVariables, "jI", i1ForEvenPrev3, hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertOdd(hilbertVariables, "jI", i1ForOddPrev3, hilbertIdx, adjustedPrevPeriod);
                     DoHilbertOdd(hilbertVariables, "jQ", hilbertVariables["q1"], hilbertIdx, adjustedPrevPeriod);
-                    if (++hilbertIdx == 3)
-                    {
-                        hilbertIdx = 0;
-                    }
 
                     q2 = 0.2 * (hilbertVariables["q1"] + hilbertVariables["jI"]) + 0.8 * prevQ2;
-                    i2 = 0.2 * (i1ForEvenPrev3 - hilbertVariables["jQ"]) + 0.8 * prevI2;
+                    i2 = 0.2 * (i1ForOddPrev3 - hilbertVariables["jQ"]) + 0.8 * prevI2;
                     i1ForEvenPrev3 = i1ForEvenPrev2;
                     i1ForEvenPrev2 = hilbertVariables["detrender"];
                 }
@@ -255,15 +251,11 @@ namespace TALib
                         outInPhase[outIdx++] = i1ForOddPrev3;
                     }
 
-                    DoHilbertOdd(hilbertVariables, "jI", i1ForEvenPrev3, hilbertIdx, adjustedPrevPeriod);
+                    DoHilbertOdd(hilbertVariables, "jI", i1ForOddPrev3, hilbertIdx, adjustedPrevPeriod);
                     DoHilbertOdd(hilbertVariables, "jQ", hilbertVariables["q1"], hilbertIdx, adjustedPrevPeriod);
-                    if (++hilbertIdx == 3)
-                    {
-                        hilbertIdx = 0;
-                    }
 
                     q2 = 0.2m * (hilbertVariables["q1"] + hilbertVariables["jI"]) + 0.8m * prevQ2;
-                    i2 = 0.2m * (i1ForEvenPrev3 - hilbertVariables["jQ"]) + 0.8m * prevI2;
+                    i2 = 0.2m * (i1ForOddPrev3 - hilbertVariables["jQ"]) + 0.8m * prevI2;
                     i1ForEvenPrev3 = i1ForEvenPrev2;
                     i1ForEvenPrev2 = hilbertVariables["detrender"];
                 }

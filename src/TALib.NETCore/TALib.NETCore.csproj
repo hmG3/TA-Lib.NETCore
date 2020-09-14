@@ -10,7 +10,7 @@
     <Copyright>TicTacTec LLC</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://ta-lib.org</PackageProjectUrl>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <RepositoryUrl>https://github.com/hmG3/TALib.NETCore</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>talib.png</PackageIcon>
