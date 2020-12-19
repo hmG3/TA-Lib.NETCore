@@ -47,22 +47,20 @@ namespace TALib
             var optInParameters = method.GetParameters().Where(pi => pi.Name.StartsWith(OptInPrefix)).ToList();
             var paramsArray = new object[optInParameters.Count];
             Array.Fill(paramsArray, Type.Missing);
-            if (options.Length == optInParameters.Count)
+
+            var defOptInParameters = Options.Select(NormalizeOptionalParameter).ToList();
+            for (int i = 0, paramsArrayIndex = 0; i < defOptInParameters.Count; i++)
             {
-                var defOptInParameters = Options.Select(NormalizeOptionalParameter).ToList();
-                for (int i = 0, paramsArrayIndex = 0; i < defOptInParameters.Count; i++)
+                var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
+                if (optInParameter != null)
                 {
-                    var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
-                    if (optInParameter != null)
+                    if (optInParameter.ParameterType.IsEnum && optInParameter.ParameterType.IsEnumDefined(options[i]))
                     {
-                        if (optInParameter.ParameterType.IsEnum && optInParameter.ParameterType.IsEnumDefined(options[i]))
-                        {
-                            paramsArray[paramsArrayIndex++] = Enum.ToObject(optInParameter.ParameterType, options[i]);
-                        }
-                        else
-                        {
-                            paramsArray[paramsArrayIndex++] = options[i];
-                        }
+                        paramsArray[paramsArrayIndex++] = Enum.ToObject(optInParameter.ParameterType, options[i]);
+                    }
+                    else
+                    {
+                        paramsArray[paramsArrayIndex++] = options[i];
                     }
                 }
             }

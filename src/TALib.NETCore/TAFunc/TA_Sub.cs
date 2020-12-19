@@ -47,7 +47,7 @@ namespace TALib
             int outIdx = default;
             for (int i = startIdx; i <= endIdx; i++)
             {
-                outReal[outIdx++] = inReal0[i] * inReal1[i];
+                outReal[outIdx++] = inReal0[i] - inReal1[i];
             }
 
             outBegIdx = startIdx;

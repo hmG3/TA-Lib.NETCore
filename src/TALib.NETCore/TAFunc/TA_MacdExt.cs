@@ -23,16 +23,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int tempInteger;
             if (optInSlowPeriod < optInFastPeriod)
             {
-                tempInteger = optInSlowPeriod;
-                optInSlowPeriod = optInFastPeriod;
-                optInFastPeriod = tempInteger;
-
-                MAType tempMAType = optInSlowMAType;
-                optInSlowMAType = optInFastMAType;
-                optInFastMAType = tempMAType;
+                (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
+                (optInSlowMAType, optInFastMAType) = (optInFastMAType, optInSlowMAType);
             }
 
             int lookbackSignal = MaLookback(optInSignalMAType, optInSignalPeriod);
@@ -48,7 +42,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            tempInteger = endIdx - startIdx + 1 + lookbackSignal;
+            var tempInteger = endIdx - startIdx + 1 + lookbackSignal;
             var fastMABuffer = new double[tempInteger];
             var slowMABuffer = new double[tempInteger];
 
@@ -115,16 +109,10 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int tempInteger;
             if (optInSlowPeriod < optInFastPeriod)
             {
-                tempInteger = optInSlowPeriod;
-                optInSlowPeriod = optInFastPeriod;
-                optInFastPeriod = tempInteger;
-
-                MAType tempMAType = optInSlowMAType;
-                optInSlowMAType = optInFastMAType;
-                optInFastMAType = tempMAType;
+                (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
+                (optInSlowMAType, optInFastMAType) = (optInFastMAType, optInSlowMAType);
             }
 
             int lookbackSignal = MaLookback(optInSignalMAType, optInSignalPeriod);
@@ -140,7 +128,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            tempInteger = endIdx - startIdx + 1 + lookbackSignal;
+            var tempInteger = endIdx - startIdx + 1 + lookbackSignal;
             var fastMABuffer = new decimal[tempInteger];
             var slowMABuffer = new decimal[tempInteger];
 

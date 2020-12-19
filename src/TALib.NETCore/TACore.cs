@@ -228,12 +228,9 @@ namespace TALib
         {
             outBegIdx = outNbElement = 0;
 
-            int tempInteger;
             if (optInSlowPeriod < optInFastPeriod)
             {
-                tempInteger = optInSlowPeriod;
-                optInSlowPeriod = optInFastPeriod;
-                optInFastPeriod = tempInteger;
+                (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
             }
 
             double k1;
@@ -270,7 +267,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            tempInteger = endIdx - startIdx + 1 + lookbackSignal;
+            var tempInteger = endIdx - startIdx + 1 + lookbackSignal;
             var fastEMABuffer = new double[tempInteger];
             var slowEMABuffer = new double[tempInteger];
 
@@ -324,12 +321,9 @@ namespace TALib
         {
             outBegIdx = outNbElement = 0;
 
-            int tempInteger;
             if (optInSlowPeriod < optInFastPeriod)
             {
-                tempInteger = optInSlowPeriod;
-                optInSlowPeriod = optInFastPeriod;
-                optInFastPeriod = tempInteger;
+                (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
             }
 
             decimal k1;
@@ -366,7 +360,7 @@ namespace TALib
                 return RetCode.Success;
             }
 
-            tempInteger = endIdx - startIdx + 1 + lookbackSignal;
+            var tempInteger = endIdx - startIdx + 1 + lookbackSignal;
             var fastEMABuffer = new decimal[tempInteger];
             var slowEMABuffer = new decimal[tempInteger];
 
@@ -421,12 +415,9 @@ namespace TALib
         {
             outBegIdx = outNbElement = 0;
 
-            int tempInteger;
             if (optInSlowPeriod < optInFastPeriod)
             {
-                tempInteger = optInSlowPeriod;
-                optInSlowPeriod = optInFastPeriod;
-                optInFastPeriod = tempInteger;
+                (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
             }
 
             RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer, out var outBegIdx2, out _, optInMethod, optInFastPeriod);
@@ -441,8 +432,7 @@ namespace TALib
                 return retCode;
             }
 
-            tempInteger = outBegIdx1 - outBegIdx2;
-            for (int i = 0, j = tempInteger; i < outNbElement1; i++, j++)
+            for (int i = 0, j = outBegIdx1 - outBegIdx2; i < outNbElement1; i++, j++)
             {
                 if (doPercentageOutput)
                 {
@@ -467,12 +457,9 @@ namespace TALib
         {
             outBegIdx = outNbElement = 0;
 
-            int tempInteger;
             if (optInSlowPeriod < optInFastPeriod)
             {
-                tempInteger = optInSlowPeriod;
-                optInSlowPeriod = optInFastPeriod;
-                optInFastPeriod = tempInteger;
+                (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
             }
 
             RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer, out var outBegIdx2, out _, optInMethod, optInFastPeriod);
@@ -487,8 +474,7 @@ namespace TALib
                 return retCode;
             }
 
-            tempInteger = outBegIdx1 - outBegIdx2;
-            for (int i = 0, j = tempInteger; i < outNbElement1; i++, j++)
+            for (int i = 0, j = outBegIdx1 - outBegIdx2; i < outNbElement1; i++, j++)
             {
                 if (doPercentageOutput)
                 {

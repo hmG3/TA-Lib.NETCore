@@ -19,7 +19,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookbackSTOCHF = StochFLookback(optInFastDMAType);
+            int lookbackSTOCHF = StochFLookback(optInFastDMAType, optInFastKPeriod, optInFastDPeriod);
             int lookbackTotal = StochRsiLookback(optInFastDMAType, optInTimePeriod, optInFastKPeriod, optInFastDPeriod);
             if (startIdx < lookbackTotal)
             {
@@ -67,7 +67,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            int lookbackSTOCHF = StochFLookback(optInFastDMAType);
+            int lookbackSTOCHF = StochFLookback(optInFastDMAType, optInFastKPeriod, optInFastDPeriod);
             int lookbackTotal = StochRsiLookback(optInFastDMAType, optInTimePeriod, optInFastKPeriod, optInFastDPeriod);
             if (startIdx < lookbackTotal)
             {
