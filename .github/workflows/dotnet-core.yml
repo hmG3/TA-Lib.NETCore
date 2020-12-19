@@ -17,8 +17,18 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.101
+        dotnet-version: 5.0.101
     - name: Install dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
+    - name: Test & Coverage
+      run: dotnet test --no-restore --nologo --logger "console;verbosity=normal" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=coverage/opencover-coverage.xml
+    - name: Upload coverage to Codecov
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+      uses: codecov/codecov-action@v1
+      with:
+        name: codecov-talib
+        file: ./tests/TALib.NETCore.Tests/coverage/opencover-coverage.xml
+        flags: unittests
+        fail_ci_if_error: true
