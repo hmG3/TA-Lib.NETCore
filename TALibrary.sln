@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TALib.NETCore", "src\TALib.NETCore\TALib.NETCore.csproj", "{60CE2AD5-319B-4A7D-BB98-AFCB81EBA9FA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TALib.NETCore.Tests", "tests\TALib.NETCore.Tests\TALib.NETCore.Tests.csproj", "{023BB709-67A2-440E-898D-886999DB7601}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{60CE2AD5-319B-4A7D-BB98-AFCB81EBA9FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60CE2AD5-319B-4A7D-BB98-AFCB81EBA9FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60CE2AD5-319B-4A7D-BB98-AFCB81EBA9FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{023BB709-67A2-440E-898D-886999DB7601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{023BB709-67A2-440E-898D-886999DB7601}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{023BB709-67A2-440E-898D-886999DB7601}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{023BB709-67A2-440E-898D-886999DB7601}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
