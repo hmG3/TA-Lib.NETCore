@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace TALib.NETCore.Tests.Models
@@ -14,7 +15,9 @@ namespace TALib.NETCore.Tests.Models
                 element.WriteTo(writer);
             }
 
-            return JsonSerializer.Deserialize<T>(bufferWriter.WrittenSpan, options);
+            var result = JsonSerializer.Deserialize<T>(bufferWriter.WrittenSpan, options);
+            Debug.Assert(result != null);
+            return result;
         }
 
         public static T ToObject<T>(this JsonDocument document, JsonSerializerOptions? options = null)
@@ -45,7 +48,9 @@ namespace TALib.NETCore.Tests.Models
                 throw;
             }
 
-            return JsonSerializer.Deserialize(bufferWriter.WrittenSpan, returnType, options);
+            var result = JsonSerializer.Deserialize(bufferWriter.WrittenSpan, returnType, options);
+            Debug.Assert(result != null);
+            return result;
         }
 
         public static object ToObject(this JsonDocument document, Type returnType, JsonSerializerOptions? options = null)
