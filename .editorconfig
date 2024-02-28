@@ -1,20 +1,44 @@
-root = true
+root=true
+
+[*]
+
+#### Core EditorConfig Options ####
+
+# Indentation and spacing
+indent_style=space
+indent_size=2
+trim_trailing_whitespace=true
+charset=utf-8
+max_line_length=140
+
+# New line preferences
+insert_final_newline=true
+
+#### .NET Coding Conventions ####
 
 [*.cs]
-end_of_line = crlf
-insert_final_newline = true
-trim_trailing_whitespace = true
-indent_style = space
-tab_width = 4
-charset = utf-8
-max_line_length = 140
-csharp_new_line_before_open_brace = all
-csharp_space_after_cast = true
-csharp_space_after_keywords_in_control_flow_statements = true
-dotnet_sort_system_directives_first = true
-dotnet_style_collection_initializer = true:suggestion
-dotnet_style_object_initializer = true:suggestion
-csharp_prefer_braces = true:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_new_line_before_else = true
-csharp_style_expression_bodied_methods = true:suggestion
+
+indent_size=4
+
+# Microsoft .NET properties
+dotnet_separate_import_directive_groups=false
+dotnet_sort_system_directives_first=true
+dotnet_style_predefined_type_for_locals_parameters_members=true:suggestion
+dotnet_style_predefined_type_for_member_access=false:suggestion
+csharp_new_line_before_open_brace=all
+csharp_new_line_before_else=true
+csharp_space_after_cast=true
+csharp_space_after_keywords_in_control_flow_statements=true
+dotnet_style_collection_initializer=true:suggestion
+dotnet_style_object_initializer=true:suggestion
+csharp_style_var_when_type_is_apparent=true:suggestion
+csharp_style_expression_bodied_methods=true:suggestion
+csharp_prefer_braces=true:warning
+
+# ReSharper properties
+resharper_place_accessorholder_attribute_on_same_line=false
+resharper_csharp_wrap_after_declaration_lpar=true
+resharper_csharp_wrap_parameters_style=chop_if_long
+resharper_max_formal_parameters_on_line=3
+resharper_blank_lines_around_single_line_auto_property=1
+resharper_csharp_keep_blank_lines_in_declarations=1

@@ -1,10 +1,10 @@
-name: .NET Core
+name: .NET
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -13,11 +13,11 @@ jobs:
         operating-system: [ubuntu-latest, windows-latest, macOS-latest]
     runs-on: ${{ matrix.operating-system }}
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+    - uses: actions/checkout@v3
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 5.0.101
+        dotnet-version: 8.0.x
     - name: Install dependencies
       run: dotnet restore
     - name: Build
@@ -26,9 +26,10 @@ jobs:
       run: dotnet test --no-restore --nologo --logger "console;verbosity=normal" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=coverage/opencover-coverage.xml
     - name: Upload coverage to Codecov
       if: ${{ matrix.operating-system == 'ubuntu-latest' }}
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v4
       with:
         name: codecov-talib
+        token: ${{ secrets.CODECOV_TOKEN }}
         file: ./tests/TALib.NETCore.Tests/coverage/opencover-coverage.xml
         flags: unittests
         fail_ci_if_error: true
