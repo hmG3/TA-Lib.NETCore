@@ -5,8 +5,8 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode StochF(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outFastK,
-            double[] outFastD, out int outBegIdx, out int outNbElement, MAType optInFastDMAType = MAType.Sma, int optInFastKPeriod = 5,
-            int optInFastDPeriod = 3)
+            double[] outFastD, out int outBegIdx, out int outNbElement, int optInFastKPeriod = 5, int optInFastDPeriod = 3,
+            MAType optInFastDMAType = MAType.Sma)
         {
             outBegIdx = outNbElement = 0;
 
@@ -22,8 +22,8 @@ namespace TALib
             }
 
             int lookbackK = optInFastKPeriod - 1;
-            int lookbackFastD = MaLookback(optInFastDMAType, optInFastDPeriod);
-            int lookbackTotal = StochFLookback(optInFastDMAType, optInFastKPeriod, optInFastDPeriod);
+            int lookbackFastD = MaLookback(optInFastDPeriod, optInFastDMAType);
+            int lookbackTotal = StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -113,7 +113,7 @@ namespace TALib
                 today++;
             }
 
-            RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDMAType, optInFastDPeriod);
+            RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDPeriod, optInFastDMAType);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
                 return retCode;
@@ -126,8 +126,8 @@ namespace TALib
         }
 
         public static RetCode StochF(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outFastK,
-            decimal[] outFastD, out int outBegIdx, out int outNbElement, MAType optInFastDMAType = MAType.Sma, int optInFastKPeriod = 5,
-            int optInFastDPeriod = 3)
+            decimal[] outFastD, out int outBegIdx, out int outNbElement, int optInFastKPeriod = 5, int optInFastDPeriod = 3,
+            MAType optInFastDMAType = MAType.Sma)
         {
             outBegIdx = outNbElement = 0;
 
@@ -143,8 +143,8 @@ namespace TALib
             }
 
             int lookbackK = optInFastKPeriod - 1;
-            int lookbackFastD = MaLookback(optInFastDMAType, optInFastDPeriod);
-            int lookbackTotal = StochFLookback(optInFastDMAType, optInFastKPeriod, optInFastDPeriod);
+            int lookbackFastD = MaLookback(optInFastDPeriod, optInFastDMAType);
+            int lookbackTotal = StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
             if (startIdx < lookbackTotal)
             {
                 startIdx = lookbackTotal;
@@ -234,7 +234,7 @@ namespace TALib
                 today++;
             }
 
-            RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDMAType, optInFastDPeriod);
+            RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDPeriod, optInFastDMAType);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
                 return retCode;
@@ -246,7 +246,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int StochFLookback(MAType optInFastDMAType = MAType.Sma, int optInFastKPeriod = 5, int optInFastDPeriod = 3)
+        public static int StochFLookback(int optInFastKPeriod = 5, int optInFastDPeriod = 3, MAType optInFastDMAType = MAType.Sma)
         {
             if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInFastDPeriod < 1 || optInFastDPeriod > 100000)
             {
@@ -255,7 +255,7 @@ namespace TALib
 
             int retValue = optInFastKPeriod - 1;
 
-            return retValue + MaLookback(optInFastDMAType, optInFastDPeriod);
+            return retValue + MaLookback(optInFastDPeriod, optInFastDMAType);
         }
     }
 }

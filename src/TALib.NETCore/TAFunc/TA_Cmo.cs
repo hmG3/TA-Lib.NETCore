@@ -4,7 +4,13 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode Cmo(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+        public static RetCode Cmo(
+            double[] inReal,
+            int startIdx,
+            int endIdx,
+            double[] outReal,
+            out int outBegIdx,
+            out int outNbElement,
             int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;
@@ -156,7 +162,13 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Cmo(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+        public static RetCode Cmo(
+            decimal[] inReal,
+            int startIdx,
+            int endIdx,
+            decimal[] outReal,
+            out int outBegIdx,
+            out int outNbElement,
             int optInTimePeriod = 14)
         {
             outBegIdx = outNbElement = 0;

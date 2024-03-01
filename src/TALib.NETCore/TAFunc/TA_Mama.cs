@@ -4,7 +4,7 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode Mama(double[] inReal, int startIdx, int endIdx, double[] outMama, double[] outFama, out int outBegIdx,
+        public static RetCode Mama(double[] inReal, int startIdx, int endIdx, double[] outMAMA, double[] outFAMA, out int outBegIdx,
             out int outNbElement, double optInFastLimit = 0.5, double optInSlowLimit = 0.05)
         {
             outBegIdx = outNbElement = 0;
@@ -14,7 +14,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (inReal == null || outMama == null || outFama == null || optInFastLimit < 0.01 || optInFastLimit > 0.99 ||
+            if (inReal == null || outMAMA == null || outFAMA == null || optInFastLimit < 0.01 || optInFastLimit > 0.99 ||
                 optInSlowLimit < 0.01 || optInSlowLimit > 0.99)
             {
                 return RetCode.BadParam;
@@ -135,8 +135,8 @@ namespace TALib
                 fama = tempReal * mama + (1.0 - tempReal) * fama;
                 if (today >= startIdx)
                 {
-                    outMama[outIdx] = mama;
-                    outFama[outIdx++] = fama;
+                    outMAMA[outIdx] = mama;
+                    outFAMA[outIdx++] = fama;
                 }
 
                 re = 0.2 * (i2 * prevI2 + q2 * prevQ2) + 0.8 * re;
@@ -179,7 +179,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static RetCode Mama(decimal[] inReal, int startIdx, int endIdx, decimal[] outMama, decimal[] outFama, out int outBegIdx,
+        public static RetCode Mama(decimal[] inReal, int startIdx, int endIdx, decimal[] outMAMA, decimal[] outFAMA, out int outBegIdx,
             out int outNbElement, decimal optInFastLimit = 0.5m, decimal optInSlowLimit = 0.05m)
         {
             outBegIdx = outNbElement = 0;
@@ -189,7 +189,7 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (inReal == null || outMama == null || outFama == null || optInFastLimit < 0.01m || optInFastLimit > 0.99m ||
+            if (inReal == null || outMAMA == null || outFAMA == null || optInFastLimit < 0.01m || optInFastLimit > 0.99m ||
                 optInSlowLimit < 0.01m || optInSlowLimit > 0.99m)
             {
                 return RetCode.BadParam;
@@ -313,8 +313,8 @@ namespace TALib
                 fama = tempReal * mama + (Decimal.One - tempReal) * fama;
                 if (today >= startIdx)
                 {
-                    outMama[outIdx] = mama;
-                    outFama[outIdx++] = fama;
+                    outMAMA[outIdx] = mama;
+                    outFAMA[outIdx++] = fama;
                 }
 
                 re = 0.2m * (i2 * prevI2 + q2 * prevQ2) + 0.8m * re;

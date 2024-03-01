@@ -3,7 +3,7 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode Ma(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
-            MAType optInMAType = MAType.Sma, int optInTimePeriod = 30)
+            int optInTimePeriod = 30, MAType optInMAType = MAType.Sma)
         {
             outBegIdx = outNbElement = 0;
 
@@ -58,7 +58,7 @@ namespace TALib
         }
 
         public static RetCode Ma(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
-            MAType optInMAType = MAType.Sma, int optInTimePeriod = 30)
+            int optInTimePeriod = 30, MAType optInMAType = MAType.Sma)
         {
             outBegIdx = outNbElement = 0;
 
@@ -112,7 +112,7 @@ namespace TALib
             }
         }
 
-        public static int MaLookback(MAType optInMAType = MAType.Sma, int optInTimePeriod = 30)
+        public static int MaLookback(int optInTimePeriod = 30, MAType optInMAType = MAType.Sma)
         {
             if (optInTimePeriod < 1 || optInTimePeriod > 100000)
             {
