@@ -41,7 +41,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        private static RetCode RestoreCandleDefaultSettings(CandleSettingType settingType)
+        public static RetCode RestoreCandleDefaultSettings(CandleSettingType settingType)
         {
             switch (settingType)
             {
@@ -96,7 +96,7 @@ namespace TALib
             return RetCode.Success;
         }
 
-        private static RetCode SetCandleSettings(CandleSettingType settingType, RangeType rangeType, int avgPeriod, double factor)
+        public static RetCode SetCandleSettings(CandleSettingType settingType, RangeType rangeType, int avgPeriod, double factor)
         {
             if (settingType >= CandleSettingType.AllCandleSettings)
             {
@@ -420,13 +420,13 @@ namespace TALib
                 (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
             }
 
-            RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer, out var outBegIdx2, out _, optInMethod, optInFastPeriod);
+            RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer, out var outBegIdx2, out _, optInFastPeriod, optInMethod);
             if (retCode != RetCode.Success)
             {
                 return retCode;
             }
 
-            retCode = Ma(inReal, startIdx, endIdx, outReal, out var outBegIdx1, out var outNbElement1, optInMethod, optInSlowPeriod);
+            retCode = Ma(inReal, startIdx, endIdx, outReal, out var outBegIdx1, out var outNbElement1, optInSlowPeriod, optInMethod);
             if (retCode != RetCode.Success)
             {
                 return retCode;
@@ -462,13 +462,13 @@ namespace TALib
                 (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
             }
 
-            RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer, out var outBegIdx2, out _, optInMethod, optInFastPeriod);
+            RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer, out var outBegIdx2, out _, optInFastPeriod, optInMethod);
             if (retCode != RetCode.Success)
             {
                 return retCode;
             }
 
-            retCode = Ma(inReal, startIdx, endIdx, outReal, out var outBegIdx1, out var outNbElement1, optInMethod, optInSlowPeriod);
+            retCode = Ma(inReal, startIdx, endIdx, outReal, out var outBegIdx1, out var outNbElement1, optInSlowPeriod, optInMethod);
             if (retCode != RetCode.Success)
             {
                 return retCode;

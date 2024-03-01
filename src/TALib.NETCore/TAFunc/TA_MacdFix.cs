@@ -2,8 +2,8 @@ namespace TALib
 {
     public static partial class Core
     {
-        public static RetCode MacdFix(double[] inReal, int startIdx, int endIdx, double[] outMacd, double[] outMacdSignal,
-            double[] outMacdHist, out int outBegIdx, out int outNbElement, int optInSignalPeriod = 9)
+        public static RetCode MacdFix(double[] inReal, int startIdx, int endIdx, double[] outMACD, double[] outMACDSignal,
+            double[] outMACDHist, out int outBegIdx, out int outNbElement, int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -12,18 +12,18 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (inReal == null || outMacd == null || outMacdSignal == null || outMacdHist == null || optInSignalPeriod < 1 ||
+            if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInSignalPeriod < 1 ||
                 optInSignalPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            return TA_INT_MACD(inReal, startIdx, endIdx, outMacd, outMacdSignal, outMacdHist, out outBegIdx, out outNbElement, 0, 0,
+            return TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, 0, 0,
                 optInSignalPeriod);
         }
 
-        public static RetCode MacdFix(decimal[] inReal, int startIdx, int endIdx, decimal[] outMacd, decimal[] outMacdSignal,
-            decimal[] outMacdHist, out int outBegIdx, out int outNbElement, int optInSignalPeriod = 9)
+        public static RetCode MacdFix(decimal[] inReal, int startIdx, int endIdx, decimal[] outMACD, decimal[] outMACDSignal,
+            decimal[] outMACDHist, out int outBegIdx, out int outNbElement, int optInSignalPeriod = 9)
         {
             outBegIdx = outNbElement = 0;
 
@@ -32,13 +32,13 @@ namespace TALib
                 return RetCode.OutOfRangeStartIndex;
             }
 
-            if (inReal == null || outMacd == null || outMacdSignal == null || outMacdHist == null || optInSignalPeriod < 1 ||
+            if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInSignalPeriod < 1 ||
                 optInSignalPeriod > 100000)
             {
                 return RetCode.BadParam;
             }
 
-            return TA_INT_MACD(inReal, startIdx, endIdx, outMacd, outMacdSignal, outMacdHist, out outBegIdx, out outNbElement, 0, 0,
+            return TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, 0, 0,
                 optInSignalPeriod);
         }
 

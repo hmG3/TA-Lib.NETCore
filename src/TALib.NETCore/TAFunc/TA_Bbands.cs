@@ -5,8 +5,8 @@ namespace TALib
     public static partial class Core
     {
         public static RetCode Bbands(double[] inReal, int startIdx, int endIdx, double[] outRealUpperBand, double[] outRealMiddleBand,
-            double[] outRealLowerBand, out int outBegIdx, out int outNbElement, MAType optInMAType = MAType.Sma, int optInTimePeriod = 5,
-            double optInNbDevUp = 2.0, double optInNbDevDn = 2.0)
+            double[] outRealLowerBand, out int outBegIdx, out int outNbElement, int optInTimePeriod = 5, double optInNbDevUp = 2.0,
+            double optInNbDevDn = 2.0, MAType optInMAType = MAType.Sma)
         {
             outBegIdx = outNbElement = 0;
 
@@ -49,7 +49,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInMAType, optInTimePeriod);
+            RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
                 return retCode;
@@ -135,8 +135,8 @@ namespace TALib
         }
 
         public static RetCode Bbands(decimal[] inReal, int startIdx, int endIdx, decimal[] outRealUpperBand, decimal[] outRealMiddleBand,
-            decimal[] outRealLowerBand, out int outBegIdx, out int outNbElement, MAType optInMAType = MAType.Sma, int optInTimePeriod = 5,
-            decimal optInNbDevUp = 2m, decimal optInNbDevDn = 2m)
+            decimal[] outRealLowerBand, out int outBegIdx, out int outNbElement, int optInTimePeriod = 5, decimal optInNbDevUp = 2m,
+            decimal optInNbDevDn = 2m, MAType optInMAType = MAType.Sma)
         {
             outBegIdx = outNbElement = 0;
 
@@ -179,7 +179,7 @@ namespace TALib
                 return RetCode.BadParam;
             }
 
-            RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInMAType, optInTimePeriod);
+            RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
             if (retCode != RetCode.Success || outNbElement == 0)
             {
                 return retCode;
@@ -264,14 +264,14 @@ namespace TALib
             return RetCode.Success;
         }
 
-        public static int BbandsLookback(MAType optInMAType = MAType.Sma, int optInTimePeriod = 5)
+        public static int BbandsLookback(int optInTimePeriod = 5, MAType optInMAType = MAType.Sma)
         {
             if (optInTimePeriod < 2 || optInTimePeriod > 100000)
             {
                 return -1;
             }
 
-            return MaLookback(optInMAType, optInTimePeriod);
+            return MaLookback(optInTimePeriod, optInMAType);
         }
     }
 }
