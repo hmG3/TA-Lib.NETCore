@@ -184,10 +184,18 @@ public class Functions : IEnumerable<Function>
         { "CdlXSideGap3Methods", new Function("CdlXSideGap3Methods", "Upside/Downside Gap Three Methods", "Pattern Recognition", $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) }
     };
 
+    private static readonly Lazy<Functions> Instance = new(() => []);
+
+    private Functions()
+    {
+    }
+
+    public static Functions All => Instance.Value;
+
     public static Function Find(string name) =>
         FunctionsDefinition.TryGetValue(name, out var function)
             ? function
-            : throw new ArgumentException("Function not found", name);
+            : throw new ArgumentException("Function not found in the library", name);
 
     public IEnumerator<Function> GetEnumerator() => FunctionsDefinition.Values.GetEnumerator();
 
