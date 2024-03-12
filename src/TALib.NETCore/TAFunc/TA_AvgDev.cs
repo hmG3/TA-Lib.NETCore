@@ -1,121 +1,120 @@
-namespace TALib
+namespace TALib;
+
+public static partial class Core
 {
-    public static partial class Core
+    public static RetCode AvgDev(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+        int optInTimePeriod = 14)
     {
-        public static RetCode AvgDev(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
-            int optInTimePeriod = 14)
+        outBegIdx = outNbElement = 0;
+
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            outBegIdx = outNbElement = 0;
+            return RetCode.OutOfRangeStartIndex;
+        }
 
-            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeStartIndex;
-            }
+        if (inReal == null)
+        {
+            return RetCode.BadParam;
+        }
 
-            if (inReal == null)
-            {
-                return RetCode.BadParam;
-            }
+        int lookbackTotal = AvgDevLookback(optInTimePeriod);
+        if (startIdx < lookbackTotal)
+        {
+            startIdx = lookbackTotal;
+        }
 
-            int lookbackTotal = AvgDevLookback(optInTimePeriod);
-            if (startIdx < lookbackTotal)
-            {
-                startIdx = lookbackTotal;
-            }
-
-            int today = startIdx;
-            if (today > endIdx)
-            {
-                return RetCode.Success;
-            }
-
-            outBegIdx = today;
-
-            int outIdx = default;
-            while (today <= endIdx)
-            {
-                double todaySum = default;
-                for (var i = 0; i < optInTimePeriod; i++)
-                {
-                    todaySum += inReal[today - i];
-                }
-
-                double todayDev = default;
-                for (var i = 0; i < optInTimePeriod; i++)
-                {
-                    todayDev += Math.Abs(inReal[today - i] - todaySum / optInTimePeriod);
-                }
-
-                outReal[outIdx++] = todayDev / optInTimePeriod;
-                today++;
-            }
-
-            outNbElement = outIdx;
-
+        int today = startIdx;
+        if (today > endIdx)
+        {
             return RetCode.Success;
         }
 
-        public static RetCode AvgDev(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
-            int optInTimePeriod = 14)
+        outBegIdx = today;
+
+        int outIdx = default;
+        while (today <= endIdx)
         {
-            outBegIdx = outNbElement = 0;
-
-            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+            double todaySum = default;
+            for (var i = 0; i < optInTimePeriod; i++)
             {
-                return RetCode.OutOfRangeStartIndex;
+                todaySum += inReal[today - i];
             }
 
-            if (inReal == null)
+            double todayDev = default;
+            for (var i = 0; i < optInTimePeriod; i++)
             {
-                return RetCode.BadParam;
+                todayDev += Math.Abs(inReal[today - i] - todaySum / optInTimePeriod);
             }
 
-            int lookbackTotal = AvgDevLookback(optInTimePeriod);
-            if (startIdx < lookbackTotal)
-            {
-                startIdx = lookbackTotal;
-            }
+            outReal[outIdx++] = todayDev / optInTimePeriod;
+            today++;
+        }
 
-            int today = startIdx;
-            if (today > endIdx)
-            {
-                return RetCode.Success;
-            }
+        outNbElement = outIdx;
 
-            outBegIdx = today;
+        return RetCode.Success;
+    }
 
-            int outIdx = default;
-            while (today <= endIdx)
-            {
-                decimal todaySum = default;
-                for (var i = 0; i < optInTimePeriod; i++)
-                {
-                    todaySum += inReal[today - i];
-                }
+    public static RetCode AvgDev(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+        int optInTimePeriod = 14)
+    {
+        outBegIdx = outNbElement = 0;
 
-                decimal todayDev = default;
-                for (var i = 0; i < optInTimePeriod; i++)
-                {
-                    todayDev += Math.Abs(inReal[today - i] - todaySum / optInTimePeriod);
-                }
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        {
+            return RetCode.OutOfRangeStartIndex;
+        }
 
-                outReal[outIdx++] = todayDev / optInTimePeriod;
-                today++;
-            }
+        if (inReal == null)
+        {
+            return RetCode.BadParam;
+        }
 
-            outNbElement = outIdx;
+        int lookbackTotal = AvgDevLookback(optInTimePeriod);
+        if (startIdx < lookbackTotal)
+        {
+            startIdx = lookbackTotal;
+        }
 
+        int today = startIdx;
+        if (today > endIdx)
+        {
             return RetCode.Success;
         }
 
-        public static int AvgDevLookback(int optInTimePeriod = 14)
+        outBegIdx = today;
+
+        int outIdx = default;
+        while (today <= endIdx)
         {
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+            decimal todaySum = default;
+            for (var i = 0; i < optInTimePeriod; i++)
             {
-                return -1;
+                todaySum += inReal[today - i];
             }
 
-            return optInTimePeriod - 1;
+            decimal todayDev = default;
+            for (var i = 0; i < optInTimePeriod; i++)
+            {
+                todayDev += Math.Abs(inReal[today - i] - todaySum / optInTimePeriod);
+            }
+
+            outReal[outIdx++] = todayDev / optInTimePeriod;
+            today++;
         }
+
+        outNbElement = outIdx;
+
+        return RetCode.Success;
+    }
+
+    public static int AvgDevLookback(int optInTimePeriod = 14)
+    {
+        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        {
+            return -1;
+        }
+
+        return optInTimePeriod - 1;
     }
 }

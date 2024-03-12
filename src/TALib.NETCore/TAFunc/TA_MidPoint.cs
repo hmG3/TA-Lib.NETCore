@@ -1,127 +1,126 @@
-namespace TALib
+namespace TALib;
+
+public static partial class Core
 {
-    public static partial class Core
+    public static RetCode MidPoint(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+        int optInTimePeriod = 14)
     {
-        public static RetCode MidPoint(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
-            int optInTimePeriod = 14)
+        outBegIdx = outNbElement = 0;
+
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            outBegIdx = outNbElement = 0;
+            return RetCode.OutOfRangeStartIndex;
+        }
 
-            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeStartIndex;
-            }
+        if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
+        {
+            return RetCode.BadParam;
+        }
 
-            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
+        int lookbackTotal = MidPointLookback(optInTimePeriod);
+        if (startIdx < lookbackTotal)
+        {
+            startIdx = lookbackTotal;
+        }
 
-            int lookbackTotal = MidPointLookback(optInTimePeriod);
-            if (startIdx < lookbackTotal)
-            {
-                startIdx = lookbackTotal;
-            }
-
-            if (startIdx > endIdx)
-            {
-                return RetCode.Success;
-            }
-
-            int outIdx = default;
-            int today = startIdx;
-            int trailingIdx = startIdx - lookbackTotal;
-            while (today <= endIdx)
-            {
-                double lowest = inReal[trailingIdx++];
-                double highest = lowest;
-                for (int i = trailingIdx; i <= today; i++)
-                {
-                    double tmp = inReal[i];
-                    if (tmp < lowest)
-                    {
-                        lowest = tmp;
-                    }
-                    else if (tmp > highest)
-                    {
-                        highest = tmp;
-                    }
-                }
-
-                outReal[outIdx++] = (highest + lowest) / 2.0;
-                today++;
-            }
-
-            outBegIdx = startIdx;
-            outNbElement = outIdx;
-
+        if (startIdx > endIdx)
+        {
             return RetCode.Success;
         }
 
-        public static RetCode MidPoint(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
-            out int outNbElement, int optInTimePeriod = 14)
+        int outIdx = default;
+        int today = startIdx;
+        int trailingIdx = startIdx - lookbackTotal;
+        while (today <= endIdx)
         {
-            outBegIdx = outNbElement = 0;
-
-            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+            double lowest = inReal[trailingIdx++];
+            double highest = lowest;
+            for (int i = trailingIdx; i <= today; i++)
             {
-                return RetCode.OutOfRangeStartIndex;
-            }
-
-            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
-
-            int lookbackTotal = MidPointLookback(optInTimePeriod);
-            if (startIdx < lookbackTotal)
-            {
-                startIdx = lookbackTotal;
-            }
-
-            if (startIdx > endIdx)
-            {
-                return RetCode.Success;
-            }
-
-            int outIdx = default;
-            int today = startIdx;
-            int trailingIdx = startIdx - lookbackTotal;
-            while (today <= endIdx)
-            {
-                decimal lowest = inReal[trailingIdx++];
-                decimal highest = lowest;
-                for (int i = trailingIdx; i <= today; i++)
+                double tmp = inReal[i];
+                if (tmp < lowest)
                 {
-                    decimal tmp = inReal[i];
-                    if (tmp < lowest)
-                    {
-                        lowest = tmp;
-                    }
-                    else if (tmp > highest)
-                    {
-                        highest = tmp;
-                    }
+                    lowest = tmp;
                 }
-
-                outReal[outIdx++] = (highest + lowest) / 2m;
-                today++;
+                else if (tmp > highest)
+                {
+                    highest = tmp;
+                }
             }
 
-            outBegIdx = startIdx;
-            outNbElement = outIdx;
+            outReal[outIdx++] = (highest + lowest) / 2.0;
+            today++;
+        }
 
+        outBegIdx = startIdx;
+        outNbElement = outIdx;
+
+        return RetCode.Success;
+    }
+
+    public static RetCode MidPoint(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+        out int outNbElement, int optInTimePeriod = 14)
+    {
+        outBegIdx = outNbElement = 0;
+
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        {
+            return RetCode.OutOfRangeStartIndex;
+        }
+
+        if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
+        {
+            return RetCode.BadParam;
+        }
+
+        int lookbackTotal = MidPointLookback(optInTimePeriod);
+        if (startIdx < lookbackTotal)
+        {
+            startIdx = lookbackTotal;
+        }
+
+        if (startIdx > endIdx)
+        {
             return RetCode.Success;
         }
 
-        public static int MidPointLookback(int optInTimePeriod = 14)
+        int outIdx = default;
+        int today = startIdx;
+        int trailingIdx = startIdx - lookbackTotal;
+        while (today <= endIdx)
         {
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+            decimal lowest = inReal[trailingIdx++];
+            decimal highest = lowest;
+            for (int i = trailingIdx; i <= today; i++)
             {
-                return -1;
+                decimal tmp = inReal[i];
+                if (tmp < lowest)
+                {
+                    lowest = tmp;
+                }
+                else if (tmp > highest)
+                {
+                    highest = tmp;
+                }
             }
 
-            return optInTimePeriod - 1;
+            outReal[outIdx++] = (highest + lowest) / 2m;
+            today++;
         }
+
+        outBegIdx = startIdx;
+        outNbElement = outIdx;
+
+        return RetCode.Success;
+    }
+
+    public static int MidPointLookback(int optInTimePeriod = 14)
+    {
+        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        {
+            return -1;
+        }
+
+        return optInTimePeriod - 1;
     }
 }
