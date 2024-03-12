@@ -1,153 +1,152 @@
-namespace TALib
+namespace TALib;
+
+public static partial class Core
 {
-    public static partial class Core
+    public static RetCode Dema(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+        int optInTimePeriod = 30)
     {
-        public static RetCode Dema(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
-            int optInTimePeriod = 30)
+        outBegIdx = outNbElement = 0;
+
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            outBegIdx = outNbElement = 0;
+            return RetCode.OutOfRangeStartIndex;
+        }
 
-            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeStartIndex;
-            }
+        if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
+        {
+            return RetCode.BadParam;
+        }
 
-            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
+        int lookbackEMA = EmaLookback(optInTimePeriod);
+        int lookbackTotal = DemaLookback(optInTimePeriod);
+        if (startIdx < lookbackTotal)
+        {
+            startIdx = lookbackTotal;
+        }
 
-            int lookbackEMA = EmaLookback(optInTimePeriod);
-            int lookbackTotal = DemaLookback(optInTimePeriod);
-            if (startIdx < lookbackTotal)
-            {
-                startIdx = lookbackTotal;
-            }
-
-            if (startIdx > endIdx)
-            {
-                return RetCode.Success;
-            }
-
-            double[] firstEMA;
-            if (inReal == outReal)
-            {
-                firstEMA = outReal;
-            }
-            else
-            {
-                int tempInt = lookbackTotal + (endIdx - startIdx) + 1;
-                firstEMA = new double[tempInt];
-            }
-
-            double k = 2.0 / (optInTimePeriod + 1);
-            RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA, endIdx, firstEMA, out var firstEMABegIdx,
-                out var firstEMANbElement, optInTimePeriod, k);
-            if (retCode != RetCode.Success || firstEMANbElement == 0)
-            {
-                return retCode;
-            }
-
-            var secondEMA = new double[firstEMANbElement];
-
-            retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx,
-                out var secondEMANbElement, optInTimePeriod, k);
-            if (retCode != RetCode.Success || secondEMANbElement == 0)
-            {
-                return retCode;
-            }
-
-            int firstEMAIdx = secondEMABegIdx;
-            int outIdx = default;
-            while (outIdx < secondEMANbElement)
-            {
-                outReal[outIdx] = 2.0 * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
-                outIdx++;
-            }
-
-            outBegIdx = firstEMABegIdx + secondEMABegIdx;
-            outNbElement = outIdx;
-
+        if (startIdx > endIdx)
+        {
             return RetCode.Success;
         }
 
-        public static RetCode Dema(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
-            int optInTimePeriod = 30)
+        double[] firstEMA;
+        if (inReal == outReal)
         {
-            outBegIdx = outNbElement = 0;
+            firstEMA = outReal;
+        }
+        else
+        {
+            int tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+            firstEMA = new double[tempInt];
+        }
 
-            if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
-            {
-                return RetCode.OutOfRangeStartIndex;
-            }
+        double k = 2.0 / (optInTimePeriod + 1);
+        RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA, endIdx, firstEMA, out var firstEMABegIdx,
+            out var firstEMANbElement, optInTimePeriod, k);
+        if (retCode != RetCode.Success || firstEMANbElement == 0)
+        {
+            return retCode;
+        }
 
-            if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return RetCode.BadParam;
-            }
+        var secondEMA = new double[firstEMANbElement];
 
-            int lookbackEMA = EmaLookback(optInTimePeriod);
-            int lookbackTotal = DemaLookback(optInTimePeriod);
-            if (startIdx < lookbackTotal)
-            {
-                startIdx = lookbackTotal;
-            }
+        retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx,
+            out var secondEMANbElement, optInTimePeriod, k);
+        if (retCode != RetCode.Success || secondEMANbElement == 0)
+        {
+            return retCode;
+        }
 
-            if (startIdx > endIdx)
-            {
-                return RetCode.Success;
-            }
+        int firstEMAIdx = secondEMABegIdx;
+        int outIdx = default;
+        while (outIdx < secondEMANbElement)
+        {
+            outReal[outIdx] = 2.0 * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
+            outIdx++;
+        }
 
-            decimal[] firstEMA;
-            if (inReal == outReal)
-            {
-                firstEMA = outReal;
-            }
-            else
-            {
-                int tempInt = lookbackTotal + (endIdx - startIdx) + 1;
-                firstEMA = new decimal[tempInt];
-            }
+        outBegIdx = firstEMABegIdx + secondEMABegIdx;
+        outNbElement = outIdx;
 
-            decimal k = 2m / (optInTimePeriod + 1);
-            RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA, endIdx, firstEMA, out var firstEMABegIdx,
-                out var firstEMANbElement, optInTimePeriod, k);
-            if (retCode != RetCode.Success || firstEMANbElement == 0)
-            {
-                return retCode;
-            }
+        return RetCode.Success;
+    }
 
-            var secondEMA = new decimal[firstEMANbElement];
+    public static RetCode Dema(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+        int optInTimePeriod = 30)
+    {
+        outBegIdx = outNbElement = 0;
 
-            retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx,
-                out var secondEMANbElement, optInTimePeriod, k);
-            if (retCode != RetCode.Success || secondEMANbElement == 0)
-            {
-                return retCode;
-            }
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        {
+            return RetCode.OutOfRangeStartIndex;
+        }
 
-            int firstEMAIdx = secondEMABegIdx;
-            int outIdx = default;
-            while (outIdx < secondEMANbElement)
-            {
-                outReal[outIdx] = 2m * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
-                outIdx++;
-            }
+        if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
+        {
+            return RetCode.BadParam;
+        }
 
-            outBegIdx = firstEMABegIdx + secondEMABegIdx;
-            outNbElement = outIdx;
+        int lookbackEMA = EmaLookback(optInTimePeriod);
+        int lookbackTotal = DemaLookback(optInTimePeriod);
+        if (startIdx < lookbackTotal)
+        {
+            startIdx = lookbackTotal;
+        }
 
+        if (startIdx > endIdx)
+        {
             return RetCode.Success;
         }
 
-        public static int DemaLookback(int optInTimePeriod = 30)
+        decimal[] firstEMA;
+        if (inReal == outReal)
         {
-            if (optInTimePeriod < 2 || optInTimePeriod > 100000)
-            {
-                return -1;
-            }
-
-            return EmaLookback(optInTimePeriod) * 2;
+            firstEMA = outReal;
         }
+        else
+        {
+            int tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+            firstEMA = new decimal[tempInt];
+        }
+
+        decimal k = 2m / (optInTimePeriod + 1);
+        RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA, endIdx, firstEMA, out var firstEMABegIdx,
+            out var firstEMANbElement, optInTimePeriod, k);
+        if (retCode != RetCode.Success || firstEMANbElement == 0)
+        {
+            return retCode;
+        }
+
+        var secondEMA = new decimal[firstEMANbElement];
+
+        retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx,
+            out var secondEMANbElement, optInTimePeriod, k);
+        if (retCode != RetCode.Success || secondEMANbElement == 0)
+        {
+            return retCode;
+        }
+
+        int firstEMAIdx = secondEMABegIdx;
+        int outIdx = default;
+        while (outIdx < secondEMANbElement)
+        {
+            outReal[outIdx] = 2m * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
+            outIdx++;
+        }
+
+        outBegIdx = firstEMABegIdx + secondEMABegIdx;
+        outNbElement = outIdx;
+
+        return RetCode.Success;
+    }
+
+    public static int DemaLookback(int optInTimePeriod = 30)
+    {
+        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        {
+            return -1;
+        }
+
+        return EmaLookback(optInTimePeriod) * 2;
     }
 }
