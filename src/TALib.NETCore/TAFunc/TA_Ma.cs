@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Ma(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
-        int optInTimePeriod = 30, MAType optInMAType = MAType.Sma)
+    public static Core.RetCode Ma(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+        int optInTimePeriod = 30, Core.MAType optInMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         if (optInTimePeriod == 1)
@@ -28,48 +28,48 @@ public static partial class Core
 
             outBegIdx = startIdx;
 
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         switch (optInMAType)
         {
-            case MAType.Sma:
+            case Core.MAType.Sma:
                 return Sma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Ema:
+            case Core.MAType.Ema:
                 return Ema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Wma:
+            case Core.MAType.Wma:
                 return Wma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Dema:
+            case Core.MAType.Dema:
                 return Dema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Tema:
+            case Core.MAType.Tema:
                 return Tema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Trima:
+            case Core.MAType.Trima:
                 return Trima(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Kama:
+            case Core.MAType.Kama:
                 return Kama(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Mama:
+            case Core.MAType.Mama:
                 var dummyBuffer = new double[endIdx - startIdx + 1];
                 return Mama(inReal, startIdx, endIdx, outReal, dummyBuffer, out outBegIdx, out outNbElement);
-            case MAType.T3:
+            case Core.MAType.T3:
                 return T3(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
             default:
-                return RetCode.BadParam;
+                return Core.RetCode.BadParam;
         }
     }
 
-    public static RetCode Ma(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
-        int optInTimePeriod = 30, MAType optInMAType = MAType.Sma)
+    public static Core.RetCode Ma(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+        int optInTimePeriod = 30, Core.MAType optInMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         if (optInTimePeriod == 1)
@@ -83,38 +83,38 @@ public static partial class Core
 
             outBegIdx = startIdx;
 
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         switch (optInMAType)
         {
-            case MAType.Sma:
+            case Core.MAType.Sma:
                 return Sma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Ema:
+            case Core.MAType.Ema:
                 return Ema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Wma:
+            case Core.MAType.Wma:
                 return Wma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Dema:
+            case Core.MAType.Dema:
                 return Dema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Tema:
+            case Core.MAType.Tema:
                 return Tema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Trima:
+            case Core.MAType.Trima:
                 return Trima(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Kama:
+            case Core.MAType.Kama:
                 return Kama(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-            case MAType.Mama:
+            case Core.MAType.Mama:
                 var dummyBuffer = new decimal[endIdx - startIdx + 1];
                 return Mama(inReal, startIdx, endIdx, outReal, dummyBuffer, out outBegIdx, out outNbElement);
-            case MAType.T3:
+            case Core.MAType.T3:
                 return T3(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
             default:
-                return RetCode.BadParam;
+                return Core.RetCode.BadParam;
         }
     }
 
-    public static int MaLookback(int optInTimePeriod = 30, MAType optInMAType = MAType.Sma)
+    public static int MaLookback(int optInTimePeriod = 30, Core.MAType optInMAType = Core.MAType.Sma)
     {
-        if (optInTimePeriod < 1 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 1 or > 100000)
         {
             return -1;
         }
@@ -126,15 +126,15 @@ public static partial class Core
 
         return optInMAType switch
         {
-            MAType.Sma => SmaLookback(optInTimePeriod),
-            MAType.Ema => EmaLookback(optInTimePeriod),
-            MAType.Wma => WmaLookback(optInTimePeriod),
-            MAType.Dema => DemaLookback(optInTimePeriod),
-            MAType.Tema => TemaLookback(optInTimePeriod),
-            MAType.Trima => TrimaLookback(optInTimePeriod),
-            MAType.Kama => KamaLookback(optInTimePeriod),
-            MAType.Mama => MamaLookback(),
-            MAType.T3 => T3Lookback(optInTimePeriod),
+            Core.MAType.Sma => SmaLookback(optInTimePeriod),
+            Core.MAType.Ema => EmaLookback(optInTimePeriod),
+            Core.MAType.Wma => WmaLookback(optInTimePeriod),
+            Core.MAType.Dema => DemaLookback(optInTimePeriod),
+            Core.MAType.Tema => TemaLookback(optInTimePeriod),
+            Core.MAType.Trima => TrimaLookback(optInTimePeriod),
+            Core.MAType.Kama => KamaLookback(optInTimePeriod),
+            Core.MAType.Mama => MamaLookback(),
+            Core.MAType.T3 => T3Lookback(optInTimePeriod),
             _ => 0
         };
     }

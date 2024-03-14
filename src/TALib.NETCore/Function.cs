@@ -59,11 +59,12 @@ public sealed class Function
 
     public int Lookback(params int[] options)
     {
-        var method = typeof(Core)
+        var method = typeof(Functions)
                          .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                         .Concat(typeof(Candles).GetMethods(BindingFlags.Static | BindingFlags.Public))
                          .Where(mi => mi.Name.EndsWith(LookbackSuffix))
                          .FirstOrDefault(LookbackMethodSelector) ??
-                     throw new MissingMethodException(typeof(Core).FullName, LookbackMethodName);
+                     throw new MissingMethodException(null, LookbackMethodName);
 
         var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
         var paramsArray = new object[optInParameters.Count];
@@ -94,11 +95,12 @@ public sealed class Function
     public override string ToString() => Name;
 
     internal MethodInfo FindFunctionMethodInternal<T>(string name) where T : IFloatingPoint<T> =>
-        typeof(Core)
+        typeof(Functions)
             .GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .Concat(typeof(Candles).GetMethods(BindingFlags.Static | BindingFlags.Public))
             .Where(mi => !mi.Name.EndsWith(LookbackSuffix))
             .FirstOrDefault(FunctionMethodSelector) ??
-        throw new MissingMethodException(typeof(Core).FullName, $"{name}<{typeof(T).Name}>");
+        throw new MissingMethodException(null, $"{name}<{typeof(T).Name}>");
 
     internal object[] PrepareFunctionMethodParamsInternal<T>(
         T[][] inputs,

@@ -1,8 +1,8 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Cmo(
+    public static Core.RetCode Cmo(
         double[] inReal,
         int startIdx,
         int endIdx,
@@ -15,12 +15,12 @@ public static partial class Core
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CmoLookback(optInTimePeriod);
@@ -31,7 +31,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         double prevLoss;
@@ -41,7 +41,7 @@ public static partial class Core
         int outIdx = default;
         int today = startIdx - lookbackTotal;
         double prevValue = inReal[today];
-        if (Globals.UnstablePeriod[(int) FuncUnstId.Cmo] == 0 && Globals.Compatibility == Compatibility.Metastock)
+        if (Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Cmo) == 0 && Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
         {
             double savePrevValue = prevValue;
             prevGain = 0.0;
@@ -65,14 +65,14 @@ public static partial class Core
             tempValue2 = prevGain / optInTimePeriod;
             double tempValue3 = tempValue2 - tempValue1;
             double tempValue4 = tempValue1 + tempValue2;
-            outReal[outIdx++] = !TA_IsZero(tempValue4) ? 100.0 * (tempValue3 / tempValue4) : 0.0;
+            outReal[outIdx++] = !Core.TA_IsZero(tempValue4) ? 100.0 * (tempValue3 / tempValue4) : 0.0;
 
             if (today > endIdx)
             {
                 outBegIdx = startIdx;
                 outNbElement = outIdx;
 
-                return RetCode.Success;
+                return Core.RetCode.Success;
             }
 
             today -= optInTimePeriod;
@@ -103,7 +103,7 @@ public static partial class Core
         if (today > startIdx)
         {
             tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100.0 * ((prevGain - prevLoss) / tempValue1) : 0.0;
+            outReal[outIdx++] = !Core.TA_IsZero(tempValue1) ? 100.0 * ((prevGain - prevLoss) / tempValue1) : 0.0;
         }
         else
         {
@@ -151,16 +151,16 @@ public static partial class Core
             prevLoss /= optInTimePeriod;
             prevGain /= optInTimePeriod;
             tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100.0 * ((prevGain - prevLoss) / tempValue1) : 0.0;
+            outReal[outIdx++] = !Core.TA_IsZero(tempValue1) ? 100.0 * ((prevGain - prevLoss) / tempValue1) : 0.0;
         }
 
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode Cmo(
+    public static Core.RetCode Cmo(
         decimal[] inReal,
         int startIdx,
         int endIdx,
@@ -173,12 +173,12 @@ public static partial class Core
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CmoLookback(optInTimePeriod);
@@ -189,7 +189,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         decimal prevLoss;
@@ -199,7 +199,7 @@ public static partial class Core
         int outIdx = default;
         int today = startIdx - lookbackTotal;
         decimal prevValue = inReal[today];
-        if (Globals.UnstablePeriod[(int) FuncUnstId.Cmo] == 0 && Globals.Compatibility == Compatibility.Metastock)
+        if (Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Cmo) == 0 && Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
         {
             decimal savePrevValue = prevValue;
             prevGain = Decimal.Zero;
@@ -223,14 +223,14 @@ public static partial class Core
             tempValue2 = prevGain / optInTimePeriod;
             decimal tempValue3 = tempValue2 - tempValue1;
             decimal tempValue4 = tempValue1 + tempValue2;
-            outReal[outIdx++] = !TA_IsZero(tempValue4) ? 100m * (tempValue3 / tempValue4) : Decimal.Zero;
+            outReal[outIdx++] = !Core.TA_IsZero(tempValue4) ? 100m * (tempValue3 / tempValue4) : Decimal.Zero;
 
             if (today > endIdx)
             {
                 outBegIdx = startIdx;
                 outNbElement = outIdx;
 
-                return RetCode.Success;
+                return Core.RetCode.Success;
             }
 
             today -= optInTimePeriod;
@@ -261,7 +261,7 @@ public static partial class Core
         if (today > startIdx)
         {
             tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100m * ((prevGain - prevLoss) / tempValue1) : Decimal.Zero;
+            outReal[outIdx++] = !Core.TA_IsZero(tempValue1) ? 100m * ((prevGain - prevLoss) / tempValue1) : Decimal.Zero;
         }
         else
         {
@@ -308,24 +308,24 @@ public static partial class Core
             prevLoss /= optInTimePeriod;
             prevGain /= optInTimePeriod;
             tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100m * ((prevGain - prevLoss) / tempValue1) : Decimal.Zero;
+            outReal[outIdx++] = !Core.TA_IsZero(tempValue1) ? 100m * ((prevGain - prevLoss) / tempValue1) : Decimal.Zero;
         }
 
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int CmoLookback(int optInTimePeriod = 14)
     {
-        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 2 or > 100000)
         {
             return -1;
         }
 
-        int retValue = optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Cmo];
-        if (Globals.Compatibility == Compatibility.Metastock)
+        int retValue = optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Cmo);
+        if (Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
         {
             retValue--;
         }

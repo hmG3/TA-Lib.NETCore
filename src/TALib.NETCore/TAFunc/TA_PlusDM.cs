@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode PlusDM(double[] inHigh, double[] inLow, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+    public static Core.RetCode PlusDM(double[] inHigh, double[] inLow, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
         out int outNbElement, int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = PlusDMLookback(optInTimePeriod);
@@ -25,7 +25,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int today;
@@ -54,7 +54,7 @@ public static partial class Core
 
             outNbElement = outIdx;
 
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         outBegIdx = startIdx;
@@ -78,7 +78,7 @@ public static partial class Core
             }
         }
 
-        i = (int) Globals.UnstablePeriod[(int) FuncUnstId.PlusDM];
+        i = Core.UnstablePeriodSettings.Get(Core.FuncUnstId.PlusDM);
         while (i-- != 0)
         {
             today++;
@@ -124,22 +124,22 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode PlusDM(decimal[] inHigh, decimal[] inLow, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+    public static Core.RetCode PlusDM(decimal[] inHigh, decimal[] inLow, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
         out int outNbElement, int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = PlusDMLookback(optInTimePeriod);
@@ -150,7 +150,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int today;
@@ -179,7 +179,7 @@ public static partial class Core
 
             outNbElement = outIdx;
 
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         outBegIdx = startIdx;
@@ -203,7 +203,7 @@ public static partial class Core
             }
         }
 
-        i = (int) Globals.UnstablePeriod[(int) FuncUnstId.PlusDM];
+        i = Core.UnstablePeriodSettings.Get(Core.FuncUnstId.PlusDM);
         while (i-- != 0)
         {
             today++;
@@ -249,16 +249,16 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int PlusDMLookback(int optInTimePeriod = 14)
     {
-        if (optInTimePeriod < 1 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 1 or > 100000)
         {
             return -1;
         }
 
-        return optInTimePeriod > 1 ? optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.PlusDM] - 1 : 1;
+        return optInTimePeriod > 1 ? optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.PlusDM) - 1 : 1;
     }
 }

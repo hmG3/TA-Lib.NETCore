@@ -1,21 +1,21 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode AdOsc(double[] inHigh, double[] inLow, double[] inClose, double[] inVolume, int startIdx, int endIdx,
+    public static Core.RetCode AdOsc(double[] inHigh, double[] inLow, double[] inClose, double[] inVolume, int startIdx, int endIdx,
         double[] outReal, out int outBegIdx, out int outNbElement, int optInFastPeriod = 3, int optInSlowPeriod = 10)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || inVolume == null || optInFastPeriod < 2 || optInFastPeriod > 100000 ||
             optInSlowPeriod < 2 || optInSlowPeriod > 100000 || outReal == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = AdOscLookback(optInFastPeriod, optInSlowPeriod);
@@ -26,7 +26,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         outBegIdx = startIdx;
@@ -63,7 +63,7 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
 
         void CalculateAd()
         {
@@ -80,20 +80,20 @@ public static partial class Core
         }
     }
 
-    public static RetCode AdOsc(decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume, int startIdx, int endIdx,
+    public static Core.RetCode AdOsc(decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume, int startIdx, int endIdx,
         decimal[] outReal, out int outBegIdx, out int outNbElement, int optInFastPeriod = 3, int optInSlowPeriod = 10)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || inVolume == null || optInFastPeriod < 2 || optInFastPeriod > 100000 ||
             optInSlowPeriod < 2 || optInSlowPeriod > 100000 || outReal == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = AdOscLookback(optInFastPeriod, optInSlowPeriod);
@@ -104,7 +104,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         outBegIdx = startIdx;
@@ -141,7 +141,7 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
 
         void CalculateAd()
         {

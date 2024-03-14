@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TALib;
 
-public class Functions : IEnumerable<Function>
+public class Abstract : IEnumerable<Function>
 {
     private const string HighInput = "High";
     private const string LowInput = "Low";
@@ -184,13 +184,13 @@ public class Functions : IEnumerable<Function>
         { "CdlXSideGap3Methods", new Function("CdlXSideGap3Methods", "Upside/Downside Gap Three Methods", "Pattern Recognition", $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) }
     };
 
-    private static readonly Lazy<Functions> Instance = new(() => []);
+    private static readonly Lazy<Abstract> Instance = new(() => []);
 
-    private Functions()
+    private Abstract()
     {
     }
 
-    public static Functions All => Instance.Value;
+    public static Abstract All => Instance.Value;
 
     public static Function Find(string name) =>
         FunctionsDefinition.TryGetValue(name, out var function)

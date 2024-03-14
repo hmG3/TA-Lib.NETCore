@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Ad(double[] inHigh, double[] inLow, double[] inClose, double[] inVolume, int startIdx, int endIdx,
+    public static Core.RetCode Ad(double[] inHigh, double[] inLow, double[] inClose, double[] inVolume, int startIdx, int endIdx,
         double[] outReal, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int nbBar = endIdx - startIdx + 1;
@@ -41,22 +41,22 @@ public static partial class Core
             nbBar--;
         }
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode Ad(decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume, int startIdx, int endIdx,
+    public static Core.RetCode Ad(decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume, int startIdx, int endIdx,
         decimal[] outReal, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int nbBar = endIdx - startIdx + 1;
@@ -83,7 +83,7 @@ public static partial class Core
             nbBar--;
         }
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int AdLookback() => 0;

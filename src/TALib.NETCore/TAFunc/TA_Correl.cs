@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Correl(double[] inReal0, double[] inReal1, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+    public static Core.RetCode Correl(double[] inReal0, double[] inReal1, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
         out int outNbElement, int optInTimePeriod = 30)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal0 == null || inReal1 == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CorrelLookback(optInTimePeriod);
@@ -25,7 +25,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         outBegIdx = startIdx;
@@ -49,7 +49,7 @@ public static partial class Core
         double trailingX = inReal0[trailingIdx];
         double trailingY = inReal1[trailingIdx++];
         double tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-        outReal[0] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal) : 0.0;
+        outReal[0] = !Core.TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal) : 0.0;
 
         int outIdx = 1;
         while (today <= endIdx)
@@ -73,27 +73,27 @@ public static partial class Core
             trailingX = inReal0[trailingIdx];
             trailingY = inReal1[trailingIdx++];
             tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-            outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal) : 0.0;
+            outReal[outIdx++] = !Core.TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal) : 0.0;
         }
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode Correl(decimal[] inReal0, decimal[] inReal1, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+    public static Core.RetCode Correl(decimal[] inReal0, decimal[] inReal1, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
         out int outNbElement, int optInTimePeriod = 30)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal0 == null || inReal1 == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CorrelLookback(optInTimePeriod);
@@ -104,7 +104,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         outBegIdx = startIdx;
@@ -128,7 +128,7 @@ public static partial class Core
         decimal trailingX = inReal0[trailingIdx];
         decimal trailingY = inReal1[trailingIdx++];
         decimal tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-        outReal[0] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal) : Decimal.Zero;
+        outReal[0] = !Core.TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal) : Decimal.Zero;
 
         int outIdx = 1;
         while (today <= endIdx)
@@ -152,19 +152,19 @@ public static partial class Core
             trailingX = inReal0[trailingIdx];
             trailingY = inReal1[trailingIdx++];
             tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-            outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal)
+            outReal[outIdx++] = !Core.TA_IsZeroOrNeg(tempReal)
                 ? (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal)
                 : Decimal.Zero;
         }
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int CorrelLookback(int optInTimePeriod = 30)
     {
-        if (optInTimePeriod < 1 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 1 or > 100000)
         {
             return -1;
         }

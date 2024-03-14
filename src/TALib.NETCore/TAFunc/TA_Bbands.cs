@@ -1,22 +1,22 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Bbands(double[] inReal, int startIdx, int endIdx, double[] outRealUpperBand, double[] outRealMiddleBand,
+    public static Core.RetCode Bbands(double[] inReal, int startIdx, int endIdx, double[] outRealUpperBand, double[] outRealMiddleBand,
         double[] outRealLowerBand, out int outBegIdx, out int outNbElement, int optInTimePeriod = 5, double optInNbDevUp = 2.0,
-        double optInNbDevDn = 2.0, MAType optInMAType = MAType.Sma)
+        double optInNbDevDn = 2.0, Core.MAType optInMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outRealUpperBand == null || outRealMiddleBand == null || outRealLowerBand == null ||
             optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         double[] tempBuffer1;
@@ -44,23 +44,23 @@ public static partial class Core
 
         if (tempBuffer1 == inReal || tempBuffer2 == inReal)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
-        RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
-        if (retCode != RetCode.Success || outNbElement == 0)
+        Core.RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
+        if (retCode != Core.RetCode.Success || outNbElement == 0)
         {
             return retCode;
         }
 
-        if (optInMAType == MAType.Sma)
+        if (optInMAType == Core.MAType.Sma)
         {
-            TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
+            Core.TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
         }
         else
         {
             retCode = StdDev(inReal, outBegIdx, endIdx, tempBuffer2, out outBegIdx, out outNbElement, optInTimePeriod);
-            if (retCode != RetCode.Success)
+            if (retCode != Core.RetCode.Success)
             {
                 outNbElement = 0;
 
@@ -129,24 +129,24 @@ public static partial class Core
             }
         }
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode Bbands(decimal[] inReal, int startIdx, int endIdx, decimal[] outRealUpperBand, decimal[] outRealMiddleBand,
+    public static Core.RetCode Bbands(decimal[] inReal, int startIdx, int endIdx, decimal[] outRealUpperBand, decimal[] outRealMiddleBand,
         decimal[] outRealLowerBand, out int outBegIdx, out int outNbElement, int optInTimePeriod = 5, decimal optInNbDevUp = 2m,
-        decimal optInNbDevDn = 2m, MAType optInMAType = MAType.Sma)
+        decimal optInNbDevDn = 2m, Core.MAType optInMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outRealUpperBand == null || outRealMiddleBand == null || outRealLowerBand == null ||
             optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         decimal[] tempBuffer1;
@@ -174,23 +174,23 @@ public static partial class Core
 
         if (tempBuffer1 == inReal || tempBuffer2 == inReal)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
-        RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
-        if (retCode != RetCode.Success || outNbElement == 0)
+        Core.RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
+        if (retCode != Core.RetCode.Success || outNbElement == 0)
         {
             return retCode;
         }
 
-        if (optInMAType == MAType.Sma)
+        if (optInMAType == Core.MAType.Sma)
         {
-            TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
+            Core.TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
         }
         else
         {
             retCode = StdDev(inReal, outBegIdx, endIdx, tempBuffer2, out outBegIdx, out outNbElement, optInTimePeriod);
-            if (retCode != RetCode.Success)
+            if (retCode != Core.RetCode.Success)
             {
                 outNbElement = 0;
 
@@ -259,12 +259,12 @@ public static partial class Core
             }
         }
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static int BbandsLookback(int optInTimePeriod = 5, MAType optInMAType = MAType.Sma)
+    public static int BbandsLookback(int optInTimePeriod = 5, Core.MAType optInMAType = Core.MAType.Sma)
     {
-        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 2 or > 100000)
         {
             return -1;
         }

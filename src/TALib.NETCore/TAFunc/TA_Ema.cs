@@ -1,52 +1,52 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Ema(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode Ema(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 30)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
-        return TA_INT_EMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
+        return Core.TA_INT_EMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
             2.0 / (optInTimePeriod + 1));
     }
 
-    public static RetCode Ema(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode Ema(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 30)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
-        return TA_INT_EMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
+        return Core.TA_INT_EMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
             2m / (optInTimePeriod + 1));
     }
 
     public static int EmaLookback(int optInTimePeriod = 30)
     {
-        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 2 or > 100000)
         {
             return -1;
         }
 
-        return optInTimePeriod - 1 + (int) Globals.UnstablePeriod[(int) FuncUnstId.Ema];
+        return optInTimePeriod - 1 + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Ema);
     }
 }

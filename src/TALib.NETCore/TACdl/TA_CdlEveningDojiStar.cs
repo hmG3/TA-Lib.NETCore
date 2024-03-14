@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Candles
 {
-    public static RetCode CdlEveningDojiStar(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+    public static Core.RetCode CdlEveningDojiStar(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement, double optInPenetration = 0.3)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null || optInPenetration < 0.0)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CdlEveningDojiStarLookback();
@@ -25,33 +25,33 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         double bodyLongPeriodTotal = default;
         double bodyDojiPeriodTotal = default;
         double bodyShortPeriodTotal = default;
-        int bodyLongTrailingIdx = startIdx - 2 - TA_CandleAvgPeriod(CandleSettingType.BodyLong);
-        int bodyDojiTrailingIdx = startIdx - 1 - TA_CandleAvgPeriod(CandleSettingType.BodyDoji);
-        int bodyShortTrailingIdx = startIdx - TA_CandleAvgPeriod(CandleSettingType.BodyShort);
+        int bodyLongTrailingIdx = startIdx - 2 - Core.CandleSettings.Get(Core.CandleSettingType.BodyLong).AveragePeriod;
+        int bodyDojiTrailingIdx = startIdx - 1 - Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod;
+        int bodyShortTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.BodyShort).AveragePeriod;
         int i = bodyLongTrailingIdx;
         while (i < startIdx - 2)
         {
-            bodyLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyLong, i);
+            bodyLongPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
             i++;
         }
 
         i = bodyDojiTrailingIdx;
         while (i < startIdx - 1)
         {
-            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i);
+            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
 
         i = bodyShortTrailingIdx;
         while (i < startIdx)
         {
-            bodyShortPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, i);
+            bodyShortPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i);
             i++;
         }
 
@@ -60,17 +60,17 @@ public static partial class Core
         int outIdx = default;
         do
         {
-            if (TA_RealBody(inClose, inOpen, i - 2) >
-                TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) && // 1st: long
-                TA_CandleColor(inClose, inOpen, i - 2) && //           white
-                TA_RealBody(inClose, inOpen, i - 1) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji,
+            if (Core.TA_RealBody(inClose, inOpen, i - 2) >
+                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) && // 1st: long
+                Core.TA_CandleColor(inClose, inOpen, i - 2) && //           white
+                Core.TA_RealBody(inClose, inOpen, i - 1) <= Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
                     bodyDojiPeriodTotal, i - 1) && // 2nd: doji
-                TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && //           gapping up
-                TA_RealBody(inClose, inOpen, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort,
+                Core.TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && //           gapping up
+                Core.TA_RealBody(inClose, inOpen, i) > Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
                     bodyShortPeriodTotal, i) && // 3rd: longer than short
-                !TA_CandleColor(inClose, inOpen, i) && //          black real body
+                !Core.TA_CandleColor(inClose, inOpen, i) && //          black real body
                 inClose[i] < inClose[i - 2] -
-                TA_RealBody(inClose, inOpen, i - 2) * optInPenetration //               closing well within 1st rb
+                Core.TA_RealBody(inClose, inOpen, i - 2) * optInPenetration //               closing well within 1st rb
                )
             {
                 outInteger[outIdx++] = -100;
@@ -83,12 +83,12 @@ public static partial class Core
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyLong, i - 2) -
-                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyLong, bodyLongTrailingIdx);
-            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i - 1) -
-                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
-            bodyShortPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, i) -
-                                    TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, bodyShortTrailingIdx);
+            bodyLongPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
+                                   Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i - 1) -
+                                   Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+            bodyShortPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                                    Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
             i++;
             bodyLongTrailingIdx++;
             bodyDojiTrailingIdx++;
@@ -98,23 +98,23 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode CdlEveningDojiStar(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlEveningDojiStar(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement, decimal optInPenetration = 0.3m)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null ||
             optInPenetration < Decimal.Zero)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CdlEveningDojiStarLookback();
@@ -125,33 +125,33 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         decimal bodyLongPeriodTotal = default;
         decimal bodyDojiPeriodTotal = default;
         decimal bodyShortPeriodTotal = default;
-        int bodyLongTrailingIdx = startIdx - 2 - TA_CandleAvgPeriod(CandleSettingType.BodyLong);
-        int bodyDojiTrailingIdx = startIdx - 1 - TA_CandleAvgPeriod(CandleSettingType.BodyDoji);
-        int bodyShortTrailingIdx = startIdx - TA_CandleAvgPeriod(CandleSettingType.BodyShort);
+        int bodyLongTrailingIdx = startIdx - 2 - Core.CandleSettings.Get(Core.CandleSettingType.BodyLong).AveragePeriod;
+        int bodyDojiTrailingIdx = startIdx - 1 - Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod;
+        int bodyShortTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.BodyShort).AveragePeriod;
         int i = bodyLongTrailingIdx;
         while (i < startIdx - 2)
         {
-            bodyLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyLong, i);
+            bodyLongPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
             i++;
         }
 
         i = bodyDojiTrailingIdx;
         while (i < startIdx - 1)
         {
-            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i);
+            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
 
         i = bodyShortTrailingIdx;
         while (i < startIdx)
         {
-            bodyShortPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, i);
+            bodyShortPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i);
             i++;
         }
 
@@ -160,17 +160,17 @@ public static partial class Core
         int outIdx = default;
         do
         {
-            if (TA_RealBody(inClose, inOpen, i - 2) >
-                TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) && // 1st: long
-                TA_CandleColor(inClose, inOpen, i - 2) && //           white
-                TA_RealBody(inClose, inOpen, i - 1) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji,
+            if (Core.TA_RealBody(inClose, inOpen, i - 2) >
+                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) && // 1st: long
+                Core.TA_CandleColor(inClose, inOpen, i - 2) && //           white
+                Core.TA_RealBody(inClose, inOpen, i - 1) <= Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
                     bodyDojiPeriodTotal, i - 1) && // 2nd: doji
-                TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && //           gapping up
-                TA_RealBody(inClose, inOpen, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort,
+                Core.TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && //           gapping up
+                Core.TA_RealBody(inClose, inOpen, i) > Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
                     bodyShortPeriodTotal, i) && // 3rd: longer than short
-                !TA_CandleColor(inClose, inOpen, i) && //          black real body
+                !Core.TA_CandleColor(inClose, inOpen, i) && //          black real body
                 inClose[i] < inClose[i - 2] -
-                TA_RealBody(inClose, inOpen, i - 2) * optInPenetration //               closing well within 1st rb
+                Core.TA_RealBody(inClose, inOpen, i - 2) * optInPenetration //               closing well within 1st rb
                )
             {
                 outInteger[outIdx++] = -100;
@@ -183,12 +183,12 @@ public static partial class Core
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyLong, i - 2) -
-                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyLong, bodyLongTrailingIdx);
-            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i - 1) -
-                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
-            bodyShortPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, i) -
-                                    TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyShort, bodyShortTrailingIdx);
+            bodyLongPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
+                                   Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i - 1) -
+                                   Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+            bodyShortPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                                    Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
             i++;
             bodyLongTrailingIdx++;
             bodyDojiTrailingIdx++;
@@ -198,12 +198,12 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int CdlEveningDojiStarLookback() =>
         Math.Max(
-            Math.Max(TA_CandleAvgPeriod(CandleSettingType.BodyDoji), TA_CandleAvgPeriod(CandleSettingType.BodyLong)),
-            TA_CandleAvgPeriod(CandleSettingType.BodyShort)
+            Math.Max(Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod, Core.CandleSettings.Get(Core.CandleSettingType.BodyLong).AveragePeriod),
+            Core.CandleSettings.Get(Core.CandleSettingType.BodyShort).AveragePeriod
         ) + 2;
 }

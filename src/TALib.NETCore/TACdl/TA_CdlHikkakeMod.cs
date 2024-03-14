@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Candles
 {
-    public static RetCode CdlHikkakeMod(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlHikkakeMod(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CdlHikkakeModLookback();
@@ -25,15 +25,15 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         double nearPeriodTotal = default;
-        int nearTrailingIdx = startIdx - 3 - TA_CandleAvgPeriod(CandleSettingType.Near);
+        int nearTrailingIdx = startIdx - 3 - Core.CandleSettings.Get(Core.CandleSettingType.Near).AveragePeriod;
         int i = nearTrailingIdx;
         while (i < startIdx - 3)
         {
-            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, i - 2);
+            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2);
             i++;
         }
 
@@ -46,11 +46,11 @@ public static partial class Core
                 inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 3rd: lower high and higher low than 2nd
                 (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] && // (bull) 4th: lower high and lower low
                  inClose[i - 2] <= inLow[i - 2] +
-                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i - 2)
+                 Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
                  ||
                  inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] && // (bear) 4th: higher high and higher low
                  inClose[i - 2] >= inHigh[i - 2] -
-                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i - 2)))
+                 Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)))
             {
                 patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                 patternIdx = i;
@@ -65,8 +65,8 @@ public static partial class Core
                 patternIdx = 0;
             }
 
-            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, i - 2) -
-                               TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearTrailingIdx - 2);
+            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
+                               Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
             nearTrailingIdx++;
             i++;
         }
@@ -79,11 +79,11 @@ public static partial class Core
                 inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 3rd: lower high and higher low than 2nd
                 (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] && // (bull) 4th: lower high and lower low
                  inClose[i - 2] <= inLow[i - 2] +
-                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i - 2)
+                 Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
                  ||
                  inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] && // (bear) 4th: higher high and higher low
                  inClose[i - 2] >= inHigh[i - 2] -
-                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i - 2)))
+                 Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)))
             {
                 patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                 patternIdx = i;
@@ -104,8 +104,8 @@ public static partial class Core
                 outInteger[outIdx++] = 0;
             }
 
-            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, i - 2) -
-                               TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearTrailingIdx - 2);
+            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
+                               Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
             nearTrailingIdx++;
             i++;
         } while (i <= endIdx);
@@ -113,22 +113,22 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode CdlHikkakeMod(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlHikkakeMod(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CdlHikkakeModLookback();
@@ -139,15 +139,15 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         decimal nearPeriodTotal = default;
-        int nearTrailingIdx = startIdx - 3 - TA_CandleAvgPeriod(CandleSettingType.Near);
+        int nearTrailingIdx = startIdx - 3 - Core.CandleSettings.Get(Core.CandleSettingType.Near).AveragePeriod;
         int i = nearTrailingIdx;
         while (i < startIdx - 3)
         {
-            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, i - 2);
+            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2);
             i++;
         }
 
@@ -160,11 +160,11 @@ public static partial class Core
                 inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 3rd: lower high and higher low than 2nd
                 (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] && // (bull) 4th: lower high and lower low
                  inClose[i - 2] <= inLow[i - 2] +
-                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i - 2)
+                 Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
                  ||
                  inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] && // (bear) 4th: higher high and higher low
                  inClose[i - 2] >= inHigh[i - 2] -
-                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i - 2)))
+                 Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)))
             {
                 patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                 patternIdx = i;
@@ -179,8 +179,8 @@ public static partial class Core
                 patternIdx = 0;
             }
 
-            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, i - 2) -
-                               TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearTrailingIdx - 2);
+            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
+                               Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
             nearTrailingIdx++;
             i++;
         }
@@ -193,11 +193,11 @@ public static partial class Core
                 inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 3rd: lower high and higher low than 2nd
                 (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] && // (bull) 4th: lower high and lower low
                  inClose[i - 2] <= inLow[i - 2] +
-                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i - 2)
+                 Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
                  ||
                  inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] && // (bear) 4th: higher high and higher low
                  inClose[i - 2] >= inHigh[i - 2] -
-                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i - 2)))
+                 Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)))
             {
                 patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                 patternIdx = i;
@@ -218,8 +218,8 @@ public static partial class Core
                 outInteger[outIdx++] = 0;
             }
 
-            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, i - 2) -
-                               TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearTrailingIdx - 2);
+            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
+                               Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
             nearTrailingIdx++;
             i++;
         } while (i <= endIdx);
@@ -227,8 +227,8 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static int CdlHikkakeModLookback() => Math.Max(1, TA_CandleAvgPeriod(CandleSettingType.Near)) + 5;
+    public static int CdlHikkakeModLookback() => Math.Max(1, Core.CandleSettings.Get(Core.CandleSettingType.Near).AveragePeriod) + 5;
 }

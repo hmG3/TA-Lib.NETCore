@@ -1,8 +1,8 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode SarExt(double[] inHigh, double[] inLow, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+    public static Core.RetCode SarExt(double[] inHigh, double[] inLow, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
         out int outNbElement, double optInStartValue = 0.0, double optInOffsetOnReverse = 0.0, double optInAccelerationInitLong = 0.02,
         double optInAccelerationLong = 0.02, double optInAccelerationMaxLong = 0.2, double optInAccelerationInitShort = 0.02,
         double optInAccelerationShort = 0.02, double optInAccelerationMaxShort = 0.2)
@@ -11,14 +11,14 @@ public static partial class Core
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || outReal == null || optInOffsetOnReverse < 0.0 || optInAccelerationInitLong < 0.0 ||
             optInAccelerationLong < 0.0 || optInAccelerationMaxLong < 0.0 || optInAccelerationInitShort < 0.0 ||
             optInAccelerationShort < 0.0 || optInAccelerationMaxShort < 0.0)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = SarExtLookback();
@@ -29,7 +29,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         double sar;
@@ -63,8 +63,8 @@ public static partial class Core
         if (optInStartValue.Equals(0.0))
         {
             var epTemp = new double[1];
-            RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
-            if (retCode != RetCode.Success)
+            Core.RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
+            if (retCode != Core.RetCode.Success)
             {
                 return retCode;
             }
@@ -251,10 +251,10 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode SarExt(decimal[] inHigh, decimal[] inLow, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+    public static Core.RetCode SarExt(decimal[] inHigh, decimal[] inLow, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
         out int outNbElement, decimal optInStartValue = Decimal.Zero, decimal optInOffsetOnReverse = Decimal.Zero,
         decimal optInAccelerationInitLong = 0.02m, decimal optInAccelerationLong = 0.02m, decimal optInAccelerationMaxLong = 0.2m,
         decimal optInAccelerationInitShort = 0.02m, decimal optInAccelerationShort = 0.02m, decimal optInAccelerationMaxShort = 0.2m)
@@ -263,7 +263,7 @@ public static partial class Core
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || outReal == null || optInOffsetOnReverse < Decimal.Zero ||
@@ -271,7 +271,7 @@ public static partial class Core
             optInAccelerationMaxLong < Decimal.Zero || optInAccelerationInitShort < Decimal.Zero ||
             optInAccelerationShort < Decimal.Zero || optInAccelerationMaxShort < Decimal.Zero)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = SarExtLookback();
@@ -282,7 +282,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         decimal sar;
@@ -316,8 +316,8 @@ public static partial class Core
         if (optInStartValue == Decimal.Zero)
         {
             var epTemp = new decimal[1];
-            RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
-            if (retCode != RetCode.Success)
+            Core.RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
+            if (retCode != Core.RetCode.Success)
             {
                 return retCode;
             }
@@ -504,7 +504,7 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int SarExtLookback() => 1;

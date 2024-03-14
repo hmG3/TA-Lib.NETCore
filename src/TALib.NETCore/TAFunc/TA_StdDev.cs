@@ -1,24 +1,24 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode StdDev(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode StdDev(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 5, double optInNbDev = 1.0)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
-        RetCode retCode = TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-        if (retCode != RetCode.Success)
+        Core.RetCode retCode = Core.TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
@@ -28,7 +28,7 @@ public static partial class Core
             for (var i = 0; i < outNbElement; i++)
             {
                 double tempReal = outReal[i];
-                outReal[i] = !TA_IsZeroOrNeg(tempReal) ? Math.Sqrt(tempReal) * optInNbDev : 0.0;
+                outReal[i] = !Core.TA_IsZeroOrNeg(tempReal) ? Math.Sqrt(tempReal) * optInNbDev : 0.0;
             }
         }
         else
@@ -36,30 +36,30 @@ public static partial class Core
             for (var i = 0; i < outNbElement; i++)
             {
                 double tempReal = outReal[i];
-                outReal[i] = !TA_IsZeroOrNeg(tempReal) ? Math.Sqrt(tempReal) : 0.0;
+                outReal[i] = !Core.TA_IsZeroOrNeg(tempReal) ? Math.Sqrt(tempReal) : 0.0;
             }
         }
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode StdDev(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode StdDev(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 5, decimal optInNbDev = 1m)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
-        RetCode retCode = TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
-        if (retCode != RetCode.Success)
+        Core.RetCode retCode = Core.TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
@@ -69,7 +69,7 @@ public static partial class Core
             for (var i = 0; i < outNbElement; i++)
             {
                 decimal tempReal = outReal[i];
-                outReal[i] = !TA_IsZeroOrNeg(tempReal) ? DecimalMath.Sqrt(tempReal) * optInNbDev : Decimal.Zero;
+                outReal[i] = !Core.TA_IsZeroOrNeg(tempReal) ? DecimalMath.Sqrt(tempReal) * optInNbDev : Decimal.Zero;
             }
         }
         else
@@ -77,16 +77,16 @@ public static partial class Core
             for (var i = 0; i < outNbElement; i++)
             {
                 decimal tempReal = outReal[i];
-                outReal[i] = !TA_IsZeroOrNeg(tempReal) ? DecimalMath.Sqrt(tempReal) : Decimal.Zero;
+                outReal[i] = !Core.TA_IsZeroOrNeg(tempReal) ? DecimalMath.Sqrt(tempReal) : Decimal.Zero;
             }
         }
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int StdDevLookback(int optInTimePeriod = 5)
     {
-        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 2 or > 100000)
         {
             return -1;
         }

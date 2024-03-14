@@ -1,21 +1,21 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode T3(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode T3(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 5, double optInVFactor = 0.7)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000 || optInVFactor < 0.0 ||
             optInVFactor > 1.0)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = T3Lookback(optInTimePeriod);
@@ -26,7 +26,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         outBegIdx = startIdx;
@@ -124,23 +124,23 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode T3(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode T3(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 5, decimal optInVFactor = 0.7m)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000 || optInVFactor < Decimal.Zero ||
             optInVFactor > Decimal.One)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = T3Lookback(optInTimePeriod);
@@ -151,7 +151,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         outBegIdx = startIdx;
@@ -249,17 +249,17 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int T3Lookback(int optInTimePeriod = 5)
     {
-        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 2 or > 100000)
         {
             return -1;
         }
 
 
-        return (optInTimePeriod - 1) * 6 + (int) Globals.UnstablePeriod[(int) FuncUnstId.T3];
+        return (optInTimePeriod - 1) * 6 + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.T3);
     }
 }

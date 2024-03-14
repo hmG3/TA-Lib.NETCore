@@ -19,8 +19,8 @@ public sealed class FunctionTests
 
         const double equalityTolerance = 0.001d;
 
-        Functions.FunctionsDefinition.ShouldContainKey(model.Name, $"Cannot find definition for '{model.Name}");
-        var function = Functions.FunctionsDefinition[model.Name];
+        Abstract.FunctionsDefinition.ShouldContainKey(model.Name, $"Cannot find definition for '{model.Name}");
+        var function = Abstract.FunctionsDefinition[model.Name];
 
         model.Options.Length.ShouldBe(function.Options.Length, "Number of options must match the definition");
         var inputOffset = function.Lookback(Array.ConvertAll(model.Options, d => (int) d));
@@ -59,8 +59,8 @@ public sealed class FunctionTests
 
         const decimal equalityTolerance = 0.001m;
 
-        Functions.FunctionsDefinition.ShouldContainKey(model.Name, $"Cannot find definition for '{model.Name}");
-        var function = Functions.FunctionsDefinition[model.Name];
+        Abstract.FunctionsDefinition.ShouldContainKey(model.Name, $"Cannot find definition for '{model.Name}");
+        var function = Abstract.FunctionsDefinition[model.Name];
 
         model.Options.Length.ShouldBe(function.Options.Length, "Number of options must match the definition");
         var inputOffset = function.Lookback(Array.ConvertAll(model.Options, d => (int) d));

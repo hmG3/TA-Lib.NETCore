@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Kama(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode Kama(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 30)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = KamaLookback(optInTimePeriod);
@@ -25,7 +25,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         const double constMax = 2.0 / (30.0 + 1.0);
@@ -50,7 +50,7 @@ public static partial class Core
         double periodROC = tempReal - tempReal2;
 
         double trailingValue = tempReal2;
-        if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
+        if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
         {
             tempReal = 1.0;
         }
@@ -73,7 +73,7 @@ public static partial class Core
             sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
 
             trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
+            if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
             {
                 tempReal = 1.0;
             }
@@ -101,7 +101,7 @@ public static partial class Core
             sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
 
             trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
+            if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
             {
                 tempReal = 1.0;
             }
@@ -119,22 +119,22 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode Kama(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode Kama(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 30)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = KamaLookback(optInTimePeriod);
@@ -145,7 +145,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         const decimal constMax = 2m / (30m + Decimal.One);
@@ -170,7 +170,7 @@ public static partial class Core
         decimal periodROC = tempReal - tempReal2;
 
         decimal trailingValue = tempReal2;
-        if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
+        if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
         {
             tempReal = Decimal.One;
         }
@@ -193,7 +193,7 @@ public static partial class Core
             sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
 
             trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
+            if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
             {
                 tempReal = Decimal.One;
             }
@@ -221,7 +221,7 @@ public static partial class Core
             sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
 
             trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
+            if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
             {
                 tempReal = Decimal.One;
             }
@@ -239,16 +239,16 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int KamaLookback(int optInTimePeriod = 30)
     {
-        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 2 or > 100000)
         {
             return -1;
         }
 
-        return optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Kama];
+        return optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Kama);
     }
 }

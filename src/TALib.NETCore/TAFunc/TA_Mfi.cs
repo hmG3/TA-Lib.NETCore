@@ -1,21 +1,21 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Mfi(double[] inHigh, double[] inLow, double[] inClose, double[] inVolume, int startIdx, int endIdx,
+    public static Core.RetCode Mfi(double[] inHigh, double[] inLow, double[] inClose, double[] inVolume, int startIdx, int endIdx,
         double[] outReal, out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null || optInTimePeriod < 2 ||
             optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = MfiLookback(optInTimePeriod);
@@ -26,7 +26,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int outIdx = default;
@@ -152,23 +152,23 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode Mfi(decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume, int startIdx, int endIdx,
+    public static Core.RetCode Mfi(decimal[] inHigh, decimal[] inLow, decimal[] inClose, decimal[] inVolume, int startIdx, int endIdx,
         decimal[] outReal, out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null || optInTimePeriod < 2 ||
             optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = MfiLookback(optInTimePeriod);
@@ -179,7 +179,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int outIdx = default;
@@ -305,16 +305,16 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int MfiLookback(int optInTimePeriod = 14)
     {
-        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 2 or > 100000)
         {
             return -1;
         }
 
-        return optInTimePeriod + (int) Globals.UnstablePeriod[(int) FuncUnstId.Mfi];
+        return optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Mfi);
     }
 }

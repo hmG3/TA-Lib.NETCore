@@ -1,22 +1,22 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode UltOsc(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outReal,
+    public static Core.RetCode UltOsc(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outReal,
         out int outBegIdx, out int outNbElement, int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod1 < 1 ||
             optInTimePeriod1 > 100000 || optInTimePeriod2 < 1 || optInTimePeriod2 > 100000 || optInTimePeriod3 < 1 ||
             optInTimePeriod3 > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = UltOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
@@ -27,7 +27,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         var usedFlag = new bool[3];
@@ -62,7 +62,7 @@ public static partial class Core
         double b1Total = default;
         for (int i = startIdx - optInTimePeriod1 + 1; i < startIdx; ++i)
         {
-            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a1Total += closeMinusTrueLow;
             b1Total += trueRange;
         }
@@ -71,7 +71,7 @@ public static partial class Core
         double b2Total = default;
         for (int i = startIdx - optInTimePeriod2 + 1; i < startIdx; ++i)
         {
-            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a2Total += closeMinusTrueLow;
             b2Total += trueRange;
         }
@@ -80,7 +80,7 @@ public static partial class Core
         double b3Total = default;
         for (int i = startIdx - optInTimePeriod3 + 1; i < startIdx; ++i)
         {
-            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a3Total += closeMinusTrueLow;
             b3Total += trueRange;
         }
@@ -92,7 +92,7 @@ public static partial class Core
         int trailingIdx3 = today - optInTimePeriod3 + 1;
         while (today <= endIdx)
         {
-            CalcTerms(inLow, inHigh, inClose, today, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, today, out trueRange, out closeMinusTrueLow);
             a1Total += closeMinusTrueLow;
             a2Total += closeMinusTrueLow;
             a3Total += closeMinusTrueLow;
@@ -102,30 +102,30 @@ public static partial class Core
 
             double output = default;
 
-            if (!TA_IsZero(b1Total))
+            if (!Core.TA_IsZero(b1Total))
             {
                 output += 4.0 * (a1Total / b1Total);
             }
 
-            if (!TA_IsZero(b2Total))
+            if (!Core.TA_IsZero(b2Total))
             {
                 output += 2.0 * (a2Total / b2Total);
             }
 
-            if (!TA_IsZero(b3Total))
+            if (!Core.TA_IsZero(b3Total))
             {
                 output += a3Total / b3Total;
             }
 
-            CalcTerms(inLow, inHigh, inClose, trailingIdx1, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx1, out trueRange, out closeMinusTrueLow);
             a1Total -= closeMinusTrueLow;
             b1Total -= trueRange;
 
-            CalcTerms(inLow, inHigh, inClose, trailingIdx2, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx2, out trueRange, out closeMinusTrueLow);
             a2Total -= closeMinusTrueLow;
             b2Total -= trueRange;
 
-            CalcTerms(inLow, inHigh, inClose, trailingIdx3, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx3, out trueRange, out closeMinusTrueLow);
             a3Total -= closeMinusTrueLow;
             b3Total -= trueRange;
 
@@ -139,24 +139,24 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode UltOsc(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outReal,
+    public static Core.RetCode UltOsc(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outReal,
         out int outBegIdx, out int outNbElement, int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod1 < 1 ||
             optInTimePeriod1 > 100000 || optInTimePeriod2 < 1 || optInTimePeriod2 > 100000 || optInTimePeriod3 < 1 ||
             optInTimePeriod3 > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = UltOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
@@ -167,7 +167,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         var usedFlag = new bool[3];
@@ -202,7 +202,7 @@ public static partial class Core
         decimal b1Total = default;
         for (int i = startIdx - optInTimePeriod1 + 1; i < startIdx; ++i)
         {
-            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a1Total += closeMinusTrueLow;
             b1Total += trueRange;
         }
@@ -211,7 +211,7 @@ public static partial class Core
         decimal b2Total = default;
         for (int i = startIdx - optInTimePeriod2 + 1; i < startIdx; ++i)
         {
-            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a2Total += closeMinusTrueLow;
             b2Total += trueRange;
         }
@@ -220,7 +220,7 @@ public static partial class Core
         decimal b3Total = default;
         for (int i = startIdx - optInTimePeriod3 + 1; i < startIdx; ++i)
         {
-            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a3Total += closeMinusTrueLow;
             b3Total += trueRange;
         }
@@ -232,7 +232,7 @@ public static partial class Core
         int trailingIdx3 = today - optInTimePeriod3 + 1;
         while (today <= endIdx)
         {
-            CalcTerms(inLow, inHigh, inClose, today, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, today, out trueRange, out closeMinusTrueLow);
             a1Total += closeMinusTrueLow;
             a2Total += closeMinusTrueLow;
             a3Total += closeMinusTrueLow;
@@ -242,30 +242,30 @@ public static partial class Core
 
             decimal output = default;
 
-            if (!TA_IsZero(b1Total))
+            if (!Core.TA_IsZero(b1Total))
             {
                 output += 4m * (a1Total / b1Total);
             }
 
-            if (!TA_IsZero(b2Total))
+            if (!Core.TA_IsZero(b2Total))
             {
                 output += 2m * (a2Total / b2Total);
             }
 
-            if (!TA_IsZero(b3Total))
+            if (!Core.TA_IsZero(b3Total))
             {
                 output += a3Total / b3Total;
             }
 
-            CalcTerms(inLow, inHigh, inClose, trailingIdx1, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx1, out trueRange, out closeMinusTrueLow);
             a1Total -= closeMinusTrueLow;
             b1Total -= trueRange;
 
-            CalcTerms(inLow, inHigh, inClose, trailingIdx2, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx2, out trueRange, out closeMinusTrueLow);
             a2Total -= closeMinusTrueLow;
             b2Total -= trueRange;
 
-            CalcTerms(inLow, inHigh, inClose, trailingIdx3, out trueRange, out closeMinusTrueLow);
+            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx3, out trueRange, out closeMinusTrueLow);
             a3Total -= closeMinusTrueLow;
             b3Total -= trueRange;
 
@@ -279,7 +279,7 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int UltOscLookback(int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28)

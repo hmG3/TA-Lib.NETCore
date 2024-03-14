@@ -1,23 +1,23 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Stoch(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outSlowK,
+    public static Core.RetCode Stoch(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outSlowK,
         double[] outSlowD, out int outBegIdx, out int outNbElement, int optInFastKPeriod = 5, int optInSlowKPeriod = 3,
-        MAType optInSlowKMAType = MAType.Sma, int optInSlowDPeriod = 3, MAType optInSlowDMAType = MAType.Sma)
+        Core.MAType optInSlowKMAType = Core.MAType.Sma, int optInSlowDPeriod = 3, Core.MAType optInSlowDMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || outSlowK == null || outSlowD == null || optInFastKPeriod < 1 ||
             optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 || optInSlowDPeriod < 1 ||
             optInSlowDPeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackK = optInFastKPeriod - 1;
@@ -30,7 +30,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int outIdx = default;
@@ -112,15 +112,15 @@ public static partial class Core
             today++;
         }
 
-        RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, tempBuffer, out _, out outNbElement, optInSlowKPeriod, optInSlowKMAType);
-        if (retCode != RetCode.Success || outNbElement == 0)
+        Core.RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, tempBuffer, out _, out outNbElement, optInSlowKPeriod, optInSlowKMAType);
+        if (retCode != Core.RetCode.Success || outNbElement == 0)
         {
             return retCode;
         }
 
         retCode = Ma(tempBuffer, 0, outNbElement - 1, outSlowD, out _, out outNbElement, optInSlowDPeriod, optInSlowDMAType);
         Array.Copy(tempBuffer, lookbackDSlow, outSlowK, 0, outNbElement);
-        if (retCode != RetCode.Success)
+        if (retCode != Core.RetCode.Success)
         {
             outNbElement = 0;
 
@@ -129,25 +129,25 @@ public static partial class Core
 
         outBegIdx = startIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode Stoch(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outSlowK,
+    public static Core.RetCode Stoch(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outSlowK,
         decimal[] outSlowD, out int outBegIdx, out int outNbElement, int optInFastKPeriod = 5, int optInSlowKPeriod = 3,
-        MAType optInSlowKMAType = MAType.Sma, int optInSlowDPeriod = 3, MAType optInSlowDMAType = MAType.Sma)
+        Core.MAType optInSlowKMAType = Core.MAType.Sma, int optInSlowDPeriod = 3, Core.MAType optInSlowDMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || outSlowK == null || outSlowD == null || optInFastKPeriod < 1 ||
             optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 || optInSlowDPeriod < 1 ||
             optInSlowDPeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackK = optInFastKPeriod - 1;
@@ -160,7 +160,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int outIdx = default;
@@ -242,15 +242,15 @@ public static partial class Core
             today++;
         }
 
-        RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, tempBuffer, out _, out outNbElement, optInSlowKPeriod, optInSlowKMAType);
-        if (retCode != RetCode.Success || outNbElement == 0)
+        Core.RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, tempBuffer, out _, out outNbElement, optInSlowKPeriod, optInSlowKMAType);
+        if (retCode != Core.RetCode.Success || outNbElement == 0)
         {
             return retCode;
         }
 
         retCode = Ma(tempBuffer, 0, outNbElement - 1, outSlowD, out _, out outNbElement, optInSlowDPeriod, optInSlowDMAType);
         Array.Copy(tempBuffer, lookbackDSlow, outSlowK, 0, outNbElement);
-        if (retCode != RetCode.Success)
+        if (retCode != Core.RetCode.Success)
         {
             outNbElement = 0;
 
@@ -259,11 +259,11 @@ public static partial class Core
 
         outBegIdx = startIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static int StochLookback(int optInFastKPeriod = 5, int optInSlowKPeriod = 3, MAType optInSlowKMAType = MAType.Sma,
-        int optInSlowDPeriod = 3, MAType optInSlowDMAType = MAType.Sma)
+    public static int StochLookback(int optInFastKPeriod = 5, int optInSlowKPeriod = 3, Core.MAType optInSlowKMAType = Core.MAType.Sma,
+        int optInSlowDPeriod = 3, Core.MAType optInSlowDMAType = Core.MAType.Sma)
     {
         if (optInFastKPeriod < 1 || optInFastKPeriod > 100000 || optInSlowKPeriod < 1 || optInSlowKPeriod > 100000 ||
             optInSlowDPeriod < 1 || optInSlowDPeriod > 100000)

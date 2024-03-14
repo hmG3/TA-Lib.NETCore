@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode LinearRegAngle(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+    public static Core.RetCode LinearRegAngle(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
         out int outNbElement, int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = LinearRegAngleLookback(optInTimePeriod);
@@ -25,7 +25,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int outIdx = default;
@@ -53,22 +53,22 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode LinearRegAngle(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+    public static Core.RetCode LinearRegAngle(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
         out int outNbElement, int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = LinearRegAngleLookback(optInTimePeriod);
@@ -79,7 +79,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int outIdx = default;
@@ -107,12 +107,12 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int LinearRegAngleLookback(int optInTimePeriod = 14)
     {
-        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 2 or > 100000)
         {
             return -1;
         }
