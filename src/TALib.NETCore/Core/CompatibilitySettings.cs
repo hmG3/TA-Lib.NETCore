@@ -10,10 +10,4 @@ public static partial class Core
 
         public static void Set(CompatibilityMode mode) => _compatibilityMode = mode;
     }
-
-    public enum CompatibilityMode
-    {
-        Default,
-        Metastock
-    }
 }

@@ -29,19 +29,19 @@ public static partial class Candles
         }
 
         double bodyDojiPeriodTotal = default;
-        int bodyDojiTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod;
+        int bodyDojiTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
         int i = bodyDojiTrailingIdx;
         while (i < startIdx)
         {
-            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
+            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
 
         int outIdx = default;
         do
         {
-            if (Core.TA_RealBody(inClose, inOpen, i) <=
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i))
+            if (TA_RealBody(inClose, inOpen, i) <=
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i))
             {
                 outInteger[outIdx++] = 100;
             }
@@ -53,8 +53,8 @@ public static partial class Candles
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
-                                   Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
             i++;
             bodyDojiTrailingIdx++;
         } while (i <= endIdx);
@@ -92,19 +92,19 @@ public static partial class Candles
         }
 
         decimal bodyDojiPeriodTotal = default;
-        int bodyDojiTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod;
+        int bodyDojiTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
         int i = bodyDojiTrailingIdx;
         while (i < startIdx)
         {
-            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
+            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
 
         int outIdx = default;
         do
         {
-            if (Core.TA_RealBody(inClose, inOpen, i) <=
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i))
+            if (TA_RealBody(inClose, inOpen, i) <=
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i))
             {
                 outInteger[outIdx++] = 100;
             }
@@ -116,8 +116,8 @@ public static partial class Candles
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
-                                   Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
             i++;
             bodyDojiTrailingIdx++;
         } while (i <= endIdx);
@@ -128,5 +128,5 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int CdlDojiLookback() => Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod;
+    public static int CdlDojiLookback() => TA_CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
 }

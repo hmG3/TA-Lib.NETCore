@@ -62,7 +62,7 @@ public static partial class Functions
         double b1Total = default;
         for (int i = startIdx - optInTimePeriod1 + 1; i < startIdx; ++i)
         {
-            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a1Total += closeMinusTrueLow;
             b1Total += trueRange;
         }
@@ -71,7 +71,7 @@ public static partial class Functions
         double b2Total = default;
         for (int i = startIdx - optInTimePeriod2 + 1; i < startIdx; ++i)
         {
-            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a2Total += closeMinusTrueLow;
             b2Total += trueRange;
         }
@@ -80,7 +80,7 @@ public static partial class Functions
         double b3Total = default;
         for (int i = startIdx - optInTimePeriod3 + 1; i < startIdx; ++i)
         {
-            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a3Total += closeMinusTrueLow;
             b3Total += trueRange;
         }
@@ -92,7 +92,7 @@ public static partial class Functions
         int trailingIdx3 = today - optInTimePeriod3 + 1;
         while (today <= endIdx)
         {
-            Core.CalcTerms(inLow, inHigh, inClose, today, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, today, out trueRange, out closeMinusTrueLow);
             a1Total += closeMinusTrueLow;
             a2Total += closeMinusTrueLow;
             a3Total += closeMinusTrueLow;
@@ -102,30 +102,30 @@ public static partial class Functions
 
             double output = default;
 
-            if (!Core.TA_IsZero(b1Total))
+            if (!TA_IsZero(b1Total))
             {
                 output += 4.0 * (a1Total / b1Total);
             }
 
-            if (!Core.TA_IsZero(b2Total))
+            if (!TA_IsZero(b2Total))
             {
                 output += 2.0 * (a2Total / b2Total);
             }
 
-            if (!Core.TA_IsZero(b3Total))
+            if (!TA_IsZero(b3Total))
             {
                 output += a3Total / b3Total;
             }
 
-            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx1, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, trailingIdx1, out trueRange, out closeMinusTrueLow);
             a1Total -= closeMinusTrueLow;
             b1Total -= trueRange;
 
-            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx2, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, trailingIdx2, out trueRange, out closeMinusTrueLow);
             a2Total -= closeMinusTrueLow;
             b2Total -= trueRange;
 
-            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx3, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, trailingIdx3, out trueRange, out closeMinusTrueLow);
             a3Total -= closeMinusTrueLow;
             b3Total -= trueRange;
 
@@ -202,7 +202,7 @@ public static partial class Functions
         decimal b1Total = default;
         for (int i = startIdx - optInTimePeriod1 + 1; i < startIdx; ++i)
         {
-            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a1Total += closeMinusTrueLow;
             b1Total += trueRange;
         }
@@ -211,7 +211,7 @@ public static partial class Functions
         decimal b2Total = default;
         for (int i = startIdx - optInTimePeriod2 + 1; i < startIdx; ++i)
         {
-            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a2Total += closeMinusTrueLow;
             b2Total += trueRange;
         }
@@ -220,7 +220,7 @@ public static partial class Functions
         decimal b3Total = default;
         for (int i = startIdx - optInTimePeriod3 + 1; i < startIdx; ++i)
         {
-            Core.CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
             a3Total += closeMinusTrueLow;
             b3Total += trueRange;
         }
@@ -232,7 +232,7 @@ public static partial class Functions
         int trailingIdx3 = today - optInTimePeriod3 + 1;
         while (today <= endIdx)
         {
-            Core.CalcTerms(inLow, inHigh, inClose, today, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, today, out trueRange, out closeMinusTrueLow);
             a1Total += closeMinusTrueLow;
             a2Total += closeMinusTrueLow;
             a3Total += closeMinusTrueLow;
@@ -242,30 +242,30 @@ public static partial class Functions
 
             decimal output = default;
 
-            if (!Core.TA_IsZero(b1Total))
+            if (!TA_IsZero(b1Total))
             {
                 output += 4m * (a1Total / b1Total);
             }
 
-            if (!Core.TA_IsZero(b2Total))
+            if (!TA_IsZero(b2Total))
             {
                 output += 2m * (a2Total / b2Total);
             }
 
-            if (!Core.TA_IsZero(b3Total))
+            if (!TA_IsZero(b3Total))
             {
                 output += a3Total / b3Total;
             }
 
-            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx1, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, trailingIdx1, out trueRange, out closeMinusTrueLow);
             a1Total -= closeMinusTrueLow;
             b1Total -= trueRange;
 
-            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx2, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, trailingIdx2, out trueRange, out closeMinusTrueLow);
             a2Total -= closeMinusTrueLow;
             b2Total -= trueRange;
 
-            Core.CalcTerms(inLow, inHigh, inClose, trailingIdx3, out trueRange, out closeMinusTrueLow);
+            CalcTerms(inLow, inHigh, inClose, trailingIdx3, out trueRange, out closeMinusTrueLow);
             a3Total -= closeMinusTrueLow;
             b3Total -= trueRange;
 

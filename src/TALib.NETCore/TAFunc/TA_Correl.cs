@@ -49,7 +49,7 @@ public static partial class Functions
         double trailingX = inReal0[trailingIdx];
         double trailingY = inReal1[trailingIdx++];
         double tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-        outReal[0] = !Core.TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal) : 0.0;
+        outReal[0] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal) : 0.0;
 
         int outIdx = 1;
         while (today <= endIdx)
@@ -73,7 +73,7 @@ public static partial class Functions
             trailingX = inReal0[trailingIdx];
             trailingY = inReal1[trailingIdx++];
             tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-            outReal[outIdx++] = !Core.TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal) : 0.0;
+            outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / Math.Sqrt(tempReal) : 0.0;
         }
 
         outNbElement = outIdx;
@@ -128,7 +128,7 @@ public static partial class Functions
         decimal trailingX = inReal0[trailingIdx];
         decimal trailingY = inReal1[trailingIdx++];
         decimal tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-        outReal[0] = !Core.TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal) : Decimal.Zero;
+        outReal[0] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal) : Decimal.Zero;
 
         int outIdx = 1;
         while (today <= endIdx)
@@ -152,7 +152,7 @@ public static partial class Functions
             trailingX = inReal0[trailingIdx];
             trailingY = inReal1[trailingIdx++];
             tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
-            outReal[outIdx++] = !Core.TA_IsZeroOrNeg(tempReal)
+            outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal)
                 ? (sumXY - sumX * sumY / optInTimePeriod) / DecimalMath.Sqrt(tempReal)
                 : Decimal.Zero;
         }

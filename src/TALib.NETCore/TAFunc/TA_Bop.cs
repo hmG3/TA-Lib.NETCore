@@ -21,7 +21,7 @@ public static partial class Functions
         for (var i = startIdx; i <= endIdx; i++)
         {
             double tempReal = inHigh[i] - inLow[i];
-            outReal[outIdx++] = !Core.TA_IsZeroOrNeg(tempReal) ? (inClose[i] - inOpen[i]) / tempReal : 0.0;
+            outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal) ? (inClose[i] - inOpen[i]) / tempReal : 0.0;
         }
 
         outBegIdx = startIdx;
@@ -49,7 +49,7 @@ public static partial class Functions
         for (var i = startIdx; i <= endIdx; i++)
         {
             decimal tempReal = inHigh[i] - inLow[i];
-            outReal[outIdx++] = !Core.TA_IsZeroOrNeg(tempReal) ? (inClose[i] - inOpen[i]) / tempReal : Decimal.Zero;
+            outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal) ? (inClose[i] - inOpen[i]) / tempReal : Decimal.Zero;
         }
 
         outBegIdx = startIdx;

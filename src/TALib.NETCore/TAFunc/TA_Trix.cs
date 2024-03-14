@@ -34,7 +34,7 @@ public static partial class Functions
         var tempBuffer = new double[nbElementToOutput];
 
         double k = 2.0 / (optInTimePeriod + 1);
-        Core.RetCode retCode = Core.TA_INT_EMA(inReal, startIdx - lookbackTotal, endIdx, tempBuffer, out _, out var nbElement, optInTimePeriod,
+        Core.RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackTotal, endIdx, tempBuffer, out _, out var nbElement, optInTimePeriod,
             k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
         {
@@ -44,14 +44,14 @@ public static partial class Functions
         nbElementToOutput--;
 
         nbElementToOutput -= emaLookback;
-        retCode = Core.TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
+        retCode = TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
         {
             return retCode;
         }
 
         nbElementToOutput -= emaLookback;
-        retCode = Core.TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
+        retCode = TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
         {
             return retCode;
@@ -99,7 +99,7 @@ public static partial class Functions
         var tempBuffer = new decimal[nbElementToOutput];
 
         decimal k = 2m / (optInTimePeriod + 1);
-        Core.RetCode retCode = Core.TA_INT_EMA(inReal, startIdx - lookbackTotal, endIdx, tempBuffer, out _, out var nbElement, optInTimePeriod,
+        Core.RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackTotal, endIdx, tempBuffer, out _, out var nbElement, optInTimePeriod,
             k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
         {
@@ -109,14 +109,14 @@ public static partial class Functions
         nbElementToOutput--;
 
         nbElementToOutput -= emaLookback;
-        retCode = Core.TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
+        retCode = TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
         {
             return retCode;
         }
 
         nbElementToOutput -= emaLookback;
-        retCode = Core.TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
+        retCode = TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
         {
             return retCode;

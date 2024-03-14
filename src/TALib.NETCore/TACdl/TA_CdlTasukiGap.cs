@@ -29,11 +29,11 @@ public static partial class Candles
         }
 
         double nearPeriodTotal = default;
-        int nearTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.Near).AveragePeriod;
+        int nearTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Near);
         int i = nearTrailingIdx;
         while (i < startIdx)
         {
-            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1);
+            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1);
             i++;
         }
 
@@ -41,27 +41,27 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (Core.TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && // upside gap
-                Core.TA_CandleColor(inClose, inOpen, i - 1) && // 1st: white
-                !Core.TA_CandleColor(inClose, inOpen, i) && // 2nd: black
+            if (TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && // upside gap
+                TA_CandleColor(inClose, inOpen, i - 1) && // 1st: white
+                !TA_CandleColor(inClose, inOpen, i) && // 2nd: black
                 inOpen[i] < inClose[i - 1] && inOpen[i] > inOpen[i - 1] && //      that opens within the white rb
                 inClose[i] < inOpen[i - 1] && //      and closes under the white rb
                 inClose[i] > Math.Max(inClose[i - 2], inOpen[i - 2]) && //      inside the gap
                 // size of 2 rb near the same
-                Math.Abs(Core.TA_RealBody(inClose, inOpen, i - 1) - Core.TA_RealBody(inClose, inOpen, i)) <
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
+                Math.Abs(TA_RealBody(inClose, inOpen, i - 1) - TA_RealBody(inClose, inOpen, i)) <
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
                 ||
-                Core.TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && // downside gap
-                !Core.TA_CandleColor(inClose, inOpen, i - 1) && // 1st: black
-                Core.TA_CandleColor(inClose, inOpen, i) && // 2nd: white
+                TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && // downside gap
+                !TA_CandleColor(inClose, inOpen, i - 1) && // 1st: black
+                TA_CandleColor(inClose, inOpen, i) && // 2nd: white
                 inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] && //      that opens within the black rb
                 inClose[i] > inOpen[i - 1] && //      and closes above the black rb
                 inClose[i] < Math.Min(inClose[i - 2], inOpen[i - 2]) && //      inside the gap
                 // size of 2 rb near the same
-                Math.Abs(Core.TA_RealBody(inClose, inOpen, i - 1) - Core.TA_RealBody(inClose, inOpen, i)) <
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1))
+                Math.Abs(TA_RealBody(inClose, inOpen, i - 1) - TA_RealBody(inClose, inOpen, i)) <
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1))
             {
-                outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i - 1)) * 100;
+                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 1)) * 100;
             }
             else
             {
@@ -71,8 +71,8 @@ public static partial class Candles
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
-                               Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
+            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
+                               TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
             i++;
             nearTrailingIdx++;
         } while (i <= endIdx);
@@ -110,11 +110,11 @@ public static partial class Candles
         }
 
         decimal nearPeriodTotal = default;
-        int nearTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.Near).AveragePeriod;
+        int nearTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Near);
         int i = nearTrailingIdx;
         while (i < startIdx)
         {
-            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1);
+            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1);
             i++;
         }
 
@@ -122,27 +122,27 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (Core.TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && // upside gap
-                Core.TA_CandleColor(inClose, inOpen, i - 1) && // 1st: white
-                !Core.TA_CandleColor(inClose, inOpen, i) && // 2nd: black
+            if (TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && // upside gap
+                TA_CandleColor(inClose, inOpen, i - 1) && // 1st: white
+                !TA_CandleColor(inClose, inOpen, i) && // 2nd: black
                 inOpen[i] < inClose[i - 1] && inOpen[i] > inOpen[i - 1] && //      that opens within the white rb
                 inClose[i] < inOpen[i - 1] && //      and closes under the white rb
                 inClose[i] > Math.Max(inClose[i - 2], inOpen[i - 2]) && //      inside the gap
                 // size of 2 rb near the same
-                Math.Abs(Core.TA_RealBody(inClose, inOpen, i - 1) - Core.TA_RealBody(inClose, inOpen, i)) <
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
+                Math.Abs(TA_RealBody(inClose, inOpen, i - 1) - TA_RealBody(inClose, inOpen, i)) <
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
                 ||
-                Core.TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && // downside gap
-                !Core.TA_CandleColor(inClose, inOpen, i - 1) && // 1st: black
-                Core.TA_CandleColor(inClose, inOpen, i) && // 2nd: white
+                TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && // downside gap
+                !TA_CandleColor(inClose, inOpen, i - 1) && // 1st: black
+                TA_CandleColor(inClose, inOpen, i) && // 2nd: white
                 inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] && //      that opens within the black rb
                 inClose[i] > inOpen[i - 1] && //      and closes above the black rb
                 inClose[i] < Math.Min(inClose[i - 2], inOpen[i - 2]) && //      inside the gap
                 // size of 2 rb near the same
-                Math.Abs(Core.TA_RealBody(inClose, inOpen, i - 1) - Core.TA_RealBody(inClose, inOpen, i)) <
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1))
+                Math.Abs(TA_RealBody(inClose, inOpen, i - 1) - TA_RealBody(inClose, inOpen, i)) <
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1))
             {
-                outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i - 1)) * 100;
+                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 1)) * 100;
             }
             else
             {
@@ -152,8 +152,8 @@ public static partial class Candles
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
-                               Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
+            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
+                               TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
             i++;
             nearTrailingIdx++;
         } while (i <= endIdx);
@@ -164,5 +164,5 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int CdlTasukiGapLookback() => Core.CandleSettings.Get(Core.CandleSettingType.Near).AveragePeriod + 2;
+    public static int CdlTasukiGapLookback() => TA_CandleAveragePeriod(Core.CandleSettingType.Near) + 2;
 }

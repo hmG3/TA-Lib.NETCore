@@ -32,15 +32,15 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (Core.TA_CandleColor(inClose, inOpen, i - 1) && !Core.TA_CandleColor(inClose, inOpen, i - 2) &&
+            if (TA_CandleColor(inClose, inOpen, i - 1) && !TA_CandleColor(inClose, inOpen, i - 2) &&
                 inClose[i - 1] > inOpen[i - 2] && inOpen[i - 1] < inClose[i - 2] &&
                 inClose[i] > inClose[i - 1]
                 ||
-                !Core.TA_CandleColor(inClose, inOpen, i - 1) && Core.TA_CandleColor(inClose, inOpen, i - 2) &&
+                !TA_CandleColor(inClose, inOpen, i - 1) && TA_CandleColor(inClose, inOpen, i - 2) &&
                 inOpen[i - 1] > inClose[i - 2] && inClose[i - 1] < inOpen[i - 2] &&
                 inClose[i] < inClose[i - 1])
             {
-                outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i - 1)) * 100;
+                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 1)) * 100;
             }
             else
             {
@@ -86,15 +86,15 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (Core.TA_CandleColor(inClose, inOpen, i - 1) && !Core.TA_CandleColor(inClose, inOpen, i - 2) &&
+            if (TA_CandleColor(inClose, inOpen, i - 1) && !TA_CandleColor(inClose, inOpen, i - 2) &&
                 inClose[i - 1] > inOpen[i - 2] && inOpen[i - 1] < inClose[i - 2] &&
                 inClose[i] > inClose[i - 1]
                 ||
-                !Core.TA_CandleColor(inClose, inOpen, i - 1) && Core.TA_CandleColor(inClose, inOpen, i - 2) &&
+                !TA_CandleColor(inClose, inOpen, i - 1) && TA_CandleColor(inClose, inOpen, i - 2) &&
                 inOpen[i - 1] > inClose[i - 2] && inClose[i - 1] < inOpen[i - 2] &&
                 inClose[i] < inClose[i - 1])
             {
-                outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i - 1)) * 100;
+                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 1)) * 100;
             }
             else
             {

@@ -33,7 +33,7 @@ public static partial class Functions
         double k = 2.0 / (optInTimePeriod + 1);
 
         var firstEMA = new double[tempInt];
-        Core.RetCode retCode = Core.TA_INT_EMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
+        Core.RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
             out var firstEMANbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || firstEMANbElement == 0)
         {
@@ -41,14 +41,14 @@ public static partial class Functions
         }
 
         var secondEMA = new double[firstEMANbElement];
-        retCode = Core.TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
+        retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
             optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || secondEMANbElement == 0)
         {
             return retCode;
         }
 
-        retCode = Core.TA_INT_EMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx, out var thirdEMANbElement,
+        retCode = TA_INT_EMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx, out var thirdEMANbElement,
             optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || thirdEMANbElement == 0)
         {
@@ -100,7 +100,7 @@ public static partial class Functions
         decimal k = 2m / (optInTimePeriod + 1);
 
         var firstEMA = new decimal[tempInt];
-        Core.RetCode retCode = Core.TA_INT_EMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
+        Core.RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
             out var firstEMANbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || firstEMANbElement == 0)
         {
@@ -108,14 +108,14 @@ public static partial class Functions
         }
 
         var secondEMA = new decimal[firstEMANbElement];
-        retCode = Core.TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
+        retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
             optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || secondEMANbElement == 0)
         {
             return retCode;
         }
 
-        retCode = Core.TA_INT_EMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx, out var thirdEMANbElement,
+        retCode = TA_INT_EMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx, out var thirdEMANbElement,
             optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || thirdEMANbElement == 0)
         {

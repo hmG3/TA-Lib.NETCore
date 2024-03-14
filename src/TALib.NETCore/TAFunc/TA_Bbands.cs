@@ -55,7 +55,7 @@ public static partial class Functions
 
         if (optInMAType == Core.MAType.Sma)
         {
-            Core.TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
+            TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
         }
         else
         {
@@ -185,7 +185,7 @@ public static partial class Functions
 
         if (optInMAType == Core.MAType.Sma)
         {
-            Core.TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
+            TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
         }
         else
         {

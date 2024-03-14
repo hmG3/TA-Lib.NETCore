@@ -59,7 +59,7 @@ public static partial class Functions
             tempValue2 = prevGain / optInTimePeriod;
 
             tempValue1 = tempValue2 + tempValue1;
-            outReal[outIdx++] = !Core.TA_IsZero(tempValue1) ? 100.0 * (tempValue2 / tempValue1) : 0.0;
+            outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100.0 * (tempValue2 / tempValue1) : 0.0;
 
             if (today > endIdx)
             {
@@ -96,7 +96,7 @@ public static partial class Functions
         if (today > startIdx)
         {
             double tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !Core.TA_IsZero(tempValue1) ? 100.0 * (prevGain / tempValue1) : 0.0;
+            outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100.0 * (prevGain / tempValue1) : 0.0;
         }
         else
         {
@@ -144,7 +144,7 @@ public static partial class Functions
             prevLoss /= optInTimePeriod;
             prevGain /= optInTimePeriod;
             tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !Core.TA_IsZero(tempValue1) ? 100.0 * (prevGain / tempValue1) : 0.0;
+            outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100.0 * (prevGain / tempValue1) : 0.0;
         }
 
         outBegIdx = startIdx;
@@ -210,7 +210,7 @@ public static partial class Functions
             tempValue2 = prevGain / optInTimePeriod;
 
             tempValue1 = tempValue2 + tempValue1;
-            outReal[outIdx++] = !Core.TA_IsZero(tempValue1) ? 100m * (tempValue2 / tempValue1) : Decimal.Zero;
+            outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100m * (tempValue2 / tempValue1) : Decimal.Zero;
 
             if (today > endIdx)
             {
@@ -247,7 +247,7 @@ public static partial class Functions
         if (today > startIdx)
         {
             decimal tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !Core.TA_IsZero(tempValue1) ? 100m * (prevGain / tempValue1) : Decimal.Zero;
+            outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100m * (prevGain / tempValue1) : Decimal.Zero;
         }
         else
         {
@@ -295,7 +295,7 @@ public static partial class Functions
             prevLoss /= optInTimePeriod;
             prevGain /= optInTimePeriod;
             tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !Core.TA_IsZero(tempValue1) ? 100m * (prevGain / tempValue1) : Decimal.Zero;
+            outReal[outIdx++] = !TA_IsZero(tempValue1) ? 100m * (prevGain / tempValue1) : Decimal.Zero;
         }
 
         outBegIdx = startIdx;

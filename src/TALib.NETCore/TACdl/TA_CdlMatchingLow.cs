@@ -29,11 +29,11 @@ public static partial class Candles
         }
 
         double equalPeriodTotal = default;
-        int equalTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.Equal).AveragePeriod;
+        int equalTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Equal);
         int i = equalTrailingIdx;
         while (i < startIdx)
         {
-            equalPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1);
+            equalPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1);
             i++;
         }
 
@@ -41,13 +41,13 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (!Core.TA_CandleColor(inClose, inOpen, i - 1) && // first black
-                !Core.TA_CandleColor(inClose, inOpen, i) && // second black
+            if (!TA_CandleColor(inClose, inOpen, i - 1) && // first black
+                !TA_CandleColor(inClose, inOpen, i) && // second black
                 inClose[i] <= inClose[i - 1] +
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal,
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal,
                     i - 1) && // 1st and 2nd same close
                 inClose[i] >= inClose[i - 1] -
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1)
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1)
                )
             {
                 outInteger[outIdx++] = 100;
@@ -60,8 +60,8 @@ public static partial class Candles
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            equalPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
-                                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+            equalPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
+                                TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
             i++;
             equalTrailingIdx++;
         } while (i <= endIdx);
@@ -99,11 +99,11 @@ public static partial class Candles
         }
 
         decimal equalPeriodTotal = default;
-        int equalTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.Equal).AveragePeriod;
+        int equalTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Equal);
         int i = equalTrailingIdx;
         while (i < startIdx)
         {
-            equalPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1);
+            equalPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1);
             i++;
         }
 
@@ -111,13 +111,13 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (!Core.TA_CandleColor(inClose, inOpen, i - 1) && // first black
-                !Core.TA_CandleColor(inClose, inOpen, i) && // second black
+            if (!TA_CandleColor(inClose, inOpen, i - 1) && // first black
+                !TA_CandleColor(inClose, inOpen, i) && // second black
                 inClose[i] <= inClose[i - 1] +
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal,
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal,
                     i - 1) && // 1st and 2nd same close
                 inClose[i] >= inClose[i - 1] -
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1)
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1)
                )
             {
                 outInteger[outIdx++] = 100;
@@ -130,8 +130,8 @@ public static partial class Candles
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            equalPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
-                                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+            equalPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
+                                TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
             i++;
             equalTrailingIdx++;
         } while (i <= endIdx);
@@ -142,5 +142,5 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int CdlMatchingLowLookback() => Core.CandleSettings.Get(Core.CandleSettingType.Equal).AveragePeriod + 1;
+    public static int CdlMatchingLowLookback() => TA_CandleAveragePeriod(Core.CandleSettingType.Equal) + 1;
 }

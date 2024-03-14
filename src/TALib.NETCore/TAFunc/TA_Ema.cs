@@ -17,7 +17,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return Core.TA_INT_EMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
+        return TA_INT_EMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
             2.0 / (optInTimePeriod + 1));
     }
 
@@ -36,7 +36,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return Core.TA_INT_EMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
+        return TA_INT_EMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
             2m / (optInTimePeriod + 1));
     }
 

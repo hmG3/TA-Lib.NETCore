@@ -40,28 +40,4 @@ public static partial class Core
         /// <param name="setting">The candle setting</param>
         public static void Set(CandleSettingType type, CandleSetting setting) => Settings[type] = setting;
     }
-
-    public readonly record struct CandleSetting(CandleRangeType RangeType, int AveragePeriod, double Factor);
-
-    public enum CandleSettingType
-    {
-        BodyLong,
-        BodyVeryLong,
-        BodyShort,
-        BodyDoji,
-        ShadowLong,
-        ShadowVeryLong,
-        ShadowShort,
-        ShadowVeryShort,
-        Near,
-        Far,
-        Equal
-    }
-
-    public enum CandleRangeType
-    {
-        RealBody,
-        HighLow,
-        Shadows
-    }
 }
