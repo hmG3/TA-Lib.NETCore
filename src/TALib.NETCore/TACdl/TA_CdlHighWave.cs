@@ -29,34 +29,34 @@ public static partial class Candles
         }
 
         double bodyPeriodTotal = default;
-        int bodyTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.BodyShort).AveragePeriod;
+        int bodyTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort);
         double shadowPeriodTotal = default;
-        int shadowTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.ShadowVeryLong).AveragePeriod;
+        int shadowTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryLong);
         int i = bodyTrailingIdx;
         while (i < startIdx)
         {
-            bodyPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i);
+            bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i);
             i++;
         }
 
         i = shadowTrailingIdx;
         while (i < startIdx)
         {
-            shadowPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i);
+            shadowPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i);
             i++;
         }
 
         int outIdx = default;
         do
         {
-            if (Core.TA_RealBody(inClose, inOpen, i) <
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
-                Core.TA_UpperShadow(inHigh, inClose, inOpen, i) > Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+            if (TA_RealBody(inClose, inOpen, i) <
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
+                TA_UpperShadow(inHigh, inClose, inOpen, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryLong, shadowPeriodTotal, i) &&
-                Core.TA_LowerShadow(inClose, inOpen, inLow, i) > Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                TA_LowerShadow(inClose, inOpen, inLow, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryLong, shadowPeriodTotal, i))
             {
-                outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i)) * 100;
+                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
             }
             else
             {
@@ -67,11 +67,11 @@ public static partial class Candles
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
             bodyPeriodTotal +=
-                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
-                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyTrailingIdx);
+                TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyTrailingIdx);
             shadowPeriodTotal +=
-                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i) -
-                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, shadowTrailingIdx);
+                TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i) -
+                TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, shadowTrailingIdx);
             i++;
             bodyTrailingIdx++;
             shadowTrailingIdx++;
@@ -110,34 +110,34 @@ public static partial class Candles
         }
 
         decimal bodyPeriodTotal = default;
-        int bodyTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.BodyShort).AveragePeriod;
+        int bodyTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort);
         decimal shadowPeriodTotal = default;
-        int shadowTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.ShadowVeryLong).AveragePeriod;
+        int shadowTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryLong);
         int i = bodyTrailingIdx;
         while (i < startIdx)
         {
-            bodyPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i);
+            bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i);
             i++;
         }
 
         i = shadowTrailingIdx;
         while (i < startIdx)
         {
-            shadowPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i);
+            shadowPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i);
             i++;
         }
 
         int outIdx = default;
         do
         {
-            if (Core.TA_RealBody(inClose, inOpen, i) <
-                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
-                Core.TA_UpperShadow(inHigh, inClose, inOpen, i) > Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+            if (TA_RealBody(inClose, inOpen, i) <
+                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
+                TA_UpperShadow(inHigh, inClose, inOpen, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryLong, shadowPeriodTotal, i) &&
-                Core.TA_LowerShadow(inClose, inOpen, inLow, i) > Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                TA_LowerShadow(inClose, inOpen, inLow, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryLong, shadowPeriodTotal, i))
             {
-                outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i)) * 100;
+                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
             }
             else
             {
@@ -148,11 +148,11 @@ public static partial class Candles
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
             bodyPeriodTotal +=
-                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
-                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyTrailingIdx);
+                TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyTrailingIdx);
             shadowPeriodTotal +=
-                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i) -
-                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, shadowTrailingIdx);
+                TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i) -
+                TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, shadowTrailingIdx);
             i++;
             bodyTrailingIdx++;
             shadowTrailingIdx++;
@@ -165,5 +165,5 @@ public static partial class Candles
     }
 
     public static int CdlHighWaveLookback() =>
-        Math.Max(Core.CandleSettings.Get(Core.CandleSettingType.BodyShort).AveragePeriod, Core.CandleSettings.Get(Core.CandleSettingType.ShadowVeryLong).AveragePeriod);
+        Math.Max(TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort), TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryLong));
 }

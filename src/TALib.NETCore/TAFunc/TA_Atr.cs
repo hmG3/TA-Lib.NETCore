@@ -42,7 +42,7 @@ public static partial class Functions
             return retCode;
         }
 
-        retCode = Core.TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
+        retCode = TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -118,7 +118,7 @@ public static partial class Functions
             return retCode;
         }
 
-        retCode = Core.TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
+        retCode = TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;

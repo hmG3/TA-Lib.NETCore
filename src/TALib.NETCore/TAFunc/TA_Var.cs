@@ -17,7 +17,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return Core.TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        return TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
     }
 
     public static Core.RetCode Var(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
@@ -35,7 +35,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return Core.TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        return TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
     }
 
     public static int VarLookback(int optInTimePeriod = 5)

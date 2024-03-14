@@ -40,11 +40,11 @@ public static partial class Functions
         while (i < startIdx)
         {
             tmpReal = inReal0[i];
-            x = !Core.TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : 0.0;
+            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : 0.0;
             lastPriceX = tmpReal;
 
             tmpReal = inReal1[i++];
-            y = !Core.TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : 0.0;
+            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : 0.0;
             lastPriceY = tmpReal;
 
             sxx += x * x;
@@ -57,11 +57,11 @@ public static partial class Functions
         do
         {
             tmpReal = inReal0[i];
-            x = !Core.TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : 0.0;
+            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : 0.0;
             lastPriceX = tmpReal;
 
             tmpReal = inReal1[i++];
-            y = !Core.TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : 0.0;
+            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : 0.0;
             lastPriceY = tmpReal;
 
             sxx += x * x;
@@ -70,15 +70,15 @@ public static partial class Functions
             sy += y;
 
             tmpReal = inReal0[trailingIdx];
-            x = !Core.TA_IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : 0.0;
+            x = !TA_IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : 0.0;
             trailingLastPriceX = tmpReal;
 
             tmpReal = inReal1[trailingIdx++];
-            y = !Core.TA_IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : 0.0;
+            y = !TA_IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : 0.0;
             trailingLastPriceY = tmpReal;
 
             tmpReal = optInTimePeriod * sxx - sx * sx;
-            outReal[outIdx++] = !Core.TA_IsZero(tmpReal) ? (optInTimePeriod * sxy - sx * sy) / tmpReal : 0.0;
+            outReal[outIdx++] = !TA_IsZero(tmpReal) ? (optInTimePeriod * sxy - sx * sy) / tmpReal : 0.0;
 
             sxx -= x * x;
             sxy -= x * y;
@@ -130,11 +130,11 @@ public static partial class Functions
         while (i < startIdx)
         {
             tmpReal = inReal0[i];
-            x = !Core.TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : Decimal.Zero;
+            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : Decimal.Zero;
             lastPriceX = tmpReal;
 
             tmpReal = inReal1[i++];
-            y = !Core.TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : Decimal.Zero;
+            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : Decimal.Zero;
             lastPriceY = tmpReal;
 
             sxx += x * x;
@@ -147,11 +147,11 @@ public static partial class Functions
         do
         {
             tmpReal = inReal0[i];
-            x = !Core.TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : Decimal.Zero;
+            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : Decimal.Zero;
             lastPriceX = tmpReal;
 
             tmpReal = inReal1[i++];
-            y = !Core.TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : Decimal.Zero;
+            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : Decimal.Zero;
             lastPriceY = tmpReal;
 
             sxx += x * x;
@@ -160,15 +160,15 @@ public static partial class Functions
             sy += y;
 
             tmpReal = inReal0[trailingIdx];
-            x = !Core.TA_IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : Decimal.Zero;
+            x = !TA_IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : Decimal.Zero;
             trailingLastPriceX = tmpReal;
 
             tmpReal = inReal1[trailingIdx++];
-            y = !Core.TA_IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : Decimal.Zero;
+            y = !TA_IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : Decimal.Zero;
             trailingLastPriceY = tmpReal;
 
             tmpReal = optInTimePeriod * sxx - sx * sx;
-            outReal[outIdx++] = !Core.TA_IsZero(tmpReal) ? (optInTimePeriod * sxy - sx * sy) / tmpReal : Decimal.Zero;
+            outReal[outIdx++] = !TA_IsZero(tmpReal) ? (optInTimePeriod * sxy - sx * sy) / tmpReal : Decimal.Zero;
 
             sxx -= x * x;
             sxy -= x * y;

@@ -20,7 +20,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return Core.TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement,
+        return TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement,
             optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
     }
 
@@ -42,7 +42,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return Core.TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement,
+        return TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement,
             optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
     }
 

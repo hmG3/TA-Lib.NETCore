@@ -17,7 +17,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        Core.RetCode retCode = Core.TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        Core.RetCode retCode = TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -28,7 +28,7 @@ public static partial class Functions
             for (var i = 0; i < outNbElement; i++)
             {
                 double tempReal = outReal[i];
-                outReal[i] = !Core.TA_IsZeroOrNeg(tempReal) ? Math.Sqrt(tempReal) * optInNbDev : 0.0;
+                outReal[i] = !TA_IsZeroOrNeg(tempReal) ? Math.Sqrt(tempReal) * optInNbDev : 0.0;
             }
         }
         else
@@ -36,7 +36,7 @@ public static partial class Functions
             for (var i = 0; i < outNbElement; i++)
             {
                 double tempReal = outReal[i];
-                outReal[i] = !Core.TA_IsZeroOrNeg(tempReal) ? Math.Sqrt(tempReal) : 0.0;
+                outReal[i] = !TA_IsZeroOrNeg(tempReal) ? Math.Sqrt(tempReal) : 0.0;
             }
         }
 
@@ -58,7 +58,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        Core.RetCode retCode = Core.TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        Core.RetCode retCode = TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -69,7 +69,7 @@ public static partial class Functions
             for (var i = 0; i < outNbElement; i++)
             {
                 decimal tempReal = outReal[i];
-                outReal[i] = !Core.TA_IsZeroOrNeg(tempReal) ? DecimalMath.Sqrt(tempReal) * optInNbDev : Decimal.Zero;
+                outReal[i] = !TA_IsZeroOrNeg(tempReal) ? DecimalMath.Sqrt(tempReal) * optInNbDev : Decimal.Zero;
             }
         }
         else
@@ -77,7 +77,7 @@ public static partial class Functions
             for (var i = 0; i < outNbElement; i++)
             {
                 decimal tempReal = outReal[i];
-                outReal[i] = !Core.TA_IsZeroOrNeg(tempReal) ? DecimalMath.Sqrt(tempReal) : Decimal.Zero;
+                outReal[i] = !TA_IsZeroOrNeg(tempReal) ? DecimalMath.Sqrt(tempReal) : Decimal.Zero;
             }
         }
 

@@ -53,8 +53,8 @@ public static partial class Functions
                 prevLow = tempReal;
                 if (diffM > 0.0 && diffP < diffM)
                 {
-                    Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
-                    outReal[outIdx++] = !Core.TA_IsZero(tempReal) ? diffM / tempReal : 0.0;
+                    TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+                    outReal[outIdx++] = !TA_IsZero(tempReal) ? diffM / tempReal : 0.0;
                 }
                 else
                 {
@@ -93,7 +93,7 @@ public static partial class Functions
                 prevMinusDM += diffM;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR += tempReal;
             prevClose = inClose[today];
         }
@@ -117,12 +117,12 @@ public static partial class Functions
                 prevMinusDM -= prevMinusDM / optInTimePeriod;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
         }
 
-        outReal[0] = !Core.TA_IsZero(prevTR) ? 100.0 * (prevMinusDM / prevTR) : 0.0;
+        outReal[0] = !TA_IsZero(prevTR) ? 100.0 * (prevMinusDM / prevTR) : 0.0;
         outIdx = 1;
 
         while (today < endIdx)
@@ -143,10 +143,10 @@ public static partial class Functions
                 prevMinusDM -= prevMinusDM / optInTimePeriod;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
-            outReal[outIdx++] = !Core.TA_IsZero(prevTR) ? 100.0 * (prevMinusDM / prevTR) : 0.0;
+            outReal[outIdx++] = !TA_IsZero(prevTR) ? 100.0 * (prevMinusDM / prevTR) : 0.0;
         }
 
         outNbElement = outIdx;
@@ -205,8 +205,8 @@ public static partial class Functions
                 prevLow = tempReal;
                 if (diffM > Decimal.Zero && diffP < diffM)
                 {
-                    Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
-                    outReal[outIdx++] = !Core.TA_IsZero(tempReal) ? diffM / tempReal : Decimal.Zero;
+                    TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+                    outReal[outIdx++] = !TA_IsZero(tempReal) ? diffM / tempReal : Decimal.Zero;
                 }
                 else
                 {
@@ -245,7 +245,7 @@ public static partial class Functions
                 prevMinusDM += diffM;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR += tempReal;
             prevClose = inClose[today];
         }
@@ -269,12 +269,12 @@ public static partial class Functions
                 prevMinusDM -= prevMinusDM / optInTimePeriod;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
         }
 
-        outReal[0] = !Core.TA_IsZero(prevTR) ? 100m * (prevMinusDM / prevTR) : Decimal.Zero;
+        outReal[0] = !TA_IsZero(prevTR) ? 100m * (prevMinusDM / prevTR) : Decimal.Zero;
         outIdx = 1;
 
         while (today < endIdx)
@@ -295,10 +295,10 @@ public static partial class Functions
                 prevMinusDM -= prevMinusDM / optInTimePeriod;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
-            outReal[outIdx++] = !Core.TA_IsZero(prevTR) ? 100m * (prevMinusDM / prevTR) : Decimal.Zero;
+            outReal[outIdx++] = !TA_IsZero(prevTR) ? 100m * (prevMinusDM / prevTR) : Decimal.Zero;
         }
 
         outNbElement = outIdx;

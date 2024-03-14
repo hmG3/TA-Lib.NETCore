@@ -32,19 +32,19 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (Core.TA_CandleColor(inClose, inOpen, i - 2) == Core.TA_CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
-                Core.TA_CandleColor(inClose, inOpen, i - 1) == !Core.TA_CandleColor(inClose, inOpen, i) && // 3rd opposite color
+            if (TA_CandleColor(inClose, inOpen, i - 2) == TA_CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
+                TA_CandleColor(inClose, inOpen, i - 1) == !TA_CandleColor(inClose, inOpen, i) && // 3rd opposite color
                 inOpen[i] < Math.Max(inClose[i - 1], inOpen[i - 1]) && // 3rd opens within 2nd rb
                 inOpen[i] > Math.Min(inClose[i - 1], inOpen[i - 1]) &&
                 inClose[i] < Math.Max(inClose[i - 2], inOpen[i - 2]) && // 3rd closes within 1st rb
                 inClose[i] > Math.Min(inClose[i - 2], inOpen[i - 2]) &&
-                (Core.TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is white
-                 Core.TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
+                (TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is white
+                 TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
                  ||
-                 !Core.TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is black
-                 Core.TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
+                 !TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is black
+                 TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
             {
-                outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i - 2)) * 100;
+                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 2)) * 100;
             }
             else
             {
@@ -93,19 +93,19 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (Core.TA_CandleColor(inClose, inOpen, i - 2) == Core.TA_CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
-                Core.TA_CandleColor(inClose, inOpen, i - 1) == !Core.TA_CandleColor(inClose, inOpen, i) && // 3rd opposite color
+            if (TA_CandleColor(inClose, inOpen, i - 2) == TA_CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
+                TA_CandleColor(inClose, inOpen, i - 1) == !TA_CandleColor(inClose, inOpen, i) && // 3rd opposite color
                 inOpen[i] < Math.Max(inClose[i - 1], inOpen[i - 1]) && // 3rd opens within 2nd rb
                 inOpen[i] > Math.Min(inClose[i - 1], inOpen[i - 1]) &&
                 inClose[i] < Math.Max(inClose[i - 2], inOpen[i - 2]) && // 3rd closes within 1st rb
                 inClose[i] > Math.Min(inClose[i - 2], inOpen[i - 2]) &&
-                (Core.TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is white
-                 Core.TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
+                (TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is white
+                 TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
                  ||
-                 !Core.TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is black
-                 Core.TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
+                 !TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is black
+                 TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
             {
-                outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i - 2)) * 100;
+                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 2)) * 100;
             }
             else
             {

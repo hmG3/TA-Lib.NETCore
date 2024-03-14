@@ -20,7 +20,7 @@ public static partial class Functions
 
         var tempBuffer = new double[endIdx - startIdx + 1];
 
-        return Core.TA_INT_PO(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod,
+        return TA_INT_PO(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod,
             optInMAType, tempBuffer, true);
     }
 
@@ -42,7 +42,7 @@ public static partial class Functions
 
         var tempBuffer = new decimal[endIdx - startIdx + 1];
 
-        return Core.TA_INT_PO(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod,
+        return TA_INT_PO(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod,
             optInMAType, tempBuffer, true);
     }
 

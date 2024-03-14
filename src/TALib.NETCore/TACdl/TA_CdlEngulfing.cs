@@ -32,12 +32,12 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (Core.TA_CandleColor(inClose, inOpen, i) && !Core.TA_CandleColor(inClose, inOpen, i - 1) &&            // white engulfs black
+            if (TA_CandleColor(inClose, inOpen, i) && !TA_CandleColor(inClose, inOpen, i - 1) &&            // white engulfs black
                 (inClose[i] >= inOpen[i - 1] && inOpen[i] < inClose[i - 1] ||
                  inClose[i] > inOpen[i - 1] && inOpen[i] <= inClose[i - 1]
                 )
                 ||
-                !Core.TA_CandleColor(inClose, inOpen, i) && Core.TA_CandleColor(inClose, inOpen, i - 1) &&            // black engulfs white
+                !TA_CandleColor(inClose, inOpen, i) && TA_CandleColor(inClose, inOpen, i - 1) &&            // black engulfs white
                 (inOpen[i] >= inClose[i - 1] && inClose[i] < inOpen[i - 1] ||
                  inOpen[i] > inClose[i - 1] && inClose[i] <= inOpen[i - 1]
                 )
@@ -45,11 +45,11 @@ public static partial class Candles
             {
                 if (!inOpen[i].Equals(inClose[i - 1]) && !inClose[i].Equals(inOpen[i - 1]))
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i)) * 100;
+                    outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
                 }
                 else
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i)) * 80;
+                    outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 80;
                 }
             }
             else
@@ -96,12 +96,12 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (Core.TA_CandleColor(inClose, inOpen, i) && !Core.TA_CandleColor(inClose, inOpen, i - 1) &&            // white engulfs black
+            if (TA_CandleColor(inClose, inOpen, i) && !TA_CandleColor(inClose, inOpen, i - 1) &&            // white engulfs black
                 (inClose[i] >= inOpen[i - 1] && inOpen[i] < inClose[i - 1] ||
                  inClose[i] > inOpen[i - 1] && inOpen[i] <= inClose[i - 1]
                 )
                 ||
-                !Core.TA_CandleColor(inClose, inOpen, i) && Core.TA_CandleColor(inClose, inOpen, i - 1) &&            // black engulfs white
+                !TA_CandleColor(inClose, inOpen, i) && TA_CandleColor(inClose, inOpen, i - 1) &&            // black engulfs white
                 (inOpen[i] >= inClose[i - 1] && inClose[i] < inOpen[i - 1] ||
                  inOpen[i] > inClose[i - 1] && inClose[i] <= inOpen[i - 1]
                 )
@@ -109,11 +109,11 @@ public static partial class Candles
             {
                 if (inOpen[i] != inClose[i - 1] && inClose[i] != inOpen[i - 1])
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i)) * 100;
+                    outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
                 }
                 else
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i)) * 80;
+                    outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 80;
                 }
             }
             else

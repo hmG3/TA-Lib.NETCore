@@ -57,7 +57,7 @@ public static partial class Functions
                 prevPlusDM += diffP;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR += tempReal;
             prevClose = inClose[today];
         }
@@ -86,17 +86,17 @@ public static partial class Functions
                 prevPlusDM += diffP;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
         }
 
-        if (!Core.TA_IsZero(prevTR))
+        if (!TA_IsZero(prevTR))
         {
             double minusDI = 100.0 * (prevMinusDM / prevTR);
             double plusDI = 100.0 * (prevPlusDM / prevTR);
             double tempReal = minusDI + plusDI;
-            outReal[0] = !Core.TA_IsZero(tempReal) ? 100.0 * (Math.Abs(minusDI - plusDI) / tempReal) : 0.0;
+            outReal[0] = !TA_IsZero(tempReal) ? 100.0 * (Math.Abs(minusDI - plusDI) / tempReal) : 0.0;
         }
         else
         {
@@ -127,16 +127,16 @@ public static partial class Functions
                 prevPlusDM += diffP;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
 
-            if (!Core.TA_IsZero(prevTR))
+            if (!TA_IsZero(prevTR))
             {
                 double minusDI = 100.0 * (prevMinusDM / prevTR);
                 double plusDI = 100.0 * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!Core.TA_IsZero(tempReal))
+                if (!TA_IsZero(tempReal))
                 {
                     outReal[outIdx] = 100.0 * (Math.Abs(minusDI - plusDI) / tempReal);
                 }
@@ -213,7 +213,7 @@ public static partial class Functions
                 prevPlusDM += diffP;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR += tempReal;
             prevClose = inClose[today];
         }
@@ -242,17 +242,17 @@ public static partial class Functions
                 prevPlusDM += diffP;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
         }
 
-        if (!Core.TA_IsZero(prevTR))
+        if (!TA_IsZero(prevTR))
         {
             decimal minusDI = 100m * (prevMinusDM / prevTR);
             decimal plusDI = 100m * (prevPlusDM / prevTR);
             decimal tempReal = minusDI + plusDI;
-            outReal[0] = !Core.TA_IsZero(tempReal) ? 100m * (Math.Abs(minusDI - plusDI) / tempReal) : Decimal.Zero;
+            outReal[0] = !TA_IsZero(tempReal) ? 100m * (Math.Abs(minusDI - plusDI) / tempReal) : Decimal.Zero;
         }
         else
         {
@@ -283,16 +283,16 @@ public static partial class Functions
                 prevPlusDM += diffP;
             }
 
-            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
 
-            if (!Core.TA_IsZero(prevTR))
+            if (!TA_IsZero(prevTR))
             {
                 decimal minusDI = 100m * (prevMinusDM / prevTR);
                 decimal plusDI = 100m * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!Core.TA_IsZero(tempReal))
+                if (!TA_IsZero(tempReal))
                 {
                     outReal[outIdx] = 100m * (Math.Abs(minusDI - plusDI) / tempReal);
                 }

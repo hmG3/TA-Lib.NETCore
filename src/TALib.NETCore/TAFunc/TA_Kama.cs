@@ -50,7 +50,7 @@ public static partial class Functions
         double periodROC = tempReal - tempReal2;
 
         double trailingValue = tempReal2;
-        if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
+        if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
         {
             tempReal = 1.0;
         }
@@ -73,7 +73,7 @@ public static partial class Functions
             sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
 
             trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
+            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
             {
                 tempReal = 1.0;
             }
@@ -101,7 +101,7 @@ public static partial class Functions
             sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
 
             trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
+            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
             {
                 tempReal = 1.0;
             }
@@ -170,7 +170,7 @@ public static partial class Functions
         decimal periodROC = tempReal - tempReal2;
 
         decimal trailingValue = tempReal2;
-        if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
+        if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
         {
             tempReal = Decimal.One;
         }
@@ -193,7 +193,7 @@ public static partial class Functions
             sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
 
             trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
+            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
             {
                 tempReal = Decimal.One;
             }
@@ -221,7 +221,7 @@ public static partial class Functions
             sumROC1 += Math.Abs(tempReal - inReal[today - 1]);
 
             trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || Core.TA_IsZero(sumROC1))
+            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
             {
                 tempReal = Decimal.One;
             }

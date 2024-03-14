@@ -41,7 +41,7 @@ public static partial class Functions
         }
 
         var prevATRTemp = new double[1];
-        retCode = Core.TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
+        retCode = TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -60,7 +60,7 @@ public static partial class Functions
 
         outIdx = 1;
         double tempValue = inClose[today];
-        outReal[0] = !Core.TA_IsZero(tempValue) ? prevATR / tempValue * 100.0 : 0.0;
+        outReal[0] = !TA_IsZero(tempValue) ? prevATR / tempValue * 100.0 : 0.0;
 
         int nbATR = endIdx - startIdx + 1;
         while (--nbATR != 0)
@@ -69,7 +69,7 @@ public static partial class Functions
             prevATR += tempBuffer[today++];
             prevATR /= optInTimePeriod;
             tempValue = inClose[today];
-            if (!Core.TA_IsZero(tempValue))
+            if (!TA_IsZero(tempValue))
             {
                 outReal[outIdx] = prevATR / tempValue * 100.0;
             }
@@ -126,7 +126,7 @@ public static partial class Functions
         }
 
         var prevATRTemp = new decimal[1];
-        retCode = Core.TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
+        retCode = TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -145,7 +145,7 @@ public static partial class Functions
 
         outIdx = 1;
         decimal tempValue = inClose[today];
-        outReal[0] = !Core.TA_IsZero(tempValue) ? prevATR / tempValue * 100m : Decimal.Zero;
+        outReal[0] = !TA_IsZero(tempValue) ? prevATR / tempValue * 100m : Decimal.Zero;
 
         int nbATR = endIdx - startIdx + 1;
         while (--nbATR != 0)
@@ -154,7 +154,7 @@ public static partial class Functions
             prevATR += tempBuffer[today++];
             prevATR /= optInTimePeriod;
             tempValue = inClose[today];
-            if (!Core.TA_IsZero(tempValue))
+            if (!TA_IsZero(tempValue))
             {
                 outReal[outIdx] = prevATR / tempValue * 100m;
             }

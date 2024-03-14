@@ -38,7 +38,7 @@ public static partial class Functions
         for (int j = 0, i = startIdx - lookbackTotal; i <= endIdx; i++, j++)
         {
             double tempReal = inHigh[i] + inLow[i];
-            if (!Core.TA_IsZero(tempReal))
+            if (!TA_IsZero(tempReal))
             {
                 tempReal = 4 * (inHigh[i] - inLow[i]) / tempReal;
                 tempBuffer1[j] = inHigh[i] * (1 + tempReal);
@@ -111,7 +111,7 @@ public static partial class Functions
         for (int j = 0, i = startIdx - lookbackTotal; i <= endIdx; i++, j++)
         {
             decimal tempReal = inHigh[i] + inLow[i];
-            if (!Core.TA_IsZero(tempReal))
+            if (!TA_IsZero(tempReal))
             {
                 tempReal = 4 * (inHigh[i] - inLow[i]) / tempReal;
                 tempBuffer1[j] = inHigh[i] * (1 + tempReal);
