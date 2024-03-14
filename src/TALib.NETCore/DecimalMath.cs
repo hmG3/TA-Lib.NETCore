@@ -348,7 +348,7 @@ namespace TALib
         /// <returns></returns>
         public static decimal Asin(decimal x)
         {
-            if (x > Decimal.One || x < -Decimal.One)
+            if (x is > Decimal.One or < -Decimal.One)
             {
                 throw new ArgumentException("x must be in [-1,1]");
             }

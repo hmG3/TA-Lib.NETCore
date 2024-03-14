@@ -1,21 +1,21 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Mavp(double[] inReal, double[] inPeriods, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
-        out int outNbElement, int optInMinPeriod = 2, int optInMaxPeriod = 30, MAType optInMAType = MAType.Sma)
+    public static Core.RetCode Mavp(double[] inReal, double[] inPeriods, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+        out int outNbElement, int optInMinPeriod = 2, int optInMaxPeriod = 30, Core.MAType optInMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || inPeriods == null || outReal == null || optInMinPeriod < 2 || optInMinPeriod > 100000 ||
             optInMaxPeriod < 2 || optInMaxPeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = MavpLookback(optInMaxPeriod, optInMAType);
@@ -26,13 +26,13 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         var tempInt = lookbackTotal > startIdx ? lookbackTotal : startIdx;
         if (tempInt > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int outputSize = endIdx - tempInt + 1;
@@ -58,8 +58,8 @@ public static partial class Core
             int curPeriod = localPeriodArray[i];
             if (curPeriod != 0)
             {
-                RetCode retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, curPeriod, optInMAType);
-                if (retCode != RetCode.Success)
+                Core.RetCode retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, curPeriod, optInMAType);
+                if (retCode != Core.RetCode.Success)
                 {
                     return retCode;
                 }
@@ -79,23 +79,23 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outputSize;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode Mavp(decimal[] inReal, decimal[] inPeriods, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
-        out int outNbElement, int optInMinPeriod = 2, int optInMaxPeriod = 30, MAType optInMAType = MAType.Sma)
+    public static Core.RetCode Mavp(decimal[] inReal, decimal[] inPeriods, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
+        out int outNbElement, int optInMinPeriod = 2, int optInMaxPeriod = 30, Core.MAType optInMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || inPeriods == null || outReal == null || optInMinPeriod < 2 || optInMinPeriod > 100000 ||
             optInMaxPeriod < 2 || optInMaxPeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = MavpLookback(optInMaxPeriod, optInMAType);
@@ -106,13 +106,13 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         var tempInt = lookbackTotal > startIdx ? lookbackTotal : startIdx;
         if (tempInt > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int outputSize = endIdx - tempInt + 1;
@@ -138,8 +138,8 @@ public static partial class Core
             int curPeriod = localPeriodArray[i];
             if (curPeriod != 0)
             {
-                RetCode retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, curPeriod, optInMAType);
-                if (retCode != RetCode.Success)
+                Core.RetCode retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, curPeriod, optInMAType);
+                if (retCode != Core.RetCode.Success)
                 {
                     return retCode;
                 }
@@ -159,12 +159,12 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outputSize;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static int MavpLookback(int optInMaxPeriod = 30, MAType optInMAType = MAType.Sma)
+    public static int MavpLookback(int optInMaxPeriod = 30, Core.MAType optInMAType = Core.MAType.Sma)
     {
-        if (optInMaxPeriod < 2 || optInMaxPeriod > 100000)
+        if (optInMaxPeriod is < 2 or > 100000)
         {
             return -1;
         }

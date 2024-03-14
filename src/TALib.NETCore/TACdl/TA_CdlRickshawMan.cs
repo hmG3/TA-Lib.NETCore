@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Candles
 {
-    public static RetCode CdlRickshawMan(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlRickshawMan(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CdlRickshawManLookback();
@@ -25,49 +25,49 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         double bodyDojiPeriodTotal = default;
-        int bodyDojiTrailingIdx = startIdx - TA_CandleAvgPeriod(CandleSettingType.BodyDoji);
+        int bodyDojiTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod;
         double shadowLongPeriodTotal = default;
-        int shadowLongTrailingIdx = startIdx - TA_CandleAvgPeriod(CandleSettingType.ShadowLong);
+        int shadowLongTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.ShadowLong).AveragePeriod;
         double nearPeriodTotal = default;
-        int nearTrailingIdx = startIdx - TA_CandleAvgPeriod(CandleSettingType.Near);
+        int nearTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.Near).AveragePeriod;
         int i = bodyDojiTrailingIdx;
         while (i < startIdx)
         {
-            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i);
+            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
 
         i = shadowLongTrailingIdx;
         while (i < startIdx)
         {
-            shadowLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.ShadowLong, i);
+            shadowLongPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i);
             i++;
         }
 
         i = nearTrailingIdx;
         while (i < startIdx)
         {
-            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, i);
+            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i);
             i++;
         }
 
         int outIdx = default;
         do
         {
-            if (TA_RealBody(inClose, inOpen, i) <=
-                TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) && // doji
-                TA_LowerShadow(inClose, inOpen, inLow, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
-                    CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && // long shadow
-                TA_UpperShadow(inClose, inOpen, inLow, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
-                    CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && Math.Min(inOpen[i], inClose[i]) <= inLow[i] +
-                TA_HighLowRange(inHigh, inLow, i) / 2 + TA_CandleAverage(inOpen,
-                    inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i) && Math.Max(inOpen[i], inClose[i]) >= inLow[i] +
-                TA_HighLowRange(inHigh, inLow, i) / 2 - TA_CandleAverage(inOpen,
-                    inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i))
+            if (Core.TA_RealBody(inClose, inOpen, i) <=
+                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) && // doji
+                Core.TA_LowerShadow(inClose, inOpen, inLow, i) > Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                    Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && // long shadow
+                Core.TA_UpperShadow(inClose, inOpen, inLow, i) > Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                    Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && Math.Min(inOpen[i], inClose[i]) <= inLow[i] +
+                Core.TA_HighLowRange(inHigh, inLow, i) / 2 + Core.TA_CandleAverage(inOpen,
+                    inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i) && Math.Max(inOpen[i], inClose[i]) >= inLow[i] +
+                Core.TA_HighLowRange(inHigh, inLow, i) / 2 - Core.TA_CandleAverage(inOpen,
+                    inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i))
             {
                 outInteger[outIdx++] = 100;
             }
@@ -79,13 +79,13 @@ public static partial class Core
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i) -
-                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                                   Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
             shadowLongPeriodTotal +=
-                TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.ShadowLong, i) -
-                TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.ShadowLong, shadowLongTrailingIdx);
-            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, i) -
-                               TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearTrailingIdx);
+                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i) -
+                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongTrailingIdx);
+            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i) -
+                               Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx);
 
             i++;
             bodyDojiTrailingIdx++;
@@ -97,22 +97,22 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode CdlRickshawMan(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlRickshawMan(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CdlRickshawManLookback();
@@ -123,49 +123,49 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         decimal bodyDojiPeriodTotal = default;
-        int bodyDojiTrailingIdx = startIdx - TA_CandleAvgPeriod(CandleSettingType.BodyDoji);
+        int bodyDojiTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod;
         decimal shadowLongPeriodTotal = default;
-        int shadowLongTrailingIdx = startIdx - TA_CandleAvgPeriod(CandleSettingType.ShadowLong);
+        int shadowLongTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.ShadowLong).AveragePeriod;
         decimal nearPeriodTotal = default;
-        int nearTrailingIdx = startIdx - TA_CandleAvgPeriod(CandleSettingType.Near);
+        int nearTrailingIdx = startIdx - Core.CandleSettings.Get(Core.CandleSettingType.Near).AveragePeriod;
         int i = bodyDojiTrailingIdx;
         while (i < startIdx)
         {
-            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i);
+            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
 
         i = shadowLongTrailingIdx;
         while (i < startIdx)
         {
-            shadowLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.ShadowLong, i);
+            shadowLongPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i);
             i++;
         }
 
         i = nearTrailingIdx;
         while (i < startIdx)
         {
-            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, i);
+            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i);
             i++;
         }
 
         int outIdx = default;
         do
         {
-            if (TA_RealBody(inClose, inOpen, i) <=
-                TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) && // doji
-                TA_LowerShadow(inClose, inOpen, inLow, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
-                    CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && // long shadow
-                TA_UpperShadow(inClose, inOpen, inLow, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
-                    CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && Math.Min(inOpen[i], inClose[i]) <= inLow[i] +
-                TA_HighLowRange(inHigh, inLow, i) / 2 + TA_CandleAverage(inOpen,
-                    inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i) && Math.Max(inOpen[i], inClose[i]) >= inLow[i] +
-                TA_HighLowRange(inHigh, inLow, i) / 2 - TA_CandleAverage(inOpen,
-                    inHigh, inLow, inClose, CandleSettingType.Near, nearPeriodTotal, i))
+            if (Core.TA_RealBody(inClose, inOpen, i) <=
+                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) && // doji
+                Core.TA_LowerShadow(inClose, inOpen, inLow, i) > Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                    Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && // long shadow
+                Core.TA_UpperShadow(inClose, inOpen, inLow, i) > Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                    Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && Math.Min(inOpen[i], inClose[i]) <= inLow[i] +
+                Core.TA_HighLowRange(inHigh, inLow, i) / 2 + Core.TA_CandleAverage(inOpen,
+                    inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i) && Math.Max(inOpen[i], inClose[i]) >= inLow[i] +
+                Core.TA_HighLowRange(inHigh, inLow, i) / 2 - Core.TA_CandleAverage(inOpen,
+                    inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i))
             {
                 outInteger[outIdx++] = 100;
             }
@@ -177,13 +177,13 @@ public static partial class Core
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyDojiPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i) -
-                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+            bodyDojiPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                                   Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
             shadowLongPeriodTotal +=
-                TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.ShadowLong, i) -
-                TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.ShadowLong, shadowLongTrailingIdx);
-            nearPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, i) -
-                               TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.Near, nearTrailingIdx);
+                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i) -
+                Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongTrailingIdx);
+            nearPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i) -
+                               Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx);
 
             i++;
             bodyDojiTrailingIdx++;
@@ -195,11 +195,11 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int CdlRickshawManLookback() =>
         Math.Max(
-            Math.Max(TA_CandleAvgPeriod(CandleSettingType.BodyDoji), TA_CandleAvgPeriod(CandleSettingType.ShadowLong)),
-            TA_CandleAvgPeriod(CandleSettingType.Near));
+            Math.Max(Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod, Core.CandleSettings.Get(Core.CandleSettingType.ShadowLong).AveragePeriod),
+            Core.CandleSettings.Get(Core.CandleSettingType.Near).AveragePeriod);
 }

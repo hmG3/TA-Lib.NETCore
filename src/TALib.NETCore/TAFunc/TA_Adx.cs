@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Adx(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outReal,
+    public static Core.RetCode Adx(double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx, double[] outReal,
         out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = AdxLookback(optInTimePeriod);
@@ -25,7 +25,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         double tempReal;
@@ -63,7 +63,7 @@ public static partial class Core
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR += tempReal;
             prevClose = inClose[today];
         }
@@ -92,15 +92,15 @@ public static partial class Core
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
-            if (!TA_IsZero(prevTR))
+            if (!Core.TA_IsZero(prevTR))
             {
                 minusDI = 100.0 * (prevMinusDM / prevTR);
                 plusDI = 100.0 * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
+                if (!Core.TA_IsZero(tempReal))
                 {
                     sumDX += 100.0 * (Math.Abs(minusDI - plusDI) / tempReal);
                 }
@@ -109,7 +109,7 @@ public static partial class Core
 
         double prevADX = sumDX / optInTimePeriod;
 
-        i = (int) Globals.UnstablePeriod[(int) FuncUnstId.Adx];
+        i = Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Adx);
         while (i-- > 0)
         {
             today++;
@@ -133,15 +133,15 @@ public static partial class Core
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
-            if (!TA_IsZero(prevTR))
+            if (!Core.TA_IsZero(prevTR))
             {
                 minusDI = 100.0 * (prevMinusDM / prevTR);
                 plusDI = 100.0 * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
+                if (!Core.TA_IsZero(tempReal))
                 {
                     tempReal = 100.0 * (Math.Abs(minusDI - plusDI) / tempReal);
                     prevADX = (prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod;
@@ -175,15 +175,15 @@ public static partial class Core
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
-            if (!TA_IsZero(prevTR))
+            if (!Core.TA_IsZero(prevTR))
             {
                 minusDI = 100.0 * (prevMinusDM / prevTR);
                 plusDI = 100.0 * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
+                if (!Core.TA_IsZero(tempReal))
                 {
                     tempReal = 100.0 * (Math.Abs(minusDI - plusDI) / tempReal);
                     prevADX = (prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod;
@@ -195,22 +195,22 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode Adx(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outReal,
+    public static Core.RetCode Adx(decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx, decimal[] outReal,
         out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = AdxLookback(optInTimePeriod);
@@ -221,7 +221,7 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         decimal tempReal;
@@ -259,7 +259,7 @@ public static partial class Core
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR += tempReal;
             prevClose = inClose[today];
         }
@@ -288,15 +288,15 @@ public static partial class Core
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
-            if (!TA_IsZero(prevTR))
+            if (!Core.TA_IsZero(prevTR))
             {
                 minusDI = 100m * (prevMinusDM / prevTR);
                 plusDI = 100m * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
+                if (!Core.TA_IsZero(tempReal))
                 {
                     sumDX += 100m * (Math.Abs(minusDI - plusDI) / tempReal);
                 }
@@ -305,7 +305,7 @@ public static partial class Core
 
         decimal prevADX = sumDX / optInTimePeriod;
 
-        i = (int) Globals.UnstablePeriod[(int) FuncUnstId.Adx];
+        i = Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Adx);
         while (i-- > 0)
         {
             today++;
@@ -329,15 +329,15 @@ public static partial class Core
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
-            if (!TA_IsZero(prevTR))
+            if (!Core.TA_IsZero(prevTR))
             {
                 minusDI = 100m * (prevMinusDM / prevTR);
                 plusDI = 100m * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
+                if (!Core.TA_IsZero(tempReal))
                 {
                     tempReal = 100m * (Math.Abs(minusDI - plusDI) / tempReal);
                     prevADX = (prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod;
@@ -371,15 +371,15 @@ public static partial class Core
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            Core.TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
             prevClose = inClose[today];
-            if (!TA_IsZero(prevTR))
+            if (!Core.TA_IsZero(prevTR))
             {
                 minusDI = 100m * (prevMinusDM / prevTR);
                 plusDI = 100m * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
+                if (!Core.TA_IsZero(tempReal))
                 {
                     tempReal = 100m * (Math.Abs(minusDI - plusDI) / tempReal);
                     prevADX = (prevADX * (optInTimePeriod - 1) + tempReal) / optInTimePeriod;
@@ -391,16 +391,16 @@ public static partial class Core
 
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int AdxLookback(int optInTimePeriod = 14)
     {
-        if (optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (optInTimePeriod is < 2 or > 100000)
         {
             return -1;
         }
 
-        return optInTimePeriod * 2 + (int) Globals.UnstablePeriod[(int) FuncUnstId.Adx] - 1;
+        return optInTimePeriod * 2 + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Adx) - 1;
     }
 }

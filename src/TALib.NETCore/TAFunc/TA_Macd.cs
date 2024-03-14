@@ -1,8 +1,8 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Functions
 {
-    public static RetCode Macd(double[] inReal, int startIdx, int endIdx, double[] outMACD, double[] outMACDSignal,
+    public static Core.RetCode Macd(double[] inReal, int startIdx, int endIdx, double[] outMACD, double[] outMACDSignal,
         double[] outMACDHist, out int outBegIdx, out int outNbElement, int optInFastPeriod = 12, int optInSlowPeriod = 26,
         int optInSignalPeriod = 9)
     {
@@ -10,21 +10,21 @@ public static partial class Core
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInFastPeriod < 2 ||
             optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000 || optInSignalPeriod < 1 ||
             optInSignalPeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
-        return TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement,
+        return Core.TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement,
             optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
     }
 
-    public static RetCode Macd(decimal[] inReal, int startIdx, int endIdx, decimal[] outMACD, decimal[] outMACDSignal,
+    public static Core.RetCode Macd(decimal[] inReal, int startIdx, int endIdx, decimal[] outMACD, decimal[] outMACDSignal,
         decimal[] outMACDHist, out int outBegIdx, out int outNbElement, int optInFastPeriod = 12, int optInSlowPeriod = 26,
         int optInSignalPeriod = 9)
     {
@@ -32,17 +32,17 @@ public static partial class Core
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInFastPeriod < 2 ||
             optInFastPeriod > 100000 || optInSlowPeriod < 2 || optInSlowPeriod > 100000 || optInSignalPeriod < 1 ||
             optInSignalPeriod > 100000)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
-        return TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement,
+        return Core.TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement,
             optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
     }
 

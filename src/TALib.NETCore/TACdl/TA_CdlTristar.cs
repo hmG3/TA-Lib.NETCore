@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Candles
 {
-    public static RetCode CdlTristar(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlTristar(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CdlTristarLookback();
@@ -25,15 +25,15 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         double bodyPeriodTotal = default;
-        int bodyTrailingIdx = startIdx - 2 - TA_CandleAvgPeriod(CandleSettingType.BodyDoji);
+        int bodyTrailingIdx = startIdx - 2 - Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod;
         int i = bodyTrailingIdx;
         while (i < startIdx - 2)
         {
-            bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i);
+            bodyPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
 
@@ -41,16 +41,16 @@ public static partial class Core
         int outIdx = default;
         do
         {
-            if (TA_RealBody(inClose, inOpen, i - 2) <=
-                TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, bodyPeriodTotal, i - 2) && // 1st: doji
-                TA_RealBody(inClose, inOpen, i - 1) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji,
+            if (Core.TA_RealBody(inClose, inOpen, i - 2) <=
+                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyPeriodTotal, i - 2) && // 1st: doji
+                Core.TA_RealBody(inClose, inOpen, i - 1) <= Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
                     bodyPeriodTotal, i - 2) && // 2nd: doji
-                TA_RealBody(inClose, inOpen, i) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji,
+                Core.TA_RealBody(inClose, inOpen, i) <= Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
                     bodyPeriodTotal, i - 2))
             {
                 // 3rd: doji
                 outInteger[outIdx] = 0;
-                if (TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // 2nd gaps up
+                if (Core.TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // 2nd gaps up
                     &&
                     Math.Max(inOpen[i], inClose[i]) < Math.Max(inOpen[i - 1], inClose[i - 1]) // 3rd is not higher than 2nd
                    )
@@ -58,7 +58,7 @@ public static partial class Core
                     outInteger[outIdx] = -100;
                 }
 
-                if (TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) // 2nd gaps down
+                if (Core.TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) // 2nd gaps down
                     &&
                     Math.Min(inOpen[i], inClose[i]) > Math.Min(inOpen[i - 1], inClose[i - 1]) // 3rd is not lower than 2nd
                    )
@@ -76,8 +76,8 @@ public static partial class Core
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i - 2) -
-                               TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, bodyTrailingIdx);
+            bodyPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i - 2) -
+                               Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyTrailingIdx);
             i++;
             bodyTrailingIdx++;
         } while (i <= endIdx);
@@ -85,22 +85,22 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode CdlTristar(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlTristar(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CdlTristarLookback();
@@ -111,15 +111,15 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         decimal bodyPeriodTotal = default;
-        int bodyTrailingIdx = startIdx - 2 - TA_CandleAvgPeriod(CandleSettingType.BodyDoji);
+        int bodyTrailingIdx = startIdx - 2 - Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod;
         int i = bodyTrailingIdx;
         while (i < startIdx - 2)
         {
-            bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i);
+            bodyPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
 
@@ -127,16 +127,16 @@ public static partial class Core
         int outIdx = default;
         do
         {
-            if (TA_RealBody(inClose, inOpen, i - 2) <=
-                TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, bodyPeriodTotal, i - 2) && // 1st: doji
-                TA_RealBody(inClose, inOpen, i - 1) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji,
+            if (Core.TA_RealBody(inClose, inOpen, i - 2) <=
+                Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyPeriodTotal, i - 2) && // 1st: doji
+                Core.TA_RealBody(inClose, inOpen, i - 1) <= Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
                     bodyPeriodTotal, i - 2) && // 2nd: doji
-                TA_RealBody(inClose, inOpen, i) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji,
+                Core.TA_RealBody(inClose, inOpen, i) <= Core.TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
                     bodyPeriodTotal, i - 2))
             {
                 // 3rd: doji
                 outInteger[outIdx] = 0;
-                if (TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // 2nd gaps up
+                if (Core.TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // 2nd gaps up
                     &&
                     Math.Max(inOpen[i], inClose[i]) < Math.Max(inOpen[i - 1], inClose[i - 1]) // 3rd is not higher than 2nd
                    )
@@ -144,7 +144,7 @@ public static partial class Core
                     outInteger[outIdx] = -100;
                 }
 
-                if (TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) // 2nd gaps down
+                if (Core.TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) // 2nd gaps down
                     &&
                     Math.Min(inOpen[i], inClose[i]) > Math.Min(inOpen[i - 1], inClose[i - 1]) // 3rd is not lower than 2nd
                    )
@@ -162,8 +162,8 @@ public static partial class Core
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, i - 2) -
-                               TA_CandleRange(inOpen, inHigh, inLow, inClose, CandleSettingType.BodyDoji, bodyTrailingIdx);
+            bodyPeriodTotal += Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i - 2) -
+                               Core.TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyTrailingIdx);
             i++;
             bodyTrailingIdx++;
         } while (i <= endIdx);
@@ -171,8 +171,8 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static int CdlTristarLookback() => TA_CandleAvgPeriod(CandleSettingType.BodyDoji) + 2;
+    public static int CdlTristarLookback() => Core.CandleSettings.Get(Core.CandleSettingType.BodyDoji).AveragePeriod + 2;
 }

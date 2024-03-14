@@ -1,20 +1,20 @@
 namespace TALib;
 
-public static partial class Core
+public static partial class Candles
 {
-    public static RetCode CdlXSideGap3Methods(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+    public static Core.RetCode CdlXSideGap3Methods(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CdlXSideGap3MethodsLookback();
@@ -25,26 +25,26 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int i = startIdx;
         int outIdx = default;
         do
         {
-            if (TA_CandleColor(inClose, inOpen, i - 2) == TA_CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
-                TA_CandleColor(inClose, inOpen, i - 1) == !TA_CandleColor(inClose, inOpen, i) && // 3rd opposite color
+            if (Core.TA_CandleColor(inClose, inOpen, i - 2) == Core.TA_CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
+                Core.TA_CandleColor(inClose, inOpen, i - 1) == !Core.TA_CandleColor(inClose, inOpen, i) && // 3rd opposite color
                 inOpen[i] < Math.Max(inClose[i - 1], inOpen[i - 1]) && // 3rd opens within 2nd rb
                 inOpen[i] > Math.Min(inClose[i - 1], inOpen[i - 1]) &&
                 inClose[i] < Math.Max(inClose[i - 2], inOpen[i - 2]) && // 3rd closes within 1st rb
                 inClose[i] > Math.Min(inClose[i - 2], inOpen[i - 2]) &&
-                (TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is white
-                 TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
+                (Core.TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is white
+                 Core.TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
                  ||
-                 !TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is black
-                 TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
+                 !Core.TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is black
+                 Core.TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 2)) * 100;
+                outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i - 2)) * 100;
             }
             else
             {
@@ -60,22 +60,22 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
-    public static RetCode CdlXSideGap3Methods(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlXSideGap3Methods(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
         if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
         {
-            return RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeStartIndex;
         }
 
         if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
         {
-            return RetCode.BadParam;
+            return Core.RetCode.BadParam;
         }
 
         int lookbackTotal = CdlXSideGap3MethodsLookback();
@@ -86,26 +86,26 @@ public static partial class Core
 
         if (startIdx > endIdx)
         {
-            return RetCode.Success;
+            return Core.RetCode.Success;
         }
 
         int i = startIdx;
         int outIdx = default;
         do
         {
-            if (TA_CandleColor(inClose, inOpen, i - 2) == TA_CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
-                TA_CandleColor(inClose, inOpen, i - 1) == !TA_CandleColor(inClose, inOpen, i) && // 3rd opposite color
+            if (Core.TA_CandleColor(inClose, inOpen, i - 2) == Core.TA_CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
+                Core.TA_CandleColor(inClose, inOpen, i - 1) == !Core.TA_CandleColor(inClose, inOpen, i) && // 3rd opposite color
                 inOpen[i] < Math.Max(inClose[i - 1], inOpen[i - 1]) && // 3rd opens within 2nd rb
                 inOpen[i] > Math.Min(inClose[i - 1], inOpen[i - 1]) &&
                 inClose[i] < Math.Max(inClose[i - 2], inOpen[i - 2]) && // 3rd closes within 1st rb
                 inClose[i] > Math.Min(inClose[i - 2], inOpen[i - 2]) &&
-                (TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is white
-                 TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
+                (Core.TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is white
+                 Core.TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
                  ||
-                 !TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is black
-                 TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
+                 !Core.TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is black
+                 Core.TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 2)) * 100;
+                outInteger[outIdx++] = Convert.ToInt32(Core.TA_CandleColor(inClose, inOpen, i - 2)) * 100;
             }
             else
             {
@@ -121,7 +121,7 @@ public static partial class Core
         outBegIdx = startIdx;
         outNbElement = outIdx;
 
-        return RetCode.Success;
+        return Core.RetCode.Success;
     }
 
     public static int CdlXSideGap3MethodsLookback() => 2;
