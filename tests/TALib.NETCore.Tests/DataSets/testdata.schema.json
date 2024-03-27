@@ -31,6 +31,13 @@
               "type": "number"
             }
           },
+          "unstable_period": {
+            "type": "integer",
+            "description": "Unstable period value.",
+            "items": {
+              "type": "number"
+            }
+          },
           "outputs": {
             "type": "array",
             "description": "An array of output value.",
@@ -47,6 +54,7 @@
             "description": "Flag indicates to skip test."
           }
         },
+        "required": ["inputs", "outputs"],
         "additionalProperties": false
       }
     }

@@ -8,7 +8,9 @@ public class TestDataModel<T> where T : struct
 
     public T[][] Inputs { get; set; } = null!;
 
-    public T[] Options { get; set; } = Array.Empty<T>();
+    public T[] Options { get; set; } = [];
+
+    public int? Unstable { get; set; }
 
     public T[][] Outputs { get; set; } = null!;
 

@@ -13,17 +13,12 @@ jobs:
         operating-system: [ubuntu-latest, windows-latest, macOS-latest]
     runs-on: ${{ matrix.operating-system }}
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Install dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-    - name: Test & Coverage
-      run: dotnet test --no-restore --nologo --logger "console;verbosity=normal" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=coverage/opencover-coverage.xml
+    - name: Test & coverage
+      run: dotnet test --logger "console;verbosity=normal" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=coverage/opencover-coverage.xml
     - name: Upload coverage to Codecov
       if: ${{ matrix.operating-system == 'ubuntu-latest' }}
       uses: codecov/codecov-action@v4

@@ -92,6 +92,18 @@ public sealed class Function
         return (int) method.Invoke(null, paramsArray)!;
     }
 
+    public void SetUnstablePeriod(int period)
+    {
+        if (Enum.TryParse<Core.FuncUnstId>(Name, out var func))
+        {
+            Core.UnstablePeriodSettings.Set(func, period);
+        }
+        else
+        {
+            throw new NotSupportedException($"Function {Name} does not support unstable period settings.");
+        }
+    }
+
     public override string ToString() => Name;
 
     internal MethodInfo FindFunctionMethodInternal<T>(string name) where T : IFloatingPoint<T> =>
