@@ -22,10 +22,7 @@ public static class JsonExtensions
 
     public static T ToObject<T>(this JsonDocument document, JsonSerializerOptions? options = null)
     {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         return document.RootElement.ToObject<T>(options);
     }
@@ -55,10 +52,7 @@ public static class JsonExtensions
 
     public static object ToObject(this JsonDocument document, Type returnType, JsonSerializerOptions? options = null)
     {
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         return document.RootElement.ToObject(returnType, options);
     }
