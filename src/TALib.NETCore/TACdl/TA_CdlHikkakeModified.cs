@@ -2,7 +2,7 @@ namespace TALib;
 
 public static partial class Candles
 {
-    public static Core.RetCode CdlHikkakeMod(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlHikkakeModified(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -17,7 +17,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlHikkakeModLookback();
+        int lookbackTotal = CdlHikkakeModifiedLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -116,7 +116,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode CdlHikkakeMod(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlHikkakeModified(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -131,7 +131,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlHikkakeModLookback();
+        int lookbackTotal = CdlHikkakeModifiedLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -230,5 +230,5 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int CdlHikkakeModLookback() => Math.Max(1, TA_CandleAveragePeriod(Core.CandleSettingType.Near)) + 5;
+    public static int CdlHikkakeModifiedLookback() => Math.Max(1, TA_CandleAveragePeriod(Core.CandleSettingType.Near)) + 5;
 }

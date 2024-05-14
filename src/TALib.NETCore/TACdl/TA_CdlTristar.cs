@@ -63,7 +63,7 @@ public static partial class Candles
                     Math.Min(inOpen[i], inClose[i]) > Math.Min(inOpen[i - 1], inClose[i - 1]) // 3rd is not lower than 2nd
                    )
                 {
-                    outInteger[outIdx] = +100;
+                    outInteger[outIdx] = 100;
                 }
 
                 outIdx++;
@@ -149,7 +149,7 @@ public static partial class Candles
                     Math.Min(inOpen[i], inClose[i]) > Math.Min(inOpen[i - 1], inClose[i - 1]) // 3rd is not lower than 2nd
                    )
                 {
-                    outInteger[outIdx] = +100;
+                    outInteger[outIdx] = 100;
                 }
 
                 outIdx++;

@@ -60,7 +60,7 @@ public static partial class Candles
                  TA_RealBodyGapDown(inOpen, inClose, i, i - 1) //      or down if 1st is black
                 ))
             {
-                outInteger[outIdx++] = Convert.ToInt32(!TA_CandleColor(inClose, inOpen, i - 1)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? -100 : 100;
             }
             else
             {
@@ -143,7 +143,7 @@ public static partial class Candles
                  TA_RealBodyGapDown(inOpen, inClose, i, i - 1) //      or down if 1st is black
                 ))
             {
-                outInteger[outIdx++] = Convert.ToInt32(!TA_CandleColor(inClose, inOpen, i - 1)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? -100 : 100;
             }
             else
             {

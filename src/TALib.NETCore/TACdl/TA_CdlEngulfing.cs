@@ -45,11 +45,11 @@ public static partial class Candles
             {
                 if (!inOpen[i].Equals(inClose[i - 1]) && !inClose[i].Equals(inOpen[i - 1]))
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
+                    outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
                 }
                 else
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 80;
+                    outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 80 : -80;
                 }
             }
             else
@@ -109,11 +109,11 @@ public static partial class Candles
             {
                 if (inOpen[i] != inClose[i - 1] && inClose[i] != inOpen[i - 1])
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
+                    outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
                 }
                 else
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 80;
+                    outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 80 : -80;
                 }
             }
             else

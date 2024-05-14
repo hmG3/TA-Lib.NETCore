@@ -2,7 +2,7 @@ namespace TALib;
 
 public static partial class Candles
 {
-    public static Core.RetCode CdlXSideGap3Methods(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+    public static Core.RetCode CdlUpDownSideGapThreeMethods(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -17,7 +17,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlXSideGap3MethodsLookback();
+        int lookbackTotal = CdlUpDownSideGapThreeMethodsLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -44,7 +44,7 @@ public static partial class Candles
                  !TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is black
                  TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 2)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 2) ? 100 : -100;
             }
             else
             {
@@ -63,7 +63,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode CdlXSideGap3Methods(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlUpDownSideGapThreeMethods(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -78,7 +78,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlXSideGap3MethodsLookback();
+        int lookbackTotal = CdlUpDownSideGapThreeMethodsLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -105,7 +105,7 @@ public static partial class Candles
                  !TA_CandleColor(inClose, inOpen, i - 2) && // when 1st is black
                  TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 2)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 2) ? 100 : -100;
             }
             else
             {
@@ -124,5 +124,5 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int CdlXSideGap3MethodsLookback() => 2;
+    public static int CdlUpDownSideGapThreeMethodsLookback() => 2;
 }

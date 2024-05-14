@@ -61,7 +61,7 @@ public static partial class Candles
                 Math.Abs(TA_RealBody(inClose, inOpen, i - 1) - TA_RealBody(inClose, inOpen, i)) <
                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1))
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 1)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? 100 : -100;
             }
             else
             {
@@ -142,7 +142,7 @@ public static partial class Candles
                 Math.Abs(TA_RealBody(inClose, inOpen, i - 1) - TA_RealBody(inClose, inOpen, i)) <
                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1))
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 1)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? 100 : -100;
             }
             else
             {

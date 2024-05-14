@@ -57,7 +57,7 @@ public static partial class Candles
                 inOpen[i] < inLow[i - 1] && //  open below prior low
                 inClose[i] <= inClose[i - 1] +
                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal,
-                    i - 1) && //  close slighTA_CandleRangetly into prior body
+                    i - 1) && //  close slightly into prior body
                 inClose[i] >= inClose[i - 1]
                )
             {
@@ -142,7 +142,7 @@ public static partial class Candles
                 inOpen[i] < inLow[i - 1] && //  open below prior low
                 inClose[i] <= inClose[i - 1] +
                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal,
-                    i - 1) && //  close slighTA_CandleRangetly into prior body
+                    i - 1) && //  close slightly into prior body
                 inClose[i] >= inClose[i - 1]
                )
             {

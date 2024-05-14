@@ -259,7 +259,6 @@ public static partial class Functions
             return -1;
         }
 
-
         return (optInTimePeriod - 1) * 6 + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.T3);
     }
 }

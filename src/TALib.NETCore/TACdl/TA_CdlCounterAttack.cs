@@ -28,9 +28,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        var bodyLongPeriodTotal = new double[2];
         double equalPeriodTotal = default;
         int equalTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Equal);
+        var bodyLongPeriodTotal = new double[2];
         int bodyLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         int i = equalTrailingIdx;
         while (i < startIdx)
@@ -63,7 +63,7 @@ public static partial class Candles
                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1)
                )
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
             }
             else
             {
@@ -119,9 +119,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        var bodyLongPeriodTotal = new decimal[2];
         decimal equalPeriodTotal = default;
         int equalTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Equal);
+        var bodyLongPeriodTotal = new decimal[2];
         int bodyLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         int i = equalTrailingIdx;
         while (i < startIdx)
@@ -154,7 +154,7 @@ public static partial class Candles
                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1)
                )
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
             }
             else
             {

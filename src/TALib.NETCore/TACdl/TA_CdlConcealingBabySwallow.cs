@@ -2,7 +2,7 @@ namespace TALib;
 
 public static partial class Candles
 {
-    public static Core.RetCode CdlConcealBabysWall(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+    public static Core.RetCode CdlConcealingBabySwallow(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -17,7 +17,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlConcealBabysWallLookback();
+        int lookbackTotal = CdlConcealingBabySwallowLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -94,7 +94,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode CdlConcealBabysWall(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlConcealingBabySwallow(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -109,7 +109,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlConcealBabysWallLookback();
+        int lookbackTotal = CdlConcealingBabySwallowLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -186,5 +186,5 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int CdlConcealBabysWallLookback() => TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 3;
+    public static int CdlConcealingBabySwallowLookback() => TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 3;
 }

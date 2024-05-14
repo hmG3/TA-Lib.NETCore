@@ -29,12 +29,12 @@ public static partial class Candles
         }
 
         var shadowShortPeriodTotal = new double[3];
-        var shadowLongPeriodTotal = new double[2];
-        var nearPeriodTotal = new double[3];
-        var farPeriodTotal = new double[3];
         int shadowShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowShort);
+        var shadowLongPeriodTotal = new double[2];
         int shadowLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowLong);
+        var nearPeriodTotal = new double[3];
         int nearTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Near);
+        var farPeriodTotal = new double[3];
         int farTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Far);
         double bodyLongPeriodTotal = default;
         int bodyLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong);
@@ -203,12 +203,12 @@ public static partial class Candles
         }
 
         var shadowShortPeriodTotal = new decimal[3];
-        var shadowLongPeriodTotal = new decimal[2];
-        var nearPeriodTotal = new decimal[3];
-        var farPeriodTotal = new decimal[3];
         int shadowShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowShort);
+        var shadowLongPeriodTotal = new decimal[2];
         int shadowLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowLong);
+        var nearPeriodTotal = new decimal[3];
         int nearTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Near);
+        var farPeriodTotal = new decimal[3];
         int farTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Far);
         decimal bodyLongPeriodTotal = default;
         int bodyLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong);

@@ -2,7 +2,7 @@ namespace TALib;
 
 public static partial class Candles
 {
-    public static Core.RetCode CdlRiseFall3Methods(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+    public static Core.RetCode CdlRisingFallingThreeMethods(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -17,7 +17,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlRiseFall3MethodsLookback();
+        int lookbackTotal = CdlRisingFallingThreeMethodsLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -73,19 +73,19 @@ public static partial class Candles
                 Math.Min(inOpen[i - 2], inClose[i - 2]) < inHigh[i - 4] && Math.Max(inOpen[i - 2], inClose[i - 2]) > inLow[i - 4] &&
                 Math.Min(inOpen[i - 1], inClose[i - 1]) < inHigh[i - 4] && Math.Max(inOpen[i - 1], inClose[i - 1]) > inLow[i - 4] &&
                 // 2nd to 4th are falling (rising)
-                inClose[i - 2] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) <
-                inClose[i - 3] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) &&
-                inClose[i - 1] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) <
-                inClose[i - 2] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) &&
+                inClose[i - 2] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) <
+                inClose[i - 3] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) &&
+                inClose[i - 1] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) <
+                inClose[i - 2] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) &&
                 // 5th opens above (below) the prior close
-                inOpen[i] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) >
-                inClose[i - 1] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) &&
+                inOpen[i] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) >
+                inClose[i - 1] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) &&
                 // 5th closes above (below) the 1st close
-                inClose[i] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) >
-                inClose[i - 4] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4))
+                inClose[i] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) >
+                inClose[i - 4] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100)
                )
             {
-                outInteger[outIdx++] = 100 * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4));
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100;
             }
             else
             {
@@ -118,7 +118,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode CdlRiseFall3Methods(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlRisingFallingThreeMethods(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -133,7 +133,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlRiseFall3MethodsLookback();
+        int lookbackTotal = CdlRisingFallingThreeMethodsLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -189,19 +189,19 @@ public static partial class Candles
                 Math.Min(inOpen[i - 2], inClose[i - 2]) < inHigh[i - 4] && Math.Max(inOpen[i - 2], inClose[i - 2]) > inLow[i - 4] &&
                 Math.Min(inOpen[i - 1], inClose[i - 1]) < inHigh[i - 4] && Math.Max(inOpen[i - 1], inClose[i - 1]) > inLow[i - 4] &&
                 // 2nd to 4th are falling (rising)
-                inClose[i - 2] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) <
-                inClose[i - 3] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) &&
-                inClose[i - 1] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) <
-                inClose[i - 2] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) &&
+                inClose[i - 2] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) <
+                inClose[i - 3] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) &&
+                inClose[i - 1] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) <
+                inClose[i - 2] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) &&
                 // 5th opens above (below) the prior close
-                inOpen[i] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) >
-                inClose[i - 1] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) &&
+                inOpen[i] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) >
+                inClose[i - 1] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) &&
                 // 5th closes above (below) the 1st close
-                inClose[i] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4)) >
-                inClose[i - 4] * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4))
+                inClose[i] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100) >
+                inClose[i - 4] * (TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100)
                )
             {
-                outInteger[outIdx++] = 100 * Convert.ToInt32(TA_CandleColor(inClose, inOpen, i - 4));
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100;
             }
             else
             {
@@ -234,6 +234,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int CdlRiseFall3MethodsLookback() =>
+    public static int CdlRisingFallingThreeMethodsLookback() =>
         Math.Max(TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort), TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 4;
 }

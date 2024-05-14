@@ -2,7 +2,7 @@ namespace TALib;
 
 public static partial class Candles
 {
-    public static Core.RetCode CdlUnique3River(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlUniqueThreeRiver(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -17,7 +17,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlUnique3RiverLookback();
+        int lookbackTotal = CdlUniqueThreeRiverLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -87,7 +87,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode CdlUnique3River(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlUniqueThreeRiver(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -102,7 +102,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlUnique3RiverLookback();
+        int lookbackTotal = CdlUniqueThreeRiverLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -172,6 +172,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int CdlUnique3RiverLookback() =>
+    public static int CdlUniqueThreeRiverLookback() =>
         Math.Max(TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort), TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 2;
 }

@@ -19,6 +19,11 @@ public static partial class Functions
         }
 
         int lookbackTotal = MavpLookback(optInMaxPeriod, optInMAType);
+        if (inPeriods.Length < lookbackTotal)
+        {
+            return Core.RetCode.BadParam;
+        }
+
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;

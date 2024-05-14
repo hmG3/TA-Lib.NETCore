@@ -2,7 +2,7 @@ namespace TALib;
 
 public static partial class Candles
 {
-    public static Core.RetCode Cdl3WhiteSoldiers(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+    public static Core.RetCode CdlThreeWhiteSoldiers(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -17,7 +17,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = Cdl3WhiteSoldiersLookback();
+        int lookbackTotal = CdlThreeWhiteSoldiersLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -29,10 +29,10 @@ public static partial class Candles
         }
 
         var shadowVeryShortPeriodTotal = new double[3];
-        var nearPeriodTotal = new double[3];
-        var farPeriodTotal = new double[3];
         int shadowVeryShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
+        var nearPeriodTotal = new double[3];
         int nearTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Near);
+        var farPeriodTotal = new double[3];
         int farTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Far);
         double bodyShortPeriodTotal = default;
         int bodyShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort);
@@ -137,7 +137,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode Cdl3WhiteSoldiers(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlThreeWhiteSoldiers(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -152,7 +152,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = Cdl3WhiteSoldiersLookback();
+        int lookbackTotal = CdlThreeWhiteSoldiersLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -164,10 +164,10 @@ public static partial class Candles
         }
 
         var shadowVeryShortPeriodTotal = new decimal[3];
-        var nearPeriodTotal = new decimal[3];
-        var farPeriodTotal = new decimal[3];
         int shadowVeryShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
         int nearTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Near);
+        var nearPeriodTotal = new decimal[3];
+        var farPeriodTotal = new decimal[3];
         int farTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Far);
         decimal bodyShortPeriodTotal = default;
         int bodyShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort);
@@ -272,7 +272,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int Cdl3WhiteSoldiersLookback() =>
+    public static int CdlThreeWhiteSoldiersLookback() =>
         Math.Max(
             Math.Max(TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort), TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort)),
             Math.Max(TA_CandleAveragePeriod(Core.CandleSettingType.Far), TA_CandleAveragePeriod(Core.CandleSettingType.Near))

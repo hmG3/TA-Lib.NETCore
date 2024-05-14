@@ -77,7 +77,7 @@ public static partial class Candles
                 )
                )
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
             }
             else
             {
@@ -181,7 +181,7 @@ public static partial class Candles
                 )
                )
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
             }
             else
             {

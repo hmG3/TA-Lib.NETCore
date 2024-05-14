@@ -2,7 +2,7 @@ namespace TALib;
 
 public static partial class Candles
 {
-    public static Core.RetCode CdlUpsideGap2Crows(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
+    public static Core.RetCode CdlUpsideGapTwoCrows(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -17,7 +17,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlUpsideGap2CrowsLookback();
+        int lookbackTotal = CdlUpsideGapTwoCrowsLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -89,7 +89,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode CdlUpsideGap2Crows(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlUpsideGapTwoCrows(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -104,7 +104,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CdlUpsideGap2CrowsLookback();
+        int lookbackTotal = CdlUpsideGapTwoCrowsLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -176,6 +176,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int CdlUpsideGap2CrowsLookback() =>
+    public static int CdlUpsideGapTwoCrowsLookback() =>
         Math.Max(TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort), TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 2;
 }

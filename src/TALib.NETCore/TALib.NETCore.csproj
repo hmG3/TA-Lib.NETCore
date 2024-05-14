@@ -11,7 +11,7 @@
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://hmg3.github.io/TaTooIne</PackageProjectUrl>
-    <Version>0.4.5</Version>
+    <Version>0.5.0</Version>
     <RepositoryUrl>https://github.com/hmG3/TA-Lib.NETCore</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>talib.png</PackageIcon>

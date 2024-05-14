@@ -60,7 +60,7 @@ public static partial class Candles
                  inHigh[i - 1] > inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 4th has higher high and low than 3rd
                  inClose[i] < inOpen[i - 3] && inClose[i] > inClose[i - 4])) // 5th closes inside the gap
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
             }
             else
             {
@@ -141,7 +141,7 @@ public static partial class Candles
                  inHigh[i - 1] > inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 4th has higher high and low than 3rd
                  inClose[i] < inOpen[i - 3] && inClose[i] > inClose[i - 4])) // 5th closes inside the gap
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
             }
             else
             {

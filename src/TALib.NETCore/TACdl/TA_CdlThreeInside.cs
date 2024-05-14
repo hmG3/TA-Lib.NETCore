@@ -1,10 +1,8 @@
-using System;
-
 namespace TALib;
 
 public static partial class Candles
 {
-    public static Core.RetCode Cdl3Inside(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlThreeInside(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -19,7 +17,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = Cdl3InsideLookback();
+        int lookbackTotal = CdlThreeInsideLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -65,7 +63,7 @@ public static partial class Candles
                  !TA_CandleColor(inClose, inOpen, i - 2) && TA_CandleColor(inClose, inOpen, i) && inClose[i] > inOpen[i - 2]
                 ))
             {
-                outInteger[outIdx++] = Convert.ToInt32(!TA_CandleColor(inClose, inOpen, i - 2)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 2) ? -100 : 100;
             }
             else
             {
@@ -87,7 +85,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode Cdl3Inside(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlThreeInside(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -102,7 +100,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = Cdl3InsideLookback();
+        int lookbackTotal = CdlThreeInsideLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -148,7 +146,7 @@ public static partial class Candles
                  !TA_CandleColor(inClose, inOpen, i - 2) && TA_CandleColor(inClose, inOpen, i) && inClose[i] > inOpen[i - 2]
                 ))
             {
-                outInteger[outIdx++] = Convert.ToInt32(!TA_CandleColor(inClose, inOpen, i - 2)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 2) ? -100 : 100;
             }
             else
             {
@@ -170,6 +168,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int Cdl3InsideLookback() =>
+    public static int CdlThreeInsideLookback() =>
         Math.Max(TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort), TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 2;
 }

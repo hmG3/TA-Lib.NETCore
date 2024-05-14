@@ -45,7 +45,7 @@ public static partial class Candles
                 !TA_CandleColor(inClose, inOpen, i - 2) && // 3 black candlesticks
                 inOpen[i - 4] > inOpen[i - 3] && inOpen[i - 3] > inOpen[i - 2] && // with consecutively lower opens
                 inClose[i - 4] > inClose[i - 3] && inClose[i - 3] > inClose[i - 2] && // and closes
-                TA_CandleColor(inClose, inOpen, i - 1) && // 4th: black with an upper shadow
+                !TA_CandleColor(inClose, inOpen, i - 1) && // 4th: black with an upper shadow
                 TA_UpperShadow(inHigh, inClose, inOpen, i - 1) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i - 1) &&
                 TA_CandleColor(inClose, inOpen, i) && // 5th: white
@@ -118,7 +118,7 @@ public static partial class Candles
                 !TA_CandleColor(inClose, inOpen, i - 2) && // 3 black candlesticks
                 inOpen[i - 4] > inOpen[i - 3] && inOpen[i - 3] > inOpen[i - 2] && // with consecutively lower opens
                 inClose[i - 4] > inClose[i - 3] && inClose[i - 3] > inClose[i - 2] && // and closes
-                TA_CandleColor(inClose, inOpen, i - 1) && // 4th: black with an upper shadow
+                !TA_CandleColor(inClose, inOpen, i - 1) && // 4th: black with an upper shadow
                 TA_UpperShadow(inHigh, inClose, inOpen, i - 1) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i - 1) &&
                 TA_CandleColor(inClose, inOpen, i) && // 5th: white

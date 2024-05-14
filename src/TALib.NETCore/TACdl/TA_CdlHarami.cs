@@ -61,13 +61,13 @@ public static partial class Candles
                     Math.Min(inClose[i], inOpen[i]) > Math.Min(inClose[i - 1], inOpen[i - 1])
                    )
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(!TA_CandleColor(inClose, inOpen, i - 1)) * 100;
+                    outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? - 100 : 100;
                 }
                 else if (Math.Max(inClose[i], inOpen[i]) <= Math.Max(inClose[i - 1], inOpen[i - 1]) && // 2nd is engulfed by 1st
                          Math.Min(inClose[i], inOpen[i]) >= Math.Min(inClose[i - 1], inOpen[i - 1]) // (one end of real body can match;
                         ) // engulfing guaranteed by "long" and "short")
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(!TA_CandleColor(inClose, inOpen, i - 1)) * 80;
+                    outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? - 80 : 80;
                 }
                 else
                 {
@@ -158,13 +158,13 @@ public static partial class Candles
                     Math.Min(inClose[i], inOpen[i]) > Math.Min(inClose[i - 1], inOpen[i - 1])
                    )
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(!TA_CandleColor(inClose, inOpen, i - 1)) * 100;
+                    outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? -100 : 100;
                 }
                 else if (Math.Max(inClose[i], inOpen[i]) <= Math.Max(inClose[i - 1], inOpen[i - 1]) && // 2nd is engulfed by 1st
                          Math.Min(inClose[i], inOpen[i]) >= Math.Min(inClose[i - 1], inOpen[i - 1]) // (one end of real body can match;
                         ) // engulfing guaranteed by "long" and "short")
                 {
-                    outInteger[outIdx++] = Convert.ToInt32(!TA_CandleColor(inClose, inOpen, i - 1)) * 80;
+                    outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? -80 : 80;
                 }
                 else
                 {

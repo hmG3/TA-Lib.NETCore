@@ -2,7 +2,7 @@ namespace TALib;
 
 public static partial class Candles
 {
-    public static Core.RetCode Cdl3StarsInSouth(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlThreeStarsInSouth(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -17,7 +17,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = Cdl3StarsInSouthLookback();
+        int lookbackTotal = CdlThreeStarsInSouthLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -88,7 +88,7 @@ public static partial class Candles
                     bodyShortPeriodTotal, i) &&
                 TA_LowerShadow(inClose, inOpen, inLow, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
-                TA_UpperShadow(inClose, inOpen, inLow, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                TA_UpperShadow(inHigh, inLow, inOpen, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
                 inLow[i] > inLow[i - 1] && inHigh[i] < inHigh[i - 1])
             {
@@ -128,7 +128,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode Cdl3StarsInSouth(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
+    public static Core.RetCode CdlThreeStarsInSouth(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx,
         int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -143,7 +143,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = Cdl3StarsInSouthLookback();
+        int lookbackTotal = CdlThreeStarsInSouthLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -154,10 +154,10 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        var shadowVeryShortPeriodTotal = new decimal[2];
         decimal bodyLongPeriodTotal = default;
         int bodyLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         decimal shadowLongPeriodTotal = default;
+        var shadowVeryShortPeriodTotal = new decimal[2];
         int shadowLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowLong);
         int shadowVeryShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
         decimal bodyShortPeriodTotal = default;
@@ -214,7 +214,7 @@ public static partial class Candles
                     bodyShortPeriodTotal, i) &&
                 TA_LowerShadow(inClose, inOpen, inLow, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
-                TA_UpperShadow(inClose, inOpen, inLow, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                TA_UpperShadow(inHigh, inLow, inOpen, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
                 inLow[i] > inLow[i - 1] && inHigh[i] < inHigh[i - 1])
             {
@@ -254,7 +254,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int Cdl3StarsInSouthLookback() =>
+    public static int CdlThreeStarsInSouthLookback() =>
         Math.Max(
             Math.Max(TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort), TA_CandleAveragePeriod(Core.CandleSettingType.ShadowLong)),
             Math.Max(TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong), TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort))

@@ -2,7 +2,7 @@ namespace TALib;
 
 public static partial class Candles
 {
-    public static Core.RetCode Cdl2Crows(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlTwoCrows(double[] inOpen, double[] inHigh, double[] inLow, double[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -17,7 +17,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = Cdl2CrowsLookback();
+        int lookbackTotal = CdlTwoCrowsLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -44,7 +44,7 @@ public static partial class Candles
         {
             if (TA_CandleColor(inClose, inOpen, i - 2) &&
                 TA_RealBody(inClose, inOpen, i - 2) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i) &&
+                    bodyLongPeriodTotal, i - 2) &&
                 !TA_CandleColor(inClose, inOpen, i - 1) &&
                 TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
                 !TA_CandleColor(inClose, inOpen, i) &&
@@ -61,7 +61,7 @@ public static partial class Candles
             bodyLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
                                    TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
             i++;
-            bodyLongPeriodTotal++;
+            bodyLongTrailingIdx++;
         } while (i <= endIdx);
 
         outBegIdx = startIdx;
@@ -70,7 +70,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode Cdl2Crows(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx,
+    public static Core.RetCode CdlTwoCrows(decimal[] inOpen, decimal[] inHigh, decimal[] inLow, decimal[] inClose, int startIdx, int endIdx,
         int[] outInteger, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
@@ -85,7 +85,7 @@ public static partial class Candles
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = Cdl2CrowsLookback();
+        int lookbackTotal = CdlTwoCrowsLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -112,7 +112,7 @@ public static partial class Candles
         {
             if (TA_CandleColor(inClose, inOpen, i - 2) &&
                 TA_RealBody(inClose, inOpen, i - 2) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i) &&
+                    bodyLongPeriodTotal, i - 2) &&
                 !TA_CandleColor(inClose, inOpen, i - 1) &&
                 TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
                 !TA_CandleColor(inClose, inOpen, i) &&
@@ -129,7 +129,7 @@ public static partial class Candles
             bodyLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
                                    TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
             i++;
-            bodyLongPeriodTotal++;
+            bodyLongTrailingIdx++;
         } while (i <= endIdx);
 
         outBegIdx = startIdx;
@@ -138,5 +138,5 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int Cdl2CrowsLookback() => TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 2;
+    public static int CdlTwoCrowsLookback() => TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 2;
 }

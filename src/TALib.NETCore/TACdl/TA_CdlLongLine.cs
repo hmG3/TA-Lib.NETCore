@@ -56,7 +56,7 @@ public static partial class Candles
                 TA_LowerShadow(inClose, inOpen, inLow, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowShort, shadowPeriodTotal, i))
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
             }
             else
             {
@@ -135,7 +135,7 @@ public static partial class Candles
                 TA_LowerShadow(inClose, inOpen, inLow, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowShort, shadowPeriodTotal, i))
             {
-                outInteger[outIdx++] = Convert.ToInt32(TA_CandleColor(inClose, inOpen, i)) * 100;
+                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
             }
             else
             {

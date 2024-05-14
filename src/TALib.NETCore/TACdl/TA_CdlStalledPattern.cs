@@ -29,12 +29,12 @@ public static partial class Candles
         }
 
         var bodyLongPeriodTotal = new double[3];
-        var nearPeriodTotal = new double[3];
         int bodyLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         double bodyShortPeriodTotal = default;
         int bodyShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort);
         double shadowVeryShortPeriodTotal = default;
         int shadowVeryShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
+        var nearPeriodTotal = new double[3];
         int nearTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Near);
         int i = bodyLongTrailingIdx;
         while (i < startIdx)
@@ -157,12 +157,12 @@ public static partial class Candles
         }
 
         var bodyLongPeriodTotal = new decimal[3];
-        var nearPeriodTotal = new decimal[3];
         int bodyLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         decimal bodyShortPeriodTotal = default;
         int bodyShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort);
         decimal shadowVeryShortPeriodTotal = default;
         int shadowVeryShortTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
+        var nearPeriodTotal = new decimal[3];
         int nearTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Near);
         int i = bodyLongTrailingIdx;
         while (i < startIdx)
