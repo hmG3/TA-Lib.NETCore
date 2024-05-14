@@ -1,5 +1,3 @@
-using System;
-
 namespace TALib.NETCore.Tests.Models;
 
 public class TestDataModel<T> where T : struct
