@@ -1,8 +1,8 @@
 namespace TALib;
 
-public static partial class Functions
+public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode LinearRegSlope(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+    public static Core.RetCode LinearRegSlope(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
         out int outNbElement, int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
@@ -12,7 +12,7 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (inReal == null || outReal == null || optInTimePeriod is < 2 or > 100000)
         {
             return Core.RetCode.BadParam;
         }
@@ -31,21 +31,22 @@ public static partial class Functions
         int outIdx = default;
         int today = startIdx;
 
-        double sumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5;
-        double sumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (optInTimePeriod * 2 - 1) / 6.0;
-        double divisor = sumX * sumX - optInTimePeriod * sumXSqr;
+        T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
+        T sumX = T.CreateChecked(optInTimePeriod * (optInTimePeriod - 1) * 0.5);
+        T sumXSqr = T.CreateChecked(optInTimePeriod * (optInTimePeriod - 1) * (optInTimePeriod * 2 - 1) / 6.0);
+        T divisor = sumX * sumX - tOptInTimePeriod * sumXSqr;
         while (today <= endIdx)
         {
-            double sumXY = default;
-            double sumY = default;
-            for (int i = optInTimePeriod; i-- != 0;)
+            T sumXY = T.Zero;
+            T sumY = T.Zero;
+            for (var i = optInTimePeriod; i-- != 0;)
             {
-                double tempValue1 = inReal[today - i];
+                T tempValue1 = inReal[today - i];
                 sumY += tempValue1;
-                sumXY += i * tempValue1;
+                sumXY += T.CreateChecked(i) * tempValue1;
             }
 
-            outReal[outIdx++] = (optInTimePeriod * sumXY - sumX * sumY) / divisor;
+            outReal[outIdx++] = (tOptInTimePeriod * sumXY - sumX * sumY) / divisor;
             today++;
         }
 
@@ -55,66 +56,5 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode LinearRegSlope(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
-        out int outNbElement, int optInTimePeriod = 14)
-    {
-        outBegIdx = outNbElement = 0;
-
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
-        {
-            return Core.RetCode.OutOfRangeStartIndex;
-        }
-
-        if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
-        {
-            return Core.RetCode.BadParam;
-        }
-
-        int lookbackTotal = LinearRegSlopeLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
-
-        if (startIdx > endIdx)
-        {
-            return Core.RetCode.Success;
-        }
-
-        int outIdx = default;
-        int today = startIdx;
-
-        decimal sumX = optInTimePeriod * (optInTimePeriod - 1) * 0.5m;
-        decimal sumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (optInTimePeriod * 2 - 1) / 6m;
-        decimal divisor = sumX * sumX - optInTimePeriod * sumXSqr;
-        while (today <= endIdx)
-        {
-            decimal sumXY = default;
-            decimal sumY = default;
-            for (int i = optInTimePeriod; i-- != 0;)
-            {
-                decimal tempValue1 = inReal[today - i];
-                sumY += tempValue1;
-                sumXY += i * tempValue1;
-            }
-
-            outReal[outIdx++] = (optInTimePeriod * sumXY - sumX * sumY) / divisor;
-            today++;
-        }
-
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
-    }
-
-    public static int LinearRegSlopeLookback(int optInTimePeriod = 14)
-    {
-        if (optInTimePeriod is < 2 or > 100000)
-        {
-            return -1;
-        }
-
-        return optInTimePeriod - 1;
-    }
+    public static int LinearRegSlopeLookback(int optInTimePeriod = 14) => optInTimePeriod is < 2 or > 100000 ? -1 : optInTimePeriod - 1;
 }

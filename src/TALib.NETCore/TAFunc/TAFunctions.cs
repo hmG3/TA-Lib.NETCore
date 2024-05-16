@@ -2,12 +2,18 @@
 
 namespace TALib;
 
-public static partial class Functions
+public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    private const double TA_EPSILON = 0.00000000000001;
+    private static T TA_EPSILON = T.CreateChecked(0.00000000000001);
 
-    private static Core.RetCode TA_INT_EMA(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
-            out int outNbElement, int optInTimePeriod, double optInK1)
+    private static T TTwo = T.CreateChecked(2);
+    private static T TThree = T.CreateChecked(3);
+    private static T TFour = T.CreateChecked(4);
+    private static T TNinety = T.CreateChecked(90);
+    private static T THundred = T.CreateChecked(100);
+
+    private static Core.RetCode TA_INT_EMA(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
+            out int outNbElement, int optInTimePeriod, T optInK1)
     {
         outBegIdx = outNbElement = 0;
 
@@ -25,18 +31,18 @@ public static partial class Functions
         outBegIdx = startIdx;
 
         int today;
-        double prevMA;
+        T prevMA;
         if (Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Default)
         {
             today = startIdx - lookbackTotal;
             int i = optInTimePeriod;
-            double tempReal = default;
+            T tempReal = T.Zero;
             while (i-- > 0)
             {
                 tempReal += inReal[today++];
             }
 
-            prevMA = tempReal / optInTimePeriod;
+            prevMA = tempReal / T.CreateChecked(optInTimePeriod);
         }
         else
         {
@@ -62,64 +68,8 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode TA_INT_EMA(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
-            out int outNbElement, int optInTimePeriod, decimal optInK1)
-    {
-        outBegIdx = outNbElement = 0;
-
-        int lookbackTotal = EmaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
-
-        if (startIdx > endIdx)
-        {
-            return Core.RetCode.Success;
-        }
-
-        outBegIdx = startIdx;
-
-        int today;
-        decimal prevMA;
-        if (Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Default)
-        {
-            today = startIdx - lookbackTotal;
-            int i = optInTimePeriod;
-            decimal tempReal = default;
-            while (i-- > 0)
-            {
-                tempReal += inReal[today++];
-            }
-
-            prevMA = tempReal / optInTimePeriod;
-        }
-        else
-        {
-            prevMA = inReal[0];
-            today = 1;
-        }
-
-        while (today <= startIdx)
-        {
-            prevMA = (inReal[today++] - prevMA) * optInK1 + prevMA;
-        }
-
-        outReal[0] = prevMA;
-        int outIdx = 1;
-        while (today <= endIdx)
-        {
-            prevMA = (inReal[today++] - prevMA) * optInK1 + prevMA;
-            outReal[outIdx++] = prevMA;
-        }
-
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
-    }
-
-    private static Core.RetCode TA_INT_MACD(double[] inReal, int startIdx, int endIdx, double[] outMacd, double[] outMacdSignal,
-            double[] outMacdHist, out int outBegIdx, out int outNbElement, int optInFastPeriod, int optInSlowPeriod, int optInSignalPeriod)
+    private static Core.RetCode TA_INT_MACD(T[] inReal, int startIdx, int endIdx, T[] outMacd, T[] outMacdSignal,
+            T[] outMacdHist, out int outBegIdx, out int outNbElement, int optInFastPeriod, int optInSlowPeriod, int optInSignalPeriod)
     {
         outBegIdx = outNbElement = 0;
 
@@ -128,26 +78,26 @@ public static partial class Functions
             (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
         }
 
-        double k1;
-        double k2;
+        T k1;
+        T k2;
         if (optInSlowPeriod != 0)
         {
-            k1 = 2.0 / (optInSlowPeriod + 1);
+            k1 = TTwo / (T.CreateChecked(optInSlowPeriod) + T.One);
         }
         else
         {
             optInSlowPeriod = 26;
-            k1 = 0.075;
+            k1 = T.CreateChecked(0.075);
         }
 
         if (optInFastPeriod != 0)
         {
-            k2 = 2.0 / (optInFastPeriod + 1);
+            k2 = TTwo / (T.CreateChecked(optInFastPeriod) + T.One);
         }
         else
         {
             optInFastPeriod = 12;
-            k2 = 0.15;
+            k2 = T.CreateChecked(0.15);
         }
 
         int lookbackSignal = EmaLookback(optInSignalPeriod);
@@ -163,8 +113,8 @@ public static partial class Functions
         }
 
         var tempInteger = endIdx - startIdx + 1 + lookbackSignal;
-        var fastEMABuffer = new double[tempInteger];
-        var slowEMABuffer = new double[tempInteger];
+        var fastEMABuffer = new T[tempInteger];
+        var slowEMABuffer = new T[tempInteger];
 
         tempInteger = startIdx - lookbackSignal;
         Core.RetCode retCode = TA_INT_EMA(inReal, tempInteger, endIdx, slowEMABuffer, out var outBegIdx1, out var outNbElement1,
@@ -194,7 +144,7 @@ public static partial class Functions
 
         Array.Copy(fastEMABuffer, lookbackSignal, outMacd, 0, endIdx - startIdx + 1);
         retCode = TA_INT_EMA(fastEMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalPeriod,
-            2.0 / (optInSignalPeriod + 1));
+            TTwo / (T.CreateChecked(optInSignalPeriod) + T.One));
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -211,101 +161,8 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode TA_INT_MACD(decimal[] inReal, int startIdx, int endIdx, decimal[] outMacd, decimal[] outMacdSignal,
-            decimal[] outMacdHist, out int outBegIdx, out int outNbElement, int optInFastPeriod, int optInSlowPeriod, int optInSignalPeriod)
-    {
-        outBegIdx = outNbElement = 0;
-
-        if (optInSlowPeriod < optInFastPeriod)
-        {
-            (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
-        }
-
-        decimal k1;
-        decimal k2;
-        if (optInSlowPeriod != 0)
-        {
-            k1 = 2m / (optInSlowPeriod + 1);
-        }
-        else
-        {
-            optInSlowPeriod = 26;
-            k1 = 0.075m;
-        }
-
-        if (optInFastPeriod != 0)
-        {
-            k2 = 2m / (optInFastPeriod + 1);
-        }
-        else
-        {
-            optInFastPeriod = 12;
-            k2 = 0.15m;
-        }
-
-        int lookbackSignal = EmaLookback(optInSignalPeriod);
-        int lookbackTotal = MacdLookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
-
-        if (startIdx > endIdx)
-        {
-            return Core.RetCode.Success;
-        }
-
-        var tempInteger = endIdx - startIdx + 1 + lookbackSignal;
-        var fastEMABuffer = new decimal[tempInteger];
-        var slowEMABuffer = new decimal[tempInteger];
-
-        tempInteger = startIdx - lookbackSignal;
-        Core.RetCode retCode = TA_INT_EMA(inReal, tempInteger, endIdx, slowEMABuffer, out var outBegIdx1, out var outNbElement1,
-            optInSlowPeriod, k1);
-        if (retCode != Core.RetCode.Success)
-        {
-            return retCode;
-        }
-
-        retCode = TA_INT_EMA(inReal, tempInteger, endIdx, fastEMABuffer, out var outBegIdx2, out var outNbElement2, optInFastPeriod,
-            k2);
-        if (retCode != Core.RetCode.Success)
-        {
-            return retCode;
-        }
-
-        if (outBegIdx1 != tempInteger || outBegIdx2 != tempInteger || outNbElement1 != outNbElement2 ||
-            outNbElement1 != endIdx - startIdx + 1 + lookbackSignal)
-        {
-            return Core.RetCode.InternalError;
-        }
-
-        for (var i = 0; i < outNbElement1; i++)
-        {
-            fastEMABuffer[i] -= slowEMABuffer[i];
-        }
-
-        Array.Copy(fastEMABuffer, lookbackSignal, outMacd, 0, endIdx - startIdx + 1);
-        retCode = TA_INT_EMA(fastEMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalPeriod,
-            2m / (optInSignalPeriod + 1));
-        if (retCode != Core.RetCode.Success)
-        {
-            return retCode;
-        }
-
-        for (var i = 0; i < outNbElement2; i++)
-        {
-            outMacdHist[i] = outMacd[i] - outMacdSignal[i];
-        }
-
-        outBegIdx = startIdx;
-        outNbElement = outNbElement2;
-
-        return Core.RetCode.Success;
-    }
-
-    private static Core.RetCode TA_INT_PO(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
-            out int outNbElement, int optInFastPeriod, int optInSlowPeriod, Core.MAType optInMethod, double[] tempBuffer,
+    private static Core.RetCode TA_INT_PO(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
+            out int outNbElement, int optInFastPeriod, int optInSlowPeriod, Core.MAType optInMethod, T[] tempBuffer,
             bool doPercentageOutput)
     {
         outBegIdx = outNbElement = 0;
@@ -331,8 +188,8 @@ public static partial class Functions
         {
             if (doPercentageOutput)
             {
-                double tempReal = outReal[i];
-                outReal[i] = !TA_IsZero(tempReal) ? (tempBuffer[j] - tempReal) / tempReal * 100.0 : 0.0;
+                T tempReal = outReal[i];
+                outReal[i] = !TA_IsZero(tempReal) ? (tempBuffer[j] - tempReal) / tempReal * THundred : T.Zero;
             }
             else
             {
@@ -346,50 +203,8 @@ public static partial class Functions
         return retCode;
     }
 
-    private static Core.RetCode TA_INT_PO(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
-            out int outNbElement, int optInFastPeriod, int optInSlowPeriod, Core.MAType optInMethod, decimal[] tempBuffer,
-            bool doPercentageOutput)
-    {
-        outBegIdx = outNbElement = 0;
-
-        if (optInSlowPeriod < optInFastPeriod)
-        {
-            (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
-        }
-
-        Core.RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer, out var outBegIdx2, out _, optInFastPeriod, optInMethod);
-        if (retCode != Core.RetCode.Success)
-        {
-            return retCode;
-        }
-
-        retCode = Ma(inReal, startIdx, endIdx, outReal, out var outBegIdx1, out var outNbElement1, optInSlowPeriod, optInMethod);
-        if (retCode != Core.RetCode.Success)
-        {
-            return retCode;
-        }
-
-        for (int i = 0, j = outBegIdx1 - outBegIdx2; i < outNbElement1; i++, j++)
-        {
-            if (doPercentageOutput)
-            {
-                decimal tempReal = outReal[i];
-                outReal[i] = !TA_IsZero(tempReal) ? (tempBuffer[j] - tempReal) / tempReal * 100m : Decimal.Zero;
-            }
-            else
-            {
-                outReal[i] = tempBuffer[j] - outReal[i];
-            }
-        }
-
-        outBegIdx = outBegIdx1;
-        outNbElement = outNbElement1;
-
-        return retCode;
-    }
-
-    private static Core.RetCode TA_INT_SMA(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
-            out int outNbElement, int optInTimePeriod)
+    private static Core.RetCode TA_INT_SMA(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx, out int outNbElement,
+        int optInTimePeriod)
     {
         outBegIdx = outNbElement = 0;
 
@@ -404,7 +219,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        double periodTotal = default;
+        T periodTotal = T.Zero;
         int trailingIdx = startIdx - lookbackTotal;
         int i = trailingIdx;
         if (optInTimePeriod > 1)
@@ -416,12 +231,13 @@ public static partial class Functions
         }
 
         int outIdx = default;
+        var tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
         do
         {
             periodTotal += inReal[i++];
-            double tempReal = periodTotal;
+            T tempReal = periodTotal;
             periodTotal -= inReal[trailingIdx++];
-            outReal[outIdx++] = tempReal / optInTimePeriod;
+            outReal[outIdx++] = tempReal / tOptInTimePeriod;
         } while (i <= endIdx);
 
         outBegIdx = startIdx;
@@ -430,67 +246,26 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode TA_INT_SMA(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
-            out int outNbElement, int optInTimePeriod)
-    {
-        outBegIdx = outNbElement = 0;
-
-        int lookbackTotal = SmaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
-
-        if (startIdx > endIdx)
-        {
-            return Core.RetCode.Success;
-        }
-
-        decimal periodTotal = default;
-        int trailingIdx = startIdx - lookbackTotal;
-        int i = trailingIdx;
-        if (optInTimePeriod > 1)
-        {
-            while (i < startIdx)
-            {
-                periodTotal += inReal[i++];
-            }
-        }
-
-        int outIdx = default;
-        do
-        {
-            periodTotal += inReal[i++];
-            decimal tempReal = periodTotal;
-            periodTotal -= inReal[trailingIdx++];
-            outReal[outIdx++] = tempReal / optInTimePeriod;
-        } while (i <= endIdx);
-
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
-    }
-
-    private static void TA_INT_StdDevUsingPrecalcMA(double[] inReal, double[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement,
-            double[] outReal, int optInTimePeriod)
+    private static void TA_INT_StdDevUsingPrecalcMA(T[] inReal, T[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement,
+            T[] outReal, int optInTimePeriod)
     {
         int startSum = inMovAvgBegIdx + 1 - optInTimePeriod;
         int endSum = inMovAvgBegIdx;
-        double periodTotal2 = default;
-        for (int outIdx = startSum; outIdx < endSum; outIdx++)
+        T periodTotal2 = T.Zero;
+        for (var outIdx = startSum; outIdx < endSum; outIdx++)
         {
-            double tempReal = inReal[outIdx];
+            T tempReal = inReal[outIdx];
             tempReal *= tempReal;
             periodTotal2 += tempReal;
         }
 
+        var tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
         for (var outIdx = 0; outIdx < inMovAvgNbElement; outIdx++, startSum++, endSum++)
         {
-            double tempReal = inReal[endSum];
+            T tempReal = inReal[endSum];
             tempReal *= tempReal;
             periodTotal2 += tempReal;
-            double meanValue2 = periodTotal2 / optInTimePeriod;
+            T meanValue2 = periodTotal2 / tOptInTimePeriod;
 
             tempReal = inReal[startSum];
             tempReal *= tempReal;
@@ -500,43 +275,11 @@ public static partial class Functions
             tempReal *= tempReal;
             meanValue2 -= tempReal;
 
-            outReal[outIdx] = !TA_IsZeroOrNeg(meanValue2) ? Math.Sqrt(meanValue2) : 0.0;
+            outReal[outIdx] = !TA_IsZeroOrNeg(meanValue2) ? T.Sqrt(meanValue2) : T.Zero;
         }
     }
 
-    private static void TA_INT_StdDevUsingPrecalcMA(decimal[] inReal, decimal[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement,
-            decimal[] outReal, int optInTimePeriod)
-    {
-        int startSum = inMovAvgBegIdx + 1 - optInTimePeriod;
-        int endSum = inMovAvgBegIdx;
-        decimal periodTotal2 = default;
-        for (int outIdx = startSum; outIdx < endSum; outIdx++)
-        {
-            decimal tempReal = inReal[outIdx];
-            tempReal *= tempReal;
-            periodTotal2 += tempReal;
-        }
-
-        for (var outIdx = 0; outIdx < inMovAvgNbElement; outIdx++, startSum++, endSum++)
-        {
-            decimal tempReal = inReal[endSum];
-            tempReal *= tempReal;
-            periodTotal2 += tempReal;
-            decimal meanValue2 = periodTotal2 / optInTimePeriod;
-
-            tempReal = inReal[startSum];
-            tempReal *= tempReal;
-            periodTotal2 -= tempReal;
-
-            tempReal = inMovAvg[outIdx];
-            tempReal *= tempReal;
-            meanValue2 -= tempReal;
-
-            outReal[outIdx] = !TA_IsZeroOrNeg(meanValue2) ? DecimalMath.Sqrt(meanValue2) : Decimal.Zero;
-        }
-    }
-
-    private static Core.RetCode TA_INT_VAR(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+    private static Core.RetCode TA_INT_VAR(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
             out int outNbElement, int optInTimePeriod)
     {
         outBegIdx = outNbElement = 0;
@@ -552,15 +295,15 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        double periodTotal1 = default;
-        double periodTotal2 = default;
+        T periodTotal1 = T.Zero;
+        T periodTotal2 = T.Zero;
         int trailingIdx = startIdx - lookbackTotal;
         int i = trailingIdx;
         if (optInTimePeriod > 1)
         {
             while (i < startIdx)
             {
-                double tempReal = inReal[i++];
+                T tempReal = inReal[i++];
                 periodTotal1 += tempReal;
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
@@ -568,14 +311,15 @@ public static partial class Functions
         }
 
         int outIdx = default;
+        T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
         do
         {
-            double tempReal = inReal[i++];
+            T tempReal = inReal[i++];
             periodTotal1 += tempReal;
             tempReal *= tempReal;
             periodTotal2 += tempReal;
-            double meanValue1 = periodTotal1 / optInTimePeriod;
-            double meanValue2 = periodTotal2 / optInTimePeriod;
+            T meanValue1 = periodTotal1 / tOptInTimePeriod;
+            T meanValue2 = periodTotal2 / tOptInTimePeriod;
             tempReal = inReal[trailingIdx++];
             periodTotal1 -= tempReal;
             tempReal *= tempReal;
@@ -589,198 +333,91 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode TA_INT_VAR(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
-            out int outNbElement, int optInTimePeriod)
-    {
-        outBegIdx = outNbElement = 0;
+    private static bool TA_IsZero(T v)=> -TA_EPSILON < v && v < TA_EPSILON;
 
-        int lookbackTotal = VarLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+    private static bool TA_IsZeroOrNeg(T v)=> v < TA_EPSILON;
 
-        if (startIdx > endIdx)
-        {
-            return Core.RetCode.Success;
-        }
-
-        decimal periodTotal1 = default;
-        decimal periodTotal2 = default;
-        int trailingIdx = startIdx - lookbackTotal;
-        int i = trailingIdx;
-        if (optInTimePeriod > 1)
-        {
-            while (i < startIdx)
-            {
-                decimal tempReal = inReal[i++];
-                periodTotal1 += tempReal;
-                tempReal *= tempReal;
-                periodTotal2 += tempReal;
-            }
-        }
-
-        int outIdx = default;
-        do
-        {
-            decimal tempReal = inReal[i++];
-            periodTotal1 += tempReal;
-            tempReal *= tempReal;
-            periodTotal2 += tempReal;
-            decimal meanValue1 = periodTotal1 / optInTimePeriod;
-            decimal meanValue2 = periodTotal2 / optInTimePeriod;
-            tempReal = inReal[trailingIdx++];
-            periodTotal1 -= tempReal;
-            tempReal *= tempReal;
-            periodTotal2 -= tempReal;
-            outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
-        } while (i <= endIdx);
-
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
-    }
-
-    private static bool TA_IsZero(double v) => -TA_EPSILON < v && v < TA_EPSILON;
-
-    private static bool TA_IsZero(decimal v) => -(decimal) TA_EPSILON < v && v < (decimal) TA_EPSILON;
-
-    private static bool TA_IsZeroOrNeg(double v) => v < TA_EPSILON;
-
-    private static bool TA_IsZeroOrNeg(decimal v) => v < (decimal) TA_EPSILON;
-
-    private static void TrueRange(double th, double tl, double yc, out double @out)
+    private static void TrueRange(T th, T tl, T yc, out T @out)
     {
         @out = th - tl;
-        double tempDouble = Math.Abs(th - yc);
-        if (tempDouble > @out)
+        T tempT = T.Abs(th - yc);
+        if (tempT > @out)
         {
-            @out = tempDouble;
+            @out = tempT;
         }
 
-        tempDouble = Math.Abs(tl - yc);
-        if (tempDouble > @out)
+        tempT = T.Abs(tl - yc);
+        if (tempT > @out)
         {
-            @out = tempDouble;
-        }
-    }
-
-    private static void TrueRange(decimal th, decimal tl, decimal yc, out decimal @out)
-    {
-        @out = th - tl;
-        decimal tempDecimal = Math.Abs(th - yc);
-        if (tempDecimal > @out)
-        {
-            @out = tempDecimal;
-        }
-
-        tempDecimal = Math.Abs(tl - yc);
-        if (tempDecimal > @out)
-        {
-            @out = tempDecimal;
+            @out = tempT;
         }
     }
 
-    private static void DoPriceWma(double[] real, ref int idx, ref double periodWMASub, ref double periodWMASum,
-        ref double trailingWMAValue, double varNewPrice, out double varToStoreSmoothedValue)
+    private static void DoPriceWma(T[] real, ref int idx, ref T periodWMASub, ref T periodWMASum,
+        ref T trailingWMAValue, T varNewPrice, out T varToStoreSmoothedValue)
     {
         periodWMASub += varNewPrice;
         periodWMASub -= trailingWMAValue;
-        periodWMASum += varNewPrice * 4.0;
+        periodWMASum += varNewPrice * TFour;
         trailingWMAValue = real[idx++];
-        varToStoreSmoothedValue = periodWMASum * 0.1;
+        varToStoreSmoothedValue = periodWMASum * T.CreateChecked(0.1);
         periodWMASum -= periodWMASub;
     }
 
-    private static void DoPriceWma(decimal[] real, ref int idx, ref decimal periodWMASub, ref decimal periodWMASum,
-        ref decimal trailingWMAValue, decimal varNewPrice, out decimal varToStoreSmoothedValue)
+    private static void CalcTerms(T[] inLow, T[] inHigh, T[] inClose, int day, out T trueRange,
+        out T closeMinusTrueLow)
     {
-        periodWMASub += varNewPrice;
-        periodWMASub -= trailingWMAValue;
-        periodWMASum += varNewPrice * 4m;
-        trailingWMAValue = real[idx++];
-        varToStoreSmoothedValue = periodWMASum * 0.1m;
-        periodWMASum -= periodWMASub;
-    }
-
-
-    private static void CalcTerms(double[] inLow, double[] inHigh, double[] inClose, int day, out double trueRange,
-        out double closeMinusTrueLow)
-    {
-        double tempLT = inLow[day];
-        double tempHT = inHigh[day];
-        double tempCY = inClose[day - 1];
-        double trueLow = Math.Min(tempLT, tempCY);
+        T tempLT = inLow[day];
+        T tempHT = inHigh[day];
+        T tempCY = inClose[day - 1];
+        T trueLow = T.Min(tempLT, tempCY);
         closeMinusTrueLow = inClose[day] - trueLow;
         trueRange = tempHT - tempLT;
-        double tempDouble = Math.Abs(tempCY - tempHT);
-        if (tempDouble > trueRange)
+        T tempT = T.Abs(tempCY - tempHT);
+        if (tempT > trueRange)
         {
-            trueRange = tempDouble;
+            trueRange = tempT;
         }
 
-        tempDouble = Math.Abs(tempCY - tempLT);
-        if (tempDouble > trueRange)
+        tempT = T.Abs(tempCY - tempLT);
+        if (tempT > trueRange)
         {
-            trueRange = tempDouble;
-        }
-    }
-
-    private static void CalcTerms(decimal[] inLow, decimal[] inHigh, decimal[] inClose, int day, out decimal trueRange,
-        out decimal closeMinusTrueLow)
-    {
-        decimal tempLT = inLow[day];
-        decimal tempHT = inHigh[day];
-        decimal tempCY = inClose[day - 1];
-        decimal trueLow = Math.Min(tempLT, tempCY);
-        closeMinusTrueLow = inClose[day] - trueLow;
-        trueRange = tempHT - tempLT;
-        decimal tempDecimal = Math.Abs(tempCY - tempHT);
-        if (tempDecimal > trueRange)
-        {
-            trueRange = tempDecimal;
-        }
-
-        tempDecimal = Math.Abs(tempCY - tempLT);
-        if (tempDecimal > trueRange)
-        {
-            trueRange = tempDecimal;
+            trueRange = tempT;
         }
     }
 
-    private static IDictionary<string, T> InitHilbertVariables<T>() where T : struct, IComparable<T>
+    private static IDictionary<string, T> InitHilbertVariables()
     {
         var variables = new Dictionary<string, T>(4 * 11);
 
         new List<string> { "detrender", "q1", "jI", "jQ" }.ForEach(varName =>
         {
-            variables.Add($"{varName}Odd0", default);
-            variables.Add($"{varName}Odd1", default);
-            variables.Add($"{varName}Odd2", default);
-            variables.Add($"{varName}Even0", default);
-            variables.Add($"{varName}Even1", default);
-            variables.Add($"{varName}Even2", default);
-            variables.Add(varName, default);
-            variables.Add($"prev{varName}Odd", default);
-            variables.Add($"prev{varName}Even", default);
-            variables.Add($"prev{varName}InputOdd", default);
-            variables.Add($"prev{varName}InputEven", default);
+            variables.Add($"{varName}Odd0", T.Zero);
+            variables.Add($"{varName}Odd1", T.Zero);
+            variables.Add($"{varName}Odd2", T.Zero);
+            variables.Add($"{varName}Even0", T.Zero);
+            variables.Add($"{varName}Even1", T.Zero);
+            variables.Add($"{varName}Even2", T.Zero);
+            variables.Add(varName, T.Zero);
+            variables.Add($"prev{varName}Odd", T.Zero);
+            variables.Add($"prev{varName}Even", T.Zero);
+            variables.Add($"prev{varName}InputOdd", T.Zero);
+            variables.Add($"prev{varName}InputEven", T.Zero);
         });
 
         return variables;
     }
 
-    private static void DoHilbertTransform(IDictionary<string, double> variables, string varName, double input, string oddOrEvenId,
-        int hilbertIdx, double adjustedPrevPeriod)
+    private static void DoHilbertTransform(IDictionary<string, T> variables, string varName, T input, string oddOrEvenId,
+        int hilbertIdx, T adjustedPrevPeriod)
     {
-        const double a = 0.0962;
-        const double b = 0.5769;
+        T a = T.CreateChecked(0.0962);
+        T b = T.CreateChecked(0.5769);
 
-        double hilbertTempDouble = a * input;
+        T hilbertTempT = a * input;
         variables[varName] = -variables[$"{varName}{oddOrEvenId}{hilbertIdx}"];
-        variables[$"{varName}{oddOrEvenId}{hilbertIdx}"] = hilbertTempDouble;
-        variables[varName] += hilbertTempDouble;
+        variables[$"{varName}{oddOrEvenId}{hilbertIdx}"] = hilbertTempT;
+        variables[varName] += hilbertTempT;
         variables[varName] -= variables[$"prev{varName}{oddOrEvenId}"];
         variables[$"prev{varName}{oddOrEvenId}"] = b * variables[$"prev{varName}Input{oddOrEvenId}"];
         variables[varName] += variables[$"prev{varName}{oddOrEvenId}"];
@@ -788,43 +425,14 @@ public static partial class Functions
         variables[varName] *= adjustedPrevPeriod;
     }
 
-    private static void DoHilbertTransform(IDictionary<string, decimal> variables, string varName, decimal input, string oddOrEvenId,
-        int hilbertIdx, decimal adjustedPrevPeriod)
-    {
-        const decimal a = 0.0962m;
-        const decimal b = 0.5769m;
-
-        decimal hilbertTempDecimal = a * input;
-        variables[varName] = -variables[$"{varName}{oddOrEvenId}{hilbertIdx}"];
-        variables[$"{varName}{oddOrEvenId}{hilbertIdx}"] = hilbertTempDecimal;
-        variables[varName] += hilbertTempDecimal;
-        variables[varName] -= variables[$"prev{varName}{oddOrEvenId}"];
-        variables[$"prev{varName}{oddOrEvenId}"] = b * variables[$"prev{varName}Input{oddOrEvenId}"];
-        variables[varName] += variables[$"prev{varName}{oddOrEvenId}"];
-        variables[$"prev{varName}Input{oddOrEvenId}"] = input;
-        variables[varName] *= adjustedPrevPeriod;
-    }
-
-    private static void DoHilbertOdd(IDictionary<string, double> variables, string varName, double input, int hilbertIdx,
-        double adjustedPrevPeriod)
+    private static void DoHilbertOdd(IDictionary<string, T> variables, string varName, T input, int hilbertIdx,
+        T adjustedPrevPeriod)
     {
         DoHilbertTransform(variables, varName, input, "Odd", hilbertIdx, adjustedPrevPeriod);
     }
 
-    private static void DoHilbertOdd(IDictionary<string, decimal> variables, string varName, decimal input, int hilbertIdx,
-        decimal adjustedPrevPeriod)
-    {
-        DoHilbertTransform(variables, varName, input, "Odd", hilbertIdx, adjustedPrevPeriod);
-    }
-
-    private static void DoHilbertEven(IDictionary<string, double> variables, string varName, double input, int hilbertIdx,
-        double adjustedPrevPeriod)
-    {
-        DoHilbertTransform(variables, varName, input, "Even", hilbertIdx, adjustedPrevPeriod);
-    }
-
-    private static void DoHilbertEven(IDictionary<string, decimal> variables, string varName, decimal input, int hilbertIdx,
-        decimal adjustedPrevPeriod)
+    private static void DoHilbertEven(IDictionary<string, T> variables, string varName, T input, int hilbertIdx,
+        T adjustedPrevPeriod)
     {
         DoHilbertTransform(variables, varName, input, "Even", hilbertIdx, adjustedPrevPeriod);
     }

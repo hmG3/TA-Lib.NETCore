@@ -1,8 +1,8 @@
 namespace TALib;
 
-public static partial class Functions
+public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode RocP(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode RocP(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 10)
     {
         outBegIdx = outNbElement = 0;
@@ -12,7 +12,7 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
+        if (inReal == null || outReal == null || optInTimePeriod is < 1 or > 100000)
         {
             return Core.RetCode.BadParam;
         }
@@ -33,8 +33,8 @@ public static partial class Functions
         int trailingIdx = startIdx - lookbackTotal;
         while (inIdx <= endIdx)
         {
-            double tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = !tempReal.Equals(0.0) ? (inReal[inIdx] - tempReal) / tempReal : 0.0;
+            T tempReal = inReal[trailingIdx++];
+            outReal[outIdx++] = !T.IsZero(tempReal) ? (inReal[inIdx] - tempReal) / tempReal : T.Zero;
             inIdx++;
         }
 
@@ -44,55 +44,5 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode RocP(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
-        int optInTimePeriod = 10)
-    {
-        outBegIdx = outNbElement = 0;
-
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
-        {
-            return Core.RetCode.OutOfRangeStartIndex;
-        }
-
-        if (inReal == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
-        {
-            return Core.RetCode.BadParam;
-        }
-
-        int lookbackTotal = RocPLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
-
-        if (startIdx > endIdx)
-        {
-            return Core.RetCode.Success;
-        }
-
-        int outIdx = default;
-        int inIdx = startIdx;
-        int trailingIdx = startIdx - lookbackTotal;
-        while (inIdx <= endIdx)
-        {
-            decimal tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = tempReal != Decimal.Zero ? (inReal[inIdx] - tempReal) / tempReal : Decimal.Zero;
-            inIdx++;
-        }
-
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
-    }
-
-    public static int RocPLookback(int optInTimePeriod = 10)
-    {
-        if (optInTimePeriod is < 1 or > 100000)
-        {
-            return -1;
-        }
-
-        return optInTimePeriod;
-    }
+    public static int RocPLookback(int optInTimePeriod = 10) => optInTimePeriod is < 1 or > 100000 ? -1 : optInTimePeriod;
 }

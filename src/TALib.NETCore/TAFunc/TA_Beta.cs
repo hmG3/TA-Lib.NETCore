@@ -1,8 +1,8 @@
 namespace TALib;
 
-public static partial class Functions
+public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode Beta(double[] inReal0, double[] inReal1, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+    public static Core.RetCode Beta(T[] inReal0, T[] inReal1, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
         out int outNbElement, int optInTimePeriod = 5)
     {
         outBegIdx = outNbElement = 0;
@@ -12,7 +12,7 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal0 == null || inReal1 == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
+        if (inReal0 == null || inReal1 == null || outReal == null || optInTimePeriod is < 1 or > 100000)
         {
             return Core.RetCode.BadParam;
         }
@@ -28,8 +28,8 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        double x, y, tmpReal, sxy, sx, sy;
-        double sxx = sxy = sx = sy = default;
+        T x, y, tmpReal, sxy, sx, sy;
+        T sxx = sxy = sx = sy = T.Zero;
         int trailingIdx = startIdx - lookbackTotal;
         var trailingLastPriceX = inReal0[trailingIdx];
         var lastPriceX = trailingLastPriceX;
@@ -40,11 +40,11 @@ public static partial class Functions
         while (i < startIdx)
         {
             tmpReal = inReal0[i];
-            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : 0.0;
+            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : T.Zero;
             lastPriceX = tmpReal;
 
             tmpReal = inReal1[i++];
-            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : 0.0;
+            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : T.Zero;
             lastPriceY = tmpReal;
 
             sxx += x * x;
@@ -53,15 +53,17 @@ public static partial class Functions
             sy += y;
         }
 
+        T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
+
         int outIdx = default;
         do
         {
             tmpReal = inReal0[i];
-            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : 0.0;
+            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : T.Zero;
             lastPriceX = tmpReal;
 
             tmpReal = inReal1[i++];
-            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : 0.0;
+            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : T.Zero;
             lastPriceY = tmpReal;
 
             sxx += x * x;
@@ -70,15 +72,15 @@ public static partial class Functions
             sy += y;
 
             tmpReal = inReal0[trailingIdx];
-            x = !TA_IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : 0.0;
+            x = !TA_IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : T.Zero;
             trailingLastPriceX = tmpReal;
 
             tmpReal = inReal1[trailingIdx++];
-            y = !TA_IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : 0.0;
+            y = !TA_IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : T.Zero;
             trailingLastPriceY = tmpReal;
 
-            tmpReal = optInTimePeriod * sxx - sx * sx;
-            outReal[outIdx++] = !TA_IsZero(tmpReal) ? (optInTimePeriod * sxy - sx * sy) / tmpReal : 0.0;
+            tmpReal = tOptInTimePeriod * sxx - sx * sx;
+            outReal[outIdx++] = !TA_IsZero(tmpReal) ? (tOptInTimePeriod * sxy - sx * sy) / tmpReal : T.Zero;
 
             sxx -= x * x;
             sxy -= x * y;
@@ -92,103 +94,5 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode Beta(decimal[] inReal0, decimal[] inReal1, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
-        out int outNbElement, int optInTimePeriod = 5)
-    {
-        outBegIdx = outNbElement = 0;
-
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
-        {
-            return Core.RetCode.OutOfRangeStartIndex;
-        }
-
-        if (inReal0 == null || inReal1 == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
-        {
-            return Core.RetCode.BadParam;
-        }
-
-        int lookbackTotal = BetaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
-
-        if (startIdx > endIdx)
-        {
-            return Core.RetCode.Success;
-        }
-
-        decimal x, y, tmpReal, sxy, sx, sy;
-        decimal sxx = sxy = sx = sy = default;
-        int trailingIdx = startIdx - lookbackTotal;
-        var trailingLastPriceX = inReal0[trailingIdx];
-        var lastPriceX = trailingLastPriceX;
-        var trailingLastPriceY = inReal1[trailingIdx];
-        var lastPriceY = trailingLastPriceY;
-
-        int i = ++trailingIdx;
-        while (i < startIdx)
-        {
-            tmpReal = inReal0[i];
-            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : Decimal.Zero;
-            lastPriceX = tmpReal;
-
-            tmpReal = inReal1[i++];
-            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : Decimal.Zero;
-            lastPriceY = tmpReal;
-
-            sxx += x * x;
-            sxy += x * y;
-            sx += x;
-            sy += y;
-        }
-
-        int outIdx = default;
-        do
-        {
-            tmpReal = inReal0[i];
-            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : Decimal.Zero;
-            lastPriceX = tmpReal;
-
-            tmpReal = inReal1[i++];
-            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : Decimal.Zero;
-            lastPriceY = tmpReal;
-
-            sxx += x * x;
-            sxy += x * y;
-            sx += x;
-            sy += y;
-
-            tmpReal = inReal0[trailingIdx];
-            x = !TA_IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : Decimal.Zero;
-            trailingLastPriceX = tmpReal;
-
-            tmpReal = inReal1[trailingIdx++];
-            y = !TA_IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : Decimal.Zero;
-            trailingLastPriceY = tmpReal;
-
-            tmpReal = optInTimePeriod * sxx - sx * sx;
-            outReal[outIdx++] = !TA_IsZero(tmpReal) ? (optInTimePeriod * sxy - sx * sy) / tmpReal : Decimal.Zero;
-
-            sxx -= x * x;
-            sxy -= x * y;
-            sx -= x;
-            sy -= y;
-        } while (i <= endIdx);
-
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
-    }
-
-    public static int BetaLookback(int optInTimePeriod = 5)
-    {
-        if (optInTimePeriod is < 1 or > 100000)
-        {
-            return -1;
-        }
-
-        return optInTimePeriod;
-    }
+    public static int BetaLookback(int optInTimePeriod = 5) => optInTimePeriod is < 1 or > 100000 ? -1 : optInTimePeriod;
 }

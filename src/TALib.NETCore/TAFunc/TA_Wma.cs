@@ -1,8 +1,8 @@
 namespace TALib;
 
-public static partial class Functions
+public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode Wma(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode Wma(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 30)
     {
         outBegIdx = outNbElement = 0;
@@ -12,7 +12,7 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (inReal == null || outReal == null || optInTimePeriod is < 2 or > 100000)
         {
             return Core.RetCode.BadParam;
         }
@@ -28,30 +28,30 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        int divider = (optInTimePeriod * (optInTimePeriod + 1)) >> 1;
-
         int outIdx = default;
         int trailingIdx = startIdx - lookbackTotal;
 
-        double periodSub = default;
-        double periodSum = periodSub;
+        T periodSub = T.Zero;
+        T periodSum = periodSub;
         int inIdx = trailingIdx;
         int i = 1;
         while (inIdx < startIdx)
         {
-            double tempReal = inReal[inIdx++];
+            T tempReal = inReal[inIdx++];
             periodSub += tempReal;
-            periodSum += tempReal * i;
+            periodSum += tempReal * T.CreateChecked(i);
             i++;
         }
-        double trailingValue = default;
+        T trailingValue = T.Zero;
 
+        T divider = T.CreateChecked((optInTimePeriod * (optInTimePeriod + 1)) >> 1);
+        T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
         while (inIdx <= endIdx)
         {
-            double tempReal = inReal[inIdx++];
+            T tempReal = inReal[inIdx++];
             periodSub += tempReal;
             periodSub -= trailingValue;
-            periodSum += tempReal * optInTimePeriod;
+            periodSum += tempReal * tOptInTimePeriod;
             trailingValue = inReal[trailingIdx++];
             outReal[outIdx++] = periodSum / divider;
             periodSum -= periodSub;
@@ -63,74 +63,5 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode Wma(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
-        int optInTimePeriod = 30)
-    {
-        outBegIdx = outNbElement = 0;
-
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
-        {
-            return Core.RetCode.OutOfRangeStartIndex;
-        }
-
-        if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
-        {
-            return Core.RetCode.BadParam;
-        }
-
-        int lookbackTotal = WmaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
-
-        if (startIdx > endIdx)
-        {
-            return Core.RetCode.Success;
-        }
-
-        int divider = (optInTimePeriod * (optInTimePeriod + 1)) >> 1;
-
-        int outIdx = default;
-        int trailingIdx = startIdx - lookbackTotal;
-
-        decimal periodSub = default;
-        decimal periodSum = periodSub;
-        int inIdx = trailingIdx;
-        int i = 1;
-        while (inIdx < startIdx)
-        {
-            decimal tempReal = inReal[inIdx++];
-            periodSub += tempReal;
-            periodSum += tempReal * i;
-            i++;
-        }
-        decimal trailingValue = default;
-
-        while (inIdx <= endIdx)
-        {
-            decimal tempReal = inReal[inIdx++];
-            periodSub += tempReal;
-            periodSub -= trailingValue;
-            periodSum += tempReal * optInTimePeriod;
-            trailingValue = inReal[trailingIdx++];
-            outReal[outIdx++] = periodSum / divider;
-            periodSum -= periodSub;
-        }
-
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
-    }
-
-    public static int WmaLookback(int optInTimePeriod = 30)
-    {
-        if (optInTimePeriod is < 2 or > 100000)
-        {
-            return -1;
-        }
-
-        return optInTimePeriod - 1;
-    }
+    public static int WmaLookback(int optInTimePeriod = 30) => optInTimePeriod is < 2 or > 100000 ? -1 : optInTimePeriod - 1;
 }

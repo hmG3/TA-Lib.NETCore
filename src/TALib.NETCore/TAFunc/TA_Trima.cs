@@ -1,8 +1,8 @@
 namespace TALib;
 
-public static partial class Functions
+public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode Trima(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode Trima(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod = 30)
     {
         outBegIdx = outNbElement = 0;
@@ -12,7 +12,7 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
+        if (inReal == null || outReal == null || optInTimePeriod is < 2 or > 100000)
         {
             return Core.RetCode.BadParam;
         }
@@ -35,15 +35,16 @@ public static partial class Functions
         if (optInTimePeriod % 2 == 1)
         {
             int i = optInTimePeriod >> 1;
-            double factor = (i + 1) * (i + 1);
-            factor = 1.0 / factor;
+            var ti = T.CreateChecked(i);
+            T factor = (ti + T.One) * (ti + T.One);
+            factor = T.One / factor;
 
             trailingIdx = startIdx - lookbackTotal;
             middleIdx = trailingIdx + i;
             todayIdx = middleIdx + i;
-            double numerator = default;
-            double numeratorSub = default;
-            double tempReal;
+            T numerator = T.Zero;
+            T numeratorSub = T.Zero;
+            T tempReal;
             for (i = middleIdx; i >= trailingIdx; i--)
             {
                 tempReal = inReal[i];
@@ -51,7 +52,7 @@ public static partial class Functions
                 numerator += numeratorSub;
             }
 
-            double numeratorAdd = default;
+            T numeratorAdd = T.Zero;
             middleIdx++;
             for (i = middleIdx; i <= todayIdx; i++)
             {
@@ -85,23 +86,24 @@ public static partial class Functions
         else
         {
             int i = optInTimePeriod >> 1;
-            double factor = i * (i + 1);
-            factor = 1.0 / factor;
+            var ti = T.CreateChecked(i);
+            T factor = ti * (ti + T.One);
+            factor = T.One / factor;
 
             trailingIdx = startIdx - lookbackTotal;
             middleIdx = trailingIdx + i - 1;
             todayIdx = middleIdx + i;
-            double numerator = default;
+            T numerator = T.Zero;
 
-            double numeratorSub = default;
-            double tempReal;
+            T numeratorSub = T.Zero;
+            T tempReal;
             for (i = middleIdx; i >= trailingIdx; i--)
             {
                 tempReal = inReal[i];
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
             }
-            double numeratorAdd = default;
+            T numeratorAdd = T.Zero;
             middleIdx++;
             for (i = middleIdx; i <= todayIdx; i++)
             {
@@ -140,151 +142,10 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode Trima(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement,
-        int optInTimePeriod = 30)
-    {
-        outBegIdx = outNbElement = 0;
-
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+    public static int TrimaLookback(int optInTimePeriod = 30) =>
+        optInTimePeriod switch
         {
-            return Core.RetCode.OutOfRangeStartIndex;
-        }
-
-        if (inReal == null || outReal == null || optInTimePeriod < 2 || optInTimePeriod > 100000)
-        {
-            return Core.RetCode.BadParam;
-        }
-
-        int lookbackTotal = TrimaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
-
-        if (startIdx > endIdx)
-        {
-            return Core.RetCode.Success;
-        }
-
-        int middleIdx;
-        int trailingIdx;
-        int todayIdx;
-        int outIdx;
-        if (optInTimePeriod % 2 == 1)
-        {
-            int i = optInTimePeriod >> 1;
-            decimal factor = (i + 1) * (i + 1);
-            factor = Decimal.One / factor;
-
-            trailingIdx = startIdx - lookbackTotal;
-            middleIdx = trailingIdx + i;
-            todayIdx = middleIdx + i;
-            decimal numerator = default;
-            decimal numeratorSub = default;
-            decimal tempReal;
-            for (i = middleIdx; i >= trailingIdx; i--)
-            {
-                tempReal = inReal[i];
-                numeratorSub += tempReal;
-                numerator += numeratorSub;
-            }
-
-            decimal numeratorAdd = default;
-            middleIdx++;
-            for (i = middleIdx; i <= todayIdx; i++)
-            {
-                tempReal = inReal[i];
-                numeratorAdd += tempReal;
-                numerator += numeratorAdd;
-            }
-
-            outIdx = 0;
-            tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = numerator * factor;
-            todayIdx++;
-            while (todayIdx <= endIdx)
-            {
-                numerator -= numeratorSub;
-                numeratorSub -= tempReal;
-                tempReal = inReal[middleIdx++];
-                numeratorSub += tempReal;
-
-                numerator += numeratorAdd;
-                numeratorAdd -= tempReal;
-                tempReal = inReal[todayIdx++];
-                numeratorAdd += tempReal;
-
-                numerator += tempReal;
-
-                tempReal = inReal[trailingIdx++];
-                outReal[outIdx++] = numerator * factor;
-            }
-        }
-        else
-        {
-            int i = optInTimePeriod >> 1;
-            decimal factor = i * (i + 1);
-            factor = Decimal.One / factor;
-
-            trailingIdx = startIdx - lookbackTotal;
-            middleIdx = trailingIdx + i - 1;
-            todayIdx = middleIdx + i;
-            decimal numerator = default;
-
-            decimal numeratorSub = default;
-            decimal tempReal;
-            for (i = middleIdx; i >= trailingIdx; i--)
-            {
-                tempReal = inReal[i];
-                numeratorSub += tempReal;
-                numerator += numeratorSub;
-            }
-            decimal numeratorAdd = default;
-            middleIdx++;
-            for (i = middleIdx; i <= todayIdx; i++)
-            {
-                tempReal = inReal[i];
-                numeratorAdd += tempReal;
-                numerator += numeratorAdd;
-            }
-
-            outIdx = 0;
-            tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = numerator * factor;
-            todayIdx++;
-
-            while (todayIdx <= endIdx)
-            {
-                numerator -= numeratorSub;
-                numeratorSub -= tempReal;
-                tempReal = inReal[middleIdx++];
-                numeratorSub += tempReal;
-
-                numeratorAdd -= tempReal;
-                numerator += numeratorAdd;
-                tempReal = inReal[todayIdx++];
-                numeratorAdd += tempReal;
-
-                numerator += tempReal;
-
-                tempReal = inReal[trailingIdx++];
-                outReal[outIdx++] = numerator * factor;
-            }
-        }
-
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
-    }
-
-    public static int TrimaLookback(int optInTimePeriod = 30)
-    {
-        if (optInTimePeriod is < 2 or > 100000)
-        {
-            return -1;
-        }
-
-        return optInTimePeriod - 1;
-    }
+            < 2 or > 100000 => -1,
+            _ => optInTimePeriod - 1
+        };
 }

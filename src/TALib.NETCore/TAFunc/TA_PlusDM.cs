@@ -1,8 +1,8 @@
 namespace TALib;
 
-public static partial class Functions
+public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode PlusDM(double[] inHigh, double[] inLow, int startIdx, int endIdx, double[] outReal, out int outBegIdx,
+    public static Core.RetCode PlusDM(T[] inHigh, T[] inLow, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
         out int outNbElement, int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
@@ -12,7 +12,7 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
+        if (inHigh == null || inLow == null || outReal == null || optInTimePeriod is < 1 or > 100000)
         {
             return Core.RetCode.BadParam;
         }
@@ -29,10 +29,10 @@ public static partial class Functions
         }
 
         int today;
-        double diffP;
-        double prevLow;
-        double prevHigh;
-        double diffM;
+        T diffP;
+        T prevLow;
+        T prevHigh;
+        T diffM;
         int outIdx = default;
         if (optInTimePeriod == 1)
         {
@@ -43,13 +43,13 @@ public static partial class Functions
             while (today < endIdx)
             {
                 today++;
-                double tempReal = inHigh[today];
+                T tempReal = inHigh[today];
                 diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
                 diffM = prevLow - tempReal;
                 prevLow = tempReal;
-                outReal[outIdx++] = diffP > 0.0 && diffP > diffM ? diffP : 0.0;
+                outReal[outIdx++] = diffP > T.Zero && diffP > diffM ? diffP : T.Zero;
             }
 
             outNbElement = outIdx;
@@ -58,43 +58,45 @@ public static partial class Functions
         }
 
         outBegIdx = startIdx;
-        double prevPlusDM = default;
+        T prevPlusDM = T.Zero;
         today = startIdx - lookbackTotal;
         prevHigh = inHigh[today];
         prevLow = inLow[today];
-        int i = optInTimePeriod - 1;
+        var i = optInTimePeriod - 1;
         while (i-- > 0)
         {
             today++;
-            double tempReal = inHigh[today];
+            T tempReal = inHigh[today];
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
             tempReal = inLow[today];
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if (diffP > 0.0 && diffP > diffM)
+            if (diffP > T.Zero && diffP > diffM)
             {
                 prevPlusDM += diffP;
             }
         }
 
+        T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
+
         i = Core.UnstablePeriodSettings.Get(Core.FuncUnstId.PlusDM);
         while (i-- != 0)
         {
             today++;
-            double tempReal = inHigh[today];
+            T tempReal = inHigh[today];
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
             tempReal = inLow[today];
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if (diffP > 0.0 && diffP > diffM)
+            if (diffP > T.Zero && diffP > diffM)
             {
-                prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
+                prevPlusDM = prevPlusDM - prevPlusDM / tOptInTimePeriod + diffP;
             }
             else
             {
-                prevPlusDM -= prevPlusDM / optInTimePeriod;
+                prevPlusDM -= prevPlusDM / tOptInTimePeriod;
             }
         }
 
@@ -104,19 +106,19 @@ public static partial class Functions
         while (today < endIdx)
         {
             today++;
-            double tempReal = inHigh[today];
+            T tempReal = inHigh[today];
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
             tempReal = inLow[today];
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if (diffP > 0.0 && diffP > diffM)
+            if (diffP > T.Zero && diffP > diffM)
             {
-                prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
+                prevPlusDM = prevPlusDM - prevPlusDM / tOptInTimePeriod + diffP;
             }
             else
             {
-                prevPlusDM -= prevPlusDM / optInTimePeriod;
+                prevPlusDM -= prevPlusDM / tOptInTimePeriod;
             }
 
             outReal[outIdx++] = prevPlusDM;
@@ -127,138 +129,10 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static Core.RetCode PlusDM(decimal[] inHigh, decimal[] inLow, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx,
-        out int outNbElement, int optInTimePeriod = 14)
-    {
-        outBegIdx = outNbElement = 0;
-
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+    public static int PlusDMLookback(int optInTimePeriod = 14) =>
+        optInTimePeriod switch
         {
-            return Core.RetCode.OutOfRangeStartIndex;
-        }
-
-        if (inHigh == null || inLow == null || outReal == null || optInTimePeriod < 1 || optInTimePeriod > 100000)
-        {
-            return Core.RetCode.BadParam;
-        }
-
-        int lookbackTotal = PlusDMLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
-
-        if (startIdx > endIdx)
-        {
-            return Core.RetCode.Success;
-        }
-
-        int today;
-        decimal diffP;
-        decimal prevLow;
-        decimal prevHigh;
-        decimal diffM;
-        int outIdx = default;
-        if (optInTimePeriod == 1)
-        {
-            outBegIdx = startIdx;
-            today = startIdx - 1;
-            prevHigh = inHigh[today];
-            prevLow = inLow[today];
-            while (today < endIdx)
-            {
-                today++;
-                decimal tempReal = inHigh[today];
-                diffP = tempReal - prevHigh;
-                prevHigh = tempReal;
-                tempReal = inLow[today];
-                diffM = prevLow - tempReal;
-                prevLow = tempReal;
-                outReal[outIdx++] = diffP > Decimal.Zero && diffP > diffM ? diffP : Decimal.Zero;
-            }
-
-            outNbElement = outIdx;
-
-            return Core.RetCode.Success;
-        }
-
-        outBegIdx = startIdx;
-        decimal prevPlusDM = default;
-        today = startIdx - lookbackTotal;
-        prevHigh = inHigh[today];
-        prevLow = inLow[today];
-        int i = optInTimePeriod - 1;
-        while (i-- > 0)
-        {
-            today++;
-            decimal tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-            if (diffP > Decimal.Zero && diffP > diffM)
-            {
-                prevPlusDM += diffP;
-            }
-        }
-
-        i = Core.UnstablePeriodSettings.Get(Core.FuncUnstId.PlusDM);
-        while (i-- != 0)
-        {
-            today++;
-            decimal tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-            if (diffP > Decimal.Zero && diffP > diffM)
-            {
-                prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
-            }
-            else
-            {
-                prevPlusDM -= prevPlusDM / optInTimePeriod;
-            }
-        }
-
-        outReal[0] = prevPlusDM;
-        outIdx = 1;
-
-        while (today < endIdx)
-        {
-            today++;
-            decimal tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-            if (diffP > Decimal.Zero && diffP > diffM)
-            {
-                prevPlusDM = prevPlusDM - prevPlusDM / optInTimePeriod + diffP;
-            }
-            else
-            {
-                prevPlusDM -= prevPlusDM / optInTimePeriod;
-            }
-
-            outReal[outIdx++] = prevPlusDM;
-        }
-
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
-    }
-
-    public static int PlusDMLookback(int optInTimePeriod = 14)
-    {
-        if (optInTimePeriod is < 1 or > 100000)
-        {
-            return -1;
-        }
-
-        return optInTimePeriod > 1 ? optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.PlusDM) - 1 : 1;
-    }
+            < 1 or > 100000 => -1,
+            _ => optInTimePeriod > 1 ? optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.PlusDM) - 1 : 1
+        };
 }

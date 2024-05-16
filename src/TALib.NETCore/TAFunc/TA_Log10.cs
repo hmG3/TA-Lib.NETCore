@@ -1,8 +1,8 @@
 namespace TALib;
 
-public static partial class Functions
+public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode Log10(double[] inReal, int startIdx, int endIdx, double[] outReal, out int outBegIdx, out int outNbElement)
+    public static Core.RetCode Log10(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx, out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
@@ -17,35 +17,9 @@ public static partial class Functions
         }
 
         int outIdx = default;
-        for (int i = startIdx; i <= endIdx; i++)
+        for (var i = startIdx; i <= endIdx; i++)
         {
-            outReal[outIdx++] = Math.Log10(inReal[i]);
-        }
-
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
-    }
-
-    public static Core.RetCode Log10(decimal[] inReal, int startIdx, int endIdx, decimal[] outReal, out int outBegIdx, out int outNbElement)
-    {
-        outBegIdx = outNbElement = 0;
-
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
-        {
-            return Core.RetCode.OutOfRangeStartIndex;
-        }
-
-        if (inReal == null || outReal == null)
-        {
-            return Core.RetCode.BadParam;
-        }
-
-        int outIdx = default;
-        for (int i = startIdx; i <= endIdx; i++)
-        {
-            outReal[outIdx++] = DecimalMath.Log10(inReal[i]);
+            outReal[outIdx++] = T.Log10(inReal[i]);
         }
 
         outBegIdx = startIdx;

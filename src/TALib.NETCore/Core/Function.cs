@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -41,13 +42,16 @@ public sealed class Function
 
     public string[] Outputs { get; }
 
-    public Core.RetCode Run<T>(T[][] inputs, T[] options, T[][] outputs) where T : IFloatingPoint<T>
+    public Core.RetCode Run<T>(T[][] inputs, T[] options, T[][] outputs) where T : IFloatingPointIeee754<T>
     {
-        var method = FindFunctionMethodInternal<T>(Name);
+        var functionMethod = ReflectMethods<T>()
+                                 .Where(mi => !mi.Name.EndsWith(LookbackSuffix))
+                                 .FirstOrDefault(FunctionMethodSelector) ??
+                             throw new MissingMethodException(null, $"{Name}<{typeof(T).Name}>");
 
-        var paramsArray = PrepareFunctionMethodParamsInternal(inputs, options, outputs, method, out var isIntegerOutput);
+        var paramsArray = PrepareFunctionMethodParamsInternal(inputs, options, outputs, functionMethod, out var isIntegerOutput);
 
-        var retCode = (Core.RetCode) method.Invoke(null, paramsArray)!;
+        var retCode = (Core.RetCode) functionMethod.Invoke(null, paramsArray)!;
         if (isIntegerOutput && retCode == Core.RetCode.Success)
         {
             var integerOutputs = Array.ConvertAll((int[]) paramsArray[inputs.Length + 2], i => (T) Convert.ChangeType(i, typeof(T)));
@@ -57,16 +61,14 @@ public sealed class Function
         return retCode;
     }
 
-    public int Lookback(params int[] options)
+    public int Lookback<T>(params int[] options) where T : IFloatingPointIeee754<T>
     {
-        var method = typeof(Functions)
-                         .GetMethods(BindingFlags.Static | BindingFlags.Public)
-                         .Concat(typeof(Candles).GetMethods(BindingFlags.Static | BindingFlags.Public))
-                         .Where(mi => mi.Name.EndsWith(LookbackSuffix))
-                         .FirstOrDefault(LookbackMethodSelector) ??
-                     throw new MissingMethodException(null, LookbackMethodName);
+        var lookbackMethod = ReflectMethods<T>()
+                                 .Where(mi => mi.Name.EndsWith(LookbackSuffix))
+                                 .FirstOrDefault(LookbackMethodSelector) ??
+                             throw new MissingMethodException(null, LookbackMethodName);
 
-        var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
+        var optInParameters = lookbackMethod.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
         var paramsArray = new object[optInParameters.Count];
         Array.Fill(paramsArray, Type.Missing);
 
@@ -89,7 +91,7 @@ public sealed class Function
             }
         }
 
-        return (int) method.Invoke(null, paramsArray)!;
+        return (int) lookbackMethod.Invoke(null, paramsArray)!;
     }
 
     public void SetUnstablePeriod(int period)
@@ -106,20 +108,16 @@ public sealed class Function
 
     public override string ToString() => Name;
 
-    internal MethodInfo FindFunctionMethodInternal<T>(string name) where T : IFloatingPoint<T> =>
-        typeof(Functions)
-            .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .Concat(typeof(Candles).GetMethods(BindingFlags.Static | BindingFlags.Public))
-            .Where(mi => !mi.Name.EndsWith(LookbackSuffix))
-            .FirstOrDefault(FunctionMethodSelector) ??
-        throw new MissingMethodException(null, $"{name}<{typeof(T).Name}>");
+    private static IEnumerable<MethodInfo> ReflectMethods<T>() where T : IFloatingPointIeee754<T> =>
+        typeof(Functions<>).MakeGenericType(typeof(T)).GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .Concat(typeof(Candles<>).MakeGenericType(typeof(T)).GetMethods(BindingFlags.Static | BindingFlags.Public));
 
     internal object[] PrepareFunctionMethodParamsInternal<T>(
         T[][] inputs,
         T[] options,
         T[][] outputs,
         MethodInfo method,
-        out bool isIntegerOutput) where T : IFloatingPoint<T>
+        out bool isIntegerOutput) where T : IFloatingPointIeee754<T>
     {
         var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
 
