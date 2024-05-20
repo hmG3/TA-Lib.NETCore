@@ -32,8 +32,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="DotNext" Version="5.2.0" />
-  </ItemGroup>
-
 </Project>
