@@ -12,8 +12,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || inPeriods == null || outReal == null || optInMinPeriod is < 2 or > 100000 ||
-            optInMaxPeriod is < 2 or > 100000)
+        if (inReal == null || inPeriods == null || outReal == null || optInMinPeriod < 2 || optInMaxPeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
@@ -88,5 +87,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int MavpLookback(int optInMaxPeriod = 30, Core.MAType optInMAType = Core.MAType.Sma) =>
-        optInMaxPeriod is < 2 or > 100000 ? -1 : MaLookback(optInMaxPeriod, optInMAType);
+        optInMaxPeriod < 2 ? -1 : MaLookback(optInMaxPeriod, optInMAType);
 }

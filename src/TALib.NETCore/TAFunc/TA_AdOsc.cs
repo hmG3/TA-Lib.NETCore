@@ -12,8 +12,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || inClose == null || inVolume == null ||
-            optInFastPeriod is < 2 or > 100000 || optInSlowPeriod is < 2 or > 100000 || outReal == null)
+        if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null ||
+            optInFastPeriod < 2 || optInSlowPeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
@@ -81,7 +81,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int AdOscLookback(int optInFastPeriod = 3, int optInSlowPeriod = 10) =>
-        optInFastPeriod is < 2 or > 100000 || optInSlowPeriod is < 2 or > 100000
+        optInFastPeriod < 2 || optInSlowPeriod < 2
             ? -1
             : EmaLookback(optInFastPeriod < optInSlowPeriod ? optInSlowPeriod : optInFastPeriod);
 }

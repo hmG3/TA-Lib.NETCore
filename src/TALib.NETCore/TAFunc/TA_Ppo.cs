@@ -12,7 +12,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outReal == null || optInFastPeriod is < 2 or > 100000 || optInSlowPeriod is < 2 or > 100000)
+        if (inReal == null || outReal == null || optInFastPeriod < 2 || optInSlowPeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
@@ -24,7 +24,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int PpoLookback(int optInFastPeriod = 12, int optInSlowPeriod = 26, Core.MAType optInMAType = Core.MAType.Sma) =>
-        optInFastPeriod is < 2 or > 100000 || optInSlowPeriod is < 2 or > 100000
-            ? -1
-            : MaLookback(Math.Max(optInSlowPeriod, optInFastPeriod), optInMAType);
+        optInFastPeriod < 2 || optInSlowPeriod < 2 ? -1 : MaLookback(Math.Max(optInSlowPeriod, optInFastPeriod), optInMAType);
 }

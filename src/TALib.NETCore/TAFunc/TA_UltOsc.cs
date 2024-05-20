@@ -12,8 +12,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod1 is < 1 or > 100000 ||
-            optInTimePeriod2 is < 1 or > 100000 || optInTimePeriod3 is < 1 or > 100000)
+        if (inHigh == null || inLow == null || inClose == null || outReal == null ||
+            optInTimePeriod1 < 1 || optInTimePeriod2 < 1 || optInTimePeriod3 < 1)
         {
             return Core.RetCode.BadParam;
         }
@@ -143,7 +143,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int UltOscLookback(int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28) =>
-        optInTimePeriod1 is < 1 or > 100000 || optInTimePeriod2 is < 1 or > 100000 || optInTimePeriod3 is < 1 or > 100000
+        optInTimePeriod1 < 1 || optInTimePeriod2 < 1 || optInTimePeriod3 < 1
             ? -1
             : SmaLookback(Math.Max(Math.Max(optInTimePeriod1, optInTimePeriod2), optInTimePeriod3)) + 1;
 }

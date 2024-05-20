@@ -12,7 +12,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outReal == null || optInTimePeriod is < 2 or > 100000)
+        if (inReal == null || outReal == null || optInTimePeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
@@ -157,7 +157,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
     public static int RsiLookback(int optInTimePeriod = 14)
     {
-        if (optInTimePeriod is < 2 or > 100000)
+        if (optInTimePeriod < 2)
         {
             return -1;
         }

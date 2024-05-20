@@ -14,7 +14,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         if (inHigh == null || inLow == null || inClose == null || outFastK == null || outFastD == null ||
-            optInFastKPeriod is < 1 or > 100000 || optInFastDPeriod is < 1 or > 100000)
+            optInFastKPeriod < 1 || optInFastDPeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
@@ -124,7 +124,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int StochFLookback(int optInFastKPeriod = 5, int optInFastDPeriod = 3, Core.MAType optInFastDMAType = Core.MAType.Sma) =>
-        optInFastKPeriod is < 1 or > 100000 || optInFastDPeriod is < 1 or > 100000
-            ? -1
-            : optInFastKPeriod - 1 + MaLookback(optInFastDPeriod, optInFastDMAType);
+        optInFastKPeriod < 1 || optInFastDPeriod < 1 ? -1 : optInFastKPeriod - 1 + MaLookback(optInFastDPeriod, optInFastDMAType);
 }

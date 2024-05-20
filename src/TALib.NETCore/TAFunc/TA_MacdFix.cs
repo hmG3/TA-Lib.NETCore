@@ -12,7 +12,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInSignalPeriod is < 1 or > 100000)
+        if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInSignalPeriod < 1)
         {
             return Core.RetCode.BadParam;
         }

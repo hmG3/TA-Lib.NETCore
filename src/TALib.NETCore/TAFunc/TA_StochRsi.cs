@@ -13,8 +13,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outFastK == null || outFastD == null || optInTimePeriod is < 2 or > 100000 ||
-            optInFastKPeriod is < 1 or > 100000 || optInFastDPeriod is < 1 or > 100000)
+        if (inReal == null || outFastK == null || outFastD == null ||
+            optInTimePeriod < 2 || optInFastKPeriod < 1 || optInFastDPeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
@@ -52,7 +52,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
     public static int StochRsiLookback(int optInTimePeriod = 14, int optInFastKPeriod = 5, int optInFastDPeriod = 3,
         Core.MAType optInFastDMAType = Core.MAType.Sma) =>
-        optInTimePeriod is < 2 or > 100000 || optInFastKPeriod is < 1 or > 100000 || optInFastDPeriod is < 1 or > 100000
+        optInTimePeriod < 2 || optInFastKPeriod < 1 || optInFastDPeriod < 1
             ? -1
             : RsiLookback(optInTimePeriod) + StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
 }

@@ -12,7 +12,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod is < 1 or > 100000)
+        if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
@@ -81,5 +81,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int AtrLookback(int optInTimePeriod = 14) =>
-        optInTimePeriod is < 1 or > 100000 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Atr);
+        optInTimePeriod < 1 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Atr);
 }

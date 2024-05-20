@@ -12,7 +12,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outReal == null || optInTimePeriod is < 2 or > 100000)
+        if (inReal == null || outReal == null || optInTimePeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
@@ -122,13 +122,6 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int KamaLookback(int optInTimePeriod = 30)
-    {
-        if (optInTimePeriod is < 2 or > 100000)
-        {
-            return -1;
-        }
-
-        return optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Kama);
-    }
+    public static int KamaLookback(int optInTimePeriod = 30) =>
+        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Kama);
 }

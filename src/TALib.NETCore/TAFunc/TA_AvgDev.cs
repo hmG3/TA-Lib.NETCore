@@ -57,5 +57,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int AvgDevLookback(int optInTimePeriod = 14) => optInTimePeriod is < 2 or > 100000 ? -1 : optInTimePeriod - 1;
+    public static int AvgDevLookback(int optInTimePeriod = 14) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
 }

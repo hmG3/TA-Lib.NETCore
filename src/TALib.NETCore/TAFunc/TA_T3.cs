@@ -13,7 +13,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         if (inReal == null || outReal == null ||
-            optInTimePeriod is < 2 or > 100000 || optInVFactor < 0.0 || optInVFactor > 1.0)
+            optInTimePeriod < 2 || optInVFactor < 0.0 || optInVFactor > 1.0)
         {
             return Core.RetCode.BadParam;
         }
@@ -131,5 +131,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int T3Lookback(int optInTimePeriod = 5) =>
-        optInTimePeriod is < 2 or > 100000 ? -1 : (optInTimePeriod - 1) * 6 + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.T3);
+        optInTimePeriod < 2 ? -1 : (optInTimePeriod - 1) * 6 + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.T3);
 }

@@ -12,7 +12,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null || optInTimePeriod is < 2 or > 100000)
+        if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null || optInTimePeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
@@ -155,5 +155,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int MfiLookback(int optInTimePeriod = 14) =>
-        optInTimePeriod is < 2 or > 100000 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Mfi);
+        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Mfi);
 }

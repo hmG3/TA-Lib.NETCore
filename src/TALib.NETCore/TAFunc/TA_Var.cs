@@ -12,7 +12,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outReal == null || optInTimePeriod is < 1 or > 100000)
+        if (inReal == null || outReal == null || optInTimePeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
@@ -20,5 +20,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
     }
 
-    public static int VarLookback(int optInTimePeriod = 5) => optInTimePeriod is < 1 or > 100000 ? -1 : optInTimePeriod - 1;
+    public static int VarLookback(int optInTimePeriod = 5) => optInTimePeriod < 1 ? -1 : optInTimePeriod - 1;
 }

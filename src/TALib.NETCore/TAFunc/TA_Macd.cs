@@ -13,7 +13,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInFastPeriod is < 2 or > 100000 || optInSlowPeriod is < 2 or > 100000 || optInSignalPeriod is < 1 or > 100000)
+        if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInFastPeriod < 2 || optInSlowPeriod < 2 || optInSignalPeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
@@ -24,7 +24,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
     public static int MacdLookback(int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
     {
-        if (optInFastPeriod is < 2 or > 100000 || optInSlowPeriod is < 2 or > 100000 || optInSignalPeriod is < 1 or > 100000)
+        if (optInFastPeriod < 2 || optInSlowPeriod < 2 || optInSignalPeriod < 1)
         {
             return -1;
         }

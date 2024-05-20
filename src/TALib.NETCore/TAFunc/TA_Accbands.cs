@@ -14,7 +14,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         if (inHigh == null || inLow == null || inClose == null || outRealUpperBand == null || outRealMiddleBand == null ||
-            outRealLowerBand == null || optInTimePeriod is < 2 or > 100000)
+            outRealLowerBand == null || optInTimePeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
@@ -75,13 +75,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int AccbandsLookback(int optInTimePeriod = 20)
-    {
-        if (optInTimePeriod is < 2 or > 100000)
-        {
-            return -1;
-        }
-
-        return SmaLookback(optInTimePeriod);
-    }
+    public static int AccbandsLookback(int optInTimePeriod = 20) => optInTimePeriod < 2 ? -1 : SmaLookback(optInTimePeriod);
 }

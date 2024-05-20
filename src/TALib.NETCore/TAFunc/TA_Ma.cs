@@ -12,7 +12,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outReal == null || optInTimePeriod is < 1 or > 100000)
+        if (inReal == null || outReal == null || optInTimePeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
@@ -57,11 +57,10 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
     }
 
-    public static int MaLookback(int optInTimePeriod = 30, Core.MAType optInMAType = Core.MAType.Sma)
-    {
-        return optInTimePeriod switch
+    public static int MaLookback(int optInTimePeriod = 30, Core.MAType optInMAType = Core.MAType.Sma) =>
+        optInTimePeriod switch
         {
-            < 1 or > 100000 => -1,
+            < 1 => -1,
             1 => 0,
             _ => optInMAType switch
             {
@@ -77,5 +76,4 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
                 _ => 0
             }
         };
-    }
 }

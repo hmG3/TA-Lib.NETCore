@@ -45,23 +45,21 @@ namespace TALib
         }
 
         private static T TA_CandleRange(IReadOnlyList<T> open, IReadOnlyList<T> high, IReadOnlyList<T> low,
-            IReadOnlyList<T> close, Core.CandleSettingType set, int idx)
-        {
-            return TA_CandleRangeType(set) switch
+            IReadOnlyList<T> close, Core.CandleSettingType set, int idx) =>
+            TA_CandleRangeType(set) switch
             {
                 Core.CandleRangeType.RealBody => TA_RealBody(close, open, idx),
                 Core.CandleRangeType.HighLow => TA_HighLowRange(high, low, idx),
                 Core.CandleRangeType.Shadows => TA_UpperShadow(high, close, open, idx) + TA_LowerShadow(close, open, low, idx),
                 _ => T.Zero
             };
-        }
 
         private static T TA_CandleAverage(IReadOnlyList<T> open, IReadOnlyList<T> high, IReadOnlyList<T> low,
             IReadOnlyList<T> close, Core.CandleSettingType set, T sum, int idx)
         {
             var candleAveragePeriod = T.CreateChecked(TA_CandleAveragePeriod(set));
             var candleFactor = T.CreateChecked(TA_CandleFactor(set));
-            return candleFactor * (candleAveragePeriod != T.Zero
+            return candleFactor * (!T.IsZero(candleAveragePeriod)
                        ? sum / candleAveragePeriod
                        : TA_CandleRange(open, high, low, close, set, idx)) /
                    (TA_CandleRangeType(set) == Core.CandleRangeType.Shadows ? T.CreateChecked(2) : T.One);
