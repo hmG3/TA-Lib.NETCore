@@ -45,7 +45,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         {
             if (TA_CandleColor(inClose, inOpen, i - 3) == TA_CandleColor(inClose, inOpen, i - 2) &&
                 TA_CandleColor(inClose, inOpen, i - 2) == TA_CandleColor(inClose, inOpen, i - 1) &&
-                TA_CandleColor(inClose, inOpen, i) == !TA_CandleColor(inClose, inOpen, i - 1) &&
+                (int) TA_CandleColor(inClose, inOpen, i) == -(int) TA_CandleColor(inClose, inOpen, i - 1) &&
                 inOpen[i - 2] >= T.Min(inOpen[i - 3], inClose[i - 3]) - TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.Near, nearPeriodTotal[3], i - 3) &&
                 inOpen[i - 2] <= T.Max(inOpen[i - 3], inClose[i - 3]) + TA_CandleAverage(inOpen, inHigh, inLow, inClose,
@@ -55,19 +55,19 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 inOpen[i - 1] <= T.Max(inOpen[i - 2], inClose[i - 2]) + TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.Near, nearPeriodTotal[2], i - 2) &&
                 (
-                    TA_CandleColor(inClose, inOpen, i - 1) &&
+                    TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
                     inClose[i - 1] > inClose[i - 2] && inClose[i - 2] > inClose[i - 3] &&
                     inOpen[i] > inClose[i - 1] &&
                     inClose[i] < inOpen[i - 3]
                     ||
-                    !TA_CandleColor(inClose, inOpen, i - 1) &&
+                    TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
                     inClose[i - 1] < inClose[i - 2] && inClose[i - 2] < inClose[i - 3] &&
                     inOpen[i] < inClose[i - 1] &&
                     inClose[i] > inOpen[i - 3]
                 )
                )
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? 100 : -100;
+                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i - 1) * 100;
             }
             else
             {

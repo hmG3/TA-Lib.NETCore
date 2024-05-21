@@ -42,8 +42,8 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         do
         {
             if (TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && // upside gap
-                TA_CandleColor(inClose, inOpen, i - 1) && // 1st: white
-                !TA_CandleColor(inClose, inOpen, i) && // 2nd: black
+                TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White && // 1st: white
+                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // 2nd: black
                 inOpen[i] < inClose[i - 1] && inOpen[i] > inOpen[i - 1] && //      that opens within the white rb
                 inClose[i] < inOpen[i - 1] && //      and closes under the white rb
                 inClose[i] > T.Max(inClose[i - 2], inOpen[i - 2]) && //      inside the gap
@@ -52,8 +52,8 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
                 ||
                 TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && // downside gap
-                !TA_CandleColor(inClose, inOpen, i - 1) && // 1st: black
-                TA_CandleColor(inClose, inOpen, i) && // 2nd: white
+                TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 1st: black
+                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.White && // 2nd: white
                 inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] && //      that opens within the black rb
                 inClose[i] > inOpen[i - 1] && //      and closes above the black rb
                 inClose[i] < T.Min(inClose[i - 2], inOpen[i - 2]) && //      inside the gap
@@ -61,7 +61,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 T.Abs(TA_RealBody(inClose, inOpen, i - 1) - TA_RealBody(inClose, inOpen, i)) <
                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1))
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? 100 : -100;
+                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i - 1) * 100;
             }
             else
             {

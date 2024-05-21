@@ -42,10 +42,10 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (TA_CandleColor(inClose, inOpen, i - 1) && // 1st: white
+            if (TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White && // 1st: white
                 TA_RealBody(inClose, inOpen, i - 1) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
                     bodyLongPeriodTotal, i - 1) && //      long
-                !TA_CandleColor(inClose, inOpen, i) && // 2nd: black
+                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // 2nd: black
                 inOpen[i] > inHigh[i - 1] && //      open above prior high
                 inClose[i] > inOpen[i - 1] && //      close within prior body
                 inClose[i] < inClose[i - 1] - TA_RealBody(inClose, inOpen, i - 1) * T.CreateChecked(optInPenetration)

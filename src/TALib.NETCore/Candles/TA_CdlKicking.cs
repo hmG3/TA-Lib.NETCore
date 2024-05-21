@@ -52,7 +52,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (TA_CandleColor(inClose, inOpen, i - 1) == !TA_CandleColor(inClose, inOpen, i) && // opposite candles
+            if ((int) TA_CandleColor(inClose, inOpen, i - 1) == -(int) TA_CandleColor(inClose, inOpen, i) && // opposite candles
                 // 1st marubozu
                 TA_RealBody(inClose, inOpen, i - 1) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
                     bodyLongPeriodTotal[1], i - 1) &&
@@ -68,12 +68,12 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 TA_LowerShadow(inClose, inOpen, inLow, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
                 // gap
-                (!TA_CandleColor(inClose, inOpen, i - 1) && TA_CandleGapUp(inLow, inHigh, i, i - 1)
+                (TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && TA_CandleGapUp(inLow, inHigh, i, i - 1)
                  ||
-                 TA_CandleColor(inClose, inOpen, i - 1) && TA_CandleGapDown(inLow, inHigh, i, i - 1))
+                 TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White && TA_CandleGapDown(inLow, inHigh, i, i - 1))
                )
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
+                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i) * 100;
             }
             else
             {

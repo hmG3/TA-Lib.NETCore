@@ -61,9 +61,9 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 TA_RealBody(inClose, inOpen, i - 1) < TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
                     bodyPeriodTotal[1], i - 1) &&
                 // white, black, 2 black or white, white
-                TA_CandleColor(inClose, inOpen, i - 4) &&
-                !TA_CandleColor(inClose, inOpen, i - 3) &&
-                TA_CandleColor(inClose, inOpen, i) &&
+                TA_CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.White &&
+                TA_CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black &&
+                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
                 // upside gap 1st to 2nd
                 TA_RealBodyGapUp(inOpen, inClose, i - 3, i - 4) &&
                 // 3rd to 4th hold within 1st: a part of the real body must be within 1st real body

@@ -32,15 +32,17 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (TA_CandleColor(inClose, inOpen, i - 1) && !TA_CandleColor(inClose, inOpen, i - 2) &&
+            if (TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+                TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
                 inClose[i - 1] > inOpen[i - 2] && inOpen[i - 1] < inClose[i - 2] &&
                 inClose[i] > inClose[i - 1]
                 ||
-                !TA_CandleColor(inClose, inOpen, i - 1) && TA_CandleColor(inClose, inOpen, i - 2) &&
+                TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+                TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
                 inOpen[i - 1] > inClose[i - 2] && inClose[i - 1] < inOpen[i - 2] &&
                 inClose[i] < inClose[i - 1])
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? 100 : -100;
+                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i - 1) * 100;
             }
             else
             {

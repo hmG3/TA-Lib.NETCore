@@ -41,9 +41,9 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (!TA_CandleColor(inClose, inOpen, i - 2) && // first black
-                TA_CandleColor(inClose, inOpen, i - 1) && // second white
-                !TA_CandleColor(inClose, inOpen, i) && // third black
+            if (TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && // first black
+                TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White && // second white
+                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // third black
                 inLow[i - 1] > inClose[i - 2] && // 2nd low > prior close
                 inClose[i] <= inClose[i - 2] +
                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal,

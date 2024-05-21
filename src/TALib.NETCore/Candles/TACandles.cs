@@ -24,9 +24,9 @@ namespace TALib
             return high[idx] - low[idx];
         }
 
-        private static bool TA_CandleColor(IReadOnlyList<T> close, IReadOnlyList<T> open, int idx)
+        private static Core.CandleColor TA_CandleColor(IReadOnlyList<T> close, IReadOnlyList<T> open, int idx)
         {
-            return close[idx] >= open[idx];
+            return close[idx] >= open[idx] ? Core.CandleColor.White : Core.CandleColor.Black;
         }
 
         private static Core.CandleRangeType TA_CandleRangeType(Core.CandleSettingType set)

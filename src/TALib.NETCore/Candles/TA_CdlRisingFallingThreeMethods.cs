@@ -52,7 +52,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            var candleColor = T.CreateChecked(TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100);
+            var fifthCandleColor = T.CreateChecked((int) TA_CandleColor(inClose, inOpen, i - 4) * 100);
             if ( // 1st long, then 3 small, 5th long
                 TA_RealBody(inClose, inOpen, i - 4) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
                     bodyPeriodTotal[4], i - 4) &&
@@ -65,24 +65,24 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 TA_RealBody(inClose, inOpen, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
                     bodyPeriodTotal[0], i) &&
                 // white, 3 black, white  ||  black, 3 white, black
-                TA_CandleColor(inClose, inOpen, i - 4) == !TA_CandleColor(inClose, inOpen, i - 3) &&
+                (int) TA_CandleColor(inClose, inOpen, i - 4) == -(int) TA_CandleColor(inClose, inOpen, i - 3) &&
                 TA_CandleColor(inClose, inOpen, i - 3) == TA_CandleColor(inClose, inOpen, i - 2) &&
                 TA_CandleColor(inClose, inOpen, i - 2) == TA_CandleColor(inClose, inOpen, i - 1) &&
-                TA_CandleColor(inClose, inOpen, i - 1) == !TA_CandleColor(inClose, inOpen, i) &&
+                (int) TA_CandleColor(inClose, inOpen, i - 1) == -(int) TA_CandleColor(inClose, inOpen, i) &&
                 // 2nd to 4th hold within 1st: a part of the real body must be within 1st range
                 T.Min(inOpen[i - 3], inClose[i - 3]) < inHigh[i - 4] && T.Max(inOpen[i - 3], inClose[i - 3]) > inLow[i - 4] &&
                 T.Min(inOpen[i - 2], inClose[i - 2]) < inHigh[i - 4] && T.Max(inOpen[i - 2], inClose[i - 2]) > inLow[i - 4] &&
                 T.Min(inOpen[i - 1], inClose[i - 1]) < inHigh[i - 4] && T.Max(inOpen[i - 1], inClose[i - 1]) > inLow[i - 4] &&
                 // 2nd to 4th are falling (rising)
-                inClose[i - 2] * candleColor < inClose[i - 3] * candleColor &&
-                inClose[i - 1] * candleColor < inClose[i - 2] * candleColor &&
+                inClose[i - 2] * fifthCandleColor < inClose[i - 3] * fifthCandleColor &&
+                inClose[i - 1] * fifthCandleColor < inClose[i - 2] * fifthCandleColor &&
                 // 5th opens above (below) the prior close
-                inOpen[i] * candleColor > inClose[i - 1] * candleColor &&
+                inOpen[i] * fifthCandleColor > inClose[i - 1] * fifthCandleColor &&
                 // 5th closes above (below) the 1st close
-                inClose[i] * candleColor > inClose[i - 4] * candleColor
+                inClose[i] * fifthCandleColor > inClose[i - 4] * fifthCandleColor
                )
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 4) ? 100 : -100;
+                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i - 4) * 100;
             }
             else
             {

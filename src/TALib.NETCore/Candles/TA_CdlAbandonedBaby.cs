@@ -66,14 +66,14 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                     bodyDojiPeriodTotal, i - 1) &&
                 TA_RealBody(inClose, inOpen, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
                     bodyShortPeriodTotal, i) &&
-                (TA_CandleColor(inClose, inOpen, i - 2) &&
-                 !TA_CandleColor(inClose, inOpen, i) &&
+                (TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+                 TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
                  inClose[i] < inClose[i - 2] - TA_RealBody(inClose, inOpen, i - 2) * T.CreateChecked(optInPenetration) &&
                  TA_CandleGapUp(inLow, inHigh, i - 1, i - 2) &&
                  TA_CandleGapDown(inLow, inHigh, i, i - 1)
                  ||
-                 !TA_CandleColor(inClose, inOpen, i - 2) &&
-                 TA_CandleColor(inClose, inOpen, i) &&
+                 TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+                 TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
                  inClose[i] > inClose[i - 2] +
                  TA_RealBody(inClose, inOpen, i - 2) * T.CreateChecked(optInPenetration) &&
                  TA_CandleGapDown(inLow, inHigh, i - 1, i - 2) &&
@@ -81,7 +81,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 )
                )
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
+                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i) * 100;
             }
             else
             {

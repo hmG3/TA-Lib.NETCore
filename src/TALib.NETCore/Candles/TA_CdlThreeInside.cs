@@ -58,12 +58,15 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                     bodyShortPeriodTotal, i - 1) &&
                 T.Max(inClose[i - 1], inOpen[i - 1]) < T.Max(inClose[i - 2], inOpen[i - 2]) &&
                 T.Min(inClose[i - 1], inOpen[i - 1]) > T.Min(inClose[i - 2], inOpen[i - 2]) &&
-                (TA_CandleColor(inClose, inOpen, i - 2) && !TA_CandleColor(inClose, inOpen, i) && inClose[i] < inOpen[i - 2]
+                (TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+                 TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+                 inClose[i] < inOpen[i - 2]
                  ||
-                 !TA_CandleColor(inClose, inOpen, i - 2) && TA_CandleColor(inClose, inOpen, i) && inClose[i] > inOpen[i - 2]
+                 TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+                 TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.White && inClose[i] > inOpen[i - 2]
                 ))
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 2) ? -100 : 100;
+                outInteger[outIdx++] = -(int) TA_CandleColor(inClose, inOpen, i - 2) * 100;
             }
             else
             {

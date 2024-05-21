@@ -53,14 +53,14 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                     bodyLongPeriodTotal, i - 1) && // 1st: long real body
                 TA_RealBody(inClose, inOpen, i) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
                     bodyDojiPeriodTotal, i) && // 2nd: doji
-                (TA_CandleColor(inClose, inOpen, i - 1) &&
+                (TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
                  TA_RealBodyGapUp(inOpen, inClose, i, i - 1) //      that gaps up if 1st is white
                  ||
-                 !TA_CandleColor(inClose, inOpen, i - 1) &&
+                 TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
                  TA_RealBodyGapDown(inOpen, inClose, i, i - 1) //      or down if 1st is black
                 ))
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? -100 : 100;
+                outInteger[outIdx++] = -(int) TA_CandleColor(inClose, inOpen, i - 1) * 100;
             }
             else
             {

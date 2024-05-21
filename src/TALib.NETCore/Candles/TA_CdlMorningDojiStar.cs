@@ -61,13 +61,13 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         {
             if (TA_RealBody(inClose, inOpen, i - 2) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
                     bodyLongPeriodTotal, i - 2) && // 1st: long
-                !TA_CandleColor(inClose, inOpen, i - 2) && //           black
+                TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && //           black
                 TA_RealBody(inClose, inOpen, i - 1) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
                     bodyDojiPeriodTotal, i - 1) && // 2nd: doji
                 TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && //           gapping down
                 TA_RealBody(inClose, inOpen, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
                     bodyShortPeriodTotal, i) && // 3rd: longer than short
-                TA_CandleColor(inClose, inOpen, i) && //          white real body
+                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.White && //          white real body
                 inClose[i] > inClose[i - 2] +
                 TA_RealBody(inClose, inOpen, i - 2) * T.CreateChecked(optInPenetration)) //               closing well within 1st rb
             {

@@ -41,14 +41,15 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (!TA_CandleColor(inClose, inOpen, i - 4) && !TA_CandleColor(inClose, inOpen, i - 3) &&
-                !TA_CandleColor(inClose, inOpen, i - 2) && // 3 black candlesticks
+            if (TA_CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.Black &&
+                TA_CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black &&
+                TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && // 3 black candlesticks
                 inOpen[i - 4] > inOpen[i - 3] && inOpen[i - 3] > inOpen[i - 2] && // with consecutively lower opens
                 inClose[i - 4] > inClose[i - 3] && inClose[i - 3] > inClose[i - 2] && // and closes
-                !TA_CandleColor(inClose, inOpen, i - 1) && // 4th: black with an upper shadow
+                TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 4th: black with an upper shadow
                 TA_UpperShadow(inHigh, inClose, inOpen, i - 1) > TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i - 1) &&
-                TA_CandleColor(inClose, inOpen, i) && // 5th: white
+                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.White && // 5th: white
                 inOpen[i] > inOpen[i - 1] && // that opens above prior candle's body
                 inClose[i] > inHigh[i - 1]) // and closes above prior candle's high
             {

@@ -59,7 +59,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (TA_CandleColor(inClose, inOpen, i - 1) == !TA_CandleColor(inClose, inOpen, i) && // opposite candles
+            if ((int) TA_CandleColor(inClose, inOpen, i - 1) == -(int) TA_CandleColor(inClose, inOpen, i) && // opposite candles
                 inOpen[i] <= inOpen[i - 1] +
                 TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) && // same open
                 inOpen[i] >= inOpen[i - 1] -
@@ -67,17 +67,17 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 TA_RealBody(inClose, inOpen, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
                     bodyLongPeriodTotal, i) && // belt hold: long body
                 (
-                    TA_CandleColor(inClose, inOpen, i) && // with no lower shadow if bullish
+                    TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.White && // with no lower shadow if bullish
                     TA_LowerShadow(inClose, inOpen, inLow, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                         Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i)
                     ||
-                    !TA_CandleColor(inClose, inOpen, i) && // with no upper shadow if bearish
+                    TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // with no upper shadow if bearish
                     TA_UpperShadow(inHigh, inClose, inOpen, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                         Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i)
                 )
                )
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
+                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i) * 100;
             }
             else
             {

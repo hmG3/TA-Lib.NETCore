@@ -46,7 +46,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 TA_LowerShadow(inClose, inOpen, inLow, i) > TA_RealBody(inClose, inOpen, i)
                )
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
+                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i) * 100;
             }
             else
             {

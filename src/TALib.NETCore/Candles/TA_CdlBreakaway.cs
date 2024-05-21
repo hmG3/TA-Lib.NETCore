@@ -47,20 +47,20 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 TA_CandleColor(inClose, inOpen, i - 4) ==
                 TA_CandleColor(inClose, inOpen, i - 3) && // 1st, 2nd, 4th same color, 5th opposite
                 TA_CandleColor(inClose, inOpen, i - 3) == TA_CandleColor(inClose, inOpen, i - 1) &&
-                TA_CandleColor(inClose, inOpen, i - 1) == !TA_CandleColor(inClose, inOpen, i) &&
-                (!TA_CandleColor(inClose, inOpen, i - 4) && // when 1st is black:
+                (int) TA_CandleColor(inClose, inOpen, i - 1) == -(int) TA_CandleColor(inClose, inOpen, i) &&
+                (TA_CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.Black && // when 1st is black:
                  TA_RealBodyGapDown(inOpen, inClose, i - 3, i - 4) && // 2nd gaps down
                  inHigh[i - 2] < inHigh[i - 3] && inLow[i - 2] < inLow[i - 3] && // 3rd has lower high and low than 2nd
                  inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] < inLow[i - 2] && // 4th has lower high and low than 3rd
                  inClose[i] > inOpen[i - 3] && inClose[i] < inClose[i - 4] // 5th closes inside the gap
                  ||
-                 TA_CandleColor(inClose, inOpen, i - 4) && // when 1st is white:
+                 TA_CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.White && // when 1st is white:
                  TA_RealBodyGapUp(inClose, inOpen, i - 3, i - 4) && // 2nd gaps up
                  inHigh[i - 2] > inHigh[i - 3] && inLow[i - 2] > inLow[i - 3] && // 3rd has higher high and low than 2nd
                  inHigh[i - 1] > inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 4th has higher high and low than 3rd
                  inClose[i] < inOpen[i - 3] && inClose[i] > inClose[i - 4])) // 5th closes inside the gap
             {
-                outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i) ? 100 : -100;
+                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i) * 100;
             }
             else
             {

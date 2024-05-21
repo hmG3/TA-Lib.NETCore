@@ -44,10 +44,10 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (!TA_CandleColor(inClose, inOpen, i - 3) && // 1st black
-                !TA_CandleColor(inClose, inOpen, i - 2) && // 2nd black
-                !TA_CandleColor(inClose, inOpen, i - 1) && // 3rd black
-                !TA_CandleColor(inClose, inOpen, i) && // 4th black
+            if (TA_CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black && // 1st black
+                TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && // 2nd black
+                TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 3rd black
+                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // 4th black
                 // 1st: marubozu
                 TA_LowerShadow(inClose, inOpen, inLow, i - 3) < TA_CandleAverage(inOpen, inHigh, inLow, inOpen,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[3], i - 3) &&

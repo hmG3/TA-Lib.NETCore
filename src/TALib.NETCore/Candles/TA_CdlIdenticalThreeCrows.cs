@@ -53,15 +53,15 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (!TA_CandleColor(inClose, inOpen, i - 2) && // 1st black
+            if (TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && // 1st black
                 // very short lower shadow
                 TA_LowerShadow(inClose, inOpen, inLow, i - 2) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
-                !TA_CandleColor(inClose, inOpen, i - 1) && // 2nd black
+                TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 2nd black
                 // very short lower shadow
                 TA_LowerShadow(inClose, inOpen, inLow, i - 1) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
-                !TA_CandleColor(inClose, inOpen, i) && // 3rd black
+                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // 3rd black
                 // very short lower shadow
                 TA_LowerShadow(inClose, inOpen, inLow, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&

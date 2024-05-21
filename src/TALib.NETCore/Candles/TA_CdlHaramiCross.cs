@@ -59,12 +59,12 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 if (T.Max(inClose[i], inOpen[i]) < T.Max(inClose[i - 1], inOpen[i - 1]) && // 2nd is engulfed by 1st
                     T.Min(inClose[i], inOpen[i]) > T.Min(inClose[i - 1], inOpen[i - 1]))
                 {
-                    outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? -100 : 100;
+                    outInteger[outIdx++] = -(int) TA_CandleColor(inClose, inOpen, i - 1) * 100;
                 }
                 else if (T.Max(inClose[i], inOpen[i]) <= T.Max(inClose[i - 1], inOpen[i - 1]) && // 2nd is engulfed by 1st
                          T.Min(inClose[i], inOpen[i]) >= T.Min(inClose[i - 1], inOpen[i - 1])) // (one end of real body can match;
                 {
-                    outInteger[outIdx++] = TA_CandleColor(inClose, inOpen, i - 1) ? -80 : 80;
+                    outInteger[outIdx++] = -(int) TA_CandleColor(inClose, inOpen, i - 1) * 80;
                 }
                 else
                 {

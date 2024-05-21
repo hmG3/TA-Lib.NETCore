@@ -52,13 +52,13 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         {
             if (TA_RealBody(inClose, inOpen, i - 2) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
                     bodyLongPeriodTotal, i - 2) && // 1st: long
-                !TA_CandleColor(inClose, inOpen, i - 2) && //      black
-                !TA_CandleColor(inClose, inOpen, i - 1) && // 2nd: black
+                TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && //      black
+                TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 2nd: black
                 inClose[i - 1] > inClose[i - 2] && inOpen[i - 1] <= inOpen[i - 2] && //      harami
                 inLow[i - 1] < inLow[i - 2] && //      lower low
                 TA_RealBody(inClose, inOpen, i) < TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
                     bodyShortPeriodTotal, i) && // 3rd: short
-                TA_CandleColor(inClose, inOpen, i) && //      white
+                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.White && //      white
                 inOpen[i] > inLow[i - 1] //      open not lower
                )
             {
