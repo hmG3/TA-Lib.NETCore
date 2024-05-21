@@ -69,7 +69,7 @@ public sealed class FunctionTests
     [JsonFileData("DataSets/cdl.json", typeof(float), "_")]
 #pragma warning disable xUnit1026
     public void Should_Calculate_CorrectOutput_With_SuccessStatus_For_FloatInput(TestDataModel<float> model, string fileName)
-#pragma warn ing restore xUnit1026
+#pragma warning restore xUnit1026
     {
         Skip.If(model.Skip, "Test marked as skipped in the dataset.");
         Skip.If(fileName == "untest.json" && model.Name is "Ad" or "AdOsc",
