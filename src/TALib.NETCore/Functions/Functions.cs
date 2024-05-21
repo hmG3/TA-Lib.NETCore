@@ -4,16 +4,14 @@ namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    private static T TA_EPSILON = T.CreateChecked(0.00000000000001);
-
     private static T TTwo = T.CreateChecked(2);
     private static T TThree = T.CreateChecked(3);
     private static T TFour = T.CreateChecked(4);
     private static T TNinety = T.CreateChecked(90);
     private static T THundred = T.CreateChecked(100);
 
-    private static Core.RetCode TA_INT_EMA(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
-            out int outNbElement, int optInTimePeriod, T optInK1)
+    private static Core.RetCode CalcExponentialMA(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
+        out int outNbElement, int optInTimePeriod, T optInK1)
     {
         outBegIdx = outNbElement = 0;
 
@@ -68,8 +66,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode TA_INT_MACD(T[] inReal, int startIdx, int endIdx, T[] outMacd, T[] outMacdSignal,
-            T[] outMacdHist, out int outBegIdx, out int outNbElement, int optInFastPeriod, int optInSlowPeriod, int optInSignalPeriod)
+    private static Core.RetCode CalcMACD(T[] inReal, int startIdx, int endIdx, T[] outMacd, T[] outMacdSignal, T[] outMacdHist,
+        out int outBegIdx, out int outNbElement, int optInFastPeriod, int optInSlowPeriod, int optInSignalPeriod)
     {
         outBegIdx = outNbElement = 0;
 
@@ -117,14 +115,14 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         var slowEMABuffer = new T[tempInteger];
 
         tempInteger = startIdx - lookbackSignal;
-        Core.RetCode retCode = TA_INT_EMA(inReal, tempInteger, endIdx, slowEMABuffer, out var outBegIdx1, out var outNbElement1,
+        Core.RetCode retCode = CalcExponentialMA(inReal, tempInteger, endIdx, slowEMABuffer, out var outBegIdx1, out var outNbElement1,
             optInSlowPeriod, k1);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
-        retCode = TA_INT_EMA(inReal, tempInteger, endIdx, fastEMABuffer, out var outBegIdx2, out var outNbElement2, optInFastPeriod,
+        retCode = CalcExponentialMA(inReal, tempInteger, endIdx, fastEMABuffer, out var outBegIdx2, out var outNbElement2, optInFastPeriod,
             k2);
         if (retCode != Core.RetCode.Success)
         {
@@ -143,7 +141,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         Array.Copy(fastEMABuffer, lookbackSignal, outMacd, 0, endIdx - startIdx + 1);
-        retCode = TA_INT_EMA(fastEMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalPeriod,
+        retCode = CalcExponentialMA(fastEMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalPeriod,
             TTwo / (T.CreateChecked(optInSignalPeriod) + T.One));
         if (retCode != Core.RetCode.Success)
         {
@@ -161,7 +159,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode TA_INT_PO(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
+    private static Core.RetCode CalcPriceOscillator(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
             out int outNbElement, int optInFastPeriod, int optInSlowPeriod, Core.MAType optInMethod, T[] tempBuffer,
             bool doPercentageOutput)
     {
@@ -189,7 +187,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             if (doPercentageOutput)
             {
                 T tempReal = outReal[i];
-                outReal[i] = !TA_IsZero(tempReal) ? (tempBuffer[j] - tempReal) / tempReal * THundred : T.Zero;
+                outReal[i] = !T.IsZero(tempReal) ? (tempBuffer[j] - tempReal) / tempReal * THundred : T.Zero;
             }
             else
             {
@@ -203,7 +201,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return retCode;
     }
 
-    private static Core.RetCode TA_INT_SMA(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx, out int outNbElement,
+    private static Core.RetCode CalcSimpleMA(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx, out int outNbElement,
         int optInTimePeriod)
     {
         outBegIdx = outNbElement = 0;
@@ -246,8 +244,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    private static void TA_INT_StdDevUsingPrecalcMA(T[] inReal, T[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement,
-            T[] outReal, int optInTimePeriod)
+    private static void CalcStandardDeviation(T[] inReal, T[] inMovAvg, int inMovAvgBegIdx, int inMovAvgNbElement, T[] outReal,
+        int optInTimePeriod)
     {
         int startSum = inMovAvgBegIdx + 1 - optInTimePeriod;
         int endSum = inMovAvgBegIdx;
@@ -275,12 +273,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             tempReal *= tempReal;
             meanValue2 -= tempReal;
 
-            outReal[outIdx] = !TA_IsZeroOrNeg(meanValue2) ? T.Sqrt(meanValue2) : T.Zero;
+            outReal[outIdx] = meanValue2 > T.Zero ? T.Sqrt(meanValue2) : T.Zero;
         }
     }
 
-    private static Core.RetCode TA_INT_VAR(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
-            out int outNbElement, int optInTimePeriod)
+    private static Core.RetCode CalcVariance(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx, out int outNbElement,
+        int optInTimePeriod)
     {
         outBegIdx = outNbElement = 0;
 
@@ -333,10 +331,6 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    private static bool TA_IsZero(T v)=> -TA_EPSILON < v && v < TA_EPSILON;
-
-    private static bool TA_IsZeroOrNeg(T v)=> v < TA_EPSILON;
-
     private static void TrueRange(T th, T tl, T yc, out T @out)
     {
         @out = th - tl;
@@ -353,8 +347,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
     }
 
-    private static void DoPriceWma(T[] real, ref int idx, ref T periodWMASub, ref T periodWMASum,
-        ref T trailingWMAValue, T varNewPrice, out T varToStoreSmoothedValue)
+    private static void DoPriceWma(T[] real, ref int idx, ref T periodWMASub, ref T periodWMASum, ref T trailingWMAValue, T varNewPrice,
+        out T varToStoreSmoothedValue)
     {
         periodWMASub += varNewPrice;
         periodWMASub -= trailingWMAValue;
@@ -364,8 +358,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         periodWMASum -= periodWMASub;
     }
 
-    private static void CalcTerms(T[] inLow, T[] inHigh, T[] inClose, int day, out T trueRange,
-        out T closeMinusTrueLow)
+    private static void CalcTerms(T[] inLow, T[] inHigh, T[] inClose, int day, out T trueRange, out T closeMinusTrueLow)
     {
         T tempLT = inLow[day];
         T tempHT = inHigh[day];
@@ -386,7 +379,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
     }
 
-    private static IDictionary<string, T> InitHilbertVariables()
+    private static Dictionary<string, T> InitHilbertVariables()
     {
         var variables = new Dictionary<string, T>(4 * 11);
 
@@ -408,8 +401,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return variables;
     }
 
-    private static void DoHilbertTransform(IDictionary<string, T> variables, string varName, T input, string oddOrEvenId,
-        int hilbertIdx, T adjustedPrevPeriod)
+    private static void DoHilbertTransform(IDictionary<string, T> variables, string varName, T input, string oddOrEvenId, int hilbertIdx,
+        T adjustedPrevPeriod)
     {
         T a = T.CreateChecked(0.0962);
         T b = T.CreateChecked(0.5769);
@@ -425,14 +418,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         variables[varName] *= adjustedPrevPeriod;
     }
 
-    private static void DoHilbertOdd(IDictionary<string, T> variables, string varName, T input, int hilbertIdx,
-        T adjustedPrevPeriod)
+    private static void DoHilbertOdd(IDictionary<string, T> variables, string varName, T input, int hilbertIdx, T adjustedPrevPeriod)
     {
         DoHilbertTransform(variables, varName, input, "Odd", hilbertIdx, adjustedPrevPeriod);
     }
 
-    private static void DoHilbertEven(IDictionary<string, T> variables, string varName, T input, int hilbertIdx,
-        T adjustedPrevPeriod)
+    private static void DoHilbertEven(IDictionary<string, T> variables, string varName, T input, int hilbertIdx, T adjustedPrevPeriod)
     {
         DoHilbertTransform(variables, varName, input, "Even", hilbertIdx, adjustedPrevPeriod);
     }

@@ -17,7 +17,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.BadParam;
         }
 
-        return TA_INT_EMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
+        return CalcExponentialMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
             TTwo / (T.CreateChecked(optInTimePeriod) + T.One));
     }
 

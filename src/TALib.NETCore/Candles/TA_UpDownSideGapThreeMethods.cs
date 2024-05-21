@@ -32,19 +32,19 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (TA_CandleColor(inClose, inOpen, i - 2) == TA_CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
-                (int) TA_CandleColor(inClose, inOpen, i - 1) == -(int) TA_CandleColor(inClose, inOpen, i) && // 3rd opposite color
+            if (CandleColor(inClose, inOpen, i - 2) == CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
+                (int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) && // 3rd opposite color
                 inOpen[i] < T.Max(inClose[i - 1], inOpen[i - 1]) && // 3rd opens within 2nd rb
                 inOpen[i] > T.Min(inClose[i - 1], inOpen[i - 1]) &&
                 inClose[i] < T.Max(inClose[i - 2], inOpen[i - 2]) && // 3rd closes within 1st rb
                 inClose[i] > T.Min(inClose[i - 2], inOpen[i - 2]) &&
-                (TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White && // when 1st is white
-                 TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
+                (CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White && // when 1st is white
+                 RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
                  ||
-                 TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && // when 1st is black
-                 TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
+                 CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && // when 1st is black
+                 RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
             {
-                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i - 2) * 100;
+                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i - 2) * 100;
             }
             else
             {

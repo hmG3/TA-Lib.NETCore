@@ -42,7 +42,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return retCode;
         }
 
-        retCode = TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
+        retCode = CalcSimpleMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;

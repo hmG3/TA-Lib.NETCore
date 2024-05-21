@@ -17,7 +17,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.BadParam;
         }
 
-        Core.RetCode retCode = TA_INT_VAR(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        Core.RetCode retCode = CalcVariance(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -28,7 +28,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             for (var i = 0; i < outNbElement; i++)
             {
                 T tempReal = outReal[i];
-                outReal[i] = !TA_IsZeroOrNeg(tempReal) ? T.Sqrt(tempReal) * T.CreateChecked(optInNbDev) : T.Zero;
+                outReal[i] = tempReal > T.Zero ? T.Sqrt(tempReal) * T.CreateChecked(optInNbDev) : T.Zero;
             }
         }
         else
@@ -36,7 +36,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             for (var i = 0; i < outNbElement; i++)
             {
                 T tempReal = outReal[i];
-                outReal[i] = !TA_IsZeroOrNeg(tempReal) ? T.Sqrt(tempReal) : T.Zero;
+                outReal[i] = tempReal > T.Zero ? T.Sqrt(tempReal) : T.Zero;
             }
         }
 

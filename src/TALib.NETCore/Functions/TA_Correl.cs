@@ -51,7 +51,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T trailingX = inReal0[trailingIdx];
         T trailingY = inReal1[trailingIdx++];
         T tempReal = (sumX2 - sumX * sumX / tOptInTimePeriod) * (sumY2 - sumY * sumY / tOptInTimePeriod);
-        outReal[0] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / tOptInTimePeriod) / T.Sqrt(tempReal) : T.Zero;
+        outReal[0] = tempReal > T.Zero ? (sumXY - sumX * sumY / tOptInTimePeriod) / T.Sqrt(tempReal) : T.Zero;
 
         int outIdx = 1;
         while (today <= endIdx)
@@ -75,7 +75,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             trailingX = inReal0[trailingIdx];
             trailingY = inReal1[trailingIdx++];
             tempReal = (sumX2 - sumX * sumX / tOptInTimePeriod) * (sumY2 - sumY * sumY / tOptInTimePeriod);
-            outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal) ? (sumXY - sumX * sumY / tOptInTimePeriod) / T.Sqrt(tempReal) : T.Zero;
+            outReal[outIdx++] = tempReal > T.Zero ? (sumXY - sumX * sumY / tOptInTimePeriod) / T.Sqrt(tempReal) : T.Zero;
         }
 
         outNbElement = outIdx;

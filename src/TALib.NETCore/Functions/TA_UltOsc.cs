@@ -102,17 +102,17 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
             T output = T.Zero;
 
-            if (!TA_IsZero(b1Total))
+            if (!T.IsZero(b1Total))
             {
                 output += TFour * (a1Total / b1Total);
             }
 
-            if (!TA_IsZero(b2Total))
+            if (!T.IsZero(b2Total))
             {
                 output += TTwo * (a2Total / b2Total);
             }
 
-            if (!TA_IsZero(b3Total))
+            if (!T.IsZero(b3Total))
             {
                 output += a3Total / b3Total;
             }

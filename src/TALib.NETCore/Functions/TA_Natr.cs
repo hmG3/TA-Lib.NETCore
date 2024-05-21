@@ -41,7 +41,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         var prevATRTemp = new T[1];
-        retCode = TA_INT_SMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
+        retCode = CalcSimpleMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -62,7 +62,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         outIdx = 1;
         T tempValue = inClose[today];
-        outReal[0] = !TA_IsZero(tempValue) ? prevATR / tempValue * THundred : T.Zero;
+        outReal[0] = !T.IsZero(tempValue) ? prevATR / tempValue * THundred : T.Zero;
 
         int nbATR = endIdx - startIdx + 1;
         while (--nbATR != 0)
@@ -71,7 +71,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevATR += tempBuffer[today++];
             prevATR /= tOptInTimePeriod;
             tempValue = inClose[today];
-            if (!TA_IsZero(tempValue))
+            if (!T.IsZero(tempValue))
             {
                 outReal[outIdx] = prevATR / tempValue * THundred;
             }

@@ -13,12 +13,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null || optInFastPeriod < 2 || optInSlowPeriod < 2 || optInSignalPeriod < 1)
+        if (inReal == null || outMACD == null || outMACDSignal == null || outMACDHist == null ||
+            optInFastPeriod < 2 || optInSlowPeriod < 2 || optInSignalPeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
 
-        return TA_INT_MACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement,
+        return CalcMACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement,
             optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
     }
 

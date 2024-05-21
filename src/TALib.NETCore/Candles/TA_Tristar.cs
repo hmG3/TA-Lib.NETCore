@@ -29,11 +29,11 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         }
 
         T bodyPeriodTotal = T.Zero;
-        int bodyTrailingIdx = startIdx - 2 - TA_CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
+        int bodyTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
         int i = bodyTrailingIdx;
         while (i < startIdx - 2)
         {
-            bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
+            bodyPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
 
@@ -41,16 +41,16 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (TA_RealBody(inClose, inOpen, i - 2) <=
-                TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyPeriodTotal, i - 2) && // 1st: doji
-                TA_RealBody(inClose, inOpen, i - 1) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
+            if (RealBody(inClose, inOpen, i - 2) <=
+                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyPeriodTotal, i - 2) && // 1st: doji
+                RealBody(inClose, inOpen, i - 1) <= CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
                     bodyPeriodTotal, i - 2) && // 2nd: doji
-                TA_RealBody(inClose, inOpen, i) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
+                RealBody(inClose, inOpen, i) <= CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
                     bodyPeriodTotal, i - 2))
             {
                 // 3rd: doji
                 outInteger[outIdx] = 0;
-                if (TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // 2nd gaps up
+                if (RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // 2nd gaps up
                     &&
                     T.Max(inOpen[i], inClose[i]) < T.Max(inOpen[i - 1], inClose[i - 1]) // 3rd is not higher than 2nd
                    )
@@ -58,7 +58,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                     outInteger[outIdx] = -100;
                 }
 
-                if (TA_RealBodyGapDown(inOpen, inClose, i - 1, i - 2) // 2nd gaps down
+                if (RealBodyGapDown(inOpen, inClose, i - 1, i - 2) // 2nd gaps down
                     &&
                     T.Min(inOpen[i], inClose[i]) > T.Min(inOpen[i - 1], inClose[i - 1]) // 3rd is not lower than 2nd
                    )
@@ -76,8 +76,8 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i - 2) -
-                               TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyTrailingIdx);
+            bodyPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i - 2) -
+                               CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyTrailingIdx);
             i++;
             bodyTrailingIdx++;
         } while (i <= endIdx);
@@ -88,5 +88,5 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int TristarLookback() => TA_CandleAveragePeriod(Core.CandleSettingType.BodyDoji) + 2;
+    public static int TristarLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyDoji) + 2;
 }

@@ -38,7 +38,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         for (int j = 0, i = startIdx - lookbackTotal; i <= endIdx; i++, j++)
         {
             T tempReal = inHigh[i] + inLow[i];
-            if (!TA_IsZero(tempReal))
+            if (!T.IsZero(tempReal))
             {
                 tempReal = TFour * (inHigh[i] - inLow[i]) / tempReal;
                 tempBuffer1[j] = inHigh[i] * (T.One + tempReal);

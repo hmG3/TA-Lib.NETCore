@@ -31,20 +31,20 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         T bodyLongPeriodTotal = T.Zero;
         T bodyShortPeriodTotal = T.Zero;
         T bodyShortPeriodTotal2 = T.Zero;
-        int bodyLongTrailingIdx = startIdx - 2 - TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong);
-        int bodyShortTrailingIdx = startIdx - 1 - TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort);
+        int bodyLongTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
+        int bodyShortTrailingIdx = startIdx - 1 - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
         int i = bodyLongTrailingIdx;
         while (i < startIdx - 2)
         {
-            bodyLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
+            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
             i++;
         }
 
         i = bodyShortTrailingIdx;
         while (i < startIdx - 1)
         {
-            bodyShortPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i);
-            bodyShortPeriodTotal2 += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i + 1);
+            bodyShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i);
+            bodyShortPeriodTotal2 += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i + 1);
             i++;
         }
 
@@ -53,16 +53,16 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (TA_RealBody(inClose, inOpen, i - 2) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
+            if (RealBody(inClose, inOpen, i - 2) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
                     bodyLongPeriodTotal, i - 2) && // 1st: long
-                TA_CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White && //           white
-                TA_RealBody(inClose, inOpen, i - 1) <= TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
+                CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White && //           white
+                RealBody(inClose, inOpen, i - 1) <= CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
                     bodyShortPeriodTotal, i - 1) && // 2nd: short
-                TA_RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && //            gapping up
-                TA_RealBody(inClose, inOpen, i) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
+                RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && //            gapping up
+                RealBody(inClose, inOpen, i) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
                     bodyShortPeriodTotal2, i) && // 3rd: longer than short
-                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && //          black real body
-                inClose[i] < inClose[i - 2] - TA_RealBody(inClose, inOpen, i - 2) * T.CreateChecked(optInPenetration)) //       well within 1st rb
+                CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && //          black real body
+                inClose[i] < inClose[i - 2] - RealBody(inClose, inOpen, i - 2) * T.CreateChecked(optInPenetration)) //       well within 1st rb
             {
                 outInteger[outIdx++] = -100;
             }
@@ -74,12 +74,12 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i - 2) -
-                                   TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
-            bodyShortPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i - 1) -
-                                    TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
-            bodyShortPeriodTotal2 += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
-                                     TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
+            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i - 2) -
+                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+            bodyShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i - 1) -
+                                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+            bodyShortPeriodTotal2 += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                                     CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
                                          bodyShortTrailingIdx + 1);
             i++;
             bodyLongTrailingIdx++;
@@ -93,5 +93,5 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int EveningStarLookback() =>
-        Math.Max(TA_CandleAveragePeriod(Core.CandleSettingType.BodyShort), TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 2;
+        Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyShort), CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 2;
 }

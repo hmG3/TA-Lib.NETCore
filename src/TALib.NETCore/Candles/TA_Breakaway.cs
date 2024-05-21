@@ -29,11 +29,11 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         }
 
         T bodyLongPeriodTotal = T.Zero;
-        int bodyLongTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong);
+        int bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         int i = bodyLongTrailingIdx;
         while (i < startIdx)
         {
-            bodyLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 4);
+            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 4);
             i++;
         }
 
@@ -42,25 +42,25 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (TA_RealBody(inClose, inOpen, i - 4) > TA_CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
+            if (RealBody(inClose, inOpen, i - 4) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
                     bodyLongPeriodTotal, i - 4) && // 1st long
-                TA_CandleColor(inClose, inOpen, i - 4) ==
-                TA_CandleColor(inClose, inOpen, i - 3) && // 1st, 2nd, 4th same color, 5th opposite
-                TA_CandleColor(inClose, inOpen, i - 3) == TA_CandleColor(inClose, inOpen, i - 1) &&
-                (int) TA_CandleColor(inClose, inOpen, i - 1) == -(int) TA_CandleColor(inClose, inOpen, i) &&
-                (TA_CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.Black && // when 1st is black:
-                 TA_RealBodyGapDown(inOpen, inClose, i - 3, i - 4) && // 2nd gaps down
+                CandleColor(inClose, inOpen, i - 4) ==
+                CandleColor(inClose, inOpen, i - 3) && // 1st, 2nd, 4th same color, 5th opposite
+                CandleColor(inClose, inOpen, i - 3) == CandleColor(inClose, inOpen, i - 1) &&
+                (int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) &&
+                (CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.Black && // when 1st is black:
+                 RealBodyGapDown(inOpen, inClose, i - 3, i - 4) && // 2nd gaps down
                  inHigh[i - 2] < inHigh[i - 3] && inLow[i - 2] < inLow[i - 3] && // 3rd has lower high and low than 2nd
                  inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] < inLow[i - 2] && // 4th has lower high and low than 3rd
                  inClose[i] > inOpen[i - 3] && inClose[i] < inClose[i - 4] // 5th closes inside the gap
                  ||
-                 TA_CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.White && // when 1st is white:
-                 TA_RealBodyGapUp(inClose, inOpen, i - 3, i - 4) && // 2nd gaps up
+                 CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.White && // when 1st is white:
+                 RealBodyGapUp(inClose, inOpen, i - 3, i - 4) && // 2nd gaps up
                  inHigh[i - 2] > inHigh[i - 3] && inLow[i - 2] > inLow[i - 3] && // 3rd has higher high and low than 2nd
                  inHigh[i - 1] > inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 4th has higher high and low than 3rd
                  inClose[i] < inOpen[i - 3] && inClose[i] > inClose[i - 4])) // 5th closes inside the gap
             {
-                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i) * 100;
+                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i) * 100;
             }
             else
             {
@@ -70,8 +70,8 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
             /* add the current range and subtract the first range: this is done after the pattern recognition
              * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
              */
-            bodyLongPeriodTotal += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 4)
-                                   - TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
+            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 4)
+                                   - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
                                        bodyLongTrailingIdx - 4);
             i++;
             bodyLongTrailingIdx++;
@@ -83,5 +83,5 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int BreakawayLookback() => TA_CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 4;
+    public static int BreakawayLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 4;
 }

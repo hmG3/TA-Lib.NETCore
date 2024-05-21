@@ -40,13 +40,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T slowk = TTwo / (T.CreateChecked(optInSlowPeriod) + T.One);
         T oneMinusSlowk = T.One - slowk;
 
-        CalculateAd();
+        CalcAccumulationDistribution();
         T fastEMA = ad;
         T slowEMA = ad;
 
         while (today < startIdx)
         {
-            CalculateAd();
+            CalcAccumulationDistribution();
             fastEMA = fastk * ad + oneMinusFastk * fastEMA;
             slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
         }
@@ -54,7 +54,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         while (today <= endIdx)
         {
-            CalculateAd();
+            CalcAccumulationDistribution();
             fastEMA = fastk * ad + oneMinusFastk * fastEMA;
             slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
 
@@ -65,7 +65,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         return Core.RetCode.Success;
 
-        void CalculateAd()
+        void CalcAccumulationDistribution()
         {
             T h = inHigh[today];
             T l = inLow[today];

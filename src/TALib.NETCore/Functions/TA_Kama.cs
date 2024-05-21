@@ -50,7 +50,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T periodROC = tempReal - tempReal2;
 
         T trailingValue = tempReal2;
-        if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
+        if (sumROC1 <= periodROC || T.IsZero(sumROC1))
         {
             tempReal = T.One;
         }
@@ -73,7 +73,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             sumROC1 += T.Abs(tempReal - inReal[today - 1]);
 
             trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
+            if (sumROC1 <= periodROC || T.IsZero(sumROC1))
             {
                 tempReal = T.One;
             }
@@ -101,7 +101,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             sumROC1 += T.Abs(tempReal - inReal[today - 1]);
 
             trailingValue = tempReal2;
-            if (sumROC1 <= periodROC || TA_IsZero(sumROC1))
+            if (sumROC1 <= periodROC || T.IsZero(sumROC1))
             {
                 tempReal = T.One;
             }

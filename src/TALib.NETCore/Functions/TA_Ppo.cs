@@ -19,7 +19,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         var tempBuffer = new T[endIdx - startIdx + 1];
 
-        return TA_INT_PO(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod,
+        return CalcPriceOscillator(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod,
             optInMAType, tempBuffer, true);
     }
 

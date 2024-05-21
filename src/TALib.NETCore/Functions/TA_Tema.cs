@@ -33,7 +33,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T k = TTwo / (T.CreateChecked(optInTimePeriod) + T.One);
 
         var firstEMA = new T[tempInt];
-        Core.RetCode retCode = TA_INT_EMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
+        Core.RetCode retCode = CalcExponentialMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
             out var firstEMANbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || firstEMANbElement == 0)
         {
@@ -41,14 +41,14 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         var secondEMA = new T[firstEMANbElement];
-        retCode = TA_INT_EMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
+        retCode = CalcExponentialMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
             optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || secondEMANbElement == 0)
         {
             return retCode;
         }
 
-        retCode = TA_INT_EMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx, out var thirdEMANbElement,
+        retCode = CalcExponentialMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx, out var thirdEMANbElement,
             optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || thirdEMANbElement == 0)
         {

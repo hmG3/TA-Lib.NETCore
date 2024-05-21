@@ -21,7 +21,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         for (var i = startIdx; i <= endIdx; i++)
         {
             T tempReal = inHigh[i] - inLow[i];
-            outReal[outIdx++] = !TA_IsZeroOrNeg(tempReal) ? (inClose[i] - inOpen[i]) / tempReal : T.Zero;
+            outReal[outIdx++] = tempReal > T.Zero ? (inClose[i] - inOpen[i]) / tempReal : T.Zero;
         }
 
         outBegIdx = startIdx;

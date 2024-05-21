@@ -32,14 +32,14 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
-                TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&            // white engulfs black
+            if (CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&            // white engulfs black
                 (inClose[i] >= inOpen[i - 1] && inOpen[i] < inClose[i - 1] ||
                  inClose[i] > inOpen[i - 1] && inOpen[i] <= inClose[i - 1]
                 )
                 ||
-                TA_CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
-                TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&            // black engulfs white
+                CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&            // black engulfs white
                 (inOpen[i] >= inClose[i - 1] && inClose[i] < inOpen[i - 1] ||
                  inOpen[i] > inClose[i - 1] && inClose[i] <= inOpen[i - 1]
                 )
@@ -47,11 +47,11 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
             {
                 if (!inOpen[i].Equals(inClose[i - 1]) && !inClose[i].Equals(inOpen[i - 1]))
                 {
-                    outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i) * 100;
+                    outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i) * 100;
                 }
                 else
                 {
-                    outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i) * 80;
+                    outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i) * 80;
                 }
             }
             else

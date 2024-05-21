@@ -54,7 +54,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
                 if (diffM > T.Zero && diffP < diffM)
                 {
                     TrueRange(prevHigh, prevLow, prevClose, out tempReal);
-                    outReal[outIdx++] = !TA_IsZero(tempReal) ? diffM / tempReal : T.Zero;
+                    outReal[outIdx++] = !T.IsZero(tempReal) ? diffM / tempReal : T.Zero;
                 }
                 else
                 {
@@ -124,7 +124,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevClose = inClose[today];
         }
 
-        outReal[0] = !TA_IsZero(prevTR) ? THundred * (prevMinusDM / prevTR) : T.Zero;
+        outReal[0] = !T.IsZero(prevTR) ? THundred * (prevMinusDM / prevTR) : T.Zero;
         outIdx = 1;
 
         while (today < endIdx)
@@ -148,7 +148,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / tOptInTimePeriod + tempReal;
             prevClose = inClose[today];
-            outReal[outIdx++] = !TA_IsZero(prevTR) ? THundred * (prevMinusDM / prevTR) : T.Zero;
+            outReal[outIdx++] = !T.IsZero(prevTR) ? THundred * (prevMinusDM / prevTR) : T.Zero;
         }
 
         outNbElement = outIdx;

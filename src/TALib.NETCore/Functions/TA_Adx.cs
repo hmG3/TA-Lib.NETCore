@@ -97,12 +97,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / tOptInTimePeriod + tempReal;
             prevClose = inClose[today];
-            if (!TA_IsZero(prevTR))
+            if (!T.IsZero(prevTR))
             {
                 minusDI = THundred * (prevMinusDM / prevTR);
                 plusDI = THundred * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
+                if (!T.IsZero(tempReal))
                 {
                     sumDX += THundred * (T.Abs(minusDI - plusDI) / tempReal);
                 }
@@ -138,12 +138,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / tOptInTimePeriod + tempReal;
             prevClose = inClose[today];
-            if (!TA_IsZero(prevTR))
+            if (!T.IsZero(prevTR))
             {
                 minusDI = THundred * (prevMinusDM / prevTR);
                 plusDI = THundred * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
+                if (!T.IsZero(tempReal))
                 {
                     tempReal = THundred * (T.Abs(minusDI - plusDI) / tempReal);
                     prevADX = (prevADX * (tOptInTimePeriod - T.One) + tempReal) / tOptInTimePeriod;
@@ -180,12 +180,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / tOptInTimePeriod + tempReal;
             prevClose = inClose[today];
-            if (!TA_IsZero(prevTR))
+            if (!T.IsZero(prevTR))
             {
                 minusDI = THundred * (prevMinusDM / prevTR);
                 plusDI = THundred * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
+                if (!T.IsZero(tempReal))
                 {
                     tempReal = THundred * (T.Abs(minusDI - plusDI) / tempReal);
                     prevADX = (prevADX * (tOptInTimePeriod - T.One) + tempReal) / tOptInTimePeriod;

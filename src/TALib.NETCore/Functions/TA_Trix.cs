@@ -35,7 +35,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         T k = TTwo / (T.CreateChecked(optInTimePeriod) + T.One);
         Core.RetCode retCode =
-            TA_INT_EMA(inReal, startIdx - lookbackTotal, endIdx, tempBuffer, out _, out var nbElement, optInTimePeriod, k);
+            CalcExponentialMA(inReal, startIdx - lookbackTotal, endIdx, tempBuffer, out _, out var nbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
         {
             return retCode;
@@ -44,14 +44,14 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         nbElementToOutput--;
 
         nbElementToOutput -= emaLookback;
-        retCode = TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
+        retCode = CalcExponentialMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
         {
             return retCode;
         }
 
         nbElementToOutput -= emaLookback;
-        retCode = TA_INT_EMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
+        retCode = CalcExponentialMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
         {
             return retCode;

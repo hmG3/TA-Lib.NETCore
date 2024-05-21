@@ -29,12 +29,12 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         }
 
         var nearPeriodTotal = new T[4];
-        int nearTrailingIdx = startIdx - TA_CandleAveragePeriod(Core.CandleSettingType.Near);
+        int nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
         int i = nearTrailingIdx;
         while (i < startIdx)
         {
-            nearPeriodTotal[3] += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 3);
-            nearPeriodTotal[2] += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2);
+            nearPeriodTotal[3] += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 3);
+            nearPeriodTotal[2] += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2);
             i++;
         }
 
@@ -43,31 +43,31 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            if (TA_CandleColor(inClose, inOpen, i - 3) == TA_CandleColor(inClose, inOpen, i - 2) &&
-                TA_CandleColor(inClose, inOpen, i - 2) == TA_CandleColor(inClose, inOpen, i - 1) &&
-                (int) TA_CandleColor(inClose, inOpen, i) == -(int) TA_CandleColor(inClose, inOpen, i - 1) &&
-                inOpen[i - 2] >= T.Min(inOpen[i - 3], inClose[i - 3]) - TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+            if (CandleColor(inClose, inOpen, i - 3) == CandleColor(inClose, inOpen, i - 2) &&
+                CandleColor(inClose, inOpen, i - 2) == CandleColor(inClose, inOpen, i - 1) &&
+                (int) CandleColor(inClose, inOpen, i) == -(int) CandleColor(inClose, inOpen, i - 1) &&
+                inOpen[i - 2] >= T.Min(inOpen[i - 3], inClose[i - 3]) - CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.Near, nearPeriodTotal[3], i - 3) &&
-                inOpen[i - 2] <= T.Max(inOpen[i - 3], inClose[i - 3]) + TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                inOpen[i - 2] <= T.Max(inOpen[i - 3], inClose[i - 3]) + CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.Near, nearPeriodTotal[3], i - 3) &&
-                inOpen[i - 1] >= T.Min(inOpen[i - 2], inClose[i - 2]) - TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                inOpen[i - 1] >= T.Min(inOpen[i - 2], inClose[i - 2]) - CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.Near, nearPeriodTotal[2], i - 2) &&
-                inOpen[i - 1] <= T.Max(inOpen[i - 2], inClose[i - 2]) + TA_CandleAverage(inOpen, inHigh, inLow, inClose,
+                inOpen[i - 1] <= T.Max(inOpen[i - 2], inClose[i - 2]) + CandleAverage(inOpen, inHigh, inLow, inClose,
                     Core.CandleSettingType.Near, nearPeriodTotal[2], i - 2) &&
                 (
-                    TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+                    CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
                     inClose[i - 1] > inClose[i - 2] && inClose[i - 2] > inClose[i - 3] &&
                     inOpen[i] > inClose[i - 1] &&
                     inClose[i] < inOpen[i - 3]
                     ||
-                    TA_CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+                    CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
                     inClose[i - 1] < inClose[i - 2] && inClose[i - 2] < inClose[i - 3] &&
                     inOpen[i] < inClose[i - 1] &&
                     inClose[i] > inOpen[i - 3]
                 )
                )
             {
-                outInteger[outIdx++] = (int) TA_CandleColor(inClose, inOpen, i - 1) * 100;
+                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i - 1) * 100;
             }
             else
             {
@@ -76,8 +76,8 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
 
             for (var totIdx = 3; totIdx >= 2; --totIdx)
             {
-                nearPeriodTotal[totIdx] += TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - totIdx)
-                                           - TA_CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near,
+                nearPeriodTotal[totIdx] += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - totIdx)
+                                           - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near,
                                                nearTrailingIdx - totIdx);
             }
 
@@ -91,5 +91,5 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int ThreeLineStrikeLookback() => TA_CandleAveragePeriod(Core.CandleSettingType.Near) + 3;
+    public static int ThreeLineStrikeLookback() => CandleAveragePeriod(Core.CandleSettingType.Near) + 3;
 }

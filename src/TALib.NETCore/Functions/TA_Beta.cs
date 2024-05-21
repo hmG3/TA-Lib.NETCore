@@ -40,11 +40,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         while (i < startIdx)
         {
             tmpReal = inReal0[i];
-            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : T.Zero;
+            x = !T.IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : T.Zero;
             lastPriceX = tmpReal;
 
             tmpReal = inReal1[i++];
-            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : T.Zero;
+            y = !T.IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : T.Zero;
             lastPriceY = tmpReal;
 
             sxx += x * x;
@@ -59,11 +59,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         do
         {
             tmpReal = inReal0[i];
-            x = !TA_IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : T.Zero;
+            x = !T.IsZero(lastPriceX) ? (tmpReal - lastPriceX) / lastPriceX : T.Zero;
             lastPriceX = tmpReal;
 
             tmpReal = inReal1[i++];
-            y = !TA_IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : T.Zero;
+            y = !T.IsZero(lastPriceY) ? (tmpReal - lastPriceY) / lastPriceY : T.Zero;
             lastPriceY = tmpReal;
 
             sxx += x * x;
@@ -72,15 +72,15 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             sy += y;
 
             tmpReal = inReal0[trailingIdx];
-            x = !TA_IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : T.Zero;
+            x = !T.IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : T.Zero;
             trailingLastPriceX = tmpReal;
 
             tmpReal = inReal1[trailingIdx++];
-            y = !TA_IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : T.Zero;
+            y = !T.IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : T.Zero;
             trailingLastPriceY = tmpReal;
 
             tmpReal = tOptInTimePeriod * sxx - sx * sx;
-            outReal[outIdx++] = !TA_IsZero(tmpReal) ? (tOptInTimePeriod * sxy - sx * sy) / tmpReal : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tmpReal) ? (tOptInTimePeriod * sxy - sx * sy) / tmpReal : T.Zero;
 
             sxx -= x * x;
             sxy -= x * y;

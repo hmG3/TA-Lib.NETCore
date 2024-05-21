@@ -61,7 +61,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             tempValue2 = prevGain / tOptInTimePeriod;
 
             tempValue1 = tempValue2 + tempValue1;
-            outReal[outIdx++] = !TA_IsZero(tempValue1) ? THundred * (tempValue2 / tempValue1) : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tempValue1) ? THundred * (tempValue2 / tempValue1) : T.Zero;
 
             if (today > endIdx)
             {
@@ -98,7 +98,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         if (today > startIdx)
         {
             T tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !TA_IsZero(tempValue1) ? THundred * (prevGain / tempValue1) : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tempValue1) ? THundred * (prevGain / tempValue1) : T.Zero;
         }
         else
         {
@@ -146,7 +146,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevLoss /= tOptInTimePeriod;
             prevGain /= tOptInTimePeriod;
             tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !TA_IsZero(tempValue1) ? THundred * (prevGain / tempValue1) : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tempValue1) ? THundred * (prevGain / tempValue1) : T.Zero;
         }
 
         outBegIdx = startIdx;

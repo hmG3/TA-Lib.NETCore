@@ -93,12 +93,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevClose = inClose[today];
         }
 
-        if (!TA_IsZero(prevTR))
+        if (!T.IsZero(prevTR))
         {
             T minusDI = THundred * (prevMinusDM / prevTR);
             T plusDI = THundred * (prevPlusDM / prevTR);
             T tempReal = minusDI + plusDI;
-            outReal[0] = !TA_IsZero(tempReal) ? THundred * (T.Abs(minusDI - plusDI) / tempReal) : T.Zero;
+            outReal[0] = !T.IsZero(tempReal) ? THundred * (T.Abs(minusDI - plusDI) / tempReal) : T.Zero;
         }
         else
         {
@@ -133,12 +133,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevTR = prevTR - prevTR / tOptInTimePeriod + tempReal;
             prevClose = inClose[today];
 
-            if (!TA_IsZero(prevTR))
+            if (!T.IsZero(prevTR))
             {
                 T minusDI = THundred * (prevMinusDM / prevTR);
                 T plusDI = THundred * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                if (!TA_IsZero(tempReal))
+                if (!T.IsZero(tempReal))
                 {
                     outReal[outIdx] = THundred * (T.Abs(minusDI - plusDI) / tempReal);
                 }

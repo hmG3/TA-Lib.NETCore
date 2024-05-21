@@ -54,7 +54,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         if (optInMAType == Core.MAType.Sma)
         {
-            TA_INT_StdDevUsingPrecalcMA(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
+            CalcStandardDeviation(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
         }
         else
         {
