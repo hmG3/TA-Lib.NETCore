@@ -2,6 +2,9 @@ namespace TALib;
 
 public static partial class Core
 {
+    /// <summary>
+    /// Represents unique identifiers for functions that utilize algorithms with "memories".
+    /// </summary>
     public enum UnstableFunc
     {
         Adx,
