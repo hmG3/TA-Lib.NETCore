@@ -207,5 +207,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int HtSineLookback() => Core.UnstablePeriodSettings.Get(Core.FuncUnstId.HtSine) + 63;
+    public static int HtSineLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtSine) + 63;
 }

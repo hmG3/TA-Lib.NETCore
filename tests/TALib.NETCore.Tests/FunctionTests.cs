@@ -56,7 +56,7 @@ public sealed class FunctionTests
 
         if (model.Unstable.HasValue)
         {
-            Core.UnstablePeriodSettings.Set(Core.FuncUnstId.All, default);
+            Core.UnstablePeriodSettings.Set(Core.UnstableFunc.All, 0);
         }
     }
 
@@ -111,7 +111,7 @@ public sealed class FunctionTests
 
         if (model.Unstable.HasValue)
         {
-            Core.UnstablePeriodSettings.Set(Core.FuncUnstId.All, default);
+            Core.UnstablePeriodSettings.Set(Core.UnstableFunc.All, 0);
         }
     }
 }

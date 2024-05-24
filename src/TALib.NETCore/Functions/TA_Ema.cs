@@ -22,5 +22,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int EmaLookback(int optInTimePeriod = 30) =>
-        optInTimePeriod < 2 ? -1 : optInTimePeriod - 1 + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Ema);
+        optInTimePeriod < 2 ? -1 : optInTimePeriod - 1 + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Ema);
 }

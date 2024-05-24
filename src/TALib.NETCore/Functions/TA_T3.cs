@@ -131,5 +131,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int T3Lookback(int optInTimePeriod = 5) =>
-        optInTimePeriod < 2 ? -1 : (optInTimePeriod - 1) * 6 + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.T3);
+        optInTimePeriod < 2 ? -1 : (optInTimePeriod - 1) * 6 + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.T3);
 }

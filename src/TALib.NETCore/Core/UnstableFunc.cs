@@ -2,7 +2,7 @@ namespace TALib;
 
 public static partial class Core
 {
-    public enum FuncUnstId
+    public enum UnstableFunc
     {
         Adx,
         Adxr,

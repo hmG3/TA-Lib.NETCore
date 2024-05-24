@@ -100,7 +100,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
 
-        i = Core.UnstablePeriodSettings.Get(Core.FuncUnstId.MinusDI) + 1;
+        i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.MinusDI) + 1;
         while (i-- != 0)
         {
             today++;
@@ -158,5 +158,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
     public static int MinusDILookback(int optInTimePeriod = 14) =>
         optInTimePeriod < 1 ? -1 :
-        optInTimePeriod > 1 ? optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.MinusDI) : 1;
+        optInTimePeriod > 1 ? optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.MinusDI) : 1;
 }

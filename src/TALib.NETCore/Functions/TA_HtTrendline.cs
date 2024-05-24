@@ -179,5 +179,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int HtTrendlineLookback() => Core.UnstablePeriodSettings.Get(Core.FuncUnstId.HtTrendline) + 63;
+    public static int HtTrendlineLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendline) + 63;
 }

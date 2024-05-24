@@ -35,7 +35,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T prevValue = inReal[today];
         T prevGain;
         T prevLoss;
-        if (Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Rsi) == 0 && Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
+        if (Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Rsi) == 0 && Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
         {
             T savePrevValue = prevValue;
             T tempValue1;
@@ -162,7 +162,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return -1;
         }
 
-        int retValue = optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Rsi);
+        int retValue = optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Rsi);
         if (Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
         {
             retValue--;

@@ -7,18 +7,18 @@ public static partial class Core
 {
     public static class UnstablePeriodSettings
     {
-        private static readonly Dictionary<FuncUnstId, int> UnstablePeriods;
+        private static readonly Dictionary<UnstableFunc, int> UnstablePeriods;
 
         static UnstablePeriodSettings()
         {
-            UnstablePeriods = Enumerable.Range(0, (int) FuncUnstId.All).ToDictionary(i => (FuncUnstId) i, _ => default(int));
+            UnstablePeriods = Enumerable.Range(0, (int) UnstableFunc.All).ToDictionary(i => (UnstableFunc) i, _ => default(int));
         }
 
-        public static int Get(FuncUnstId id) => id >= FuncUnstId.All ? default : UnstablePeriods[id];
+        public static int Get(UnstableFunc id) => id >= UnstableFunc.All ? default : UnstablePeriods[id];
 
-        public static void Set(FuncUnstId id, int unstablePeriod)
+        public static void Set(UnstableFunc id, int unstablePeriod)
         {
-            if (id != FuncUnstId.All)
+            if (id != UnstableFunc.All)
             {
                 UnstablePeriods[id] = unstablePeriod;
             }

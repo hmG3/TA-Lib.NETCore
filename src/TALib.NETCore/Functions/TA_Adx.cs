@@ -111,7 +111,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         T prevADX = sumDX / tOptInTimePeriod;
 
-        i = Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Adx);
+        i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx);
         while (i-- > 0)
         {
             today++;
@@ -201,5 +201,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int AdxLookback(int optInTimePeriod = 14) =>
-        optInTimePeriod < 2 ? -1 : optInTimePeriod * 2 + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Adx) - 1;
+        optInTimePeriod < 2 ? -1 : optInTimePeriod * 2 + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx) - 1;
 }

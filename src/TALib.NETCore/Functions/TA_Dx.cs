@@ -64,7 +64,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
 
-        i = Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Dx) + 1;
+        i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Dx) + 1;
         while (i-- != 0)
         {
             today++;
@@ -161,5 +161,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int DxLookback(int optInTimePeriod = 14) =>
-        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Dx);
+        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Dx);
 }

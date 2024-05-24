@@ -171,5 +171,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int MamaLookback() => Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Mama) + 32;
+    public static int MamaLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mama) + 32;
 }

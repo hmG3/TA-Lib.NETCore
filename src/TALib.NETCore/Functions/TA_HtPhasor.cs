@@ -144,5 +144,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int HtPhasorLookback() => Core.UnstablePeriodSettings.Get(Core.FuncUnstId.HtPhasor) + 32;
+    public static int HtPhasorLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtPhasor) + 32;
 }

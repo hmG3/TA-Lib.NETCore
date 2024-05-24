@@ -52,7 +52,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         T prevATR = prevATRTemp[0];
         int today = optInTimePeriod;
-        int outIdx = Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Atr);
+        int outIdx = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Atr);
         while (outIdx != 0)
         {
             prevATR *= tOptInTimePeriod - T.One;
@@ -81,5 +81,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int AtrLookback(int optInTimePeriod = 14) =>
-        optInTimePeriod < 1 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Atr);
+        optInTimePeriod < 1 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Atr);
 }

@@ -43,7 +43,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         var today = startIdx - lookbackTotal;
         T prevValue = inReal[today];
-        if (Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Cmo) == 0 && Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
+        if (Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Cmo) == 0 && Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
         {
             T savePrevValue = prevValue;
             prevGain = T.Zero;
@@ -169,7 +169,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return -1;
         }
 
-        int retValue = optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Cmo);
+        int retValue = optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Cmo);
         if (Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
         {
             retValue--;

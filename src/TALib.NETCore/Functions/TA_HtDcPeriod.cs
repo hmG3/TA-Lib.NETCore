@@ -144,5 +144,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int HtDcPeriodLookback() => Core.UnstablePeriodSettings.Get(Core.FuncUnstId.HtDcPeriod) + 32;
+    public static int HtDcPeriodLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtDcPeriod) + 32;
 }

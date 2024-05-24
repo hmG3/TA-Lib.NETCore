@@ -123,5 +123,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int KamaLookback(int optInTimePeriod = 30) =>
-        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Kama);
+        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Kama);
 }

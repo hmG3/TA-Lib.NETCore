@@ -96,7 +96,7 @@ public sealed class Function
 
     public void SetUnstablePeriod(int period)
     {
-        if (Enum.TryParse<Core.FuncUnstId>(Name, out var func))
+        if (Enum.TryParse<Core.UnstableFunc>(Name, out var func))
         {
             Core.UnstablePeriodSettings.Set(func, period);
         }

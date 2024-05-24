@@ -155,5 +155,5 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int MfiLookback(int optInTimePeriod = 14) =>
-        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.FuncUnstId.Mfi);
+        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mfi);
 }
