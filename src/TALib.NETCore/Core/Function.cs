@@ -18,7 +18,6 @@
  * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
  */
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -62,31 +61,32 @@ public sealed class Function
 
     public string[] Outputs { get; }
 
-    public Core.RetCode Run<T>(T[][] inputs, T[] options, T[][] outputs) where T : IFloatingPointIeee754<T>
+    public Core.RetCode Run<T>(ReadOnlySpan<T[]> inputs, ReadOnlySpan<T> options, Span<T[]> outputs) where T : IFloatingPointIeee754<T>
     {
-        var functionMethod = ReflectMethods<T>()
-                                 .Where(mi => !mi.Name.EndsWith(LookbackSuffix))
-                                 .FirstOrDefault(FunctionMethodSelector) ??
+        var functionMethod = ReflectMethods<T>(publicOnly: false)
+                                 .FirstOrDefault(mi => !mi.Name.EndsWith(LookbackSuffix) && FunctionMethodSelector(mi)) ??
                              throw new MissingMethodException(null, $"{Name}<{typeof(T).Name}>");
 
-        var paramsArray = PrepareFunctionMethodParamsInternal(inputs, options, outputs, functionMethod, out var isIntegerOutput);
+        var paramsArray = PrepareFunctionMethodParams(inputs, options, outputs, functionMethod, out var isIntegerOutput);
 
         var retCode = (Core.RetCode) functionMethod.Invoke(null, paramsArray)!;
         if (isIntegerOutput && retCode == Core.RetCode.Success)
         {
-            var integerOutputs = Array.ConvertAll((int[]) paramsArray[inputs.Length + 2], i => (T) Convert.ChangeType(i, typeof(T)));
-            Array.Copy(integerOutputs, 0, outputs[0], 0, ((int[]) paramsArray[inputs.Length + 2]).Length);
+            var integerOutputs = (int[]) paramsArray[inputs.Length + 2];
+            for (var i = 0; i < integerOutputs.Length; i++)
+            {
+                outputs[0][i] = (T) Convert.ChangeType(integerOutputs[i], typeof(T));
+            }
         }
 
         return retCode;
     }
 
-    public int Lookback<T>(params int[] options) where T : IFloatingPointIeee754<T>
+    public int Lookback<T>(Span<int> options) where T : IFloatingPointIeee754<T>
     {
-        var lookbackMethod = ReflectMethods<T>()
-                                 .Where(mi => mi.Name.EndsWith(LookbackSuffix))
-                                 .FirstOrDefault(LookbackMethodSelector) ??
-                             throw new MissingMethodException(null, LookbackMethodName);
+        var lookbackMethod = ReflectMethods<T>(publicOnly: true)
+                                 .FirstOrDefault(mi => mi.Name.EndsWith(LookbackSuffix) && LookbackMethodSelector(mi))
+                             ?? throw new MissingMethodException(null, LookbackMethodName);
 
         var optInParameters = lookbackMethod.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
         var paramsArray = new object[optInParameters.Count];
@@ -116,7 +116,7 @@ public sealed class Function
 
     public void SetUnstablePeriod(int period)
     {
-        if (Enum.TryParse<Core.UnstableFunc>(Name, out var func))
+        if (Enum.TryParse(Name, out Core.UnstableFunc func))
         {
             Core.UnstablePeriodSettings.Set(func, period);
         }
@@ -128,36 +128,53 @@ public sealed class Function
 
     public override string ToString() => Name;
 
-    private static IEnumerable<MethodInfo> ReflectMethods<T>() where T : IFloatingPointIeee754<T> =>
-        typeof(Functions<>).MakeGenericType(typeof(T)).GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .Concat(typeof(Candles<>).MakeGenericType(typeof(T)).GetMethods(BindingFlags.Static | BindingFlags.Public));
+    private static IEnumerable<MethodInfo> ReflectMethods<T>(bool publicOnly) where T : IFloatingPointIeee754<T> =>
+        typeof(Functions<>).MakeGenericType(typeof(T))
+            .GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic))
+            .Concat(typeof(Candles<>).MakeGenericType(typeof(T))
+                .GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic));
 
-    internal object[] PrepareFunctionMethodParamsInternal<T>(
-        T[][] inputs,
-        T[] options,
-        T[][] outputs,
+    private object[] PrepareFunctionMethodParams<T>(
+        ReadOnlySpan<T[]> inputs,
+        ReadOnlySpan<T> options,
+        Span<T[]> outputs,
         MethodInfo method,
         out bool isIntegerOutput) where T : IFloatingPointIeee754<T>
     {
         var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
 
-        var paramsArray = new object[inputs.Length + 2 + outputs.Length + 2 + optInParameters.Count];
-        inputs.CopyTo(paramsArray, 0);
+        var paramsArray = new object[inputs.Length + 2 + outputs.Length + optInParameters.Count];
+        for (var i = 0; i < inputs.Length; i++)
+        {
+            paramsArray[i] = inputs[i];
+        }
+
         paramsArray[inputs.Length] = 0;
         paramsArray[inputs.Length + 1] = inputs[0].Length - 1;
 
         isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
         if (isIntegerOutput)
         {
-            var integerOutputs = outputs.Select(ta => ta.Select(t => (int) Convert.ChangeType(t, typeof(int))).ToArray()).ToArray();
-            integerOutputs.CopyTo(paramsArray, inputs.Length + 2);
+            for (var i = 0; i < outputs.Length; i++)
+            {
+                var integerOutputs = new int[outputs[i].Length];
+                for (var j = 0; j < outputs[i].Length; j++)
+                {
+                    integerOutputs[j] = (int) Convert.ChangeType(outputs[i][j], typeof(int));
+                }
+
+                paramsArray[inputs.Length + 2 + i] = integerOutputs;
+            }
         }
         else
         {
-            outputs.CopyTo(paramsArray, inputs.Length + 2);
+            for (var i = 0; i < outputs.Length; i++)
+            {
+                paramsArray[inputs.Length + 2 + i] = outputs[i];
+            }
         }
 
-        Array.Fill(paramsArray, Type.Missing, inputs.Length + 2 + outputs.Length + 2, optInParameters.Count);
+        Array.Fill(paramsArray, Type.Missing, inputs.Length + 2 + outputs.Length, optInParameters.Count);
 
         var defOptInParameters = Options.Select(NormalizeOptionalParameter).ToList();
         for (var i = 0; i < defOptInParameters.Count; i++)
@@ -168,7 +185,7 @@ public sealed class Function
                 continue;
             }
 
-            var paramsArrayIndex = new Index(inputs.Length + 2 + outputs.Length + 2 + i);
+            var paramsArrayIndex = inputs.Length + 2 + outputs.Length + i;
             if (optInParameter.ParameterType == typeof(int) || optInParameter.ParameterType.IsEnum)
             {
                 var intOption = Convert.ToInt32(options[i]);
@@ -195,7 +212,7 @@ public sealed class Function
         var optInParameters = methodInfo.GetParameters().Select(pi => pi.Name);
         var defOptInParameters = Options.Select(NormalizeOptionalParameter);
 
-        return methodInfo.Name == LookbackMethodName && optInParameters.All(p => defOptInParameters.Contains(p));
+        return methodInfo.Name == LookbackMethodName && optInParameters.All(defOptInParameters.Contains);
     }
 
     private bool FunctionMethodSelector(MethodBase methodInfo)

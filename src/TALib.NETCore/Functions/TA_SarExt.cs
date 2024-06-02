@@ -1,27 +1,59 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode SarExt(T[] inHigh, T[] inLow, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
-        out int outNbElement, double optInStartValue = 0.0, double optInOffsetOnReverse = 0.0, double optInAccelerationInitLong = 0.02,
-        double optInAccelerationLong = 0.02, double optInAccelerationMaxLong = 0.2, double optInAccelerationInitShort = 0.02,
-        double optInAccelerationShort = 0.02, double optInAccelerationMaxShort = 0.2)
+    public static Core.RetCode SarExt(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInStartValue = 0.0,
+        double optInOffsetOnReverse = 0.0,
+        double optInAccelerationInitLong = 0.02,
+        double optInAccelerationLong = 0.02,
+        double optInAccelerationMaxLong = 0.2,
+        double optInAccelerationInitShort = 0.02,
+        double optInAccelerationShort = 0.02,
+        double optInAccelerationMaxShort = 0.2)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || outReal == null || optInOffsetOnReverse < 0.0 || optInAccelerationInitLong < 0.0 ||
-            optInAccelerationLong < 0.0 || optInAccelerationMaxLong < 0.0 || optInAccelerationInitShort < 0.0 ||
-            optInAccelerationShort < 0.0 || optInAccelerationMaxShort < 0.0)
+        if (optInOffsetOnReverse < 0.0 || optInAccelerationInitLong < 0.0 || optInAccelerationLong < 0.0 ||
+            optInAccelerationMaxLong < 0.0 || optInAccelerationInitShort < 0.0 || optInAccelerationShort < 0.0 ||
+            optInAccelerationMaxShort < 0.0)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = SarExtLookback();
+        var lookbackTotal = SarExtLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -36,8 +68,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T ep;
         bool isLong;
 
-        double afLong = optInAccelerationInitLong;
-        double afShort = optInAccelerationInitShort;
+        var afLong = optInAccelerationInitLong;
+        var afShort = optInAccelerationInitShort;
         if (afLong > optInAccelerationMaxLong)
         {
             optInAccelerationInitLong = optInAccelerationMaxLong;
@@ -62,8 +94,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         if (optInStartValue.Equals(0.0))
         {
-            var epTemp = new T[1];
-            Core.RetCode retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
+            Span<T> epTemp = new T[1];
+            var retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
             if (retCode != Core.RetCode.Success)
             {
                 return retCode;
@@ -83,7 +115,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         outBegIdx = startIdx;
         int outIdx = default;
 
-        int todayIdx = startIdx;
+        var todayIdx = startIdx;
 
         T newHigh = inHigh[todayIdx - 1];
         T newLow = inLow[todayIdx - 1];
@@ -255,4 +287,24 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int SarExtLookback() => 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode SarExt(
+        T[] inHigh,
+        T[] inLow,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        double optInStartValue = 0.0,
+        double optInOffsetOnReverse = 0.0,
+        double optInAccelerationInitLong = 0.02,
+        double optInAccelerationLong = 0.02,
+        double optInAccelerationMaxLong = 0.2,
+        double optInAccelerationInitShort = 0.02,
+        double optInAccelerationShort = 0.02,
+        double optInAccelerationMaxShort = 0.2) =>
+        SarExt(inHigh, inLow, startIdx, endIdx, outReal, out _, out _, optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong,
+            optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort);
 }

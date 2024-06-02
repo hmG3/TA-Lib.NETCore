@@ -1,24 +1,54 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode AdOsc(T[] inHigh, T[] inLow, T[] inClose, T[] inVolume, int startIdx, int endIdx,
-        T[] outReal, out int outBegIdx, out int outNbElement, int optInFastPeriod = 3, int optInSlowPeriod = 10)
+    public static Core.RetCode AdOsc(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        ReadOnlySpan<T> inVolume,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastPeriod = 3,
+        int optInSlowPeriod = 10)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
+            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length || endIdx >= inVolume.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null ||
-            optInFastPeriod < 2 || optInSlowPeriod < 2)
+        if (optInFastPeriod < 2 || optInSlowPeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = AdOscLookback(optInFastPeriod, optInSlowPeriod);
+        var lookbackTotal = AdOscLookback(optInFastPeriod, optInSlowPeriod);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -30,7 +60,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         outBegIdx = startIdx;
-        int today = startIdx - lookbackTotal;
+        var today = startIdx - lookbackTotal;
 
         T ad = T.Zero;
 
@@ -40,13 +70,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T slowk = TTwo / (T.CreateChecked(optInSlowPeriod) + T.One);
         T oneMinusSlowk = T.One - slowk;
 
-        CalcAccumulationDistribution();
+        CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume);
         T fastEMA = ad;
         T slowEMA = ad;
 
         while (today < startIdx)
         {
-            CalcAccumulationDistribution();
+            CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume);
             fastEMA = fastk * ad + oneMinusFastk * fastEMA;
             slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
         }
@@ -54,7 +84,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         while (today <= endIdx)
         {
-            CalcAccumulationDistribution();
+            CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume);
             fastEMA = fastk * ad + oneMinusFastk * fastEMA;
             slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
 
@@ -65,15 +95,19 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         return Core.RetCode.Success;
 
-        void CalcAccumulationDistribution()
+        void CalcAccumulationDistribution(
+            ReadOnlySpan<T> high,
+            ReadOnlySpan<T> low,
+            ReadOnlySpan<T> close,
+            ReadOnlySpan<T> volume)
         {
-            T h = inHigh[today];
-            T l = inLow[today];
+            T h = high[today];
+            T l = low[today];
             T tmp = h - l;
-            T c = inClose[today];
+            T c = close[today];
             if (tmp > T.Zero)
             {
-                ad += (c - l - (h - c)) / tmp * inVolume[today];
+                ad += (c - l - (h - c)) / tmp * volume[today];
             }
 
             today++;
@@ -84,4 +118,19 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         optInFastPeriod < 2 || optInSlowPeriod < 2
             ? -1
             : EmaLookback(optInFastPeriod < optInSlowPeriod ? optInSlowPeriod : optInFastPeriod);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode AdOsc(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        T[] inVolume,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        int optInFastPeriod = 3,
+        int optInSlowPeriod = 10) =>
+        AdOsc(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out _, out _, optInFastPeriod, optInSlowPeriod);
 }

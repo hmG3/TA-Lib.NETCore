@@ -1,23 +1,52 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode Cci(T[] inHigh, T[] inLow, T[] inClose, int startIdx, int endIdx, T[] outReal,
-        out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
+    public static Core.RetCode Cci(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
+            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 2)
+        if (optInTimePeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CciLookback(optInTimePeriod);
+        var lookbackTotal = CciLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -28,10 +57,10 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.Success;
         }
 
-        var circBuffer = new T[optInTimePeriod];
+        Span<T> circBuffer = new T[optInTimePeriod];
         int circBufferIdx = default;
         var maxIdxCircBuffer = optInTimePeriod - 1;
-        int i = startIdx - lookbackTotal;
+        var i = startIdx - lookbackTotal;
         while (i < startIdx)
         {
             circBuffer[circBufferIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / TThree;
@@ -42,7 +71,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             }
         }
 
-        T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
+        T timePeriod = T.CreateChecked(optInTimePeriod);
         T tPointZeroOneFive = T.CreateChecked(0.015);
 
         int outIdx = default;
@@ -56,7 +85,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             {
                 theAverage += circBuffer[j];
             }
-            theAverage /= tOptInTimePeriod;
+
+            theAverage /= timePeriod;
 
             T tempReal2 = T.Zero;
             for (var j = 0; j < optInTimePeriod; j++)
@@ -66,7 +96,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
             T tempReal = lastValue - theAverage;
             outReal[outIdx++] = !T.IsZero(tempReal) && !T.IsZero(tempReal2)
-                ? tempReal / (tPointZeroOneFive * (tempReal2 / tOptInTimePeriod))
+                ? tempReal / (tPointZeroOneFive * (tempReal2 / timePeriod))
                 : T.Zero;
 
             if (circBufferIdx > maxIdxCircBuffer)
@@ -84,4 +114,16 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int CciLookback(int optInTimePeriod = 14) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode Cci(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        int optInTimePeriod = 14) => Cci(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

@@ -1,26 +1,54 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode StochRsi(T[] inReal, int startIdx, int endIdx, T[] outFastK, T[] outFastD, out int outBegIdx,
-        out int outNbElement, int optInTimePeriod = 14, int optInFastKPeriod = 5, int optInFastDPeriod = 3,
+    public static Core.RetCode StochRsi(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outFastK,
+        Span<T> outFastD,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 14,
+        int optInFastKPeriod = 5,
+        int optInFastDPeriod = 3,
         Core.MAType optInFastDMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outFastK == null || outFastD == null ||
-            optInTimePeriod < 2 || optInFastKPeriod < 1 || optInFastDPeriod < 1)
+        if (optInTimePeriod < 2 || optInFastKPeriod < 1 || optInFastDPeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackStochF = StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
-        int lookbackTotal = StochRsiLookback(optInTimePeriod, optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
+        var lookbackStochF = StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
+        var lookbackTotal = StochRsiLookback(optInTimePeriod, optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -32,9 +60,9 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         outBegIdx = startIdx;
-        int tempArraySize = endIdx - startIdx + 1 + lookbackStochF;
-        var tempRsiBuffer = new T[tempArraySize];
-        Core.RetCode retCode = Rsi(inReal, startIdx - lookbackStochF, endIdx, tempRsiBuffer, out _, out var outNbElement1, optInTimePeriod);
+        var tempArraySize = endIdx - startIdx + 1 + lookbackStochF;
+        Span<T> tempRsiBuffer = new T[tempArraySize];
+        var retCode = Rsi(inReal, startIdx - lookbackStochF, endIdx, tempRsiBuffer, out _, out var outNbElement1, optInTimePeriod);
         if (retCode != Core.RetCode.Success || outNbElement1 == 0)
         {
             return retCode;
@@ -50,9 +78,28 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    public static int StochRsiLookback(int optInTimePeriod = 14, int optInFastKPeriod = 5, int optInFastDPeriod = 3,
+    public static int StochRsiLookback(
+        int optInTimePeriod = 14,
+        int optInFastKPeriod = 5,
+        int optInFastDPeriod = 3,
         Core.MAType optInFastDMAType = Core.MAType.Sma) =>
         optInTimePeriod < 2 || optInFastKPeriod < 1 || optInFastDPeriod < 1
             ? -1
             : RsiLookback(optInTimePeriod) + StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode StochRsi(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outFastK,
+        T[] outFastD,
+        int optInTimePeriod = 14,
+        int optInFastKPeriod = 5,
+        int optInFastDPeriod = 3,
+        Core.MAType optInFastDMAType = Core.MAType.Sma) =>
+        StochRsi(inReal, startIdx, endIdx, outFastK, outFastD, out _, out _, optInTimePeriod, optInFastKPeriod, optInFastDPeriod,
+            optInFastDMAType);
 }

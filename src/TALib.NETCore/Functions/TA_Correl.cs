@@ -1,23 +1,50 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode Correl(T[] inReal0, T[] inReal1, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
-        out int outNbElement, int optInTimePeriod = 30)
+    public static Core.RetCode Correl(
+        ReadOnlySpan<T> inReal0,
+        ReadOnlySpan<T> inReal1,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 30)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal0.Length || endIdx >= inReal1.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal0 == null || inReal1 == null || outReal == null || optInTimePeriod < 1)
+        if (optInTimePeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = CorrelLookback(optInTimePeriod);
+        var lookbackTotal = CorrelLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -29,7 +56,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         outBegIdx = startIdx;
-        int trailingIdx = startIdx - lookbackTotal;
+        var trailingIdx = startIdx - lookbackTotal;
 
         T sumX, sumY, sumX2, sumY2;
         T sumXY = sumX = sumY = sumX2 = sumY2 = T.Zero;
@@ -46,14 +73,14 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             sumY2 += y * y;
         }
 
-        T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
+        T timePeriod = T.CreateChecked(optInTimePeriod);
 
         T trailingX = inReal0[trailingIdx];
         T trailingY = inReal1[trailingIdx++];
-        T tempReal = (sumX2 - sumX * sumX / tOptInTimePeriod) * (sumY2 - sumY * sumY / tOptInTimePeriod);
-        outReal[0] = tempReal > T.Zero ? (sumXY - sumX * sumY / tOptInTimePeriod) / T.Sqrt(tempReal) : T.Zero;
+        T tempReal = (sumX2 - sumX * sumX / timePeriod) * (sumY2 - sumY * sumY / timePeriod);
+        outReal[0] = tempReal > T.Zero ? (sumXY - sumX * sumY / timePeriod) / T.Sqrt(tempReal) : T.Zero;
 
-        int outIdx = 1;
+        var outIdx = 1;
         while (today <= endIdx)
         {
             sumX -= trailingX;
@@ -74,8 +101,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
             trailingX = inReal0[trailingIdx];
             trailingY = inReal1[trailingIdx++];
-            tempReal = (sumX2 - sumX * sumX / tOptInTimePeriod) * (sumY2 - sumY * sumY / tOptInTimePeriod);
-            outReal[outIdx++] = tempReal > T.Zero ? (sumXY - sumX * sumY / tOptInTimePeriod) / T.Sqrt(tempReal) : T.Zero;
+            tempReal = (sumX2 - sumX * sumX / timePeriod) * (sumY2 - sumY * sumY / timePeriod);
+            outReal[outIdx++] = tempReal > T.Zero ? (sumXY - sumX * sumY / timePeriod) / T.Sqrt(tempReal) : T.Zero;
         }
 
         outNbElement = outIdx;
@@ -84,4 +111,15 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int CorrelLookback(int optInTimePeriod = 30) => optInTimePeriod < 1 ? -1 : optInTimePeriod - 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode Correl(
+        T[] inReal0,
+        T[] inReal1,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        int optInTimePeriod = 30) => Correl(inReal0, inReal1, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

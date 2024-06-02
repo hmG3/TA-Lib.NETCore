@@ -1,24 +1,54 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode UltOsc(T[] inHigh, T[] inLow, T[] inClose, int startIdx, int endIdx, T[] outReal,
-        out int outBegIdx, out int outNbElement, int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28)
+    public static Core.RetCode UltOsc(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod1 = 7,
+        int optInTimePeriod2 = 14,
+        int optInTimePeriod3 = 28)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
+            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || inClose == null || outReal == null ||
-            optInTimePeriod1 < 1 || optInTimePeriod2 < 1 || optInTimePeriod3 < 1)
+        if (optInTimePeriod1 < 1 || optInTimePeriod2 < 1 || optInTimePeriod3 < 1)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = UltOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+        var lookbackTotal = UltOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -29,9 +59,9 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.Success;
         }
 
-        var usedFlag = new bool[3];
-        var periods = new[] { optInTimePeriod1, optInTimePeriod2, optInTimePeriod3 };
-        var sortedPeriods = new int[3];
+        Span<bool> usedFlag = new bool[3];
+        Span<int> periods = new[] { optInTimePeriod1, optInTimePeriod2, optInTimePeriod3 };
+        Span<int> sortedPeriods = new int[3];
 
         for (var i = 0; i < 3; ++i)
         {
@@ -146,4 +176,19 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         optInTimePeriod1 < 1 || optInTimePeriod2 < 1 || optInTimePeriod3 < 1
             ? -1
             : SmaLookback(Math.Max(Math.Max(optInTimePeriod1, optInTimePeriod2), optInTimePeriod3)) + 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode UltOsc(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        int optInTimePeriod1 = 7,
+        int optInTimePeriod2 = 14,
+        int optInTimePeriod3 = 28) =>
+        UltOsc(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
 }

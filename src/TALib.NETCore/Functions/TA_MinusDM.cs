@@ -1,23 +1,50 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode MinusDM(T[] inHigh, T[] inLow, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
-        out int outNbElement, int optInTimePeriod = 14)
+    public static Core.RetCode MinusDM(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || outReal == null || optInTimePeriod < 1)
+        if (optInTimePeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = MinusDMLookback(optInTimePeriod);
+        var lookbackTotal = MinusDMLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -63,7 +90,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         today = startIdx - lookbackTotal;
         prevHigh = inHigh[today];
         prevLow = inLow[today];
-        int i = optInTimePeriod - 1;
+        var i = optInTimePeriod - 1;
         while (i-- > 0)
         {
             today++;
@@ -79,7 +106,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             }
         }
 
-        T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
+        T timePeriod = T.CreateChecked(optInTimePeriod);
 
         i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.MinusDM);
         while (i-- != 0)
@@ -93,11 +120,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevLow = tempReal;
             if (diffM > T.Zero && diffP < diffM)
             {
-                prevMinusDM = prevMinusDM - prevMinusDM / tOptInTimePeriod + diffM;
+                prevMinusDM = prevMinusDM - prevMinusDM / timePeriod + diffM;
             }
             else
             {
-                prevMinusDM -= prevMinusDM / tOptInTimePeriod;
+                prevMinusDM -= prevMinusDM / timePeriod;
             }
         }
 
@@ -116,11 +143,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
             if (diffM > T.Zero && diffP < diffM)
             {
-                prevMinusDM = prevMinusDM - prevMinusDM / tOptInTimePeriod + diffM;
+                prevMinusDM = prevMinusDM - prevMinusDM / timePeriod + diffM;
             }
             else
             {
-                prevMinusDM -= prevMinusDM / tOptInTimePeriod;
+                prevMinusDM -= prevMinusDM / timePeriod;
             }
 
             outReal[outIdx++] = prevMinusDM;
@@ -134,4 +161,15 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     public static int MinusDMLookback(int optInTimePeriod = 14) =>
         optInTimePeriod < 1 ? -1 :
         optInTimePeriod > 1 ? optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.MinusDM) - 1 : 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode MinusDM(
+        T[] inHigh,
+        T[] inLow,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        int optInTimePeriod = 14) => MinusDM(inHigh, inLow, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

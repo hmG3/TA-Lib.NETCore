@@ -1,44 +1,74 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode Bbands(T[] inReal, int startIdx, int endIdx, T[] outRealUpperBand, T[] outRealMiddleBand,
-        T[] outRealLowerBand, out int outBegIdx, out int outNbElement, int optInTimePeriod = 5, double optInNbDevUp = 2.0,
-        double optInNbDevDn = 2.0, Core.MAType optInMAType = Core.MAType.Sma)
+    public static Core.RetCode Bbands(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outRealUpperBand,
+        Span<T> outRealMiddleBand,
+        Span<T> outRealLowerBand,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 5,
+        double optInNbDevUp = 2.0,
+        double optInNbDevDn = 2.0,
+        Core.MAType optInMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outRealUpperBand == null || outRealMiddleBand == null || outRealLowerBand == null || optInTimePeriod < 2)
+        if (optInTimePeriod < 2 || optInNbDevUp < 0 || optInNbDevDn < 0)
         {
             return Core.RetCode.BadParam;
         }
 
-        T[] tempBuffer1;
-        T[] tempBuffer2;
+        Span<T> tempBuffer1;
+        Span<T> tempBuffer2;
         if (inReal == outRealUpperBand)
         {
-            tempBuffer1 = outRealMiddleBand;
-            tempBuffer2 = outRealLowerBand;
+            tempBuffer1 = outRealMiddleBand.ToArray();
+            tempBuffer2 = outRealLowerBand.ToArray();
         }
         else if (inReal == outRealLowerBand)
         {
-            tempBuffer1 = outRealMiddleBand;
-            tempBuffer2 = outRealUpperBand;
+            tempBuffer1 = outRealMiddleBand.ToArray();
+            tempBuffer2 = outRealUpperBand.ToArray();
         }
         else if (inReal == outRealMiddleBand)
         {
-            tempBuffer1 = outRealLowerBand;
-            tempBuffer2 = outRealUpperBand;
+            tempBuffer1 = outRealLowerBand.ToArray();
+            tempBuffer2 = outRealUpperBand.ToArray();
         }
         else
         {
-            tempBuffer1 = outRealMiddleBand;
-            tempBuffer2 = outRealUpperBand;
+            tempBuffer1 = outRealMiddleBand.ToArray();
+            tempBuffer2 = outRealUpperBand.ToArray();
         }
 
         if (tempBuffer1 == inReal || tempBuffer2 == inReal)
@@ -46,7 +76,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.BadParam;
         }
 
-        Core.RetCode retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
+        var retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
         if (retCode != Core.RetCode.Success || outNbElement == 0)
         {
             return retCode;
@@ -69,17 +99,17 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         if (tempBuffer1 != outRealMiddleBand)
         {
-            Array.Copy(tempBuffer1, 0, outRealMiddleBand, 0, outNbElement);
+            tempBuffer1.Slice(0, outNbElement).CopyTo(outRealMiddleBand);
         }
 
-        T tOptInNbDevUp = T.CreateChecked(optInNbDevUp);
-        T tOptInNbDevDn = T.CreateChecked(optInNbDevDn);
+        T nbDevUp = T.CreateChecked(optInNbDevUp);
+        T nbDevDn = T.CreateChecked(optInNbDevDn);
 
         T tempReal;
         T tempReal2;
         if (optInNbDevUp.Equals(optInNbDevDn))
         {
-            if (tOptInNbDevUp == T.One)
+            if (nbDevUp == T.One)
             {
                 for (var i = 0; i < outNbElement; i++)
                 {
@@ -93,31 +123,31 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             {
                 for (var i = 0; i < outNbElement; i++)
                 {
-                    tempReal = tempBuffer2[i] * tOptInNbDevUp;
+                    tempReal = tempBuffer2[i] * nbDevUp;
                     tempReal2 = outRealMiddleBand[i];
                     outRealUpperBand[i] = tempReal2 + tempReal;
                     outRealLowerBand[i] = tempReal2 - tempReal;
                 }
             }
         }
-        else if (tOptInNbDevUp == T.One)
+        else if (nbDevUp == T.One)
         {
             for (var i = 0; i < outNbElement; i++)
             {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
                 outRealUpperBand[i] = tempReal2 + tempReal;
-                outRealLowerBand[i] = tempReal2 - tempReal * tOptInNbDevDn;
+                outRealLowerBand[i] = tempReal2 - tempReal * nbDevDn;
             }
         }
-        else if (tOptInNbDevDn == T.One)
+        else if (nbDevDn == T.One)
         {
             for (var i = 0; i < outNbElement; i++)
             {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
                 outRealLowerBand[i] = tempReal2 - tempReal;
-                outRealUpperBand[i] = tempReal2 + tempReal * tOptInNbDevUp;
+                outRealUpperBand[i] = tempReal2 + tempReal * nbDevUp;
             }
         }
         else
@@ -126,8 +156,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
-                outRealUpperBand[i] = tempReal2 + tempReal * tOptInNbDevUp;
-                outRealLowerBand[i] = tempReal2 - tempReal * tOptInNbDevDn;
+                outRealUpperBand[i] = tempReal2 + tempReal * nbDevUp;
+                outRealLowerBand[i] = tempReal2 - tempReal * nbDevDn;
             }
         }
 
@@ -136,4 +166,21 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
     public static int BbandsLookback(int optInTimePeriod = 5, Core.MAType optInMAType = Core.MAType.Sma) =>
         optInTimePeriod < 2 ? -1 : MaLookback(optInTimePeriod, optInMAType);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode Bbands(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outRealUpperBand,
+        T[] outRealMiddleBand,
+        T[] outRealLowerBand,
+        int optInTimePeriod = 5,
+        double optInNbDevUp = 2.0,
+        double optInNbDevDn = 2.0,
+        Core.MAType optInMAType = Core.MAType.Sma) =>
+        Bbands(inReal, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out _, out _,
+            optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
 }

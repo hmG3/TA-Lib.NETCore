@@ -1,23 +1,50 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode Beta(T[] inReal0, T[] inReal1, int startIdx, int endIdx, T[] outReal, out int outBegIdx,
-        out int outNbElement, int optInTimePeriod = 5)
+    public static Core.RetCode Beta(
+        ReadOnlySpan<T> inReal0,
+        ReadOnlySpan<T> inReal1,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 5)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal0.Length || endIdx >= inReal1.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal0 == null || inReal1 == null || outReal == null || optInTimePeriod < 1)
+        if (optInTimePeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = BetaLookback(optInTimePeriod);
+        var lookbackTotal = BetaLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -30,13 +57,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         T x, y, tmpReal, sxy, sx, sy;
         T sxx = sxy = sx = sy = T.Zero;
-        int trailingIdx = startIdx - lookbackTotal;
+        var trailingIdx = startIdx - lookbackTotal;
         var trailingLastPriceX = inReal0[trailingIdx];
         var lastPriceX = trailingLastPriceX;
         var trailingLastPriceY = inReal1[trailingIdx];
         var lastPriceY = trailingLastPriceY;
 
-        int i = ++trailingIdx;
+        var i = ++trailingIdx;
         while (i < startIdx)
         {
             tmpReal = inReal0[i];
@@ -53,7 +80,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             sy += y;
         }
 
-        T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
+        T timePeriod = T.CreateChecked(optInTimePeriod);
 
         int outIdx = default;
         do
@@ -79,8 +106,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             y = !T.IsZero(trailingLastPriceY) ? (tmpReal - trailingLastPriceY) / trailingLastPriceY : T.Zero;
             trailingLastPriceY = tmpReal;
 
-            tmpReal = tOptInTimePeriod * sxx - sx * sx;
-            outReal[outIdx++] = !T.IsZero(tmpReal) ? (tOptInTimePeriod * sxy - sx * sy) / tmpReal : T.Zero;
+            tmpReal = timePeriod * sxx - sx * sx;
+            outReal[outIdx++] = !T.IsZero(tmpReal) ? (timePeriod * sxy - sx * sy) / tmpReal : T.Zero;
 
             sxx -= x * x;
             sxy -= x * y;
@@ -95,4 +122,15 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int BetaLookback(int optInTimePeriod = 5) => optInTimePeriod < 1 ? -1 : optInTimePeriod;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode Beta(
+        T[] inReal0,
+        T[] inReal1,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        int optInTimePeriod = 5) => Beta(inReal0, inReal1, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

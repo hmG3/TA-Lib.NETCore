@@ -18,8 +18,6 @@
  * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
  */
 
-using System.Collections.Generic;
-
 namespace TALib;
 
 public static partial class Core

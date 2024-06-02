@@ -1,28 +1,53 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode Ad(T[] inHigh, T[] inLow, T[] inClose, T[] inVolume, int startIdx, int endIdx,
-        T[] outReal, out int outBegIdx, out int outNbElement)
+    public static Core.RetCode Ad(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        ReadOnlySpan<T> inVolume,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
+            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length || endIdx >= inVolume.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || inClose == null || inVolume == null || outReal == null)
-        {
-            return Core.RetCode.BadParam;
-        }
-
-        int nbBar = endIdx - startIdx + 1;
+        var nbBar = endIdx - startIdx + 1;
         outBegIdx = startIdx;
         outNbElement = nbBar;
-        int currentBar = startIdx;
+        var currentBar = startIdx;
         int outIdx = default;
         T ad = T.Zero;
+
         while (nbBar != 0)
         {
             T high = inHigh[currentBar];
@@ -45,4 +70,16 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int AdLookback() => 0;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode Ad(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        T[] inVolume,
+        int startIdx,
+        int endIdx,
+        T[] outReal) => Ad(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out _, out _);
 }

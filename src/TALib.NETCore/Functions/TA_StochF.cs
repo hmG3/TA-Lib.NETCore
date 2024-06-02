@@ -1,27 +1,57 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode StochF(T[] inHigh, T[] inLow, T[] inClose, int startIdx, int endIdx, T[] outFastK,
-        T[] outFastD, out int outBegIdx, out int outNbElement, int optInFastKPeriod = 5, int optInFastDPeriod = 3,
+    public static Core.RetCode StochF(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<T> outFastK,
+        Span<T> outFastD,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastKPeriod = 5,
+        int optInFastDPeriod = 3,
         Core.MAType optInFastDMAType = Core.MAType.Sma)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
+            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || inClose == null || outFastK == null || outFastD == null ||
-            optInFastKPeriod < 1 || optInFastDPeriod < 1)
+        if (optInFastKPeriod < 1 || optInFastDPeriod < 1)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackK = optInFastKPeriod - 1;
-        int lookbackFastD = MaLookback(optInFastDPeriod, optInFastDMAType);
-        int lookbackTotal = StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
+        var lookbackK = optInFastKPeriod - 1;
+        var lookbackFastD = MaLookback(optInFastDPeriod, optInFastDMAType);
+        var lookbackTotal = StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -33,13 +63,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         int outIdx = default;
-        int trailingIdx = startIdx - lookbackTotal;
-        int today = trailingIdx + lookbackK;
-        int highestIdx = -1;
-        int lowestIdx = highestIdx;
+        var trailingIdx = startIdx - lookbackTotal;
+        var today = trailingIdx + lookbackK;
+        var highestIdx = -1;
+        var lowestIdx = highestIdx;
         T highest, lowest;
         T diff = highest = lowest = T.Zero;
-        T[] tempBuffer;
+        Span<T> tempBuffer;
         if (outFastK == inHigh || outFastK == inLow || outFastK == inClose)
         {
             tempBuffer = outFastK;
@@ -60,7 +90,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             {
                 lowestIdx = trailingIdx;
                 lowest = inLow[lowestIdx];
-                int i = lowestIdx;
+                var i = lowestIdx;
                 while (++i <= today)
                 {
                     tmp = inLow[i];
@@ -85,7 +115,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             {
                 highestIdx = trailingIdx;
                 highest = inHigh[highestIdx];
-                int i = highestIdx;
+                var i = highestIdx;
                 while (++i <= today)
                 {
                     tmp = inHigh[i];
@@ -111,13 +141,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             today++;
         }
 
-        Core.RetCode retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDPeriod, optInFastDMAType);
+        var retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDPeriod, optInFastDMAType);
         if (retCode != Core.RetCode.Success || outNbElement == 0)
         {
             return retCode;
         }
 
-        Array.Copy(tempBuffer, lookbackFastD, outFastK, 0, outNbElement);
+        tempBuffer.Slice(lookbackFastD, outNbElement).CopyTo(outFastK);
         outBegIdx = startIdx;
 
         return Core.RetCode.Success;
@@ -125,4 +155,21 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
     public static int StochFLookback(int optInFastKPeriod = 5, int optInFastDPeriod = 3, Core.MAType optInFastDMAType = Core.MAType.Sma) =>
         optInFastKPeriod < 1 || optInFastDPeriod < 1 ? -1 : optInFastKPeriod - 1 + MaLookback(optInFastDPeriod, optInFastDMAType);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode StochF(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        T[] outFastK,
+        T[] outFastD,
+        int optInFastKPeriod = 5,
+        int optInFastDPeriod = 3,
+        Core.MAType optInFastDMAType = Core.MAType.Sma) =>
+        StochF(inHigh, inLow, inClose, startIdx, endIdx, outFastK, outFastD, out _, out _, optInFastKPeriod, optInFastDPeriod,
+            optInFastDMAType);
 }

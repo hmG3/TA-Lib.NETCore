@@ -1,35 +1,61 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode AvgDev(T[] inReal, int startIdx, int endIdx, T[] outReal, out int outBegIdx, out int outNbElement,
+    public static Core.RetCode AvgDev(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
         int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null)
+        if (optInTimePeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = AvgDevLookback(optInTimePeriod);
+        var lookbackTotal = AvgDevLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
         }
 
-        int today = startIdx;
+        var today = startIdx;
         if (today > endIdx)
         {
             return Core.RetCode.Success;
         }
 
-        T tOptInTimePeriod = T.CreateChecked(optInTimePeriod);
+        T timePeriod = T.CreateChecked(optInTimePeriod);
 
         outBegIdx = today;
 
@@ -45,10 +71,10 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             T todayDev = T.Zero;
             for (var i = 0; i < optInTimePeriod; i++)
             {
-                todayDev += T.Abs(inReal[today - i] - todaySum / tOptInTimePeriod);
+                todayDev += T.Abs(inReal[today - i] - todaySum / timePeriod);
             }
 
-            outReal[outIdx++] = todayDev / tOptInTimePeriod;
+            outReal[outIdx++] = todayDev / timePeriod;
             today++;
         }
 
@@ -58,4 +84,14 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int AvgDevLookback(int optInTimePeriod = 14) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode AvgDev(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        int optInTimePeriod = 14) => AvgDev(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

@@ -1,23 +1,52 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode Adxr(T[] inHigh, T[] inLow, T[] inClose, int startIdx, int endIdx, T[] outReal,
-        out int outBegIdx, out int outNbElement, int optInTimePeriod = 14)
+    public static Core.RetCode Adxr(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 14)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
+            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inHigh == null || inLow == null || inClose == null || outReal == null || optInTimePeriod < 2)
+        if (optInTimePeriod < 2)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = AdxrLookback(optInTimePeriod);
+        var lookbackTotal = AdxrLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -28,19 +57,19 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.Success;
         }
 
-        var adx = new T[endIdx - startIdx + optInTimePeriod];
+        Span<T> adx = new T[endIdx - startIdx + optInTimePeriod];
 
-        Core.RetCode retCode =
-            Adx(inHigh, inLow, inClose, startIdx - (optInTimePeriod - 1), endIdx, adx, out outBegIdx, out outNbElement, optInTimePeriod);
+        var retCode = Adx(inHigh, inLow, inClose, startIdx - (optInTimePeriod - 1), endIdx, adx, out outBegIdx, out outNbElement,
+            optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
-        int i = optInTimePeriod - 1;
+        var i = optInTimePeriod - 1;
         int j = default;
         int outIdx = default;
-        int nbElement = endIdx - startIdx + 2;
+        var nbElement = endIdx - startIdx + 2;
         while (--nbElement != 0)
         {
             outReal[outIdx++] = (adx[i++] + adx[j++]) / TTwo;
@@ -54,4 +83,16 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
     public static int AdxrLookback(int optInTimePeriod = 14) =>
         optInTimePeriod < 2 ? -1 : optInTimePeriod + AdxLookback(optInTimePeriod) - 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode Adxr(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        int optInTimePeriod = 14) => Adxr(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

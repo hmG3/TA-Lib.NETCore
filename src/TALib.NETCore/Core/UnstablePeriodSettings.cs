@@ -18,7 +18,6 @@
  * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
  */
 
-using System.Collections.Generic;
 using System.Linq;
 
 namespace TALib;

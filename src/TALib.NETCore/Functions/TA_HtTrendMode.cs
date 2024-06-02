@@ -1,24 +1,44 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode HtTrendMode(T[] inReal, int startIdx, int endIdx, int[] outInteger, out int outBegIdx,
+    public static Core.RetCode HtTrendMode(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<int> outInteger,
+        out int outBegIdx,
         out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inReal == null || outInteger == null)
-        {
-            return Core.RetCode.BadParam;
-        }
-
         const int smoothPriceSize = 50;
-        var smoothPrice = new T[smoothPriceSize];
+        Span<T> smoothPrice = new T[smoothPriceSize];
 
         T iTrend3 = T.Zero;
         T iTrend2 = iTrend3;
@@ -27,7 +47,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T sine = T.Zero;
         T leadSine = T.Zero;
 
-        int lookbackTotal = HtTrendModeLookback();
+        var lookbackTotal = HtTrendModeLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -39,8 +59,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         outBegIdx = startIdx;
-        int trailingWMAIdx = startIdx - lookbackTotal;
-        int today = trailingWMAIdx;
+        var trailingWMAIdx = startIdx - lookbackTotal;
+        var today = trailingWMAIdx;
         T tempReal = inReal[today++];
         T periodWMASub = tempReal;
         T periodWMASum = tempReal;
@@ -148,7 +168,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             T realPart = T.Zero;
             T imagPart = T.Zero;
 
-            int idx = smoothPriceIdx;
+            var idx = smoothPriceIdx;
             for (i = 0; i < dcPeriodInt; i++)
             {
                 tempReal = T.CreateChecked(i) * TTwo * T.Pi / T.CreateChecked(dcPeriodInt);
@@ -197,7 +217,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             T prevSine = sine;
             T prevLeadSine = leadSine;
             sine = T.Sin(T.DegreesToRadians(dcPhase));
-            leadSine =  T.Sin(T.DegreesToRadians(dcPhase + TNinety / TTwo));
+            leadSine = T.Sin(T.DegreesToRadians(dcPhase + TNinety / TTwo));
 
             dcPeriod = smoothPeriod + T.CreateChecked(0.5);
 
@@ -218,7 +238,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             iTrend2 = iTrend1;
             iTrend1 = tempReal;
 
-            int trend = 1;
+            var trend = 1;
 
             if (sine > leadSine && prevSine <= prevLeadSine || sine < leadSine && prevSine >= prevLeadSine)
             {
@@ -263,4 +283,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     }
 
     public static int HtTrendModeLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendMode) + 63;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode HtTrendMode(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        int[] outInteger) => HtTrendMode(inReal, startIdx, endIdx, outInteger, out _, out _);
 }
