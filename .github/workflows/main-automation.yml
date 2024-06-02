@@ -1,0 +1,73 @@
+name: test-analyse-automation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  analyze:
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest, windows-latest, macOS-latest]
+    runs-on: ${{ matrix.operating-system }}
+    steps:
+    - uses: actions/setup-java@v4
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+      with:
+        java-version: 17
+        distribution: 'zulu'
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Install SonarCloud scanner
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+      run: dotnet tool update dotnet-sonarscanner --global
+
+    - name: Start SonarCloud scanner
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: dotnet sonarscanner begin /k:"hmG3_TA-Lib.NETCore"
+        /o:"hmg3"
+        /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        /d:sonar.host.url="https://sonarcloud.io"
+        /d:sonar.cs.opencover.reportsPaths=./tests/TALib.NETCore.Tests/coverage/opencover-coverage.xml
+
+    - name: Run tests & report coverage
+      run: dotnet test --logger "console;verbosity=normal"
+        /p:CollectCoverage=true
+        /p:CoverletOutputFormat=opencover
+        /p:CoverletOutput=coverage/opencover-coverage.xml
+
+    - name: Upload coverage to Codecov
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+      uses: codecov/codecov-action@v4
+      with:
+        name: codecov-talib
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./tests/TALib.NETCore.Tests/coverage/opencover-coverage.xml
+        flags: unittests
+        fail_ci_if_error: true
+
+    - name: Upload coverage to Codacy
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+      uses: codacy/codacy-coverage-reporter-action@v1.3.0
+      with:
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        coverage-reports: ./tests/TALib.NETCore.Tests/coverage/opencover-coverage.xml
+
+    - name: End SonarCloud scanner
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
