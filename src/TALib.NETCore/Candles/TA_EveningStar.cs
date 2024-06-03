@@ -1,9 +1,38 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Candles<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode EveningStar(T[] inOpen, T[] inHigh, T[] inLow, T[] inClose, int startIdx, int endIdx,
-        int[] outInteger, out int outBegIdx, out int outNbElement, double optInPenetration = 0.3)
+    public static Core.RetCode EveningStar(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<int> outInteger,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInPenetration = 0.3)
     {
         outBegIdx = outNbElement = 0;
 
@@ -12,12 +41,12 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null || optInPenetration < 0.0)
+        if (optInPenetration < 0.0)
         {
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = EveningStarLookback();
+        var lookbackTotal = EveningStarLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -31,9 +60,9 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         T bodyLongPeriodTotal = T.Zero;
         T bodyShortPeriodTotal = T.Zero;
         T bodyShortPeriodTotal2 = T.Zero;
-        int bodyLongTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
-        int bodyShortTrailingIdx = startIdx - 1 - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
-        int i = bodyLongTrailingIdx;
+        var bodyLongTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
+        var bodyShortTrailingIdx = startIdx - 1 - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
+        var i = bodyLongTrailingIdx;
         while (i < startIdx - 2)
         {
             bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
@@ -62,7 +91,8 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
                 RealBody(inClose, inOpen, i) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
                     bodyShortPeriodTotal2, i) && // 3rd: longer than short
                 CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && //          black real body
-                inClose[i] < inClose[i - 2] - RealBody(inClose, inOpen, i - 2) * T.CreateChecked(optInPenetration)) //       well within 1st rb
+                inClose[i] < inClose[i - 2] -
+                RealBody(inClose, inOpen, i - 2) * T.CreateChecked(optInPenetration)) //       well within 1st rb
             {
                 outInteger[outIdx++] = -100;
             }
@@ -94,4 +124,18 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
 
     public static int EveningStarLookback() =>
         Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyShort), CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 2;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode EveningStar(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        int[] outInteger,
+        double optInPenetration = 0.3) =>
+        EveningStar(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _, optInPenetration);
 }

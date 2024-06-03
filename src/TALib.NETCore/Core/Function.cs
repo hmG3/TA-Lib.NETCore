@@ -72,10 +72,13 @@ public sealed class Function
         var retCode = (Core.RetCode) functionMethod.Invoke(null, paramsArray)!;
         if (isIntegerOutput && retCode == Core.RetCode.Success)
         {
-            var integerOutputs = (int[]) paramsArray[inputs.Length + 2];
-            for (var i = 0; i < integerOutputs.Length; i++)
+            for (var i = 0; i < outputs.Length; i++)
             {
-                outputs[0][i] = (T) Convert.ChangeType(integerOutputs[i], typeof(T));
+                var integerOutputs = (int[]) paramsArray[inputs.Length + 2 + i];
+                for (var j = 0; j < integerOutputs.Length; j++)
+                {
+                    outputs[i][j] = (T) Convert.ChangeType(integerOutputs[j], typeof(T));
+                }
             }
         }
 
@@ -132,7 +135,7 @@ public sealed class Function
         typeof(Functions<>).MakeGenericType(typeof(T))
             .GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic))
             .Concat(typeof(Candles<>).MakeGenericType(typeof(T))
-                .GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic));
+                .GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic)));
 
     private object[] PrepareFunctionMethodParams<T>(
         ReadOnlySpan<T[]> inputs,
@@ -153,25 +156,9 @@ public sealed class Function
         paramsArray[inputs.Length + 1] = inputs[0].Length - 1;
 
         isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
-        if (isIntegerOutput)
+        for (var i = 0; i < outputs.Length; i++)
         {
-            for (var i = 0; i < outputs.Length; i++)
-            {
-                var integerOutputs = new int[outputs[i].Length];
-                for (var j = 0; j < outputs[i].Length; j++)
-                {
-                    integerOutputs[j] = (int) Convert.ChangeType(outputs[i][j], typeof(int));
-                }
-
-                paramsArray[inputs.Length + 2 + i] = integerOutputs;
-            }
-        }
-        else
-        {
-            for (var i = 0; i < outputs.Length; i++)
-            {
-                paramsArray[inputs.Length + 2 + i] = outputs[i];
-            }
+            paramsArray[inputs.Length + 2 + i] = isIntegerOutput ? new int[outputs[i].Length] : outputs[i];
         }
 
         Array.Fill(paramsArray, Type.Missing, inputs.Length + 2 + outputs.Length, optInParameters.Count);

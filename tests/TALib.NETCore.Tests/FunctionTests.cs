@@ -15,7 +15,7 @@ public sealed class FunctionTests
     [JsonFileData("DataSets/extra.json", typeof(double), "_")]
     [JsonFileData("DataSets/spy.json", typeof(double), "_")]
     [JsonFileData("DataSets/unst.json", typeof(double), "_")]
-    //[JsonFileData("DataSets/cdl.json", typeof(double), "_")]
+    [JsonFileData("DataSets/cdl.json", typeof(double), "_")]
 #pragma warning disable xUnit1026
     public void Should_Calculate_CorrectOutput_With_SuccessStatus_For_DoubleInput(TestDataModel<double> model, string fileName)
 #pragma warning restore xUnit1026
@@ -68,7 +68,7 @@ public sealed class FunctionTests
     [JsonFileData("DataSets/extra.json", typeof(float), "_")]
     [JsonFileData("DataSets/spy.json", typeof(float), "_")]
     [JsonFileData("DataSets/unst.json", typeof(float), "_")]
-    //[JsonFileData("DataSets/cdl.json", typeof(float), "_")]
+    [JsonFileData("DataSets/cdl.json", typeof(float), "_")]
 #pragma warning disable xUnit1026
     public void Should_Calculate_CorrectOutput_With_SuccessStatus_For_FloatInput(TestDataModel<float> model, string fileName)
 #pragma warning restore xUnit1026

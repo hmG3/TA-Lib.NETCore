@@ -1,9 +1,37 @@
+/*
+ * Technical Analysis Library for .NET
+ * Copyright (c) 2020-2024 Anatolii Siryi
+ *
+ * This file is part of Technical Analysis Library for .NET.
+ *
+ * Technical Analysis Library for .NET is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Technical Analysis Library for .NET is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 namespace TALib;
 
 public static partial class Candles<T> where T : IFloatingPointIeee754<T>
 {
-    public static Core.RetCode StalledPattern(T[] inOpen, T[] inHigh, T[] inLow, T[] inClose, int startIdx,
-        int endIdx, int[] outInteger, out int outBegIdx, out int outNbElement)
+    public static Core.RetCode StalledPattern(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<int> outInteger,
+        out int outBegIdx,
+        out int outNbElement)
     {
         outBegIdx = outNbElement = 0;
 
@@ -12,12 +40,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        if (inOpen == null || inHigh == null || inLow == null || inClose == null || outInteger == null)
-        {
-            return Core.RetCode.BadParam;
-        }
-
-        int lookbackTotal = StalledPatternLookback();
+        var lookbackTotal = StalledPatternLookback();
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -28,15 +51,15 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.Success;
         }
 
-        var bodyLongPeriodTotal = new T[3];
-        int bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
+        Span<T> bodyLongPeriodTotal = new T[3];
+        var bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         T bodyShortPeriodTotal = T.Zero;
-        int bodyShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
+        var bodyShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
         T shadowVeryShortPeriodTotal = T.Zero;
-        int shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
-        var nearPeriodTotal = new T[3];
-        int nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
-        int i = bodyLongTrailingIdx;
+        var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
+        Span<T> nearPeriodTotal = new T[3];
+        var nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
+        var i = bodyLongTrailingIdx;
         while (i < startIdx)
         {
             bodyLongPeriodTotal[2] += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2);
@@ -135,4 +158,16 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyLong), CandleAveragePeriod(Core.CandleSettingType.BodyShort)),
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort), CandleAveragePeriod(Core.CandleSettingType.Near))
         ) + 2;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    private static Core.RetCode StalledPattern(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        int[] outInteger) => StalledPattern(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
 }
