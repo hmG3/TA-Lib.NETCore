@@ -20,16 +20,16 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Ema(
+    public static Core.RetCode Ema<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30)
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -44,7 +44,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         return CalcExponentialMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod,
-            TTwo / (T.CreateChecked(optInTimePeriod) + T.One));
+            Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One));
     }
 
     public static int EmaLookback(int optInTimePeriod = 30) =>
@@ -53,10 +53,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Ema(
+    private static Core.RetCode Ema<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 30) => Ema(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        Ema<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

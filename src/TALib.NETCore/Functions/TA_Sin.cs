@@ -20,15 +20,15 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Sin(
+    public static Core.RetCode Sin<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
-        out int outNbElement)
+        out int outNbElement) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -54,9 +54,9 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Sin(
+    private static Core.RetCode Sin<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
-        T[] outReal) => Sin(inReal, startIdx, endIdx, outReal, out _, out _);
+        T[] outReal) where T : IFloatingPointIeee754<T> => Sin<T>(inReal, startIdx, endIdx, outReal, out _, out _);
 }

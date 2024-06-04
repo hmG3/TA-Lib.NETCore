@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Accbands(
+    public static Core.RetCode Accbands<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -33,7 +33,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outRealLowerBand,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 20)
+        int optInTimePeriod = 20) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -69,7 +69,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             T tempReal = inHigh[i] + inLow[i];
             if (!T.IsZero(tempReal))
             {
-                tempReal = TFour * (inHigh[i] - inLow[i]) / tempReal;
+                tempReal = Four<T>() * (inHigh[i] - inLow[i]) / tempReal;
                 tempBuffer1[j] = inHigh[i] * (T.One + tempReal);
                 tempBuffer2[j] = inLow[i] * (T.One - tempReal);
             }
@@ -109,7 +109,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Accbands(
+    private static Core.RetCode Accbands<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
@@ -118,7 +118,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T[] outRealUpperBand,
         T[] outRealMiddleBand,
         T[] outRealLowerBand,
-        int optInTimePeriod = 20) =>
-        Accbands(inHigh, inLow, inClose, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand,
+        int optInTimePeriod = 20) where T : IFloatingPointIeee754<T> =>
+        Accbands<T>(inHigh, inLow, inClose, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand,
             out _, out _, optInTimePeriod);
 }

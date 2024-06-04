@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Mfi(
+    public static Core.RetCode Mfi<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -32,7 +32,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14)
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -66,14 +66,14 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         var maxIdxMflow = optInTimePeriod - 1;
 
         int today = startIdx - lookbackTotal;
-        T prevValue = (inHigh[today] + inLow[today] + inClose[today]) / TThree;
+        T prevValue = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
 
         T posSumMF = T.Zero;
         T negSumMF = T.Zero;
         today++;
         for (var i = optInTimePeriod; i > 0; i--)
         {
-            T tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / TThree;
+            T tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
             T tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
             tempValue1 *= inVolume[today++];
@@ -104,7 +104,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         if (today > startIdx)
         {
             T tempValue1 = posSumMF + negSumMF;
-            outReal[outIdx++] = tempValue1 >= T.One ? THundred * (posSumMF / tempValue1) : T.Zero;
+            outReal[outIdx++] = tempValue1 >= T.One ? Hundred<T>() * (posSumMF / tempValue1) : T.Zero;
         }
         else
         {
@@ -113,7 +113,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
                 posSumMF -= moneyFlow[mflowIdx].positive;
                 negSumMF -= moneyFlow[mflowIdx].negative;
 
-                T tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / TThree;
+                T tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
                 T tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
                 tempValue1 *= inVolume[today++];
@@ -147,7 +147,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             posSumMF -= moneyFlow[mflowIdx].positive;
             negSumMF -= moneyFlow[mflowIdx].negative;
 
-            T tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / TThree;
+            T tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
             T tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
             tempValue1 *= inVolume[today++];
@@ -170,7 +170,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             }
 
             tempValue1 = posSumMF + negSumMF;
-            outReal[outIdx++] = tempValue1 >= T.One ? THundred * (posSumMF / tempValue1) : T.Zero;
+            outReal[outIdx++] = tempValue1 >= T.One ? Hundred<T>() * (posSumMF / tempValue1) : T.Zero;
 
             if (++mflowIdx > maxIdxMflow)
             {
@@ -190,7 +190,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Mfi(
+    private static Core.RetCode Mfi<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
@@ -198,5 +198,6 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 14) => Mfi(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        Mfi<T>(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

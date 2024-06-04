@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Candles<T> where T : IFloatingPointIeee754<T>
+public static partial class Candles
 {
-    public static Core.RetCode EveningStar(
+    public static Core.RetCode EveningStar<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -32,7 +32,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         Span<int> outInteger,
         out int outBegIdx,
         out int outNbElement,
-        double optInPenetration = 0.3)
+        double optInPenetration = 0.3) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -128,7 +128,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode EveningStar(
+    private static Core.RetCode EveningStar<T>(
         T[] inOpen,
         T[] inHigh,
         T[] inLow,
@@ -136,6 +136,6 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int startIdx,
         int endIdx,
         int[] outInteger,
-        double optInPenetration = 0.3) =>
-        EveningStar(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _, optInPenetration);
+        double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
+        EveningStar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _, optInPenetration);
 }

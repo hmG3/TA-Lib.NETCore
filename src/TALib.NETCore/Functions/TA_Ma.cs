@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Ma(
+    public static Core.RetCode Ma<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -30,7 +30,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outBegIdx,
         out int outNbElement,
         int optInTimePeriod = 30,
-        Core.MAType optInMAType = Core.MAType.Sma)
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -107,11 +107,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Ma(
+    private static Core.RetCode Ma<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outReal,
         int optInTimePeriod = 30,
-        Core.MAType optInMAType = Core.MAType.Sma) => Ma(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod, optInMAType);
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        Ma<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod, optInMAType);
 }

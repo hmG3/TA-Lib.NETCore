@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode AdOsc(
+    public static Core.RetCode AdOsc<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -33,7 +33,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outBegIdx,
         out int outNbElement,
         int optInFastPeriod = 3,
-        int optInSlowPeriod = 10)
+        int optInSlowPeriod = 10) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -64,10 +64,10 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         T ad = T.Zero;
 
-        T fastk = TTwo / (T.CreateChecked(optInFastPeriod) + T.One);
+        T fastk = Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
         T oneMinusFastk = T.One - fastk;
 
-        T slowk = TTwo / (T.CreateChecked(optInSlowPeriod) + T.One);
+        T slowk = Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
         T oneMinusSlowk = T.One - slowk;
 
         CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume);
@@ -122,7 +122,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode AdOsc(
+    private static Core.RetCode AdOsc<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
@@ -131,6 +131,6 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int endIdx,
         T[] outReal,
         int optInFastPeriod = 3,
-        int optInSlowPeriod = 10) =>
-        AdOsc(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out _, out _, optInFastPeriod, optInSlowPeriod);
+        int optInSlowPeriod = 10) where T : IFloatingPointIeee754<T> =>
+        AdOsc<T>(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out _, out _, optInFastPeriod, optInSlowPeriod);
 }

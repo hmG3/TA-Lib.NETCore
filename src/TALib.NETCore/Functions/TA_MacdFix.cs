@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode MacdFix(
+    public static Core.RetCode MacdFix<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outMACDHist,
         out int outBegIdx,
         out int outNbElement,
-        int optInSignalPeriod = 9)
+        int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -54,13 +54,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode MacdFix(
+    private static Core.RetCode MacdFix<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outMACD,
         T[] outMACDSignal,
         T[] outMACDHist,
-        int optInSignalPeriod = 9) =>
-        MacdFix(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out _, out _, optInSignalPeriod);
+        int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
+        MacdFix<T>(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out _, out _, optInSignalPeriod);
 }

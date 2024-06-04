@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Sar(
+    public static Core.RetCode Sar<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         int startIdx,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outBegIdx,
         out int outNbElement,
         double optInAcceleration = 0.02,
-        double optInMaximum = 0.2)
+        double optInMaximum = 0.2) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -228,12 +228,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Sar(
+    private static Core.RetCode Sar<T>(
         T[] inHigh,
         T[] inLow,
         int startIdx,
         int endIdx,
         T[] outReal,
         double optInAcceleration = 0.02,
-        double optInMaximum = 0.2) => Sar(inHigh, inLow, startIdx, endIdx, outReal, out _, out _, optInAcceleration, optInMaximum);
+        double optInMaximum = 0.2) where T : IFloatingPointIeee754<T> =>
+        Sar<T>(inHigh, inLow, startIdx, endIdx, outReal, out _, out _, optInAcceleration, optInMaximum);
 }

@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Macd(
+    public static Core.RetCode Macd<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -33,7 +33,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outNbElement,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
-        int optInSignalPeriod = 9)
+        int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -69,7 +69,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Macd(
+    private static Core.RetCode Macd<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
@@ -78,7 +78,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T[] outMACDHist,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
-        int optInSignalPeriod = 9) =>
-        Macd(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out _, out _, optInFastPeriod, optInSlowPeriod,
+        int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
+        Macd<T>(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out _, out _, optInFastPeriod, optInSlowPeriod,
             optInSignalPeriod);
 }

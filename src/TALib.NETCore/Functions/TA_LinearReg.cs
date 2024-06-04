@@ -20,16 +20,16 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode LinearReg(
+    public static Core.RetCode LinearReg<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14)
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -59,7 +59,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         T timePeriod = T.CreateChecked(optInTimePeriod);
         T sumX = timePeriod * (timePeriod - T.One) * T.CreateChecked(0.5);
-        T sumXSqr = timePeriod * (timePeriod - T.One) * (timePeriod * TTwo - T.One) / T.CreateChecked(6);
+        T sumXSqr = timePeriod * (timePeriod - T.One) * (timePeriod * Two<T>() - T.One) / T.CreateChecked(6);
         T divisor = sumX * sumX - timePeriod * sumXSqr;
         while (today <= endIdx)
         {
@@ -89,10 +89,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode LinearReg(
+    private static Core.RetCode LinearReg<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 14) => LinearReg(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        LinearReg<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

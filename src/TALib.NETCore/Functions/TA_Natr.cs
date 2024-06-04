@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Natr(
+    public static Core.RetCode Natr<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14)
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -91,7 +91,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         outIdx = 1;
         T tempValue = inClose[today];
-        outReal[0] = !T.IsZero(tempValue) ? prevATR / tempValue * THundred : T.Zero;
+        outReal[0] = !T.IsZero(tempValue) ? prevATR / tempValue * Hundred<T>() : T.Zero;
 
         var nbATR = endIdx - startIdx + 1;
         while (--nbATR != 0)
@@ -102,7 +102,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             tempValue = inClose[today];
             if (!T.IsZero(tempValue))
             {
-                outReal[outIdx] = prevATR / tempValue * THundred;
+                outReal[outIdx] = prevATR / tempValue * Hundred<T>();
             }
             else
             {
@@ -124,12 +124,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Natr(
+    private static Core.RetCode Natr<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 14) => Natr(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        Natr<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Adx(
+    public static Core.RetCode Adx<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod)
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -128,12 +128,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevClose = inClose[today];
             if (!T.IsZero(prevTR))
             {
-                minusDI = THundred * (prevMinusDM / prevTR);
-                plusDI = THundred * (prevPlusDM / prevTR);
+                minusDI = Hundred<T>() * (prevMinusDM / prevTR);
+                plusDI = Hundred<T>() * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
                 if (!T.IsZero(tempReal))
                 {
-                    sumDX += THundred * (T.Abs(minusDI - plusDI) / tempReal);
+                    sumDX += Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
                 }
             }
         }
@@ -169,12 +169,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevClose = inClose[today];
             if (!T.IsZero(prevTR))
             {
-                minusDI = THundred * (prevMinusDM / prevTR);
-                plusDI = THundred * (prevPlusDM / prevTR);
+                minusDI = Hundred<T>() * (prevMinusDM / prevTR);
+                plusDI = Hundred<T>() * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
                 if (!T.IsZero(tempReal))
                 {
-                    tempReal = THundred * (T.Abs(minusDI - plusDI) / tempReal);
+                    tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
                     prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
                 }
             }
@@ -211,12 +211,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevClose = inClose[today];
             if (!T.IsZero(prevTR))
             {
-                minusDI = THundred * (prevMinusDM / prevTR);
-                plusDI = THundred * (prevPlusDM / prevTR);
+                minusDI = Hundred<T>() * (prevMinusDM / prevTR);
+                plusDI = Hundred<T>() * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
                 if (!T.IsZero(tempReal))
                 {
-                    tempReal = THundred * (T.Abs(minusDI - plusDI) / tempReal);
+                    tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
                     prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
                 }
             }
@@ -235,12 +235,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Adx(
+    private static Core.RetCode Adx<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod) => Adx(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod) where T : IFloatingPointIeee754<T> =>
+        Adx<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

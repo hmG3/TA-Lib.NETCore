@@ -69,7 +69,7 @@ public sealed class Function
 
         var paramsArray = PrepareFunctionMethodParams(inputs, options, outputs, functionMethod, out var isIntegerOutput);
 
-        var retCode = (Core.RetCode) functionMethod.Invoke(null, paramsArray)!;
+        var retCode = (Core.RetCode) functionMethod.MakeGenericMethod(typeof(T)).Invoke(null, paramsArray)!;
         if (isIntegerOutput && retCode == Core.RetCode.Success)
         {
             for (var i = 0; i < outputs.Length; i++)
@@ -132,10 +132,8 @@ public sealed class Function
     public override string ToString() => Name;
 
     private static IEnumerable<MethodInfo> ReflectMethods<T>(bool publicOnly) where T : IFloatingPointIeee754<T> =>
-        typeof(Functions<>).MakeGenericType(typeof(T))
-            .GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic))
-            .Concat(typeof(Candles<>).MakeGenericType(typeof(T))
-                .GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic)));
+        typeof(Functions).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic))
+            .Concat(typeof(Candles).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic)));
 
     private object[] PrepareFunctionMethodParams<T>(
         ReadOnlySpan<T[]> inputs,

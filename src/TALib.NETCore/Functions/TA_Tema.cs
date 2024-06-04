@@ -20,16 +20,16 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Tema(
+    public static Core.RetCode Tema<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30)
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -56,7 +56,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
 
         var tempInt = lookbackTotal + (endIdx - startIdx) + 1;
-        T k = TTwo / (T.CreateChecked(optInTimePeriod) + T.One);
+        T k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
 
         Span<T> firstEMA = new T[tempInt];
         var retCode = CalcExponentialMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
@@ -87,7 +87,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         while (outIdx < thirdEMANbElement)
         {
-            outReal[outIdx++] += TThree * firstEMA[firstEMAIdx++] - TThree * secondEMA[secondEMAIdx++];
+            outReal[outIdx++] += Three<T>() * firstEMA[firstEMAIdx++] - Three<T>() * secondEMA[secondEMAIdx++];
         }
 
         outNbElement = outIdx;
@@ -100,10 +100,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Tema(
+    private static Core.RetCode Tema<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 30) => Tema(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        Tema<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

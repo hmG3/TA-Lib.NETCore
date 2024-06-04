@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Correl(
+    public static Core.RetCode Correl<T>(
         ReadOnlySpan<T> inReal0,
         ReadOnlySpan<T> inReal1,
         int startIdx,
@@ -30,7 +30,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30)
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -115,11 +115,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Correl(
+    private static Core.RetCode Correl<T>(
         T[] inReal0,
         T[] inReal1,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 30) => Correl(inReal0, inReal1, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        Correl<T>(inReal0, inReal1, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode MinusDM(
+    public static Core.RetCode MinusDM<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         int startIdx,
@@ -30,7 +30,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14)
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -165,11 +165,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode MinusDM(
+    private static Core.RetCode MinusDM<T>(
         T[] inHigh,
         T[] inLow,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 14) => MinusDM(inHigh, inLow, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        MinusDM<T>(inHigh, inLow, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

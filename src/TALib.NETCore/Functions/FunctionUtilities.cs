@@ -20,15 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    private static T TTwo = T.CreateChecked(2);
-    private static T TThree = T.CreateChecked(3);
-    private static T TFour = T.CreateChecked(4);
-    private static T TNinety = T.CreateChecked(90);
-    private static T THundred = T.CreateChecked(100);
-
-    private static Core.RetCode CalcExponentialMA(
+    private static Core.RetCode CalcExponentialMA<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -36,7 +30,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outBegIdx,
         out int outNbElement,
         int optInTimePeriod,
-        T optInK1)
+        T optInK1) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -91,7 +85,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode CalcMACD(
+    private static Core.RetCode CalcMACD<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -102,7 +96,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outNbElement,
         int optInFastPeriod,
         int optInSlowPeriod,
-        int optInSignalPeriod)
+        int optInSignalPeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -115,7 +109,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T k2;
         if (optInSlowPeriod != 0)
         {
-            k1 = TTwo / (T.CreateChecked(optInSlowPeriod) + T.One);
+            k1 = Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
         }
         else
         {
@@ -125,7 +119,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         if (optInFastPeriod != 0)
         {
-            k2 = TTwo / (T.CreateChecked(optInFastPeriod) + T.One);
+            k2 = Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
         }
         else
         {
@@ -177,7 +171,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         fastEMABuffer.Slice(lookbackSignal, endIdx - startIdx + 1).CopyTo(outMacd);
         retCode = CalcExponentialMA(fastEMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalPeriod,
-            TTwo / (T.CreateChecked(optInSignalPeriod) + T.One));
+            Two<T>() / (T.CreateChecked(optInSignalPeriod) + T.One));
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -194,7 +188,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode CalcPriceOscillator(
+    private static Core.RetCode CalcPriceOscillator<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -205,7 +199,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int optInSlowPeriod,
         Core.MAType optInMethod,
         Span<T> tempBuffer,
-        bool doPercentageOutput)
+        bool doPercentageOutput) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -231,7 +225,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             if (doPercentageOutput)
             {
                 T tempReal = outReal[i];
-                outReal[i] = !T.IsZero(tempReal) ? (tempBuffer[j] - tempReal) / tempReal * THundred : T.Zero;
+                outReal[i] = !T.IsZero(tempReal) ? (tempBuffer[j] - tempReal) / tempReal * Hundred<T>() : T.Zero;
             }
             else
             {
@@ -245,14 +239,14 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return retCode;
     }
 
-    private static Core.RetCode CalcSimpleMA(
+    private static Core.RetCode CalcSimpleMA<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod)
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -294,13 +288,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    private static void CalcStandardDeviation(
+    private static void CalcStandardDeviation<T>(
         ReadOnlySpan<T> inReal,
         ReadOnlySpan<T> inMovAvg,
         int inMovAvgBegIdx,
         int inMovAvgNbElement,
         Span<T> outReal,
-        int optInTimePeriod)
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         var startSum = inMovAvgBegIdx + 1 - optInTimePeriod;
         var endSum = inMovAvgBegIdx;
@@ -332,14 +326,14 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
     }
 
-    private static Core.RetCode CalcVariance(
+    private static Core.RetCode CalcVariance<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod)
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -392,11 +386,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return Core.RetCode.Success;
     }
 
-    private static void TrueRange(
+    private static void TrueRange<T>(
         T th,
         T tl,
         T yc,
-        out T @out)
+        out T @out) where T : IFloatingPointIeee754<T>
     {
         @out = th - tl;
         T tempT = T.Abs(th - yc);
@@ -412,30 +406,30 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
     }
 
-    private static void DoPriceWma(
+    private static void DoPriceWma<T>(
         ReadOnlySpan<T> real,
         ref int idx,
         ref T periodWMASub,
         ref T periodWMASum,
         ref T trailingWMAValue,
         T varNewPrice,
-        out T varToStoreSmoothedValue)
+        out T varToStoreSmoothedValue) where T : IFloatingPointIeee754<T>
     {
         periodWMASub += varNewPrice;
         periodWMASub -= trailingWMAValue;
-        periodWMASum += varNewPrice * TFour;
+        periodWMASum += varNewPrice * Four<T>();
         trailingWMAValue = real[idx++];
         varToStoreSmoothedValue = periodWMASum * T.CreateChecked(0.1);
         periodWMASum -= periodWMASub;
     }
 
-    private static void CalcTerms(
+    private static void CalcTerms<T>(
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inClose,
         int day,
         out T trueRange,
-        out T closeMinusTrueLow)
+        out T closeMinusTrueLow) where T : IFloatingPointIeee754<T>
     {
         T tempLT = inLow[day];
         T tempHT = inHigh[day];
@@ -456,7 +450,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         }
     }
 
-    private static Dictionary<string, T> InitHilbertVariables()
+    private static Dictionary<string, T> InitHilbertVariables<T>() where T : IFloatingPointIeee754<T>
     {
         var variables = new Dictionary<string, T>(4 * 11);
 
@@ -478,13 +472,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         return variables;
     }
 
-    private static void DoHilbertTransform(
+    private static void DoHilbertTransform<T>(
         IDictionary<string, T> variables,
         string varName,
         T input,
         string oddOrEvenId,
         int hilbertIdx,
-        T adjustedPrevPeriod)
+        T adjustedPrevPeriod) where T : IFloatingPointIeee754<T>
     {
         T a = T.CreateChecked(0.0962);
         T b = T.CreateChecked(0.5769);
@@ -500,23 +494,29 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         variables[varName] *= adjustedPrevPeriod;
     }
 
-    private static void DoHilbertOdd(
+    private static void DoHilbertOdd<T>(
         IDictionary<string, T> variables,
         string varName,
         T input,
         int hilbertIdx,
-        T adjustedPrevPeriod)
-    {
+        T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
         DoHilbertTransform(variables, varName, input, "Odd", hilbertIdx, adjustedPrevPeriod);
-    }
 
-    private static void DoHilbertEven(
+    private static void DoHilbertEven<T>(
         IDictionary<string, T> variables,
         string varName,
         T input,
         int hilbertIdx,
-        T adjustedPrevPeriod)
-    {
+        T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
         DoHilbertTransform(variables, varName, input, "Even", hilbertIdx, adjustedPrevPeriod);
-    }
+
+    private static T Two<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(2);
+
+    private static T Three<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(3);
+
+    private static T Four<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(4);
+
+    private static T Ninety<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(90);
+
+    private static T Hundred<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(100);
 }

@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Ppo(
+    public static Core.RetCode Ppo<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outNbElement,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
-        Core.MAType optInMAType = Core.MAType.Sma)
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -57,13 +57,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Ppo(
+    private static Core.RetCode Ppo<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outReal,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
-        Core.MAType optInMAType = Core.MAType.Sma) =>
-        Ppo(inReal, startIdx, endIdx, outReal, out _, out _, optInFastPeriod, optInSlowPeriod, optInMAType);
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        Ppo<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInFastPeriod, optInSlowPeriod, optInMAType);
 }

@@ -20,15 +20,15 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode HtDcPeriod(
+    public static Core.RetCode HtDcPeriod<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
-        out int outNbElement)
+        out int outNbElement) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -58,10 +58,10 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T periodWMASum = tempReal;
         tempReal = inReal[today++];
         periodWMASub += tempReal;
-        periodWMASum += tempReal * TTwo;
+        periodWMASum += tempReal * Two<T>();
         tempReal = inReal[today++];
         periodWMASub += tempReal;
-        periodWMASum += tempReal * TThree;
+        periodWMASum += tempReal * Three<T>();
 
         T trailingWMAValue = T.Zero;
 
@@ -74,7 +74,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         int hilbertIdx = default;
 
-        var hilbertVariables = InitHilbertVariables();
+        var hilbertVariables = InitHilbertVariables<T>();
 
         int outIdx = default;
 
@@ -131,7 +131,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             tempReal = period;
             if (!T.IsZero(im) && !T.IsZero(re))
             {
-                period = TNinety * TFour / T.RadiansToDegrees(T.Atan(im / re));
+                period = Ninety<T>() * Four<T>() / T.RadiansToDegrees(T.Atan(im / re));
             }
 
             T tempReal2 = T.CreateChecked(1.5) * tempReal;
@@ -170,9 +170,9 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode HtDcPeriod(
+    private static Core.RetCode HtDcPeriod<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
-        T[] outReal) => HtDcPeriod(inReal, startIdx, endIdx, outReal, out _, out _);
+        T[] outReal) where T : IFloatingPointIeee754<T> => HtDcPeriod<T>(inReal, startIdx, endIdx, outReal, out _, out _);
 }

@@ -20,16 +20,16 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Roc(
+    public static Core.RetCode Roc<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 10)
+        int optInTimePeriod = 10) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -60,7 +60,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         while (inIdx <= endIdx)
         {
             T tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = !T.IsZero(tempReal) ? (inReal[inIdx] / tempReal - T.One) * THundred : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tempReal) ? (inReal[inIdx] / tempReal - T.One) * Hundred<T>() : T.Zero;
             inIdx++;
         }
 
@@ -75,10 +75,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Roc(
+    private static Core.RetCode Roc<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 10) => Roc(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 10) where T : IFloatingPointIeee754<T> =>
+        Roc<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

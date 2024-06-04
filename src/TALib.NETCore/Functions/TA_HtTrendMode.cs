@@ -20,15 +20,15 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode HtTrendMode(
+    public static Core.RetCode HtTrendMode<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<int> outInteger,
         out int outBegIdx,
-        out int outNbElement)
+        out int outNbElement) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -66,10 +66,10 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T periodWMASum = tempReal;
         tempReal = inReal[today++];
         periodWMASub += tempReal;
-        periodWMASum += tempReal * TTwo;
+        periodWMASum += tempReal * Two<T>();
         tempReal = inReal[today++];
         periodWMASub += tempReal;
-        periodWMASum += tempReal * TThree;
+        periodWMASum += tempReal * Three<T>();
         T trailingWMAValue = T.Zero;
         var i = 34;
         do
@@ -81,7 +81,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int hilbertIdx = default;
         int smoothPriceIdx = default;
 
-        var hilbertVariables = InitHilbertVariables();
+        var hilbertVariables = InitHilbertVariables<T>();
 
         int outIdx = default;
 
@@ -141,7 +141,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             tempReal = period;
             if (!T.IsZero(im) && !T.IsZero(re))
             {
-                period = TNinety * TFour / T.RadiansToDegrees(T.Atan(im / re));
+                period = Ninety<T>() * Four<T>() / T.RadiansToDegrees(T.Atan(im / re));
             }
 
             T tempReal2 = T.CreateChecked(1.5) * tempReal;
@@ -171,7 +171,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             var idx = smoothPriceIdx;
             for (i = 0; i < dcPeriodInt; i++)
             {
-                tempReal = T.CreateChecked(i) * TTwo * T.Pi / T.CreateChecked(dcPeriodInt);
+                tempReal = T.CreateChecked(i) * Two<T>() * T.Pi / T.CreateChecked(dcPeriodInt);
                 tempReal2 = smoothPrice[idx];
                 realPart += T.Sin(tempReal) * tempReal2;
                 imagPart += T.Cos(tempReal) * tempReal2;
@@ -194,30 +194,30 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             {
                 if (realPart < T.Zero)
                 {
-                    dcPhase -= TNinety;
+                    dcPhase -= Ninety<T>();
                 }
                 else if (realPart > T.Zero)
                 {
-                    dcPhase += TNinety;
+                    dcPhase += Ninety<T>();
                 }
             }
 
-            dcPhase += TNinety;
-            dcPhase += TNinety * TFour / smoothPeriod;
+            dcPhase += Ninety<T>();
+            dcPhase += Ninety<T>() * Four<T>() / smoothPeriod;
             if (imagPart < T.Zero)
             {
-                dcPhase += TNinety * TTwo;
+                dcPhase += Ninety<T>() * Two<T>();
             }
 
-            if (dcPhase > TNinety * T.CreateChecked(3.5))
+            if (dcPhase > Ninety<T>() * T.CreateChecked(3.5))
             {
-                dcPhase -= TNinety * TFour;
+                dcPhase -= Ninety<T>() * Four<T>();
             }
 
             T prevSine = sine;
             T prevLeadSine = leadSine;
             sine = T.Sin(T.DegreesToRadians(dcPhase));
-            leadSine = T.Sin(T.DegreesToRadians(dcPhase + TNinety / TTwo));
+            leadSine = T.Sin(T.DegreesToRadians(dcPhase + Ninety<T>() / Two<T>()));
 
             dcPeriod = smoothPeriod + T.CreateChecked(0.5);
 
@@ -233,7 +233,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
                 tempReal /= T.CreateChecked(dcPeriodInt);
             }
 
-            T trendline = (TFour * tempReal + TThree * iTrend1 + TTwo * iTrend2 + iTrend3) / T.CreateChecked(10);
+            T trendline = (Four<T>() * tempReal + Three<T>() * iTrend1 + Two<T>() * iTrend2 + iTrend3) / T.CreateChecked(10);
             iTrend3 = iTrend2;
             iTrend2 = iTrend1;
             iTrend1 = tempReal;
@@ -252,8 +252,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             }
 
             tempReal = dcPhase - prevDCPhase;
-            if (!T.IsZero(smoothPeriod) && tempReal > T.CreateChecked(0.67) * TNinety * TFour / smoothPeriod &&
-                tempReal < T.CreateChecked(1.5) * TNinety * TFour / smoothPeriod)
+            if (!T.IsZero(smoothPeriod) && tempReal > T.CreateChecked(0.67) * Ninety<T>() * Four<T>() / smoothPeriod &&
+                tempReal < T.CreateChecked(1.5) * Ninety<T>() * Four<T>() / smoothPeriod)
             {
                 trend = 0;
             }
@@ -287,9 +287,9 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode HtTrendMode(
+    private static Core.RetCode HtTrendMode<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
-        int[] outInteger) => HtTrendMode(inReal, startIdx, endIdx, outInteger, out _, out _);
+        int[] outInteger) where T : IFloatingPointIeee754<T> => HtTrendMode<T>(inReal, startIdx, endIdx, outInteger, out _, out _);
 }

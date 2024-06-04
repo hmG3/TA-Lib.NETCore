@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode AvgPrice(
+    public static Core.RetCode AvgPrice<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
-        out int outNbElement)
+        out int outNbElement) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -44,7 +44,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         for (var i = startIdx; i <= endIdx; i++)
         {
-            outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / TFour;
+            outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / Four<T>();
         }
 
         outBegIdx = startIdx;
@@ -58,12 +58,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode AvgPrice(
+    private static Core.RetCode AvgPrice<T>(
         T[] inOpen,
         T[] inHigh,
         T[] inLow,
         T[] inClose,
         int startIdx,
         int endIdx,
-        T[] outReal) => AvgPrice(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _);
+        T[] outReal) where T : IFloatingPointIeee754<T> =>
+        AvgPrice<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _);
 }

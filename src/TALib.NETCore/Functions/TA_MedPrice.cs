@@ -20,16 +20,16 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode MedPrice(
+    public static Core.RetCode MedPrice<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
-        out int outNbElement)
+        out int outNbElement) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -41,7 +41,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         for (var i = startIdx; i <= endIdx; i++)
         {
-            outReal[outIdx++] = (inHigh[i] + inLow[i]) / TTwo;
+            outReal[outIdx++] = (inHigh[i] + inLow[i]) / Two<T>();
         }
 
         outBegIdx = startIdx;
@@ -55,10 +55,10 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode MedPrice(
+    private static Core.RetCode MedPrice<T>(
         T[] inHigh,
         T[] inLow,
         int startIdx,
         int endIdx,
-        T[] outReal) => MedPrice(inHigh, inLow, startIdx, endIdx, outReal, out _, out _);
+        T[] outReal) where T : IFloatingPointIeee754<T> => MedPrice<T>(inHigh, inLow, startIdx, endIdx, outReal, out _, out _);
 }

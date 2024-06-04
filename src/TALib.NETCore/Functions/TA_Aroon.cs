@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Aroon(
+    public static Core.RetCode Aroon<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         int startIdx,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outAroonUp,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14)
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -63,7 +63,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         var highestIdx = -1;
         T lowest = T.Zero;
         T highest = T.Zero;
-        T factor = THundred / T.CreateChecked(optInTimePeriod);
+        T factor = Hundred<T>() / T.CreateChecked(optInTimePeriod);
 
         while (today <= endIdx)
         {
@@ -130,12 +130,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Aroon(
+    private static Core.RetCode Aroon<T>(
         T[] inHigh,
         T[] inLow,
         int startIdx,
         int endIdx,
         T[] outAroonDown,
         T[] outAroonUp,
-        int optInTimePeriod = 14) => Aroon(inHigh, inLow, startIdx, endIdx, outAroonDown, outAroonUp, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        Aroon<T>(inHigh, inLow, startIdx, endIdx, outAroonDown, outAroonUp, out _, out _, optInTimePeriod);
 }

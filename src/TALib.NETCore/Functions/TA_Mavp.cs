@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Mavp(
+    public static Core.RetCode Mavp<T>(
         ReadOnlySpan<T> inReal,
         ReadOnlySpan<T> inPeriods,
         int startIdx,
@@ -32,7 +32,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outNbElement,
         int optInMinPeriod = 2,
         int optInMaxPeriod = 30,
-        Core.MAType optInMAType = Core.MAType.Sma)
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -113,7 +113,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Mavp(
+    private static Core.RetCode Mavp<T>(
         T[] inReal,
         T[] inPeriods,
         int startIdx,
@@ -121,6 +121,6 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T[] outReal,
         int optInMinPeriod = 2,
         int optInMaxPeriod = 30,
-        Core.MAType optInMAType = Core.MAType.Sma) =>
-        Mavp(inReal, inPeriods, startIdx, endIdx, outReal, out _, out _, optInMinPeriod, optInMaxPeriod, optInMAType);
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        Mavp<T>(inReal, inPeriods, startIdx, endIdx, outReal, out _, out _, optInMinPeriod, optInMaxPeriod, optInMAType);
 }

@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode WillR(
+    public static Core.RetCode WillR<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14)
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -83,13 +83,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
                     }
                 }
 
-                diff = (highest - lowest) / (T.NegativeOne * THundred);
+                diff = (highest - lowest) / (T.NegativeOne * Hundred<T>());
             }
             else if (tmp <= lowest)
             {
                 lowestIdx = today;
                 lowest = tmp;
-                diff = (highest - lowest) / (T.NegativeOne * THundred);
+                diff = (highest - lowest) / (T.NegativeOne * Hundred<T>());
             }
 
             tmp = inHigh[today];
@@ -108,13 +108,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
                     }
                 }
 
-                diff = (highest - lowest) / (T.NegativeOne * THundred);
+                diff = (highest - lowest) / (T.NegativeOne * Hundred<T>());
             }
             else if (tmp >= highest)
             {
                 highestIdx = today;
                 highest = tmp;
-                diff = (highest - lowest) / (T.NegativeOne * THundred);
+                diff = (highest - lowest) / (T.NegativeOne * Hundred<T>());
             }
 
             outReal[outIdx++] = !T.IsZero(diff) ? (highest - inClose[today]) / diff : T.Zero;
@@ -134,12 +134,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode WillR(
+    private static Core.RetCode WillR<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 14) => WillR(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        WillR<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode StochF(
+    public static Core.RetCode StochF<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -34,7 +34,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outNbElement,
         int optInFastKPeriod = 5,
         int optInFastDPeriod = 3,
-        Core.MAType optInFastDMAType = Core.MAType.Sma)
+        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -101,13 +101,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
                     }
                 }
 
-                diff = (highest - lowest) / THundred;
+                diff = (highest - lowest) / Hundred<T>();
             }
             else if (tmp <= lowest)
             {
                 lowestIdx = today;
                 lowest = tmp;
-                diff = (highest - lowest) / THundred;
+                diff = (highest - lowest) / Hundred<T>();
             }
 
             tmp = inHigh[today];
@@ -126,13 +126,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
                     }
                 }
 
-                diff = (highest - lowest) / THundred;
+                diff = (highest - lowest) / Hundred<T>();
             }
             else if (tmp >= highest)
             {
                 highestIdx = today;
                 highest = tmp;
-                diff = (highest - lowest) / THundred;
+                diff = (highest - lowest) / Hundred<T>();
             }
 
             tempBuffer[outIdx++] = !T.IsZero(diff) ? (inClose[today] - lowest) / diff : T.Zero;
@@ -159,7 +159,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode StochF(
+    private static Core.RetCode StochF<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
@@ -169,7 +169,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T[] outFastD,
         int optInFastKPeriod = 5,
         int optInFastDPeriod = 3,
-        Core.MAType optInFastDMAType = Core.MAType.Sma) =>
-        StochF(inHigh, inLow, inClose, startIdx, endIdx, outFastK, outFastD, out _, out _, optInFastKPeriod, optInFastDPeriod,
+        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        StochF<T>(inHigh, inLow, inClose, startIdx, endIdx, outFastK, outFastD, out _, out _, optInFastKPeriod, optInFastDPeriod,
             optInFastDMAType);
 }

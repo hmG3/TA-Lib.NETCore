@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Cci(
+    public static Core.RetCode Cci<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14)
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -63,7 +63,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         var i = startIdx - lookbackTotal;
         while (i < startIdx)
         {
-            circBuffer[circBufferIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / TThree;
+            circBuffer[circBufferIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / Three<T>();
             i++;
             if (circBufferIdx > maxIdxCircBuffer)
             {
@@ -77,7 +77,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int outIdx = default;
         do
         {
-            T lastValue = (inHigh[i] + inLow[i] + inClose[i]) / TThree;
+            T lastValue = (inHigh[i] + inLow[i] + inClose[i]) / Three<T>();
             circBuffer[circBufferIdx++] = lastValue;
 
             T theAverage = T.Zero;
@@ -118,12 +118,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Cci(
+    private static Core.RetCode Cci<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 14) => Cci(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        Cci<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

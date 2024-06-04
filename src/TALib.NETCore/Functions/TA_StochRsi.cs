@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode StochRsi(
+    public static Core.RetCode StochRsi<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -33,7 +33,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int optInTimePeriod = 14,
         int optInFastKPeriod = 5,
         int optInFastDPeriod = 3,
-        Core.MAType optInFastDMAType = Core.MAType.Sma)
+        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -90,7 +90,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode StochRsi(
+    private static Core.RetCode StochRsi<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
@@ -99,7 +99,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int optInTimePeriod = 14,
         int optInFastKPeriod = 5,
         int optInFastDPeriod = 3,
-        Core.MAType optInFastDMAType = Core.MAType.Sma) =>
-        StochRsi(inReal, startIdx, endIdx, outFastK, outFastD, out _, out _, optInTimePeriod, optInFastKPeriod, optInFastDPeriod,
+        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        StochRsi<T>(inReal, startIdx, endIdx, outFastK, outFastD, out _, out _, optInTimePeriod, optInFastKPeriod, optInFastDPeriod,
             optInFastDMAType);
 }

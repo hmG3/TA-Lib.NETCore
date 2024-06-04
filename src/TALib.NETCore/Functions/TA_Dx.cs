@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Dx(
+    public static Core.RetCode Dx<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14)
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -124,10 +124,10 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         if (!T.IsZero(prevTR))
         {
-            T minusDI = THundred * (prevMinusDM / prevTR);
-            T plusDI = THundred * (prevPlusDM / prevTR);
+            T minusDI = Hundred<T>() * (prevMinusDM / prevTR);
+            T plusDI = Hundred<T>() * (prevPlusDM / prevTR);
             T tempReal = minusDI + plusDI;
-            outReal[0] = !T.IsZero(tempReal) ? THundred * (T.Abs(minusDI - plusDI) / tempReal) : T.Zero;
+            outReal[0] = !T.IsZero(tempReal) ? Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal) : T.Zero;
         }
         else
         {
@@ -164,12 +164,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
             if (!T.IsZero(prevTR))
             {
-                T minusDI = THundred * (prevMinusDM / prevTR);
-                T plusDI = THundred * (prevPlusDM / prevTR);
+                T minusDI = Hundred<T>() * (prevMinusDM / prevTR);
+                T plusDI = Hundred<T>() * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
                 if (!T.IsZero(tempReal))
                 {
-                    outReal[outIdx] = THundred * (T.Abs(minusDI - plusDI) / tempReal);
+                    outReal[outIdx] = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
                 }
                 else
                 {
@@ -195,12 +195,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Dx(
+    private static Core.RetCode Dx<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 14) => Dx(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        Dx<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

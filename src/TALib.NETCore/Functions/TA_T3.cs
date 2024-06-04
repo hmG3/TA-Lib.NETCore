@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode T3(
+    public static Core.RetCode T3<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -30,7 +30,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outBegIdx,
         out int outNbElement,
         int optInTimePeriod = 5,
-        double optInVFactor = 0.7)
+        double optInVFactor = 0.7) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -60,7 +60,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
         T timePeriod = T.CreateChecked(optInTimePeriod);
 
-        T k = TTwo / (timePeriod + T.One);
+        T k = Two<T>() / (timePeriod + T.One);
         T oneMinusK = T.One - k;
 
         T tempReal = inReal[today++];
@@ -139,9 +139,9 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T vFactor = T.CreateChecked(optInVFactor);
         tempReal = vFactor * vFactor;
         T c1 = T.NegativeOne * tempReal * vFactor;
-        T c2 = TThree * (tempReal - c1);
-        T c3 = T.NegativeOne * TTwo * TThree * tempReal - TThree * (vFactor - c1);
-        T c4 = T.One + TThree * vFactor - c1 + TThree * tempReal;
+        T c2 = Three<T>() * (tempReal - c1);
+        T c3 = T.NegativeOne * Two<T>() * Three<T>() * tempReal - Three<T>() * (vFactor - c1);
+        T c4 = T.One + Three<T>() * vFactor - c1 + Three<T>() * tempReal;
 
         int outIdx = default;
         outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
@@ -168,11 +168,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode T3(
+    private static Core.RetCode T3<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outReal,
         int optInTimePeriod = 5,
-        double optInVFactor = 0.7) => T3(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod, optInVFactor);
+        double optInVFactor = 0.7) where T : IFloatingPointIeee754<T> =>
+        T3<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod, optInVFactor);
 }

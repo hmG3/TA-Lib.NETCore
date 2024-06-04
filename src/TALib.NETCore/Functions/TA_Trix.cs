@@ -20,16 +20,16 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Trix(
+    public static Core.RetCode Trix<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30)
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -59,7 +59,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         var nbElementToOutput = endIdx - startIdx + 1 + lookbackTotal;
         Span<T> tempBuffer = new T[nbElementToOutput];
 
-        T k = TTwo / (T.CreateChecked(optInTimePeriod) + T.One);
+        T k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
         var retCode =
             CalcExponentialMA(inReal, startIdx - lookbackTotal, endIdx, tempBuffer, out _, out var nbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
@@ -99,10 +99,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Trix(
+    private static Core.RetCode Trix<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 30) => Trix(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        Trix<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

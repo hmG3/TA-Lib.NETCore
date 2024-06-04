@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode MinMaxIndex(
+    public static Core.RetCode MinMaxIndex<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -30,7 +30,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outMaxIdx,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30)
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -128,11 +128,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode MinMaxIndex(
+    private static Core.RetCode MinMaxIndex<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outMinIdx,
         T[] outMaxIdx,
-        int optInTimePeriod = 30) => MinMaxIndex(inReal, startIdx, endIdx, outMinIdx, outMaxIdx, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        MinMaxIndex<T>(inReal, startIdx, endIdx, outMinIdx, outMaxIdx, out _, out _, optInTimePeriod);
 }

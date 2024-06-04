@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode UltOsc(
+    public static Core.RetCode UltOsc<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -33,7 +33,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         out int outNbElement,
         int optInTimePeriod1 = 7,
         int optInTimePeriod2 = 14,
-        int optInTimePeriod3 = 28)
+        int optInTimePeriod3 = 28) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -134,12 +134,12 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
 
             if (!T.IsZero(b1Total))
             {
-                output += TFour * (a1Total / b1Total);
+                output += Four<T>() * (a1Total / b1Total);
             }
 
             if (!T.IsZero(b2Total))
             {
-                output += TTwo * (a2Total / b2Total);
+                output += Two<T>() * (a2Total / b2Total);
             }
 
             if (!T.IsZero(b3Total))
@@ -159,7 +159,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             a3Total -= closeMinusTrueLow;
             b3Total -= trueRange;
 
-            outReal[outIdx++] = THundred * (output / TSeven);
+            outReal[outIdx++] = Hundred<T>() * (output / TSeven);
             today++;
             trailingIdx1++;
             trailingIdx2++;
@@ -180,7 +180,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode UltOsc(
+    private static Core.RetCode UltOsc<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
@@ -189,6 +189,6 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T[] outReal,
         int optInTimePeriod1 = 7,
         int optInTimePeriod2 = 14,
-        int optInTimePeriod3 = 28) =>
-        UltOsc(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+        int optInTimePeriod3 = 28) where T : IFloatingPointIeee754<T> =>
+        UltOsc<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
 }

@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Candles<T> where T : IFloatingPointIeee754<T>
+public static partial class Candles
 {
-    public static Core.RetCode ThreeInside(
+    public static Core.RetCode ThreeInside<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -31,7 +31,7 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
         int endIdx,
         Span<int> outInteger,
         out int outBegIdx,
-        out int outNbElement)
+        out int outNbElement) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -117,12 +117,13 @@ public static partial class Candles<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode ThreeInside(
+    private static Core.RetCode ThreeInside<T>(
         T[] inOpen,
         T[] inHigh,
         T[] inLow,
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) => ThreeInside(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        int[] outInteger) where T : IFloatingPointIeee754<T> =>
+        ThreeInside<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
 }

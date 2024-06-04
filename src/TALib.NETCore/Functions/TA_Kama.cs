@@ -20,16 +20,16 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Kama(
+    public static Core.RetCode Kama<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30)
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -54,8 +54,8 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             return Core.RetCode.Success;
         }
 
-        T constMax = TTwo / (T.CreateChecked(30) + T.One);
-        T constDiff = TTwo / (TTwo + T.One) - constMax;
+        T constMax = Two<T>() / (T.CreateChecked(30) + T.One);
+        T constDiff = Two<T>() / (Two<T>() + T.One) - constMax;
 
         T sumROC1 = T.Zero;
         T tempReal;
@@ -154,10 +154,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Kama(
+    private static Core.RetCode Kama<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 30) => Kama(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        Kama<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

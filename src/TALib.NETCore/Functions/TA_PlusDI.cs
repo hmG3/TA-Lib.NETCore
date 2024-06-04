@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode PlusDI(
+    public static Core.RetCode PlusDI<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -31,7 +31,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14)
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -153,7 +153,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevClose = inClose[today];
         }
 
-        outReal[0] = !T.IsZero(prevTR) ? THundred * (prevPlusDM / prevTR) : T.Zero;
+        outReal[0] = !T.IsZero(prevTR) ? Hundred<T>() * (prevPlusDM / prevTR) : T.Zero;
         outIdx = 1;
 
         while (today < endIdx)
@@ -177,7 +177,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             TrueRange(prevHigh, prevLow, prevClose, out tempReal);
             prevTR = prevTR - prevTR / timePeriod + tempReal;
             prevClose = inClose[today];
-            outReal[outIdx++] = !T.IsZero(prevTR) ? THundred * (prevPlusDM / prevTR) : T.Zero;
+            outReal[outIdx++] = !T.IsZero(prevTR) ? Hundred<T>() * (prevPlusDM / prevTR) : T.Zero;
         }
 
         outNbElement = outIdx;
@@ -192,12 +192,13 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode PlusDI(
+    private static Core.RetCode PlusDI<T>(
         T[] inHigh,
         T[] inLow,
         T[] inClose,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 14) => PlusDI(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        PlusDI<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

@@ -20,16 +20,16 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Cmo(
+    public static Core.RetCode Cmo<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14)
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -88,7 +88,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             tempValue2 = prevGain / timePeriod;
             T tempValue3 = tempValue2 - tempValue1;
             T tempValue4 = tempValue1 + tempValue2;
-            outReal[outIdx++] = !T.IsZero(tempValue4) ? THundred * (tempValue3 / tempValue4) : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tempValue4) ? Hundred<T>() * (tempValue3 / tempValue4) : T.Zero;
 
             if (today > endIdx)
             {
@@ -126,7 +126,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         if (today > startIdx)
         {
             tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !T.IsZero(tempValue1) ? THundred * ((prevGain - prevLoss) / tempValue1) : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tempValue1) ? Hundred<T>() * ((prevGain - prevLoss) / tempValue1) : T.Zero;
         }
         else
         {
@@ -174,7 +174,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
             prevLoss /= timePeriod;
             prevGain /= timePeriod;
             tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !T.IsZero(tempValue1) ? THundred * ((prevGain - prevLoss) / tempValue1) : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tempValue1) ? Hundred<T>() * ((prevGain - prevLoss) / tempValue1) : T.Zero;
         }
 
         outBegIdx = startIdx;
@@ -202,10 +202,11 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Cmo(
+    private static Core.RetCode Cmo<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 14) => Cmo(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        Cmo<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

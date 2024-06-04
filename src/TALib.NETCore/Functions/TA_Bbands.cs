@@ -20,9 +20,9 @@
 
 namespace TALib;
 
-public static partial class Functions<T> where T : IFloatingPointIeee754<T>
+public static partial class Functions
 {
-    public static Core.RetCode Bbands(
+    public static Core.RetCode Bbands<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -34,7 +34,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int optInTimePeriod = 5,
         double optInNbDevUp = 2.0,
         double optInNbDevDn = 2.0,
-        Core.MAType optInMAType = Core.MAType.Sma)
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -170,7 +170,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
-    private static Core.RetCode Bbands(
+    private static Core.RetCode Bbands<T>(
         T[] inReal,
         int startIdx,
         int endIdx,
@@ -180,7 +180,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         int optInTimePeriod = 5,
         double optInNbDevUp = 2.0,
         double optInNbDevDn = 2.0,
-        Core.MAType optInMAType = Core.MAType.Sma) =>
-        Bbands(inReal, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out _, out _,
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        Bbands<T>(inReal, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out _, out _,
             optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
 }
