@@ -109,7 +109,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
         T tempReal2;
         if (optInNbDevUp.Equals(optInNbDevDn))
         {
-            if (nbDevUp == T.One)
+            if (nbDevUp.Equals(T.One))
             {
                 for (var i = 0; i < outNbElement; i++)
                 {
@@ -130,7 +130,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
                 }
             }
         }
-        else if (nbDevUp == T.One)
+        else if (nbDevUp.Equals(T.One))
         {
             for (var i = 0; i < outNbElement; i++)
             {
@@ -140,7 +140,7 @@ public static partial class Functions<T> where T : IFloatingPointIeee754<T>
                 outRealLowerBand[i] = tempReal2 - tempReal * nbDevDn;
             }
         }
-        else if (nbDevDn == T.One)
+        else if (nbDevDn.Equals(T.One))
         {
             for (var i = 0; i < outNbElement; i++)
             {
