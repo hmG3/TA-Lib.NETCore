@@ -23,7 +23,7 @@ using System.Reflection;
 
 namespace TALib;
 
-public sealed class Function
+public sealed class IndicatorFunction
 {
     private const string LookbackSuffix = "Lookback";
     private const string InPrefix = "in";
@@ -33,7 +33,7 @@ public sealed class Function
     private const string BegIdxParam = "BegIdx";
     private const string NbElementParam = "NbElement";
 
-    internal Function(
+    internal IndicatorFunction(
         string name,
         string description,
         string group,
@@ -61,7 +61,7 @@ public sealed class Function
 
     public string[] Outputs { get; }
 
-    public Core.RetCode Run<T>(ReadOnlySpan<T[]> inputs, ReadOnlySpan<T> options, Span<T[]> outputs) where T : IFloatingPointIeee754<T>
+    public Core.RetCode Run<T>(T[][] inputs, T[] options, T[][] outputs) where T : IFloatingPointIeee754<T>
     {
         var functionMethod = ReflectMethods<T>(publicOnly: false)
                                  .FirstOrDefault(mi => !mi.Name.EndsWith(LookbackSuffix) && FunctionMethodSelector(mi)) ??
@@ -85,7 +85,7 @@ public sealed class Function
         return retCode;
     }
 
-    public int Lookback<T>(Span<int> options) where T : IFloatingPointIeee754<T>
+    public int Lookback<T>(params int[] options) where T : IFloatingPointIeee754<T>
     {
         var lookbackMethod = ReflectMethods<T>(publicOnly: true)
                                  .FirstOrDefault(mi => mi.Name.EndsWith(LookbackSuffix) && LookbackMethodSelector(mi))
@@ -136,9 +136,9 @@ public sealed class Function
             .Concat(typeof(Candles).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic)));
 
     private object[] PrepareFunctionMethodParams<T>(
-        ReadOnlySpan<T[]> inputs,
-        ReadOnlySpan<T> options,
-        Span<T[]> outputs,
+        T[][] inputs,
+        T[] options,
+        T[][] outputs,
         MethodInfo method,
         out bool isIntegerOutput) where T : IFloatingPointIeee754<T>
     {
