@@ -54,6 +54,7 @@ public static partial class Functions
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
+    [UsedImplicitly]
     private static Core.RetCode Sinh<T>(
         T[] inReal,
         int startIdx,

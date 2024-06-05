@@ -169,6 +169,7 @@ public static partial class Candles
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
+    [UsedImplicitly]
     private static Core.RetCode ThreeWhiteSoldiers<T>(
         T[] inOpen,
         T[] inHigh,

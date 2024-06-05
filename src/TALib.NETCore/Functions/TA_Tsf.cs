@@ -90,6 +90,7 @@ public static partial class Functions
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
+    [UsedImplicitly]
     private static Core.RetCode Tsf<T>(
         T[] inReal,
         int startIdx,

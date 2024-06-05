@@ -96,6 +96,7 @@ public static partial class Candles
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
+    [UsedImplicitly]
     private static Core.RetCode Engulfing<T>(
         T[] inOpen,
         T[] inHigh,
