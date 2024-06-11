@@ -86,7 +86,7 @@ public static partial class Functions
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            tempReal = TrueRange(prevHigh, prevLow, prevClose);
             prevTR += tempReal;
             prevClose = inClose[today];
         }
@@ -117,7 +117,7 @@ public static partial class Functions
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            tempReal = TrueRange(prevHigh, prevLow, prevClose);
             prevTR = prevTR - prevTR / timePeriod + tempReal;
             prevClose = inClose[today];
         }
@@ -158,7 +158,7 @@ public static partial class Functions
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            tempReal = TrueRange(prevHigh, prevLow, prevClose);
             prevTR = prevTR - prevTR / timePeriod + tempReal;
             prevClose = inClose[today];
 

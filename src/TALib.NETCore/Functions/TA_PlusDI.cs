@@ -82,7 +82,7 @@ public static partial class Functions
                 prevLow = tempReal;
                 if (diffP > T.Zero && diffP > diffM)
                 {
-                    TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+                    tempReal = TrueRange(prevHigh, prevLow, prevClose);
                     outReal[outIdx++] = !T.IsZero(tempReal) ? diffP / tempReal : T.Zero;
                 }
                 else
@@ -122,7 +122,7 @@ public static partial class Functions
                 prevPlusDM += diffP;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            tempReal = TrueRange(prevHigh, prevLow, prevClose);
             prevTR += tempReal;
             prevClose = inClose[today];
         }
@@ -148,7 +148,7 @@ public static partial class Functions
                 prevPlusDM -= prevPlusDM / timePeriod;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            tempReal = TrueRange(prevHigh, prevLow, prevClose);
             prevTR = prevTR - prevTR / timePeriod + tempReal;
             prevClose = inClose[today];
         }
@@ -174,7 +174,7 @@ public static partial class Functions
                 prevPlusDM -= prevPlusDM / timePeriod;
             }
 
-            TrueRange(prevHigh, prevLow, prevClose, out tempReal);
+            tempReal = TrueRange(prevHigh, prevLow, prevClose);
             prevTR = prevTR - prevTR / timePeriod + tempReal;
             prevClose = inClose[today];
             outReal[outIdx++] = !T.IsZero(prevTR) ? Hundred<T>() * (prevPlusDM / prevTR) : T.Zero;

@@ -84,35 +84,9 @@ public static partial class Functions
         optInTimePeriod2 = sortedPeriods[1];
         optInTimePeriod3 = sortedPeriods[0];
 
-        T trueRange;
-        T closeMinusTrueLow;
-
-        T a1Total = T.Zero;
-        T b1Total = T.Zero;
-        for (var i = startIdx - optInTimePeriod1 + 1; i < startIdx; ++i)
-        {
-            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
-            a1Total += closeMinusTrueLow;
-            b1Total += trueRange;
-        }
-
-        T a2Total = T.Zero;
-        T b2Total = T.Zero;
-        for (var i = startIdx - optInTimePeriod2 + 1; i < startIdx; ++i)
-        {
-            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
-            a2Total += closeMinusTrueLow;
-            b2Total += trueRange;
-        }
-
-        T a3Total = T.Zero;
-        T b3Total = T.Zero;
-        for (var i = startIdx - optInTimePeriod3 + 1; i < startIdx; ++i)
-        {
-            CalcTerms(inLow, inHigh, inClose, i, out trueRange, out closeMinusTrueLow);
-            a3Total += closeMinusTrueLow;
-            b3Total += trueRange;
-        }
+        var totals1 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod1);
+        var totals2 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod2);
+        var totals3 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod3);
 
         T TSeven = T.CreateChecked(7);
         var today = startIdx;
@@ -122,42 +96,42 @@ public static partial class Functions
         var trailingIdx3 = today - optInTimePeriod3 + 1;
         while (today <= endIdx)
         {
-            CalcTerms(inLow, inHigh, inClose, today, out trueRange, out closeMinusTrueLow);
-            a1Total += closeMinusTrueLow;
-            a2Total += closeMinusTrueLow;
-            a3Total += closeMinusTrueLow;
-            b1Total += trueRange;
-            b2Total += trueRange;
-            b3Total += trueRange;
+            var terms = CalcTerms(inLow, inHigh, inClose, today);
+            totals1.aTotal += terms.closeMinusTrueLow;
+            totals2.aTotal += terms.closeMinusTrueLow;
+            totals3.aTotal += terms.closeMinusTrueLow;
+            totals1.bTotal += terms.trueRange;
+            totals2.bTotal += terms.trueRange;
+            totals3.bTotal += terms.trueRange;
 
             T output = T.Zero;
 
-            if (!T.IsZero(b1Total))
+            if (!T.IsZero(totals1.bTotal))
             {
-                output += Four<T>() * (a1Total / b1Total);
+                output += Four<T>() * (totals1.aTotal / totals1.bTotal);
             }
 
-            if (!T.IsZero(b2Total))
+            if (!T.IsZero(totals2.bTotal))
             {
-                output += Two<T>() * (a2Total / b2Total);
+                output += Two<T>() * (totals2.aTotal / totals2.bTotal);
             }
 
-            if (!T.IsZero(b3Total))
+            if (!T.IsZero(totals3.bTotal))
             {
-                output += a3Total / b3Total;
+                output += totals3.aTotal / totals3.bTotal;
             }
 
-            CalcTerms(inLow, inHigh, inClose, trailingIdx1, out trueRange, out closeMinusTrueLow);
-            a1Total -= closeMinusTrueLow;
-            b1Total -= trueRange;
+            terms = CalcTerms(inLow, inHigh, inClose, trailingIdx1);
+            totals1.aTotal -= terms.closeMinusTrueLow;
+            totals1.bTotal -= terms.trueRange;
 
-            CalcTerms(inLow, inHigh, inClose, trailingIdx2, out trueRange, out closeMinusTrueLow);
-            a2Total -= closeMinusTrueLow;
-            b2Total -= trueRange;
+            terms = CalcTerms(inLow, inHigh, inClose, trailingIdx2);
+            totals2.aTotal -= terms.closeMinusTrueLow;
+            totals2.bTotal -= terms.trueRange;
 
-            CalcTerms(inLow, inHigh, inClose, trailingIdx3, out trueRange, out closeMinusTrueLow);
-            a3Total -= closeMinusTrueLow;
-            b3Total -= trueRange;
+            terms = CalcTerms(inLow, inHigh, inClose, trailingIdx3);
+            totals3.aTotal -= terms.closeMinusTrueLow;
+            totals3.bTotal -= terms.trueRange;
 
             outReal[outIdx++] = Hundred<T>() * (output / TSeven);
             today++;
@@ -170,6 +144,40 @@ public static partial class Functions
         outNbElement = outIdx;
 
         return Core.RetCode.Success;
+
+        (T trueRange, T closeMinusTrueLow) CalcTerms(
+            ReadOnlySpan<T> low,
+            ReadOnlySpan<T> high,
+            ReadOnlySpan<T> close,
+            int day)
+        {
+            T tempLT = low[day];
+            T tempHT = high[day];
+            T tempCY = close[day - 1];
+            T trueLow = T.Min(tempLT, tempCY);
+            var closeMinusTrueLow = close[day] - trueLow;
+            var trueRange = TrueRange(tempHT, tempLT, tempCY);
+
+            return (trueRange, closeMinusTrueLow);
+        }
+
+        (T aTotal, T bTotal) CalcPrimeTotals(
+            ReadOnlySpan<T> low,
+            ReadOnlySpan<T> high,
+            ReadOnlySpan<T> close,
+            int period)
+        {
+            T aTotal = T.Zero;
+            T bTotal = T.Zero;
+            for (var i = startIdx - period + 1; i < startIdx; ++i)
+            {
+                var terms = CalcTerms(low, high, close, i);
+                aTotal += terms.closeMinusTrueLow;
+                bTotal += terms.trueRange;
+            }
+
+            return (aTotal, bTotal);
+        }
     }
 
     public static int UltOscLookback(int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28) =>

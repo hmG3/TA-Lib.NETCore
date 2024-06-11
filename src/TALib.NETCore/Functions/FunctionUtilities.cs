@@ -386,24 +386,13 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static void TrueRange<T>(
-        T th,
-        T tl,
-        T yc,
-        out T @out) where T : IFloatingPointIeee754<T>
+    private static T TrueRange<T>(T th, T tl, T yc) where T : IFloatingPointIeee754<T>
     {
-        @out = th - tl;
-        T tempT = T.Abs(th - yc);
-        if (tempT > @out)
-        {
-            @out = tempT;
-        }
+        T range = th - tl;
+        range = T.Max(range, T.Abs(th - yc));
+        range = T.Max(range, T.Abs(tl - yc));
 
-        tempT = T.Abs(tl - yc);
-        if (tempT > @out)
-        {
-            @out = tempT;
-        }
+        return range;
     }
 
     private static void DoPriceWma<T>(
@@ -423,92 +412,62 @@ public static partial class Functions
         periodWMASum -= periodWMASub;
     }
 
-    private static void CalcTerms<T>(
-        ReadOnlySpan<T> inLow,
-        ReadOnlySpan<T> inHigh,
-        ReadOnlySpan<T> inClose,
-        int day,
-        out T trueRange,
-        out T closeMinusTrueLow) where T : IFloatingPointIeee754<T>
+    private static class HTHelper
     {
-        T tempLT = inLow[day];
-        T tempHT = inHigh[day];
-        T tempCY = inClose[day - 1];
-        T trueLow = T.Min(tempLT, tempCY);
-        closeMinusTrueLow = inClose[day] - trueLow;
-        trueRange = tempHT - tempLT;
-        T tempT = T.Abs(tempCY - tempHT);
-        if (tempT > trueRange)
+        public enum HilbertKeys
         {
-            trueRange = tempT;
+            Detrender = 6,
+            Q1 = 17,
+            JI = 28,
+            JQ = 39
         }
 
-        tempT = T.Abs(tempCY - tempLT);
-        if (tempT > trueRange)
+        public static T[] HilbertVariablesFactory<T>() where T : IFloatingPointIeee754<T> => new T[4 * 11];
+
+        private static void DoHilbertTransform<T>(
+            Span<T> variables,
+            HilbertKeys baseKey,
+            T input,
+            bool isOdd,
+            int hilbertIdx,
+            T adjustedPrevPeriod) where T : IFloatingPointIeee754<T>
         {
-            trueRange = tempT;
+            var a = T.CreateChecked(0.0962);
+            var b = T.CreateChecked(0.5769);
+
+            var hilbertTempT = a * input;
+
+            var baseIndex = (int) baseKey;
+            var hilbertIndex = baseIndex - (isOdd ? 6 : 3) + hilbertIdx;
+            var prevIndex = baseIndex + (isOdd ? 1 : 2);
+            var prevInputIndex = baseIndex + (isOdd ? 3 : 4);
+
+            variables[baseIndex] = -variables[hilbertIndex];
+            variables[hilbertIndex] = hilbertTempT;
+            variables[baseIndex] += hilbertTempT;
+            variables[baseIndex] -= variables[prevIndex];
+            variables[prevIndex] = b * variables[prevInputIndex];
+            variables[baseIndex] += variables[prevIndex];
+            variables[prevInputIndex] = input;
+            variables[baseIndex] *= adjustedPrevPeriod;
         }
+
+        public static void DoHilbertOdd<T>(
+            Span<T> variables,
+            HilbertKeys baseKey,
+            T input,
+            int hilbertIdx,
+            T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
+            DoHilbertTransform(variables, baseKey, input, true, hilbertIdx, adjustedPrevPeriod);
+
+        public static void DoHilbertEven<T>(
+            Span<T> variables,
+            HilbertKeys baseKey,
+            T input,
+            int hilbertIdx,
+            T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
+            DoHilbertTransform(variables, baseKey, input, false, hilbertIdx, adjustedPrevPeriod);
     }
-
-    private static Dictionary<string, T> InitHilbertVariables<T>() where T : IFloatingPointIeee754<T>
-    {
-        var variables = new Dictionary<string, T>(4 * 11);
-
-        new List<string> { "detrender", "q1", "jI", "jQ" }.ForEach(varName =>
-        {
-            variables.Add($"{varName}Odd0", T.Zero);
-            variables.Add($"{varName}Odd1", T.Zero);
-            variables.Add($"{varName}Odd2", T.Zero);
-            variables.Add($"{varName}Even0", T.Zero);
-            variables.Add($"{varName}Even1", T.Zero);
-            variables.Add($"{varName}Even2", T.Zero);
-            variables.Add(varName, T.Zero);
-            variables.Add($"prev{varName}Odd", T.Zero);
-            variables.Add($"prev{varName}Even", T.Zero);
-            variables.Add($"prev{varName}InputOdd", T.Zero);
-            variables.Add($"prev{varName}InputEven", T.Zero);
-        });
-
-        return variables;
-    }
-
-    private static void DoHilbertTransform<T>(
-        IDictionary<string, T> variables,
-        string varName,
-        T input,
-        string oddOrEvenId,
-        int hilbertIdx,
-        T adjustedPrevPeriod) where T : IFloatingPointIeee754<T>
-    {
-        T a = T.CreateChecked(0.0962);
-        T b = T.CreateChecked(0.5769);
-
-        T hilbertTempT = a * input;
-        variables[varName] = -variables[$"{varName}{oddOrEvenId}{hilbertIdx}"];
-        variables[$"{varName}{oddOrEvenId}{hilbertIdx}"] = hilbertTempT;
-        variables[varName] += hilbertTempT;
-        variables[varName] -= variables[$"prev{varName}{oddOrEvenId}"];
-        variables[$"prev{varName}{oddOrEvenId}"] = b * variables[$"prev{varName}Input{oddOrEvenId}"];
-        variables[varName] += variables[$"prev{varName}{oddOrEvenId}"];
-        variables[$"prev{varName}Input{oddOrEvenId}"] = input;
-        variables[varName] *= adjustedPrevPeriod;
-    }
-
-    private static void DoHilbertOdd<T>(
-        IDictionary<string, T> variables,
-        string varName,
-        T input,
-        int hilbertIdx,
-        T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
-        DoHilbertTransform(variables, varName, input, "Odd", hilbertIdx, adjustedPrevPeriod);
-
-    private static void DoHilbertEven<T>(
-        IDictionary<string, T> variables,
-        string varName,
-        T input,
-        int hilbertIdx,
-        T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
-        DoHilbertTransform(variables, varName, input, "Even", hilbertIdx, adjustedPrevPeriod);
 
     private static T Two<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(2);
 
