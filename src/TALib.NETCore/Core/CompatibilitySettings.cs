@@ -27,15 +27,10 @@ public static partial class Core
     /// </summary>
     public static class CompatibilitySettings
     {
-        private static CompatibilityMode _compatibilityMode;
-
-        /// <summary>
+        /// <remarks>
         /// Initializes the default compatibility mode.
-        /// </summary>
-        static CompatibilitySettings()
-        {
-            _compatibilityMode = CompatibilityMode.Default;
-        }
+        /// </remarks>
+        private static CompatibilityMode _compatibilityMode = CompatibilityMode.Default;
 
         /// <summary>
         /// Retrieves the current compatibility mode.

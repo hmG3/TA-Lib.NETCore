@@ -37,17 +37,10 @@ public sealed class IndicatorFunction
         string name,
         string description,
         string group,
-        string inputs,
-        string options,
-        string outputs)
-    {
-        Name = name;
-        Description = description;
-        Group = group;
-        Inputs = inputs.Split('|');
-        Options = !String.IsNullOrEmpty(options) ? options.Split('|') : Array.Empty<string>();
-        Outputs = outputs.Split('|');
-    }
+        string[] inputs,
+        (string displayName, string hint)[] options,
+        (string displayName, Core.OutputFlags flags)[] outputs) =>
+        (Name, Description, Group, Inputs, Options, Outputs) = (name, description, group, inputs, options, outputs);
 
     public string Name { get; }
 
@@ -57,9 +50,9 @@ public sealed class IndicatorFunction
 
     public string[] Inputs { get; }
 
-    public string[] Options { get; }
+    public (string displayName, string hint)[] Options { get; }
 
-    public string[] Outputs { get; }
+    public (string displayName, Core.OutputFlags flags)[] Outputs { get; }
 
     public Core.RetCode Run<T>(T[][] inputs, T[] options, T[][] outputs) where T : IFloatingPointIeee754<T>
     {
@@ -95,7 +88,7 @@ public sealed class IndicatorFunction
         var paramsArray = new object[optInParameters.Count];
         Array.Fill(paramsArray, Type.Missing);
 
-        var defOptInParameters = Options.Select(NormalizeOptionalParameter).ToList();
+        var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
         for (int i = 0, paramsArrayIndex = 0; i < defOptInParameters.Count; i++)
         {
             var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
@@ -161,7 +154,7 @@ public sealed class IndicatorFunction
 
         Array.Fill(paramsArray, Type.Missing, inputs.Length + 2 + outputs.Length, optInParameters.Count);
 
-        var defOptInParameters = Options.Select(NormalizeOptionalParameter).ToList();
+        var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
         for (var i = 0; i < defOptInParameters.Count; i++)
         {
             var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
@@ -195,7 +188,7 @@ public sealed class IndicatorFunction
     private bool LookbackMethodSelector(MethodBase methodInfo)
     {
         var optInParameters = methodInfo.GetParameters().Select(pi => pi.Name);
-        var defOptInParameters = Options.Select(NormalizeOptionalParameter);
+        var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName));
 
         return methodInfo.Name == LookbackMethodName && optInParameters.All(defOptInParameters.Contains);
     }
@@ -216,9 +209,9 @@ public sealed class IndicatorFunction
             ? Inputs.Select((p, i) => InPrefix + p + i)
             : Inputs.Select(p => InPrefix + p);
 
-        var defOutParameters = Outputs.Select(NormalizeOutputParameter);
+        var defOutParameters = Outputs.Select(o => NormalizeOutputParameter(o.displayName));
 
-        var defOptInParameters = Options.Select(NormalizeOptionalParameter);
+        var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName));
 
         return methodInfo.Name == Name &&
                inParameters.SequenceEqual(defInParameters) &&

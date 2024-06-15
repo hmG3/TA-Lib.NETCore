@@ -45,15 +45,11 @@ public static partial class Core
     /// </remarks>
     public static class UnstablePeriodSettings
     {
-        private static readonly Dictionary<UnstableFunc, int> UnstablePeriods;
-
-        /// <summary>
+        /// <remarks>
         /// Initializes the default unstable period settings for all functions.
-        /// </summary>
-        static UnstablePeriodSettings()
-        {
-            UnstablePeriods = Enumerable.Range(0, (int) UnstableFunc.All).ToDictionary(i => (UnstableFunc) i, _ => 0);
-        }
+        /// </remarks>
+        private static readonly Dictionary<UnstableFunc, int> UnstablePeriods =
+            Enumerable.Range(0, (int) UnstableFunc.All).ToDictionary(i => (UnstableFunc) i, _ => 0);
 
         /// <summary>
         /// Retrieves the unstable period for a specified function.

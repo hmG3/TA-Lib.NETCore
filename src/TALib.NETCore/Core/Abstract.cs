@@ -20,211 +20,446 @@
 
 using System.Collections;
 using System.Collections.ObjectModel;
+using F = TALib.IndicatorFunction;
+using OF = TALib.Core.OutputFlags;
 
 namespace TALib;
 
-public class Abstract : IEnumerable<IndicatorFunction>
+/// <summary>
+/// Provides an abstraction layer for accessing all functions.
+/// Abstract API simplifies the usage of individual functions by offering a unified interface for setting and controlling input data,
+/// configuring function parameters, and retrieving results.
+/// </summary>
+public class Abstract : IEnumerable<F>
 {
-    private const string HighInput = "High";
-    private const string LowInput = "Low";
-    private const string CloseInput = "Close";
-    private const string OpenInput = "Open";
-    private const string VolumeInput = "Volume";
-    private const string RealInput = "Real";
-
-    private const string RealOutput = "Real";
-    private const string IntegerOutput = "Integer";
-
-    private const string MATypeOption = "MA Type";
-    private const string TimePeriodOption = "Time Period";
-    private const string PenetrationOption = "Penetration";
-
-    private const string PatternRecognition = "Pattern Recognition";
-    private const string MomentumIndicators = "Momentum Indicators";
-    private const string OverlapStudies = "Overlap Studies";
-    private const string VolumeIndicators = "Volume Indicators";
-    private const string MathTransform = "Math Transform";
-    private const string MathOperators = "Math Operators";
-    private const string StatisticFunctions = "Statistic Functions";
-    private const string PriceTransform = "Price Transform";
-    private const string CycleIndicators = "Cycle Indicators";
-    private const string VolatilityIndicators = "Volatility Indicators";
-
-    internal readonly ReadOnlyDictionary<string, IndicatorFunction> FunctionsDefinition = new(
-        new Dictionary<string, IndicatorFunction>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "Accbands", new IndicatorFunction("Accbands", "Acceleration Bands", OverlapStudies, $"{HighInput}|{LowInput}|{CloseInput}", TimePeriodOption, "Real Upper Band|Real Middle Band|Real Lower Band") },
-            { "Acos", new IndicatorFunction("Acos", "Vector Trigonometric ACos", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Ad", new IndicatorFunction("Ad", "Chaikin A/D Line", VolumeIndicators, $"{HighInput}|{LowInput}|{CloseInput}|{VolumeInput}", String.Empty, RealOutput) },
-            { "Add", new IndicatorFunction("Add", "Vector Arithmetic Add", MathOperators, $"{RealInput}|{RealInput}", String.Empty, RealOutput) },
-            { "AdOsc", new IndicatorFunction("AdOsc", "Chaikin A/D Oscillator", VolumeIndicators, $"{HighInput}|{LowInput}|{CloseInput}|{VolumeInput}", "Fast Period|Slow Period", RealOutput) },
-            { "Adx", new IndicatorFunction("Adx", "Average Directional Movement Index", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}", TimePeriodOption, RealOutput) },
-            { "Adxr", new IndicatorFunction("Adxr", "Average Directional Movement Index Rating", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}", TimePeriodOption, RealOutput) },
-            { "Apo", new IndicatorFunction("Apo", "Absolute Price Oscillator", MomentumIndicators, RealInput, $"Fast Period|Slow Period|{MATypeOption}", RealOutput) },
-            { "Aroon", new IndicatorFunction("Aroon", "Aroon", MomentumIndicators, $"{HighInput}|{LowInput}", TimePeriodOption, "Aroon Down|Aroon Up") },
-            { "AroonOsc", new IndicatorFunction("AroonOsc", "Aroon Oscillator", MomentumIndicators, $"{HighInput}|{LowInput}", TimePeriodOption, RealOutput) },
-            { "Asin", new IndicatorFunction("Asin", "Vector Trigonometric ASin", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Atan", new IndicatorFunction("Atan", "Vector Trigonometric ATan", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Atr", new IndicatorFunction("Atr", "Average True Range", VolatilityIndicators, $"{HighInput}|{LowInput}|{CloseInput}", TimePeriodOption, RealOutput) },
-            { "AvgDev", new IndicatorFunction("AvgDev", "Average Deviation", PriceTransform, RealInput, TimePeriodOption, RealOutput) },
-            { "AvgPrice", new IndicatorFunction("AvgPrice", "Average Price", PriceTransform, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, RealOutput) },
-            { "Bbands", new IndicatorFunction("Bbands", "Bollinger Bands", OverlapStudies, RealInput, $"{TimePeriodOption}|Nb Dev Up|Nb Dev Dn|{MATypeOption}", "Real Upper Band|Real Middle Band|Real Lower Band") },
-            { "Beta", new IndicatorFunction("Beta", "Beta", StatisticFunctions, $"{RealInput}|{RealInput}", TimePeriodOption, RealOutput) },
-            { "Bop", new IndicatorFunction("Bop", "Balance of Power", MomentumIndicators, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, RealOutput) },
-            { "Cci", new IndicatorFunction("Cci", "Commodity Channel Index", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}", TimePeriodOption, RealOutput) },
-            { "Ceil", new IndicatorFunction("Ceil", "Vector Ceil", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Cmo", new IndicatorFunction("Cmo", "Chande Momentum Oscillator", MomentumIndicators, RealInput, TimePeriodOption, RealOutput) },
-            { "Correl", new IndicatorFunction("Correl", "Pearson's Correlation Coefficient (r)", StatisticFunctions, $"{RealInput}|{RealInput}", TimePeriodOption, RealOutput) },
-            { "Cos", new IndicatorFunction("Cos", "Vector Trigonometric Cos", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Cosh", new IndicatorFunction("Cosh", "Vector Trigonometric Cosh", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Dema", new IndicatorFunction("Dema", "Double Exponential Moving Average", OverlapStudies, RealInput, TimePeriodOption, RealOutput) },
-            { "Div", new IndicatorFunction("Div", "Vector Arithmetic Div", MathOperators, $"{RealInput}|{RealInput}", String.Empty, RealOutput) },
-            { "Dx", new IndicatorFunction("Dx", "Directional Movement Index", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}", TimePeriodOption, RealOutput) },
-            { "Ema", new IndicatorFunction("Ema", "Exponential Moving Average", OverlapStudies, RealInput, TimePeriodOption, RealOutput) },
-            { "Exp", new IndicatorFunction("Exp", "Vector Arithmetic Exp", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Floor", new IndicatorFunction("Floor", "Vector Floor", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "HtDcPeriod", new IndicatorFunction("HtDcPeriod", "Hilbert Transform - Dominant Cycle Period", CycleIndicators, RealInput, String.Empty, RealOutput) },
-            { "HtDcPhase", new IndicatorFunction("HtDcPhase", "Hilbert Transform - Dominant Cycle Phase", CycleIndicators, RealInput, String.Empty, RealOutput) },
-            { "HtPhasor", new IndicatorFunction("HtPhasor", "Hilbert Transform - Phasor Components", CycleIndicators, RealInput, String.Empty, "In Phase|Quadrature") },
-            { "HtSine", new IndicatorFunction("HtSine", "Hilbert Transform - SineWave", CycleIndicators, RealInput, String.Empty, "Sine|Lead Sine") },
-            { "HtTrendline", new IndicatorFunction("HtTrendline", "Hilbert Transform - Instantaneous Trendline", OverlapStudies, RealInput, String.Empty, RealOutput) },
-            { "HtTrendMode", new IndicatorFunction("HtTrendMode", "Hilbert Transform - Trend vs Cycle Mode", CycleIndicators, RealInput, String.Empty, IntegerOutput) },
-            { "Kama", new IndicatorFunction("Kama", "Kaufman Adaptive Moving Average", OverlapStudies, RealInput, TimePeriodOption, RealOutput) },
-            { "LinearReg", new IndicatorFunction("LinearReg", "Linear Regression", StatisticFunctions, RealInput, TimePeriodOption, RealOutput) },
-            { "LinearRegAngle", new IndicatorFunction("LinearRegAngle", "Linear Regression Angle", StatisticFunctions, RealInput, TimePeriodOption, RealOutput) },
-            { "LinearRegIntercept", new IndicatorFunction("LinearRegIntercept", "Linear Regression Intercept", StatisticFunctions, RealInput, TimePeriodOption, RealOutput) },
-            { "LinearRegSlope", new IndicatorFunction("LinearRegSlope", "Linear Regression Slope", StatisticFunctions, RealInput, TimePeriodOption, RealOutput) },
-            { "Ln", new IndicatorFunction("Ln", "Vector Log Natural", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Log10", new IndicatorFunction("Log10", "Vector Log10", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Ma", new IndicatorFunction("Ma", "Moving Average", OverlapStudies, RealInput, $"{TimePeriodOption}|{MATypeOption}", RealOutput) },
-            { "Macd", new IndicatorFunction("Macd", "Moving Average Convergence/Divergence", MomentumIndicators, RealInput, "Fast Period|Slow Period|Signal Period", "MACD|MACD Signal|MACD Hist") },
-            { "MacdExt", new IndicatorFunction("MacdExt", "MACD with controllable MA type", MomentumIndicators, RealInput, $"Fast Period|Fast {MATypeOption}|Slow Period|Slow {MATypeOption}|Signal Period|Signal {MATypeOption}", "MACD|MACD Signal|MACD Hist") },
-            { "MacdFix", new IndicatorFunction("MacdFix", "Moving Average Convergence/Divergence Fix 12/26", MomentumIndicators, RealInput, "Signal Period", "MACD|MACD Signal|MACD Hist") },
-            { "Mama", new IndicatorFunction("Mama", "MESA Adaptive Moving Average", OverlapStudies, RealInput, "Fast Limit|Slow Limit", "MAMA|FAMA") },
-            { "Mavp", new IndicatorFunction("Mavp", "Moving average with variable period", OverlapStudies, $"{RealInput}|Periods", $"Min Period|Max Period|{MATypeOption}", RealOutput) },
-            { "Max", new IndicatorFunction("Max", "Highest value over a specified period", MathOperators, RealInput, TimePeriodOption, RealOutput) },
-            { "MaxIndex", new IndicatorFunction("MaxIndex", "Index of highest value over a specified period", MathOperators, RealInput, TimePeriodOption, IntegerOutput) },
-            { "MedPrice", new IndicatorFunction("MedPrice", "Median Price", PriceTransform, $"{HighInput}|{LowInput}", String.Empty, RealOutput) },
-            { "Mfi", new IndicatorFunction("Mfi", "Money Flow Index", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}|{VolumeInput}", TimePeriodOption, RealOutput) },
-            { "MidPoint", new IndicatorFunction("MidPoint", "MidPoint over period", OverlapStudies, RealInput, TimePeriodOption, RealOutput) },
-            { "MidPrice", new IndicatorFunction("MidPrice", "Midpoint Price over period", OverlapStudies, $"{HighInput}|{LowInput}", TimePeriodOption, RealOutput) },
-            { "Min", new IndicatorFunction("Min", "Lowest value over a specified period", MathOperators, RealInput, TimePeriodOption, RealOutput) },
-            { "MinIndex", new IndicatorFunction("MinIndex", "Index of lowest value over a specified period", MathOperators, RealInput, TimePeriodOption, IntegerOutput) },
-            { "MinMax", new IndicatorFunction("MinMax", "Lowest and highest values over a specified period", MathOperators, RealInput, TimePeriodOption, "Min|Max") },
-            { "MinMaxIndex", new IndicatorFunction("MinMaxIndex", "Indexes of lowest and highest values over a specified period", MathOperators, RealInput, TimePeriodOption, "Min Idx|Max Idx") },
-            { "MinusDI", new IndicatorFunction("MinusDI", "Minus Directional Indicator", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}", TimePeriodOption, RealOutput) },
-            { "MinusDM", new IndicatorFunction("MinusDM", "Minus Directional Movement", MomentumIndicators, $"{HighInput}|{LowInput}", TimePeriodOption, RealOutput) },
-            { "Mom", new IndicatorFunction("Mom", "Momentum", MomentumIndicators, RealInput, TimePeriodOption, RealOutput) },
-            { "Mult", new IndicatorFunction("Mult", "Vector Arithmetic Mult", MathOperators, $"{RealInput}|{RealInput}", String.Empty, RealOutput) },
-            { "Natr", new IndicatorFunction("Natr", "Normalized Average True Range", VolatilityIndicators, $"{HighInput}|{LowInput}|{CloseInput}", TimePeriodOption, RealOutput) },
-            { "Obv", new IndicatorFunction("Obv", "On Balance Volume", VolumeIndicators, $"{RealInput}|{VolumeInput}", String.Empty, RealOutput) },
-            { "PlusDI", new IndicatorFunction("PlusDI", "Plus Directional Indicator", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}", TimePeriodOption, RealOutput) },
-            { "PlusDM", new IndicatorFunction("PlusDM", "Plus Directional Movement", MomentumIndicators, $"{HighInput}|{LowInput}", TimePeriodOption, RealOutput) },
-            { "Ppo", new IndicatorFunction("Ppo", "Percentage Price Oscillator", MomentumIndicators, RealInput, $"Fast Period|Slow Period|{MATypeOption}", RealOutput) },
-            { "Roc", new IndicatorFunction("Roc", "Rate of change : ((price/prevPrice)-1)*100", MomentumIndicators, RealInput, TimePeriodOption, RealOutput) },
-            { "RocP", new IndicatorFunction("RocP", "Rate of change Percentage: (price-prevPrice)/prevPrice", MomentumIndicators, RealInput, TimePeriodOption, RealOutput) },
-            { "RocR", new IndicatorFunction("RocR", "Rate of change ratio: (price/prevPrice)", MomentumIndicators, RealInput, TimePeriodOption, RealOutput) },
-            { "RocR100", new IndicatorFunction("RocR100", "Rate of change ratio 100 scale: (price/prevPrice)*100", MomentumIndicators, RealInput, TimePeriodOption, RealOutput) },
-            { "Rsi", new IndicatorFunction("Rsi", "Relative Strength Index", MomentumIndicators, RealInput, TimePeriodOption, RealOutput) },
-            { "Sar", new IndicatorFunction("Sar", "Parabolic SAR", OverlapStudies, $"{HighInput}|{LowInput}", "Acceleration|Maximum", RealOutput) },
-            { "SarExt", new IndicatorFunction("SarExt", "Parabolic SAR - Extended", OverlapStudies, $"{HighInput}|{LowInput}", "Start Value|Offset On Reverse|Acceleration Init Long|Acceleration Long|Acceleration Max Long|Acceleration Init Short|Acceleration Short|Acceleration Max Short", RealOutput) },
-            { "Sin", new IndicatorFunction("Sin", "Vector Trigonometric Sin", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Sinh", new IndicatorFunction("Sinh", "Vector Trigonometric Sinh", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Sma", new IndicatorFunction("Sma", "Simple Moving Average", OverlapStudies, RealInput, TimePeriodOption, RealOutput) },
-            { "Sqrt", new IndicatorFunction("Sqrt", "Vector Square Root", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "StdDev", new IndicatorFunction("StdDev", "Standard Deviation", StatisticFunctions, RealInput, $"{TimePeriodOption}|Nb Dev", RealOutput) },
-            { "Stoch", new IndicatorFunction("Stoch", "Stochastic", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}", $"Fast K Period|Slow K Period|Slow K {MATypeOption}|Slow D Period|Slow D {MATypeOption}", "Slow K|Slow D") },
-            { "StochF", new IndicatorFunction("StochF", "Stochastic Fast", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}", $"Fast K Period|Fast D Period|Fast D {MATypeOption}", "Fast K|Fast D") },
-            { "StochRsi", new IndicatorFunction("StochRsi", "Stochastic Relative Strength Index", MomentumIndicators, RealInput, $"{TimePeriodOption}|Fast K Period|Fast D Period|Fast D {MATypeOption}", "Fast K|Fast D") },
-            { "Sub", new IndicatorFunction("Sub", "Vector Arithmetic Subtraction", MathOperators, $"{RealInput}|{RealInput}", String.Empty, RealOutput) },
-            { "Sum", new IndicatorFunction("Sum", "Summation", MathOperators, RealInput, TimePeriodOption, RealOutput) },
-            { "T3", new IndicatorFunction("T3", "Triple Exponential Moving Average (T3)", OverlapStudies, RealInput, $"{TimePeriodOption}|V Factor", RealOutput) },
-            { "Tan", new IndicatorFunction("Tan", "Vector Trigonometric Tan", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Tanh", new IndicatorFunction("Tanh", "Vector Trigonometric Tanh", MathTransform, RealInput, String.Empty, RealOutput) },
-            { "Tema", new IndicatorFunction("Tema", "Triple Exponential Moving Average", OverlapStudies, RealInput, TimePeriodOption, RealOutput) },
-            { "TRange", new IndicatorFunction("TRange", "True Range", VolatilityIndicators, $"{HighInput}|{LowInput}|{CloseInput}", String.Empty, RealOutput) },
-            { "Trima", new IndicatorFunction("Trima", "Triangular Moving Average", OverlapStudies, RealInput, TimePeriodOption, RealOutput) },
-            { "Trix", new IndicatorFunction("Trix", "1-day Rate-Of-Change (ROC) of a Triple Smooth EMA", MomentumIndicators, RealInput, TimePeriodOption, RealOutput) },
-            { "Tsf", new IndicatorFunction("Tsf", "Time Series Forecast", StatisticFunctions, RealInput, TimePeriodOption, RealOutput) },
-            { "TypPrice", new IndicatorFunction("TypPrice", "Typical Price", PriceTransform, $"{HighInput}|{LowInput}|{CloseInput}", String.Empty, RealOutput) },
-            { "UltOsc", new IndicatorFunction("UltOsc", "Ultimate Oscillator", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}", $"{TimePeriodOption} 1|{TimePeriodOption} 2|{TimePeriodOption} 3", RealOutput) },
-            { "Var", new IndicatorFunction("Var", "Variance", StatisticFunctions, RealInput, TimePeriodOption, RealOutput) },
-            { "WclPrice", new IndicatorFunction("WclPrice", "Weighted Close Price", PriceTransform, $"{HighInput}|{LowInput}|{CloseInput}", String.Empty, RealOutput) },
-            { "WillR", new IndicatorFunction("WillR", "Williams' %R", MomentumIndicators, $"{HighInput}|{LowInput}|{CloseInput}", TimePeriodOption, RealOutput) },
-            { "Wma", new IndicatorFunction("Wma", "Weighted Moving Average", OverlapStudies, RealInput, TimePeriodOption, RealOutput) },
-            { "AbandonedBaby", new IndicatorFunction("AbandonedBaby", "Abandoned Baby", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", PenetrationOption, IntegerOutput) },
-            { "AdvanceBlock", new IndicatorFunction("AdvanceBlock", "Advance Block", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "BeltHold", new IndicatorFunction("BeltHold", "Belt-hold", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "Breakaway", new IndicatorFunction("Breakaway", "Breakaway", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "ClosingMarubozu", new IndicatorFunction("ClosingMarubozu", "Closing Marubozu", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "ConcealingBabySwallow", new IndicatorFunction("ConcealingBabySwallow", "Concealing Baby Swallow", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "CounterAttack", new IndicatorFunction("CounterAttack", "Counterattack", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "DarkCloudCover", new IndicatorFunction("DarkCloudCover", "Dark Cloud Cover", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", PenetrationOption, IntegerOutput) },
-            { "Doji", new IndicatorFunction("Doji", "Doji", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "DojiStar", new IndicatorFunction("DojiStar", "Doji Star", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "DragonflyDoji", new IndicatorFunction("DragonflyDoji", "Dragonfly Doji", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "Engulfing", new IndicatorFunction("Engulfing", "Engulfing Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "EveningDojiStar", new IndicatorFunction("EveningDojiStar", "Evening Doji Star", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", PenetrationOption, IntegerOutput) },
-            { "EveningStar", new IndicatorFunction("EveningStar", "Evening Star", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", PenetrationOption, IntegerOutput) },
-            { "GapSideBySideWhiteLines", new IndicatorFunction("GapSideBySideWhiteLines", "Up/Down-gap side-by-side white lines", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "GravestoneDoji", new IndicatorFunction("GravestoneDoji", "Gravestone Doji", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "Hammer", new IndicatorFunction("Hammer", "Hammer", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "HangingMan", new IndicatorFunction("HangingMan", "Hanging Man", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "Harami", new IndicatorFunction("Harami", "Harami Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "HaramiCross", new IndicatorFunction("HaramiCross", "Harami Cross Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "HighWave", new IndicatorFunction("HighWave", "High-Wave Candle", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "Hikkake", new IndicatorFunction("Hikkake", "Hikkake Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "HikkakeModified", new IndicatorFunction("HikkakeModified", "Modified Hikkake Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "HomingPigeon", new IndicatorFunction("HomingPigeon", "Homing Pigeon", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "IdenticalThreeCrows", new IndicatorFunction("IdenticalThreeCrows", "Identical Three Crows", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "InNeck", new IndicatorFunction("InNeck", "In-Neck Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "InvertedHammer", new IndicatorFunction("InvertedHammer", "Inverted Hammer", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|Close", String.Empty, IntegerOutput) },
-            { "Kicking", new IndicatorFunction("Kicking", "Kicking", PatternRecognition, $"Open|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "KickingByLength", new IndicatorFunction("KickingByLength", "Kicking - bull/bear determined by the longer marubozu", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "LadderBottom", new IndicatorFunction("LadderBottom", "Ladder Bottom", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "LongLeggedDoji", new IndicatorFunction("LongLeggedDoji", "Long Legged Doji", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "LongLine", new IndicatorFunction("LongLine", "Long Line Candle", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "Marubozu", new IndicatorFunction("Marubozu", "Marubozu", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "MatchingLow", new IndicatorFunction("MatchingLow", "Matching Low", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "MatHold", new IndicatorFunction("MatHold", "Mat Hold", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", PenetrationOption, IntegerOutput) },
-            { "MorningDojiStar", new IndicatorFunction("MorningDojiStar", "Morning Doji Star", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", PenetrationOption, IntegerOutput) },
-            { "MorningStar", new IndicatorFunction("MorningStar", "Morning Star", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", PenetrationOption, IntegerOutput) },
-            { "OnNeck", new IndicatorFunction("OnNeck", "On-Neck Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "Piercing", new IndicatorFunction("Piercing", "Piercing Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "RickshawMan", new IndicatorFunction("RickshawMan", "Rickshaw Man", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "RisingFallingThreeMethods", new IndicatorFunction("RisingFallingThreeMethods", "Rising/Falling Three Methods", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "SeparatingLines", new IndicatorFunction("SeparatingLines", "Separating Lines", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "ShootingStar", new IndicatorFunction("ShootingStar", "Shooting Star", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "ShortLine", new IndicatorFunction("ShortLine", "Short Line Candle", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "SpinningTop", new IndicatorFunction("SpinningTop", "Spinning Top", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "StalledPattern", new IndicatorFunction("StalledPattern", "Stalled Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "StickSandwich", new IndicatorFunction("StickSandwich", "Stick Sandwich", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "Takuri", new IndicatorFunction("Takuri", "Takuri Line (Dragonfly Doji with very long lower shadow)", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "TasukiGap", new IndicatorFunction("TasukiGap", "Tasuki Gap", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "ThreeBlackCrows", new IndicatorFunction("ThreeBlackCrows", "Three Black Crows", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "ThreeInside", new IndicatorFunction("ThreeInside", "Three Inside Up/Down", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "ThreeLineStrike", new IndicatorFunction("ThreeLineStrike", "Three-Line Strike", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "ThreeOutside", new IndicatorFunction("ThreeOutside", "Three Outside Up/Down", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "ThreeStarsInSouth", new IndicatorFunction("ThreeStarsInSouth", "Three Stars In The South", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "ThreeWhiteSoldiers", new IndicatorFunction("ThreeWhiteSoldiers", "Three Advancing White Soldiers", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "Thrusting", new IndicatorFunction("Thrusting", "Thrusting Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "Tristar", new IndicatorFunction("Tristar", "Tristar Pattern", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "TwoCrows", new IndicatorFunction("TwoCrows", "Two Crows", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "UniqueThreeRiver", new IndicatorFunction("UniqueThreeRiver", "Unique Three River", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "UpDownSideGapThreeMethods", new IndicatorFunction("UpDownSideGapThreeMethods", "Upside/Downside Gap Three Methods", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) },
-            { "UpsideGapTwoCrows", new IndicatorFunction("UpsideGapTwoCrows", "Upside Gap Two Crows", PatternRecognition, $"{OpenInput}|{HighInput}|{LowInput}|{CloseInput}", String.Empty, IntegerOutput) }
-        });
+    internal readonly ReadOnlyDictionary<string, F> FunctionsDefinition;
 
     private static readonly Lazy<Abstract> Instance = new(() => new Abstract());
 
     private Abstract()
     {
+        const string highInput = "High";
+        const string lowInput = "Low";
+        const string closeInput = "Close";
+        const string openInput = "Open";
+        const string volumeInput = "Volume";
+        const string realInput = "Real";
+
+        const string realOutput = "Real";
+        const string integerOutput = "Integer";
+
+        const string maTypeOption = "MA Type";
+        const string timePeriodOption = "Time Period";
+        const string penetrationOption = "Penetration";
+
+        const string prGroup = "Pattern Recognition";
+        const string miGroup = "Momentum Indicators";
+        const string osGroup = "Overlap Studies";
+        const string vmiGroup = "Volume Indicators";
+        const string mtGroup = "Math Transform";
+        const string moGroup = "Math Operators";
+        const string sfGroup = "Statistic Functions";
+        const string ptGroup = "Price Transform";
+        const string ciGroup = "Cycle Indicators";
+        const string vliGroup = "Volatility Indicators";
+
+        string[] inputPriceOHLC = [openInput, highInput, lowInput, closeInput];
+        string[] inputPriceHLC = [highInput, lowInput, closeInput];
+        string[] inputPriceHLCV = [highInput, lowInput, closeInput, volumeInput];
+        string[] inputPriceHL = [highInput, lowInput];
+        string[] inputReal = [realInput];
+        string[] inputRealUnary = [realInput, realInput];
+
+        (string, OF)[] outputReal = [(realOutput, OF.Line)];
+        (string, OF)[] outputIntLine = [(integerOutput, OF.Line)];
+        (string, OF)[] outputIntPattern = [(integerOutput, OF.PatternBullBear)];
+        (string displayName, OF flags)[] outputBands =
+            [("Real Upper Band", OF.UpperLimit), ("Real Middle Band", OF.Line), ("Real Lower Band", OF.LowerLimit)];
+        (string displayName, OF flags)[] outputMacd = [("MACD", OF.Line), ("MACD Signal", OF.DashLine), ("MACD Hist", OF.Histo)];
+        (string displayName, OF flags)[] outputStoch = [("Fast K", OF.Line), ("Fast D", OF.Line)];
+
+        (string, string)[] optionTimePeriod = [(timePeriodOption, "Number of periods")];
+        (string, string)[] optionPenetration = [(penetrationOption, "Percentage of penetration of a candle within another candle")];
+        (string displayName, string hint) optionMAType = (maTypeOption, "Type of Moving Average");
+        var optionFastPeriod = ("Fast Period", "Number of periods for the fast moving average");
+        var optionSlowPeriod = ("Slow Period", "Number of periods for the slow moving average");
+        var optionSignalPeriod = ("Signal Period", "Smoothing for the signal line (nb of period)");
+
+        var funcDefs = new Dictionary<string, F>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "ACCBANDS", new F("Accbands", "Acceleration Bands", osGroup, inputPriceHLC, optionTimePeriod, outputBands) },
+            { "ACOS", new F("Acos", "Vector Trigonometric ACos", mtGroup, inputReal, [], outputReal) },
+            { "AD", new F("Ad", "Chaikin A/D Line", vmiGroup, inputPriceHLCV, [], outputReal) },
+            { "ADD", new F("Add", "Vector Arithmetic Add", moGroup, inputRealUnary, [], outputReal) },
+            {
+                "ADOSC",
+                new F("AdOsc", "Chaikin A/D Oscillator", vmiGroup, inputPriceHLCV, [optionFastPeriod, optionSlowPeriod], outputReal)
+            },
+            { "ADX", new F("Adx", "Average Directional Movement Index", miGroup, inputPriceHLC, optionTimePeriod, outputReal) },
+            { "ADXR", new F("Adxr", "Average Directional Movement Index Rating", miGroup, inputPriceHLC, optionTimePeriod, outputReal) },
+            {
+                "APO",
+                new F("Apo", "Absolute Price Oscillator", miGroup, inputReal, [optionFastPeriod, optionSlowPeriod, optionMAType],
+                    outputReal)
+            },
+            {
+                "AROON",
+                new F("Aroon", "Aroon", miGroup, inputPriceHL, optionTimePeriod, [("Aroon Down", OF.DashLine), ("Aroon Up", OF.Line)])
+            },
+            { "AROONOSC", new F("AroonOsc", "Aroon Oscillator", miGroup, inputPriceHL, optionTimePeriod, outputReal) },
+            { "ASIN", new F("Asin", "Vector Trigonometric ASin", mtGroup, inputReal, [], outputReal) },
+            { "ATAN", new F("Atan", "Vector Trigonometric ATan", mtGroup, inputReal, [], outputReal) },
+            {
+                "ATR", new F("Atr", "Average True Range", vliGroup, inputPriceHLC, optionTimePeriod, outputReal)
+            },
+            { "AVGDEV", new F("AvgDev", "Average Deviation", ptGroup, inputReal, optionTimePeriod, outputReal) },
+            { "AVGPRICE", new F("AvgPrice", "Average Price", ptGroup, inputPriceOHLC, [], outputReal) },
+            {
+                "BBANDS",
+                new F("Bbands", "Bollinger Bands", osGroup, inputReal, [
+                    ..optionTimePeriod, ("Nb Dev Up", "Deviation multiplier for upper band"),
+                    ("Nb Dev Dn", "Deviation multiplier for lower band"), optionMAType
+                ], outputBands)
+            },
+            { "BETA", new F("Beta", "Beta", sfGroup, inputRealUnary, optionTimePeriod, outputReal) },
+            { "BOP", new F("Bop", "Balance of Power", miGroup, inputPriceOHLC, [], outputReal) },
+            { "CCI", new F("Cci", "Commodity Channel Index", miGroup, inputPriceHLC, optionTimePeriod, outputReal) },
+            { "CEIL", new F("Ceil", "Vector Ceil", mtGroup, inputReal, [], outputReal) },
+            { "CMO", new F("Cmo", "Chande Momentum Oscillator", miGroup, inputReal, optionTimePeriod, outputReal) },
+            { "CORREL", new F("Correl", "Pearson's Correlation Coefficient (r)", sfGroup, inputRealUnary, optionTimePeriod, outputReal) },
+            { "COS", new F("Cos", "Vector Trigonometric Cos", mtGroup, inputReal, [], outputReal) },
+            { "COSH", new F("Cosh", "Vector Trigonometric Cosh", mtGroup, inputReal, [], outputReal) },
+            { "DEMA", new F("Dema", "Double Exponential Moving Average", osGroup, inputReal, optionTimePeriod, outputReal) },
+            { "DIV", new F("Div", "Vector Arithmetic Div", moGroup, inputRealUnary, [], outputReal) },
+            { "DX", new F("Dx", "Directional Movement Index", miGroup, inputPriceHLC, optionTimePeriod, outputReal) },
+            { "EMA", new F("Ema", "Exponential Moving Average", osGroup, inputReal, optionTimePeriod, outputReal) },
+            { "EXP", new F("Exp", "Vector Arithmetic Exp", mtGroup, inputReal, [], outputReal) },
+            { "FLOOR", new F("Floor", "Vector Floor", mtGroup, inputReal, [], outputReal) },
+            { "HTDCPERIOD", new F("HtDcPeriod", "Hilbert Transform - Dominant Cycle Period", ciGroup, inputReal, [], outputReal) },
+            { "HTDCPHASE", new F("HtDcPhase", "Hilbert Transform - Dominant Cycle Phase", ciGroup, inputReal, [], outputReal) },
+            {
+                "HTPHASOR",
+                new F("HtPhasor", "Hilbert Transform - Phasor Components", ciGroup, inputReal, [],
+                    [("In Phase", OF.Line), ("Quadrature", OF.DashLine)])
+            },
+            {
+                "HTSINE",
+                new F("HtSine", "Hilbert Transform - SineWave", ciGroup, inputReal, [], [("Sine", OF.Line), ("Lead Sine", OF.DashLine)])
+            },
+            { "HTTRENDLINE", new F("HtTrendline", "Hilbert Transform - Instantaneous Trendline", osGroup, inputReal, [], outputReal) },
+            { "HTTRENDMODE", new F("HtTrendMode", "Hilbert Transform - Trend vs Cycle Mode", ciGroup, inputReal, [], outputIntLine) },
+            { "KAMA", new F("Kama", "Kaufman Adaptive Moving Average", osGroup, inputReal, optionTimePeriod, outputReal) },
+            { "LINEARREG", new F("LinearReg", "Linear Regression", sfGroup, inputReal, optionTimePeriod, outputReal) },
+            { "LINEARREGANGLE", new F("LinearRegAngle", "Linear Regression Angle", sfGroup, inputReal, optionTimePeriod, outputReal) },
+            {
+                "LINEARREGINTERCEPT",
+                new F("LinearRegIntercept", "Linear Regression Intercept", sfGroup, inputReal, optionTimePeriod, outputReal)
+            },
+            { "LINEARREGSLOPE", new F("LinearRegSlope", "Linear Regression Slope", sfGroup, inputReal, optionTimePeriod, outputReal) },
+            { "LN", new F("Ln", "Vector Log Natural", mtGroup, inputReal, [], outputReal) },
+            { "LOG10", new F("Log10", "Vector Log10", mtGroup, inputReal, [], outputReal) },
+            { "MA", new F("Ma", "Moving Average", osGroup, inputReal, [..optionTimePeriod, optionMAType], outputReal) },
+            {
+                "MACD",
+                new F("Macd", "Moving Average Convergence/Divergence", miGroup, inputReal,
+                    [optionFastPeriod, optionSlowPeriod, optionSignalPeriod], outputMacd)
+            },
+            {
+                "MACDEXT",
+                new F("MacdExt", "MACD with controllable MA type", miGroup, inputReal,
+                    [
+                        optionFastPeriod, ($"Fast {maTypeOption}", $"{optionMAType.hint} for fast MA"), optionSlowPeriod,
+                        ($"Slow {maTypeOption}", $"{optionMAType.hint} for slow MA"), optionSignalPeriod,
+                        ($"Signal {maTypeOption}", $"{optionMAType.hint} for signal line")
+                    ],
+                    outputMacd)
+            },
+            {
+                "MACDFIX",
+                new F("MacdFix", "Moving Average Convergence/Divergence Fix 12/26", miGroup, inputReal, [optionSignalPeriod], outputMacd)
+            },
+            {
+                "MAMA",
+                new F("Mama", "MESA Adaptive Moving Average", osGroup, inputReal,
+                    [
+                        ("Fast Limit", "Upper limit use in the adaptive algorithm"),
+                        ("Slow Limit", "Lower limit use in the adaptive algorithm")
+                    ],
+                    [("MAMA", OF.Line), ("FAMA", OF.DashLine)])
+            },
+            {
+                "MAVP",
+                new F("Mavp", "Moving average with variable period", osGroup, [realInput, "Periods"],
+                [
+                    ("Min Period", "Value less than minimum will be changed to Minimum period"),
+                    ("Max Period", "Value higher than maximum will be changed to Maximum period"), optionMAType
+                ], outputReal)
+            },
+            { "MAX", new F("Max", "Highest value over a specified period", moGroup, inputReal, optionTimePeriod, outputReal) },
+            {
+                "MAXINDEX",
+                new F("MaxIndex", "Index of highest value over a specified period", moGroup, inputReal, optionTimePeriod, outputIntLine)
+            },
+            { "MEDPRICE", new F("MedPrice", "Median Price", ptGroup, inputPriceHL, [], outputReal) },
+            { "MFI", new F("Mfi", "Money Flow Index", miGroup, inputPriceHLCV, optionTimePeriod, outputReal) },
+            { "MIDPOINT", new F("MidPoint", "MidPoint over period", osGroup, inputReal, optionTimePeriod, outputReal) },
+            { "MIDPRICE", new F("MidPrice", "Midpoint Price over period", osGroup, inputPriceHL, optionTimePeriod, outputReal) },
+            { "MIN", new F("Min", "Lowest value over a specified period", moGroup, inputReal, optionTimePeriod, outputReal) },
+            {
+                "MININDEX",
+                new F("MinIndex", "Index of lowest value over a specified period", moGroup, inputReal, optionTimePeriod, outputIntLine)
+            },
+            {
+                "MINMAX",
+                new F("MinMax", "Lowest and highest values over a specified period", moGroup, inputReal, optionTimePeriod,
+                    [("Min", OF.Line), ("Max", OF.Line)])
+            },
+            {
+                "MINMAXINDEX",
+                new F("MinMaxIndex", "Indexes of lowest and highest values over a specified period", moGroup, inputReal, optionTimePeriod,
+                    [("Min Idx", OF.Line), ("Max Idx", OF.Line)])
+            },
+            { "MINUSDI", new F("MinusDI", "Minus Directional Indicator", miGroup, inputPriceHLC, optionTimePeriod, outputReal) },
+            { "MINUSDM", new F("MinusDM", "Minus Directional Movement", miGroup, inputPriceHL, optionTimePeriod, outputReal) },
+            { "MOM", new F("Mom", "Momentum", miGroup, inputReal, optionTimePeriod, outputReal) },
+            { "MULT", new F("Mult", "Vector Arithmetic Mult", moGroup, inputRealUnary, [], outputReal) },
+            { "NATR", new F("Natr", "Normalized Average True Range", vliGroup, inputPriceHLC, optionTimePeriod, outputReal) },
+            { "OBV", new F("Obv", "On Balance Volume", vmiGroup, [realInput, volumeInput], [], outputReal) },
+            { "PLUSDI", new F("PlusDI", "Plus Directional Indicator", miGroup, inputPriceHLC, optionTimePeriod, outputReal) },
+            { "PLUSDM", new F("PlusDM", "Plus Directional Movement", miGroup, inputPriceHL, optionTimePeriod, outputReal) },
+            {
+                "PPO",
+                new F("Ppo", "Percentage Price Oscillator", miGroup, inputReal, [optionFastPeriod, optionSlowPeriod, optionMAType],
+                    outputReal)
+            },
+            { "ROC", new F("Roc", "Rate of change : ((price/prevPrice)-1)*100", miGroup, inputReal, optionTimePeriod, outputReal) },
+            {
+                "ROCP",
+                new F("RocP", "Rate of change Percentage: (price-prevPrice)/prevPrice", miGroup, inputReal, optionTimePeriod, outputReal)
+            },
+            { "ROCR", new F("RocR", "Rate of change ratio: (price/prevPrice)", miGroup, inputReal, optionTimePeriod, outputReal) },
+            {
+                "ROCR100",
+                new F("RocR100", "Rate of change ratio 100 scale: (price/prevPrice)*100", miGroup, inputReal, optionTimePeriod, outputReal)
+            },
+            { "RSI", new F("Rsi", "Relative Strength Index", miGroup, inputReal, optionTimePeriod, outputReal) },
+            {
+                "SAR",
+                new F("Sar", "Parabolic SAR", osGroup, inputPriceHL,
+                [
+                    ("Acceleration", "Acceleration Factor used up to the Maximum value"), ("Maximum", "Acceleration Factor Maximum value")
+                ], outputReal)
+            },
+            {
+                "SAREXT",
+                new F("SarExt", "Parabolic SAR - Extended", osGroup, inputPriceHL,
+                    [
+                        ("Start Value", "Start value and direction. 0 for Auto, >0 for Long, <0 for Short"),
+                        ("Offset On Reverse", "Percent offset added/removed to initial stop on short/long reversal"),
+                        ("Acceleration Init Long", "Acceleration Factor initial value for the Long direction"),
+                        ("Acceleration Long", "Acceleration Factor for the Long direction"),
+                        ("Acceleration Max Long", "Acceleration Factor maximum value for the Long direction"),
+                        ("Acceleration Init Short", "Acceleration Factor initial value for the Short direction"),
+                        ("Acceleration Short", "Acceleration Factor for the Short direction"),
+                        ("Acceleration Max Short", "Acceleration Factor maximum value for the Short direction")
+                    ],
+                    outputReal)
+            },
+            { "SIN", new F("Sin", "Vector Trigonometric Sin", mtGroup, inputReal, [], outputReal) },
+            { "SINH", new F("Sinh", "Vector Trigonometric Sinh", mtGroup, inputReal, [], outputReal) },
+            { "SMA", new F("Sma", "Simple Moving Average", osGroup, inputReal, optionTimePeriod, outputReal) },
+            { "SQRT", new F("Sqrt", "Vector Square Root", mtGroup, inputReal, [], outputReal) },
+            {
+                "STDDEV",
+                new F("StdDev", "Standard Deviation", sfGroup, inputReal, [..optionTimePeriod, ("Nb Dev", "Nb of deviations")], outputReal)
+            },
+            {
+                "STOCH",
+                new F("Stoch", "Stochastic", miGroup, inputPriceHLC,
+                    [
+                        ("Fast K Period", "Time period for building the Fast-K line"),
+                        ("Slow K Period", "Smoothing for making the Slow-K line. Usually set to 3"),
+                        ($"Slow K {maTypeOption}", $"{optionMAType.hint} for Slow-K"),
+                        ("Slow D Period", "Smoothing for making the Slow-D line"),
+                        ($"Slow D {maTypeOption}", $"{optionMAType.hint} for Slow-D")
+                    ],
+                    [("Slow K", OF.DashLine), ("Slow D", OF.DashLine)])
+            },
+            {
+                "STOCHF",
+                new F("StochF", "Stochastic Fast", miGroup, inputPriceHLC,
+                [
+                    ("Fast K Period", "Time period for building the Fast-K line"),
+                    ("Fast D Period", "Smoothing for making the Fast-D line. Usually set to 3"),
+                    ($"Fast D {maTypeOption}", $"{optionMAType.hint} for Fast-D")
+                ], outputStoch)
+            },
+            {
+                "STOCHRSI",
+                new F("StochRsi", "Stochastic Relative Strength Index", miGroup, inputReal,
+                [
+                    ..optionTimePeriod, ("Fast K Period", "Time period for building the Fast-K line"),
+                    ("Fast D Period", "Smoothing for making the Fast-D line. Usually set to 3"),
+                    ($"Fast D {maTypeOption}", $"{optionMAType.hint} for Fast-D")
+                ], outputStoch)
+            },
+            { "SUB", new F("Sub", "Vector Arithmetic Subtraction", moGroup, inputRealUnary, [], outputReal) },
+            { "SUM", new F("Sum", "Summation", moGroup, inputReal, optionTimePeriod, outputReal) },
+            {
+                "T3",
+                new F("T3", "Triple Exponential Moving Average (T3)", osGroup, inputReal,
+                    [..optionTimePeriod, ("V Factor", "Volume Factor")], outputReal)
+            },
+            { "TAN", new F("Tan", "Vector Trigonometric Tan", mtGroup, inputReal, [], outputReal) },
+            { "TANH", new F("Tanh", "Vector Trigonometric Tanh", mtGroup, inputReal, [], outputReal) },
+            { "TEMA", new F("Tema", "Triple Exponential Moving Average", osGroup, inputReal, optionTimePeriod, outputReal) },
+            { "TRANGE", new F("TRange", "True Range", vliGroup, inputPriceHLC, [], outputReal) },
+            { "TRIMA", new F("Trima", "Triangular Moving Average", osGroup, inputReal, optionTimePeriod, outputReal) },
+            {
+                "TRIX", new F("Trix", "1-day Rate-Of-Change (ROC) of a Triple Smooth EMA", miGroup, inputReal, optionTimePeriod, outputReal)
+            },
+            { "TSF", new F("Tsf", "Time Series Forecast", sfGroup, inputReal, optionTimePeriod, outputReal) },
+            { "TYPPRICE", new F("TypPrice", "Typical Price", ptGroup, inputPriceHLC, [], outputReal) },
+            {
+                "ULTOSC",
+                new F("UltOsc", "Ultimate Oscillator", miGroup, inputPriceHLC,
+                [
+                    ($"{timePeriodOption} 1", "Number of bars for 1st period"), ($"{timePeriodOption} 2", "Number of bars for 2nd period"),
+                    ($"{timePeriodOption} 3", "Number of bars for 3rd period")
+                ], outputReal)
+            },
+            { "VAR", new F("Var", "Variance", sfGroup, inputReal, optionTimePeriod, outputReal) },
+            { "WCLPRICE", new F("WclPrice", "Weighted Close Price", ptGroup, inputPriceHLC, [], outputReal) },
+            { "WILLR", new F("WillR", "Williams' %R", miGroup, inputPriceHLC, optionTimePeriod, outputReal) },
+            { "WMA", new F("Wma", "Weighted Moving Average", osGroup, inputReal, optionTimePeriod, outputReal) },
+            { "ABANDONEDBABY", new F("AbandonedBaby", "Abandoned Baby", prGroup, inputPriceOHLC, optionPenetration, outputIntPattern) },
+            { "ADVANCEBLOCK", new F("AdvanceBlock", "Advance Block", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "BELTHOLD", new F("BeltHold", "Belt-hold", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "BREAKAWAY", new F("Breakaway", "Breakaway", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "CLOSINGMARUBOZU", new F("ClosingMarubozu", "Closing Marubozu", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            {
+                "CONCEALINGBABYSWALLOW",
+                new F("ConcealingBabySwallow", "Concealing Baby Swallow", prGroup, inputPriceOHLC, [], outputIntPattern)
+            },
+            { "COUNTERATTACK", new F("CounterAttack", "Counterattack", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "DARKCLOUDCOVER", new F("DarkCloudCover", "Dark Cloud Cover", prGroup, inputPriceOHLC, optionPenetration, outputIntPattern) },
+            { "DOJI", new F("Doji", "Doji", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "DOJISTAR", new F("DojiStar", "Doji Star", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "DRAGONFLYDOJI", new F("DragonflyDoji", "Dragonfly Doji", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "ENGULFING", new F("Engulfing", "Engulfing Pattern", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            {
+                "EVENINGDOJISTAR",
+                new F("EveningDojiStar", "Evening Doji Star", prGroup, inputPriceOHLC, optionPenetration, outputIntPattern)
+            },
+            { "EVENINGSTAR", new F("EveningStar", "Evening Star", prGroup, inputPriceOHLC, optionPenetration, outputIntPattern) },
+            {
+                "GAPSIDEBYSIDEWHITELINES",
+                new F("GapSideBySideWhiteLines", "Up/Down-gap side-by-side white lines", prGroup, inputPriceOHLC, [], outputIntPattern)
+            },
+            { "GRAVESTONEDOJI", new F("GravestoneDoji", "Gravestone Doji", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "HAMMER", new F("Hammer", "Hammer", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "HANGINGMAN", new F("HangingMan", "Hanging Man", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "HARAMI", new F("Harami", "Harami Pattern", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "HARAMICROSS", new F("HaramiCross", "Harami Cross Pattern", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "HIGHWAVE", new F("HighWave", "High-Wave Candle", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            {
+                "HIKKAKE",
+                new F("Hikkake", "Hikkake Pattern", prGroup, inputPriceOHLC, [], [(integerOutput, OF.PatternBullBear | OF.PatternStrength)])
+            },
+            {
+                "HIKKAKEMODIFIED",
+                new F("HikkakeModified", "Modified Hikkake Pattern", prGroup, inputPriceOHLC, [],
+                    [(integerOutput, OF.PatternBullBear | OF.PatternStrength)])
+            },
+            { "HOMINGPIGEON", new F("HomingPigeon", "Homing Pigeon", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "IDENTICALTHREECROWS", new F("IdenticalThreeCrows", "Identical Three Crows", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "INNECK", new F("InNeck", "In-Neck Pattern", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "INVERTEDHAMMER", new F("InvertedHammer", "Inverted Hammer", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "KICKING", new F("Kicking", "Kicking", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            {
+                "KICKINGBYLENGTH",
+                new F("KickingByLength", "Kicking - bull/bear determined by the longer marubozu", prGroup, inputPriceOHLC, [],
+                    outputIntPattern)
+            },
+            { "LADDERBOTTOM", new F("LadderBottom", "Ladder Bottom", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "LONGLEGGEDDOJI", new F("LongLeggedDoji", "Long Legged Doji", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "LONGLINE", new F("LongLine", "Long Line Candle", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "MARUBOZU", new F("Marubozu", "Marubozu", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "MATCHINGLOW", new F("MatchingLow", "Matching Low", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "MATHOLD", new F("MatHold", "Mat Hold", prGroup, inputPriceOHLC, optionPenetration, outputIntPattern) },
+            {
+                "MORNINGDOJISTAR",
+                new F("MorningDojiStar", "Morning Doji Star", prGroup, inputPriceOHLC, optionPenetration, outputIntPattern)
+            },
+            { "MORNINGSTAR", new F("MorningStar", "Morning Star", prGroup, inputPriceOHLC, optionPenetration, outputIntPattern) },
+            { "ONNECK", new F("OnNeck", "On-Neck Pattern", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "PIERCING", new F("Piercing", "Piercing Pattern", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "RICKSHAWMAN", new F("RickshawMan", "Rickshaw Man", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            {
+                "RISINGFALLINGTHREEMETHODS",
+                new F("RisingFallingThreeMethods", "Rising/Falling Three Methods", prGroup, inputPriceOHLC, [], outputIntPattern)
+            },
+            { "SEPARATINGLINES", new F("SeparatingLines", "Separating Lines", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "SHOOTINGSTAR", new F("ShootingStar", "Shooting Star", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "SHORTLINE", new F("ShortLine", "Short Line Candle", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "SPINNINGTOP", new F("SpinningTop", "Spinning Top", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "STALLEDPATTERN", new F("StalledPattern", "Stalled Pattern", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "STICKSANDWICH", new F("StickSandwich", "Stick Sandwich", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            {
+                "TAKURI",
+                new F("Takuri", "Takuri Line (Dragonfly Doji with very long lower shadow)", prGroup, inputPriceOHLC, [], outputIntPattern)
+            },
+            { "TASUKIGAP", new F("TasukiGap", "Tasuki Gap", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "THREEBLACKCROWS", new F("ThreeBlackCrows", "Three Black Crows", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "THREEINSIDE", new F("ThreeInside", "Three Inside Up/Down", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "THREELINESTRIKE", new F("ThreeLineStrike", "Three-Line Strike", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "THREEOUTSIDE", new F("ThreeOutside", "Three Outside Up/Down", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "THREESTARSINSOUTH", new F("ThreeStarsInSouth", "Three Stars In The South", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            {
+                "THREEWHITESOLDIERS",
+                new F("ThreeWhiteSoldiers", "Three Advancing White Soldiers", prGroup, inputPriceOHLC, [], outputIntPattern)
+            },
+            { "THRUSTING", new F("Thrusting", "Thrusting Pattern", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "TRISTAR", new F("Tristar", "Tristar Pattern", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "TWOCROWS", new F("TwoCrows", "Two Crows", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            { "UNIQUETHREERIVER", new F("UniqueThreeRiver", "Unique Three River", prGroup, inputPriceOHLC, [], outputIntPattern) },
+            {
+                "UPDOWNSIDEGAPTHREEMETHODS",
+                new F("UpDownSideGapThreeMethods", "Upside/Downside Gap Three Methods", prGroup, inputPriceOHLC, [], outputIntPattern)
+            },
+            { "UPSIDEGAPTWOCROWS", new F("UpsideGapTwoCrows", "Upside Gap Two Crows", prGroup, inputPriceOHLC, [], outputIntPattern) }
+        };
+
+        FunctionsDefinition = new ReadOnlyDictionary<string, F>(funcDefs);
     }
 
+    /// <summary>
+    /// Provides a single point of access to the entire collection of functions supported by the library.
+    /// This singleton instance ensures that all functions are readily available
+    /// and can be accessed in a consistent manner throughout the application.
+    /// </summary>
+    /// <remarks>
+    /// Additionally, the full power of LINQ can be leveraged to query the functions database,
+    /// enabling advanced filtering, sorting, and projection capabilities.
+    /// </remarks>
     public static Abstract All => Instance.Value;
 
+    /// <summary>
+    /// Finds and returns a function by its name, if it exists in the functions' database.
+    /// </summary>
+    /// <param name="name">The name of the function to find.</param>
+    /// <returns>
+    /// The <see cref="IndicatorFunction"/> corresponding to the specified name, or <c>null</c> if the function is not found.
+    /// </returns>
+    public static F? Function(string name) => All.FunctionsDefinition.GetValueOrDefault(name);
+
+    /// <summary>
+    /// Alias for the <see cref="Function"/> method.
+    /// </summary>
+    public F? this[string name] => Function(name);
+
     [MustDisposeResource]
-    public IEnumerator<IndicatorFunction> GetEnumerator() => FunctionsDefinition.Values.GetEnumerator();
+    public IEnumerator<F> GetEnumerator() => FunctionsDefinition.Values.GetEnumerator();
 
     [MustDisposeResource]
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
