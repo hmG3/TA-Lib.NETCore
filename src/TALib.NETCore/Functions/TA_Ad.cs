@@ -41,6 +41,13 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
+        /* Note:
+         * Results from this function might vary slightly when using float instead of double
+         * and this cause a different floating-point precision to be used.
+         * For most function, this is not an apparent difference but for function using large cumulative values
+         * (like this AD function), minor imprecision adds up and becomes significant.
+         * For better precision, use double in calculations.
+         */
         var nbBar = endIdx - startIdx + 1;
         outBegIdx = startIdx;
         outNbElement = nbBar;
@@ -50,19 +57,8 @@ public static partial class Functions
 
         while (nbBar != 0)
         {
-            T high = inHigh[currentBar];
-            T low = inLow[currentBar];
-            T tmp = high - low;
-            T close = inClose[currentBar];
-
-            if (tmp > T.Zero)
-            {
-                ad += (close - low - (high - close)) / tmp * inVolume[currentBar];
-            }
-
+            ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref currentBar, ad);
             outReal[outIdx++] = ad;
-
-            currentBar++;
             nbBar--;
         }
 

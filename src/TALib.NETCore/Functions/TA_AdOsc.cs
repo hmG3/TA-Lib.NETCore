@@ -70,21 +70,24 @@ public static partial class Functions
         T slowk = Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
         T oneMinusSlowk = T.One - slowk;
 
-        CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume);
+        // Use the same range of initialization inputs for both EMA and simply seed with the first A/D value.
+        ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
         T fastEMA = ad;
         T slowEMA = ad;
 
+        // Initialize the EMA and skip the unstable period.
         while (today < startIdx)
         {
-            CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume);
+            ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
             fastEMA = fastk * ad + oneMinusFastk * fastEMA;
             slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
         }
 
+        // Perform the calculation for the requested range
         int outIdx = default;
         while (today <= endIdx)
         {
-            CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume);
+            ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
             fastEMA = fastk * ad + oneMinusFastk * fastEMA;
             slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
 
@@ -94,30 +97,14 @@ public static partial class Functions
         outNbElement = outIdx;
 
         return Core.RetCode.Success;
-
-        void CalcAccumulationDistribution(
-            ReadOnlySpan<T> high,
-            ReadOnlySpan<T> low,
-            ReadOnlySpan<T> close,
-            ReadOnlySpan<T> volume)
-        {
-            T h = high[today];
-            T l = low[today];
-            T tmp = h - l;
-            T c = close[today];
-            if (tmp > T.Zero)
-            {
-                ad += (c - l - (h - c)) / tmp * volume[today];
-            }
-
-            today++;
-        }
     }
 
-    public static int AdOscLookback(int optInFastPeriod = 3, int optInSlowPeriod = 10) =>
-        optInFastPeriod < 2 || optInSlowPeriod < 2
-            ? -1
-            : EmaLookback(optInFastPeriod < optInSlowPeriod ? optInSlowPeriod : optInFastPeriod);
+    public static int AdOscLookback(int optInFastPeriod = 3, int optInSlowPeriod = 10)
+    {
+        var slowestPeriod = optInFastPeriod < optInSlowPeriod ? optInSlowPeriod : optInFastPeriod;
+
+        return optInFastPeriod < 2 || optInSlowPeriod < 2 ? -1 : EmaLookback(slowestPeriod);
+    }
 
     /// <remarks>
     /// For compatibility with abstract API

@@ -58,58 +58,13 @@ public static partial class Functions
         int outIdx = default;
         var today = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
-        var highestIdx = -1;
-        T highest = T.Zero;
-        var lowestIdx = -1;
-        T lowest = T.Zero;
 
+        int highestIdx = -1, lowestIdx = -1;
+        T highest = T.Zero, lowest = T.Zero;
         while (today <= endIdx)
         {
-            T tmpHigh = inReal[today];
-            T tmpLow = tmpHigh;
-            if (highestIdx < trailingIdx)
-            {
-                highestIdx = trailingIdx;
-                highest = inReal[highestIdx];
-                var i = highestIdx;
-                while (++i <= today)
-                {
-                    tmpHigh = inReal[i];
-                    if (tmpHigh > highest)
-                    {
-                        highestIdx = i;
-                        highest = tmpHigh;
-                    }
-                }
-            }
-
-            if (tmpHigh >= highest)
-            {
-                highestIdx = today;
-                highest = tmpHigh;
-            }
-
-            if (lowestIdx < trailingIdx)
-            {
-                lowestIdx = trailingIdx;
-                lowest = inReal[lowestIdx];
-                var i = lowestIdx;
-                while (++i <= today)
-                {
-                    tmpLow = inReal[i];
-                    if (tmpLow < lowest)
-                    {
-                        lowestIdx = i;
-                        lowest = tmpLow;
-                    }
-                }
-            }
-
-            if (tmpLow <= lowest)
-            {
-                lowestIdx = today;
-                lowest = tmpLow;
-            }
+            (highestIdx, highest) = CalcHighest(inReal, trailingIdx, today, highestIdx, highest);
+            (lowestIdx, lowest) = CalcLowest(inReal, trailingIdx, today, lowestIdx, lowest);
 
             outMaxIdx[outIdx] = T.CreateChecked(highestIdx);
             outMinIdx[outIdx++] = T.CreateChecked(lowestIdx);

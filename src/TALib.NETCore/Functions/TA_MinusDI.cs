@@ -60,9 +60,7 @@ public static partial class Functions
         int today;
         T prevLow;
         T prevHigh;
-        T diffM;
         T prevClose;
-        T diffP;
         int outIdx = default;
         if (optInTimePeriod == 1)
         {
@@ -75,10 +73,10 @@ public static partial class Functions
             {
                 today++;
                 T tempReal = inHigh[today];
-                diffP = tempReal - prevHigh;
+                var diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
-                diffM = prevLow - tempReal;
+                var diffM = prevLow - tempReal;
                 prevLow = tempReal;
                 if (diffM > T.Zero && diffP < diffM)
                 {
@@ -100,84 +98,54 @@ public static partial class Functions
 
         today = startIdx;
         outBegIdx = today;
-        T prevMinusDM = T.Zero;
-        T prevTR = T.Zero;
         today = startIdx - lookbackTotal;
+
+        T timePeriod = T.CreateChecked(optInTimePeriod);
+        T prevMinusDM = T.Zero, prevTR = T.Zero, _ = T.Zero;
         prevHigh = inHigh[today];
         prevLow = inLow[today];
         prevClose = inClose[today];
-        var i = optInTimePeriod - 1;
-        while (i-- > 0)
+
+        for (var i = 0; i < optInTimePeriod - 1; i++)
         {
             today++;
-            T tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-            if (diffM > T.Zero && diffP < diffM)
-            {
-                prevMinusDM += diffM;
-            }
-
-            tempReal = TrueRange(prevHigh, prevLow, prevClose);
-            prevTR += tempReal;
-            prevClose = inClose[today];
+            UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref _, ref prevMinusDM, ref prevTR,
+                timePeriod, applySmoothing: false);
         }
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
-
-        i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.MinusDI) + 1;
-        while (i-- != 0)
+        for (var i = 0; i < Core.UnstablePeriodSettings.Get(Core.UnstableFunc.MinusDI) + 1; i++)
         {
             today++;
-            T tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-            if (diffM > T.Zero && diffP < diffM)
-            {
-                prevMinusDM = prevMinusDM - prevMinusDM / timePeriod + diffM;
-            }
-            else
-            {
-                prevMinusDM -= prevMinusDM / timePeriod;
-            }
-
-            tempReal = TrueRange(prevHigh, prevLow, prevClose);
-            prevTR = prevTR - prevTR / timePeriod + tempReal;
-            prevClose = inClose[today];
+            UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref _, ref prevMinusDM, ref prevTR,
+                timePeriod);
         }
 
-        outReal[0] = !T.IsZero(prevTR) ? Hundred<T>() * (prevMinusDM / prevTR) : T.Zero;
+        if (!T.IsZero(prevTR))
+        {
+            var (minusDI, _) = CalculateDI(prevMinusDM, _, prevTR);
+            outReal[0] = minusDI;
+        }
+        else
+        {
+            outReal[0] = T.Zero;
+        }
+
         outIdx = 1;
 
         while (today < endIdx)
         {
             today++;
-            T tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-            if (diffM > T.Zero && diffP < diffM)
+            UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref _, ref prevMinusDM, ref prevTR,
+                timePeriod);
+            if (!T.IsZero(prevTR))
             {
-                prevMinusDM = prevMinusDM - prevMinusDM / timePeriod + diffM;
+                var (minusDI, _) = CalculateDI(prevMinusDM, _, prevTR);
+                outReal[outIdx++] = minusDI;
             }
             else
             {
-                prevMinusDM -= prevMinusDM / timePeriod;
+                outReal[outIdx++] = T.Zero;
             }
-
-            tempReal = TrueRange(prevHigh, prevLow, prevClose);
-            prevTR = prevTR - prevTR / timePeriod + tempReal;
-            prevClose = inClose[today];
-            outReal[outIdx++] = !T.IsZero(prevTR) ? Hundred<T>() * (prevMinusDM / prevTR) : T.Zero;
         }
 
         outNbElement = outIdx;

@@ -57,32 +57,12 @@ public static partial class Functions
         int outIdx = default;
         var today = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
+
         var highestIdx = -1;
         T highest = T.Zero;
-
         while (today <= endIdx)
         {
-            T tmp = inReal[today];
-            if (highestIdx < trailingIdx)
-            {
-                highestIdx = trailingIdx;
-                highest = inReal[highestIdx];
-                var i = highestIdx;
-                while (++i <= today)
-                {
-                    tmp = inReal[i];
-                    if (tmp > highest)
-                    {
-                        highestIdx = i;
-                        highest = tmp;
-                    }
-                }
-            }
-            else if (tmp >= highest)
-            {
-                highestIdx = today;
-                highest = tmp;
-            }
+            (highestIdx, highest) = CalcHighest(inReal, trailingIdx, today, highestIdx, highest);
 
             outReal[outIdx++] = highest;
             trailingIdx++;

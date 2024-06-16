@@ -56,7 +56,7 @@ public sealed class IndicatorFunction
 
     public Core.RetCode Run<T>(T[][] inputs, T[] options, T[][] outputs) where T : IFloatingPointIeee754<T>
     {
-        var functionMethod = ReflectMethods<T>(publicOnly: false)
+        var functionMethod = ReflectMethods(publicOnly: false)
                                  .FirstOrDefault(mi => !mi.Name.EndsWith(LookbackSuffix) && FunctionMethodSelector(mi)) ??
                              throw new MissingMethodException(null, $"{Name}<{typeof(T).Name}>");
 
@@ -78,9 +78,9 @@ public sealed class IndicatorFunction
         return retCode;
     }
 
-    public int Lookback<T>(params int[] options) where T : IFloatingPointIeee754<T>
+    public int Lookback(params int[] options)
     {
-        var lookbackMethod = ReflectMethods<T>(publicOnly: true)
+        var lookbackMethod = ReflectMethods(publicOnly: true)
                                  .FirstOrDefault(mi => mi.Name.EndsWith(LookbackSuffix) && LookbackMethodSelector(mi))
                              ?? throw new MissingMethodException(null, LookbackMethodName);
 
@@ -124,7 +124,7 @@ public sealed class IndicatorFunction
 
     public override string ToString() => Name;
 
-    private static IEnumerable<MethodInfo> ReflectMethods<T>(bool publicOnly) where T : IFloatingPointIeee754<T> =>
+    private static IEnumerable<MethodInfo> ReflectMethods(bool publicOnly) =>
         typeof(Functions).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic))
             .Concat(typeof(Candles).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic)));
 

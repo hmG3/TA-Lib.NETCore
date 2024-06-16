@@ -46,6 +46,101 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /*
+         * The DM1 (one period) is based on the largest part of today's range that is outside of yesterday's range.
+         *
+         * The following 7 cases explain how the +DM and -DM are calculated on one period:
+         *
+         * Case 1:                       Case 2:
+         *    C│                        A│
+         *     │                         │ C│
+         *     │ +DM1 = (C-A)           B│  │ +DM1 = 0
+         *     │ -DM1 = 0                   │ -DM1 = (B-D)
+         * A│  │                           D│
+         *  │ D│
+         * B│
+         *
+         * Case 3:                       Case 4:
+         *    C│                           C│
+         *     │                        A│  │
+         *     │ +DM1 = (C-A)            │  │ +DM1 = 0
+         *     │ -DM1 = 0               B│  │ -DM1 = (B-D)
+         * A│  │                            │
+         *  │  │                           D│
+         * B│  │
+         *    D│
+         *
+         * Case 5:                      Case 6:
+         * A│                           A│ C│
+         *  │ C│ +DM1 = 0                │  │  +DM1 = 0
+         *  │  │ -DM1 = 0                │  │  -DM1 = 0
+         *  │ D│                         │  │
+         * B│                           B│ D│
+         *
+         *
+         * Case 7:
+         *
+         *    C│
+         * A│  │
+         *  │  │ +DM=0
+         * B│  │ -DM=0
+         *    D│
+         *
+         * In case 3 and 4, the rule is that the smallest delta between (C-A) and (B-D) determine
+         * which of +DM or -DM is zero.
+         *
+         * In case 7, (C-A) and (B-D) are equal, so both +DM and -DM are zero.
+         *
+         * The rules remain the same when A=B and C=D (when the highs equal the lows).
+         *
+         * When calculating the DM over a period > 1, the one-period DM for the desired period are initially summed.
+         * In other words, for a -DM14, sum the -DM1 for the first 14 days
+         * (that's 13 values because there is no DM for the first day!)
+         * Subsequent DM are calculated using Wilder's smoothing approach:
+         *
+         *                                    Previous -DM14
+         *  Today's -DM14 = Previous -DM14 -  ────────────── + Today's -DM1
+         *                                         14
+         *
+         * (Same thing for +DM14)
+         *
+         * Calculation of a -DI14 is as follows:
+         *
+         *               -DM14
+         *     -DI14 =  ────────
+         *                TR14
+         *
+         * (Same thing for +DI14)
+         *
+         * Calculation of the TR14 is:
+         *
+         *                                   Previous TR14
+         *    Today's TR14 = Previous TR14 - ────────────── + Today's TR1
+         *                                         14
+         *
+         *    The first TR14 is the summation of the first 14 TR1. See the TRange function on how to calculate the true range.
+         *
+         * Calculation of the DX14 is:
+         *
+         *    diffDI = ABS( (-DI14) - (+DI14) )
+         *    sumDI  = (-DI14) + (+DI14)
+         *
+         *    DX14 = 100 * (diffDI / sumDI)
+         *
+         * Calculation of the first ADX:
+         *
+         *    ADX14 = SUM of the first 14 DX
+         *
+         * Calculation of subsequent ADX:
+         *
+         *            ((Previous ADX14)*(14-1))+ Today's DX
+         *    ADX14 = ─────────────────────────────────────
+         *                             14
+         *
+         * Reference:
+         *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
+         */
+
         var lookbackTotal = AdxLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -58,175 +153,125 @@ public static partial class Functions
         }
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
-
-        T tempReal;
-        T diffM;
-        T diffP;
-        T plusDI;
-        T minusDI;
+        T prevMinusDM = T.Zero, prevPlusDM = T.Zero, prevTR = T.Zero;
         var today = startIdx;
         outBegIdx = today;
-        T prevMinusDM = T.Zero;
-        T prevPlusDM = T.Zero;
-        T prevTR = T.Zero;
         today = startIdx - lookbackTotal;
-        T prevHigh = inHigh[today];
-        T prevLow = inLow[today];
-        T prevClose = inClose[today];
-        var i = optInTimePeriod - 1;
-        while (i-- > 0)
+
+        T prevHigh;
+        T prevLow;
+        T prevClose;
+
+        InitDMAndTR(inHigh, inLow, inClose);
+
+        T sumDX = AddAllInitialDX(inHigh, inLow, inClose);
+
+        // Calculate the first ADX
+        T prevADX = sumDX / timePeriod;
+
+        SkipUnstablePeriod(inHigh, inLow, inClose);
+
+        // Output the first ADX
+        outReal[0] = prevADX;
+        var outIdx = 1;
+
+        CalcAndOutputSubsequentADX(inHigh, inLow, inClose, outReal);
+
+        outNbElement = outIdx;
+
+        return Core.RetCode.Success;
+
+        void InitDMAndTR(ReadOnlySpan<T> high, ReadOnlySpan<T> low, ReadOnlySpan<T> close)
         {
-            today++;
-            tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
+            prevHigh = high[today];
+            prevLow = low[today];
+            prevClose = close[today];
 
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-
-            if (diffM > T.Zero && diffP < diffM)
+            for (var i = Int32.CreateTruncating(timePeriod) - 1; i > 0; i--)
             {
-                prevMinusDM += diffM;
-            }
-            else if (diffP > T.Zero && diffP > diffM)
-            {
-                prevPlusDM += diffP;
-            }
+                today++;
 
-            tempReal = TrueRange(prevHigh, prevLow, prevClose);
-            prevTR += tempReal;
-            prevClose = inClose[today];
+                UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+                    ref prevTR, timePeriod, false);
+            }
         }
 
-        T sumDX = T.Zero;
-        i = optInTimePeriod;
-        while (i-- > 0)
+        T AddAllInitialDX(ReadOnlySpan<T> high, ReadOnlySpan<T> low, ReadOnlySpan<T> close)
         {
-            today++;
-            tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-
-            prevMinusDM -= prevMinusDM / timePeriod;
-            prevPlusDM -= prevPlusDM / timePeriod;
-            if (diffM > T.Zero && diffP < diffM)
+            T sumDX = T.Zero;
+            for (var i = Int32.CreateTruncating(timePeriod); i > 0; i--)
             {
-                prevMinusDM += diffM;
-            }
-            else if (diffP > T.Zero && diffP > diffM)
-            {
-                prevPlusDM += diffP;
-            }
+                today++;
+                UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+                    ref prevTR, timePeriod);
 
-            tempReal = TrueRange(prevHigh, prevLow, prevClose);
-            prevTR = prevTR - prevTR / timePeriod + tempReal;
-            prevClose = inClose[today];
-            if (!T.IsZero(prevTR))
-            {
-                minusDI = Hundred<T>() * (prevMinusDM / prevTR);
-                plusDI = Hundred<T>() * (prevPlusDM / prevTR);
-                tempReal = minusDI + plusDI;
+                if (T.IsZero(prevTR))
+                {
+                    continue;
+                }
+
+                (T minusDI, T plusDI) = CalculateDI(prevMinusDM, prevPlusDM, prevTR);
+                var tempReal = minusDI + plusDI;
                 if (!T.IsZero(tempReal))
                 {
                     sumDX += Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
                 }
             }
+
+            return sumDX;
         }
 
-        T prevADX = sumDX / timePeriod;
-
-        i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx);
-        while (i-- > 0)
+        void SkipUnstablePeriod(ReadOnlySpan<T> high, ReadOnlySpan<T> low, ReadOnlySpan<T> close)
         {
-            today++;
-            tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-
-            prevMinusDM -= prevMinusDM / timePeriod;
-            prevPlusDM -= prevPlusDM / timePeriod;
-
-            if (diffM > T.Zero && diffP < diffM)
+            for (var i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx); i > 0; i--)
             {
-                prevMinusDM += diffM;
-            }
-            else if (diffP > T.Zero && diffP > diffM)
-            {
-                prevPlusDM += diffP;
-            }
+                today++;
+                UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+                    ref prevTR, timePeriod);
 
-            tempReal = TrueRange(prevHigh, prevLow, prevClose);
-            prevTR = prevTR - prevTR / timePeriod + tempReal;
-            prevClose = inClose[today];
-            if (!T.IsZero(prevTR))
-            {
-                minusDI = Hundred<T>() * (prevMinusDM / prevTR);
-                plusDI = Hundred<T>() * (prevPlusDM / prevTR);
-                tempReal = minusDI + plusDI;
-                if (!T.IsZero(tempReal))
+                if (T.IsZero(prevTR))
                 {
-                    tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
-                    prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
+                    continue;
                 }
+
+                (T minusDI, T plusDI) = CalculateDI(prevMinusDM, prevPlusDM, prevTR);
+                var tempReal = minusDI + plusDI;
+                if (T.IsZero(tempReal))
+                {
+                    continue;
+                }
+
+                tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
+                prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
             }
         }
 
-        outReal[0] = prevADX;
-        var outIdx = 1;
-
-        while (today < endIdx)
+        void CalcAndOutputSubsequentADX(
+            ReadOnlySpan<T> high,
+            ReadOnlySpan<T> low,
+            ReadOnlySpan<T> close,
+            Span<T> outputReal)
         {
-            today++;
-            tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-
-            prevMinusDM -= prevMinusDM / timePeriod;
-            prevPlusDM -= prevPlusDM / timePeriod;
-
-            if (diffM > T.Zero && diffP < diffM)
+            while (today < endIdx)
             {
-                prevMinusDM += diffM;
-            }
-            else if (diffP > T.Zero && diffP > diffM)
-            {
-                prevPlusDM += diffP;
-            }
+                today++;
+                UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+                    ref prevTR, timePeriod);
 
-            tempReal = TrueRange(prevHigh, prevLow, prevClose);
-            prevTR = prevTR - prevTR / timePeriod + tempReal;
-            prevClose = inClose[today];
-            if (!T.IsZero(prevTR))
-            {
-                minusDI = Hundred<T>() * (prevMinusDM / prevTR);
-                plusDI = Hundred<T>() * (prevPlusDM / prevTR);
-                tempReal = minusDI + plusDI;
-                if (!T.IsZero(tempReal))
+                if (!T.IsZero(prevTR))
                 {
-                    tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
-                    prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
+                    (T minusDI, T plusDI) = CalculateDI(prevMinusDM, prevPlusDM, prevTR);
+                    var tempReal = minusDI + plusDI;
+                    if (!T.IsZero(tempReal))
+                    {
+                        tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
+                        prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
+                    }
                 }
+
+                outputReal[outIdx++] = prevADX;
             }
-
-            outReal[outIdx++] = prevADX;
         }
-
-        outNbElement = outIdx;
-
-        return Core.RetCode.Success;
     }
 
     public static int AdxLookback(int optInTimePeriod = 14) =>

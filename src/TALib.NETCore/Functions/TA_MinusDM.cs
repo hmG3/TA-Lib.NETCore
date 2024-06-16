@@ -56,10 +56,8 @@ public static partial class Functions
         }
 
         int today;
-        T diffM;
         T prevLow;
         T prevHigh;
-        T diffP;
         int outIdx = default;
         if (optInTimePeriod == 1)
         {
@@ -71,10 +69,10 @@ public static partial class Functions
             {
                 today++;
                 T tempReal = inHigh[today];
-                diffP = tempReal - prevHigh;
+                var diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
-                diffM = prevLow - tempReal;
+                var diffM = prevLow - tempReal;
                 prevLow = tempReal;
                 outReal[outIdx++] = diffM > T.Zero && diffP < diffM ? diffM : T.Zero;
             }
@@ -85,47 +83,25 @@ public static partial class Functions
         }
 
         outBegIdx = startIdx;
-
-        T prevMinusDM = T.Zero;
         today = startIdx - lookbackTotal;
-        prevHigh = inHigh[today];
-        prevLow = inLow[today];
-        var i = optInTimePeriod - 1;
-        while (i-- > 0)
-        {
-            today++;
-            T tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-            if (diffM > T.Zero && diffP < diffM)
-            {
-                prevMinusDM += diffM;
-            }
-        }
 
         T timePeriod = T.CreateChecked(optInTimePeriod);
+        T prevMinusDM = T.Zero, _ = T.Zero;
+        prevHigh = inHigh[today];
+        prevLow = inLow[today];
 
-        i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.MinusDM);
-        while (i-- != 0)
+        for (var i = 0; i < optInTimePeriod - 1; i++)
         {
             today++;
-            T tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-            if (diffM > T.Zero && diffP < diffM)
-            {
-                prevMinusDM = prevMinusDM - prevMinusDM / timePeriod + diffM;
-            }
-            else
-            {
-                prevMinusDM -= prevMinusDM / timePeriod;
-            }
+            UpdateDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, ref today, ref prevHigh, ref prevLow, ref _, ref _, ref prevMinusDM, ref _,
+                timePeriod, false);
+        }
+
+        for (var i = 0; i < Core.UnstablePeriodSettings.Get(Core.UnstableFunc.MinusDM); i++)
+        {
+            today++;
+            UpdateDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, ref today, ref prevHigh, ref prevLow, ref _, ref _, ref prevMinusDM, ref _,
+                timePeriod);
         }
 
         outReal[0] = prevMinusDM;
@@ -134,22 +110,8 @@ public static partial class Functions
         while (today < endIdx)
         {
             today++;
-            T tempReal = inHigh[today];
-            diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
-            tempReal = inLow[today];
-            diffM = prevLow - tempReal;
-            prevLow = tempReal;
-
-            if (diffM > T.Zero && diffP < diffM)
-            {
-                prevMinusDM = prevMinusDM - prevMinusDM / timePeriod + diffM;
-            }
-            else
-            {
-                prevMinusDM -= prevMinusDM / timePeriod;
-            }
-
+            UpdateDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, ref today, ref prevHigh, ref prevLow, ref _, ref _, ref prevMinusDM, ref _,
+                timePeriod);
             outReal[outIdx++] = prevMinusDM;
         }
 

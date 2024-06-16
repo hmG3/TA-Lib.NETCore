@@ -28,7 +28,7 @@ public sealed class FunctionTests
         var function = Abstract.All.FunctionsDefinition[model.Name];
 
         model.Options.Length.ShouldBe(function.Options.Length, "Number of options must match the definition");
-        var inputOffset = function.Lookback<double>(Array.ConvertAll(model.Options, d => (int) d));
+        var inputOffset = function.Lookback(Array.ConvertAll(model.Options, d => (int) d));
         model.Inputs.Length.ShouldBe(function.Inputs.Length, "Number of inputs must match the definition");
         var outputLength = model.Inputs[0].Length - inputOffset;
         outputLength.ShouldBePositive("Output array should have the correct length");
@@ -45,7 +45,7 @@ public sealed class FunctionTests
             function.SetUnstablePeriod(model.Unstable.Value);
         }
 
-        var returnCode = function.Run<double>(model.Inputs, model.Options, resultOutput);
+        var returnCode = function.Run(model.Inputs, model.Options, resultOutput);
         returnCode.ShouldBe(Core.RetCode.Success, "Function should complete with success status code RetCode.Success(0)");
 
         for (var i = 0; i < resultOutput.Length; i++)
@@ -83,7 +83,7 @@ public sealed class FunctionTests
         var function = Abstract.All.FunctionsDefinition[model.Name];
 
         model.Options.Length.ShouldBe(function.Options.Length, "Number of options must match the definition");
-        var inputOffset = function.Lookback<float>(Array.ConvertAll(model.Options, d => (int) d));
+        var inputOffset = function.Lookback(Array.ConvertAll(model.Options, d => (int) d));
         model.Inputs.Length.ShouldBe(function.Inputs.Length, "Number of inputs must match the definition");
         var outputLength = model.Inputs[0].Length - inputOffset;
         outputLength.ShouldBePositive("Output array should have the correct length");
@@ -100,7 +100,7 @@ public sealed class FunctionTests
             function.SetUnstablePeriod(model.Unstable.Value);
         }
 
-        var returnCode = function.Run<float>(model.Inputs, model.Options, resultOutput);
+        var returnCode = function.Run(model.Inputs, model.Options, resultOutput);
         returnCode.ShouldBe(Core.RetCode.Success, "Function should complete with success status code RetCode.Success(0)");
 
         for (var i = 0; i < resultOutput.Length; i++)

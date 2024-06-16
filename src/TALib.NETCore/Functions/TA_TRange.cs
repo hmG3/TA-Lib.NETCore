@@ -55,24 +55,11 @@ public static partial class Functions
         var today = startIdx;
         while (today <= endIdx)
         {
-            T tempLT = inLow[today];
             T tempHT = inHigh[today];
+            T tempLT = inLow[today];
             T tempCY = inClose[today - 1];
-            T greatest = tempHT - tempLT;
 
-            T val2 = T.Abs(tempCY - tempHT);
-            if (val2 > greatest)
-            {
-                greatest = val2;
-            }
-
-            T val3 = T.Abs(tempCY - tempLT);
-            if (val3 > greatest)
-            {
-                greatest = val3;
-            }
-
-            outReal[outIdx++] = greatest;
+            outReal[outIdx++] = TrueRange(tempHT, tempLT, tempCY);
             today++;
         }
 

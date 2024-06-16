@@ -45,6 +45,9 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* This function is using a speed optimized algorithm for the min/max logic.
+         * It might be needed to first look at how Min/Max works and this function will become easier to understand.
+         */
         var lookbackTotal = AroonLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -56,60 +59,19 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
+        // Proceed with the calculation for the requested range.
+        // Note that the algorithm allows the input and output to be the same buffer.
         int outIdx = default;
         var today = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
-        var lowestIdx = -1;
-        var highestIdx = -1;
-        T lowest = T.Zero;
-        T highest = T.Zero;
-        T factor = Hundred<T>() / T.CreateChecked(optInTimePeriod);
 
+        int highestIdx = -1, lowestIdx = -1;
+        T highest = T.Zero, lowest = T.Zero;
+        T factor = Hundred<T>() / T.CreateChecked(optInTimePeriod);
         while (today <= endIdx)
         {
-            T tmp = inLow[today];
-            if (lowestIdx < trailingIdx)
-            {
-                lowestIdx = trailingIdx;
-                lowest = inLow[lowestIdx];
-                var i = lowestIdx;
-                while (++i <= today)
-                {
-                    tmp = inLow[i];
-                    if (tmp <= lowest)
-                    {
-                        lowestIdx = i;
-                        lowest = tmp;
-                    }
-                }
-            }
-            else if (tmp <= lowest)
-            {
-                lowestIdx = today;
-                lowest = tmp;
-            }
-
-            tmp = inHigh[today];
-            if (highestIdx < trailingIdx)
-            {
-                highestIdx = trailingIdx;
-                highest = inHigh[highestIdx];
-                var i = highestIdx;
-                while (++i <= today)
-                {
-                    tmp = inHigh[i];
-                    if (tmp >= highest)
-                    {
-                        highestIdx = i;
-                        highest = tmp;
-                    }
-                }
-            }
-            else if (tmp >= highest)
-            {
-                highestIdx = today;
-                highest = tmp;
-            }
+            (lowestIdx, lowest) = CalcLowest(inLow, trailingIdx, today, lowestIdx, lowest);
+            (highestIdx, highest) = CalcHighest(inHigh, trailingIdx, today, highestIdx, highest);
 
             outAroonUp[outIdx] = factor * T.CreateChecked(optInTimePeriod - (today - highestIdx));
             outAroonDown[outIdx] = factor * T.CreateChecked(optInTimePeriod - (today - lowestIdx));

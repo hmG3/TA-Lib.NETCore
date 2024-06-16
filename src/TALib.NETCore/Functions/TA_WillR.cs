@@ -60,62 +60,15 @@ public static partial class Functions
         int outIdx = default;
         var today = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
-        var highestIdx = -1;
-        var lowestIdx = highestIdx;
-        T highest, lowest;
-        T diff = highest = lowest = T.Zero;
 
+        int highestIdx = -1, lowestIdx = -1;
+        T highest = T.Zero, lowest = T.Zero;
         while (today <= endIdx)
         {
-            T tmp = inLow[today];
-            if (lowestIdx < trailingIdx)
-            {
-                lowestIdx = trailingIdx;
-                lowest = inLow[lowestIdx];
-                var i = lowestIdx;
-                while (++i <= today)
-                {
-                    tmp = inLow[i];
-                    if (tmp < lowest)
-                    {
-                        lowestIdx = i;
-                        lowest = tmp;
-                    }
-                }
+            (lowestIdx, lowest) = CalcLowest(inLow, trailingIdx, today, lowestIdx, lowest);
+            (highestIdx, highest) = CalcHighest(inHigh, trailingIdx, today, highestIdx, highest);
 
-                diff = (highest - lowest) / (T.NegativeOne * Hundred<T>());
-            }
-            else if (tmp <= lowest)
-            {
-                lowestIdx = today;
-                lowest = tmp;
-                diff = (highest - lowest) / (T.NegativeOne * Hundred<T>());
-            }
-
-            tmp = inHigh[today];
-            if (highestIdx < trailingIdx)
-            {
-                highestIdx = trailingIdx;
-                highest = inHigh[highestIdx];
-                var i = highestIdx;
-                while (++i <= today)
-                {
-                    tmp = inHigh[i];
-                    if (tmp > highest)
-                    {
-                        highestIdx = i;
-                        highest = tmp;
-                    }
-                }
-
-                diff = (highest - lowest) / (T.NegativeOne * Hundred<T>());
-            }
-            else if (tmp >= highest)
-            {
-                highestIdx = today;
-                highest = tmp;
-                diff = (highest - lowest) / (T.NegativeOne * Hundred<T>());
-            }
+            var diff = (highest - lowest) / (T.NegativeOne * Hundred<T>());
 
             outReal[outIdx++] = !T.IsZero(diff) ? (highest - inClose[today]) / diff : T.Zero;
 

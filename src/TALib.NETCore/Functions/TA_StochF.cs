@@ -65,10 +65,7 @@ public static partial class Functions
         int outIdx = default;
         var trailingIdx = startIdx - lookbackTotal;
         var today = trailingIdx + lookbackK;
-        var highestIdx = -1;
-        var lowestIdx = highestIdx;
-        T highest, lowest;
-        T diff = highest = lowest = T.Zero;
+
         Span<T> tempBuffer;
         if (outFastK == inHigh || outFastK == inLow || outFastK == inClose)
         {
@@ -83,57 +80,14 @@ public static partial class Functions
             tempBuffer = new T[endIdx - today + 1];
         }
 
+        int highestIdx = -1, lowestIdx = -1;
+        T highest = T.Zero, lowest = T.Zero;
         while (today <= endIdx)
         {
-            T tmp = inLow[today];
-            if (lowestIdx < trailingIdx)
-            {
-                lowestIdx = trailingIdx;
-                lowest = inLow[lowestIdx];
-                var i = lowestIdx;
-                while (++i <= today)
-                {
-                    tmp = inLow[i];
-                    if (tmp < lowest)
-                    {
-                        lowestIdx = i;
-                        lowest = tmp;
-                    }
-                }
+            (lowestIdx, lowest) = CalcLowest(inLow, trailingIdx, today, lowestIdx, lowest);
+            (highestIdx, highest) = CalcHighest(inHigh, trailingIdx, today, highestIdx, highest);
 
-                diff = (highest - lowest) / Hundred<T>();
-            }
-            else if (tmp <= lowest)
-            {
-                lowestIdx = today;
-                lowest = tmp;
-                diff = (highest - lowest) / Hundred<T>();
-            }
-
-            tmp = inHigh[today];
-            if (highestIdx < trailingIdx)
-            {
-                highestIdx = trailingIdx;
-                highest = inHigh[highestIdx];
-                var i = highestIdx;
-                while (++i <= today)
-                {
-                    tmp = inHigh[i];
-                    if (tmp > highest)
-                    {
-                        highestIdx = i;
-                        highest = tmp;
-                    }
-                }
-
-                diff = (highest - lowest) / Hundred<T>();
-            }
-            else if (tmp >= highest)
-            {
-                highestIdx = today;
-                highest = tmp;
-                diff = (highest - lowest) / Hundred<T>();
-            }
+            var diff = (highest - lowest) / Hundred<T>();
 
             tempBuffer[outIdx++] = !T.IsZero(diff) ? (inClose[today] - lowest) / diff : T.Zero;
 

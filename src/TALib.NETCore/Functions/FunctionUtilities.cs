@@ -203,17 +203,20 @@ public static partial class Functions
     {
         outBegIdx = outNbElement = 0;
 
+        // Make sure slow is really slower than the fast period! if not, swap...
         if (optInSlowPeriod < optInFastPeriod)
         {
             (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
         }
 
+        // Calculate the fast MA into the tempBuffer.
         var retCode = Ma(inReal, startIdx, endIdx, tempBuffer, out var outBegIdx2, out _, optInFastPeriod, optInMethod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
+        // Calculate the slow MA into the output.
         retCode = Ma(inReal, startIdx, endIdx, outReal, out var outBegIdx1, out var outNbElement1, optInSlowPeriod, optInMethod);
         if (retCode != Core.RetCode.Success)
         {
@@ -224,11 +227,13 @@ public static partial class Functions
         {
             if (doPercentageOutput)
             {
+                // Calculate ((fast MA)-(slow MA))/(slow MA) in the output.
                 T tempReal = outReal[i];
                 outReal[i] = !T.IsZero(tempReal) ? (tempBuffer[j] - tempReal) / tempReal * Hundred<T>() : T.Zero;
             }
             else
             {
+                // Calculate (fast MA)-(slow MA) in the output.
                 outReal[i] = tempBuffer[j] - outReal[i];
             }
         }
@@ -386,6 +391,151 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
+    private static T CalcAccumulationDistribution<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        ReadOnlySpan<T> volume,
+        ref int today,
+        T ad) where T : IFloatingPointIeee754<T>
+    {
+        T h = high[today];
+        T l = low[today];
+        T tmp = h - l;
+        T c = close[today];
+        if (tmp > T.Zero)
+        {
+            ad += (c - l - (h - c)) / tmp * volume[today];
+        }
+
+        today++;
+
+        return ad;
+    }
+
+    private static (int, T) CalcLowest<T>(
+        ReadOnlySpan<T> input,
+        int trailingIdx,
+        int today,
+        int lowestIdx,
+        T lowest)
+        where T : IFloatingPointIeee754<T>
+    {
+        T tmp = input[today];
+        if (lowestIdx < trailingIdx)
+        {
+            lowestIdx = trailingIdx;
+            lowest = input[lowestIdx];
+            var i = lowestIdx;
+            while (++i <= today)
+            {
+                tmp = input[i];
+                if (tmp > lowest)
+                {
+                    continue;
+                }
+
+                lowestIdx = i;
+                lowest = tmp;
+            }
+        }
+        else if (tmp <= lowest)
+        {
+            lowestIdx = today;
+            lowest = tmp;
+        }
+
+        return (lowestIdx, lowest);
+    }
+
+    private static (int, T) CalcHighest<T>(
+        ReadOnlySpan<T> input,
+        int trailingIdx,
+        int today,
+        int highestIdx,
+        T highest)
+        where T : IFloatingPointIeee754<T>
+    {
+        T tmp = input[today];
+        if (highestIdx < trailingIdx)
+        {
+            highestIdx = trailingIdx;
+            highest = input[highestIdx];
+            var i = highestIdx;
+            while (++i <= today)
+            {
+                tmp = input[i];
+                if (tmp < highest)
+                {
+                    continue;
+                }
+
+                highestIdx = i;
+                highest = tmp;
+            }
+        }
+        else if (tmp >= highest)
+        {
+            highestIdx = today;
+            highest = tmp;
+        }
+
+        return (highestIdx, highest);
+    }
+
+    private static void UpdateDMAndTR<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        ref int today,
+        ref T prevHigh,
+        ref T prevLow,
+        ref T prevClose,
+        ref T prevPlusDM,
+        ref T prevMinusDM,
+        ref T prevTR,
+        T timePeriod,
+        bool applySmoothing = true)
+        where T : IFloatingPointIeee754<T>
+    {
+        var diffP = high[today] - prevHigh;
+        var diffM = prevLow - low[today];
+        prevHigh = high[today];
+        prevLow = low[today];
+
+        if (applySmoothing)
+        {
+            prevPlusDM -= prevPlusDM / timePeriod;
+            prevMinusDM -= prevMinusDM / timePeriod;
+        }
+
+        if (diffM > T.Zero && diffP < diffM)
+        {
+            prevMinusDM += diffM;
+        }
+        else if (diffP > T.Zero && diffP > diffM)
+        {
+            prevPlusDM += diffP;
+        }
+
+        if (close.IsEmpty)
+        {
+            return;
+        }
+
+        var trueRange = TrueRange(prevHigh, prevLow, prevClose);
+        prevTR = applySmoothing ? prevTR - prevTR / timePeriod + trueRange : prevTR + trueRange;
+        prevClose = close[today];
+    }
+
+    private static (T minusDI, T plusDI) CalculateDI<T>(T prevMinusDM, T prevPlusDM, T prevTR) where T : IFloatingPointIeee754<T>
+    {
+        var minusDI = Hundred<T>() * (prevMinusDM / prevTR);
+        var plusDI = Hundred<T>() * (prevPlusDM / prevTR);
+
+        return (minusDI, plusDI);
+    }
+
     private static T TrueRange<T>(T th, T tl, T yc) where T : IFloatingPointIeee754<T>
     {
         T range = th - tl;
@@ -422,10 +572,26 @@ public static partial class Functions
             JQ = 39
         }
 
-        public static T[] HilbertVariablesFactory<T>() where T : IFloatingPointIeee754<T> => new T[4 * 11];
+        public static T[] HilbertBufferFactory<T>() where T : IFloatingPointIeee754<T> => new T[4 * 11];
+
+        public static void DoHilbertOdd<T>(
+            Span<T> buffer,
+            HilbertKeys baseKey,
+            T input,
+            int hilbertIdx,
+            T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
+            DoHilbertTransform(buffer, baseKey, input, true, hilbertIdx, adjustedPrevPeriod);
+
+        public static void DoHilbertEven<T>(
+            Span<T> buffer,
+            HilbertKeys baseKey,
+            T input,
+            int hilbertIdx,
+            T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
+            DoHilbertTransform(buffer, baseKey, input, false, hilbertIdx, adjustedPrevPeriod);
 
         private static void DoHilbertTransform<T>(
-            Span<T> variables,
+            Span<T> buffer,
             HilbertKeys baseKey,
             T input,
             bool isOdd,
@@ -442,31 +608,15 @@ public static partial class Functions
             var prevIndex = baseIndex + (isOdd ? 1 : 2);
             var prevInputIndex = baseIndex + (isOdd ? 3 : 4);
 
-            variables[baseIndex] = -variables[hilbertIndex];
-            variables[hilbertIndex] = hilbertTempT;
-            variables[baseIndex] += hilbertTempT;
-            variables[baseIndex] -= variables[prevIndex];
-            variables[prevIndex] = b * variables[prevInputIndex];
-            variables[baseIndex] += variables[prevIndex];
-            variables[prevInputIndex] = input;
-            variables[baseIndex] *= adjustedPrevPeriod;
+            buffer[baseIndex] = -buffer[hilbertIndex];
+            buffer[hilbertIndex] = hilbertTempT;
+            buffer[baseIndex] += hilbertTempT;
+            buffer[baseIndex] -= buffer[prevIndex];
+            buffer[prevIndex] = b * buffer[prevInputIndex];
+            buffer[baseIndex] += buffer[prevIndex];
+            buffer[prevInputIndex] = input;
+            buffer[baseIndex] *= adjustedPrevPeriod;
         }
-
-        public static void DoHilbertOdd<T>(
-            Span<T> variables,
-            HilbertKeys baseKey,
-            T input,
-            int hilbertIdx,
-            T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
-            DoHilbertTransform(variables, baseKey, input, true, hilbertIdx, adjustedPrevPeriod);
-
-        public static void DoHilbertEven<T>(
-            Span<T> variables,
-            HilbertKeys baseKey,
-            T input,
-            int hilbertIdx,
-            T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
-            DoHilbertTransform(variables, baseKey, input, false, hilbertIdx, adjustedPrevPeriod);
     }
 
     private static T Two<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(2);

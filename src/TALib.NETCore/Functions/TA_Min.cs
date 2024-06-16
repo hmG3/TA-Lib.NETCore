@@ -57,33 +57,12 @@ public static partial class Functions
         int outIdx = default;
         var today = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
+
         var lowestIdx = -1;
         T lowest = T.Zero;
-
         while (today <= endIdx)
         {
-            T tmp = inReal[today];
-
-            if (lowestIdx < trailingIdx)
-            {
-                lowestIdx = trailingIdx;
-                lowest = inReal[lowestIdx];
-                var i = lowestIdx;
-                while (++i <= today)
-                {
-                    tmp = inReal[i];
-                    if (tmp < lowest)
-                    {
-                        lowestIdx = i;
-                        lowest = tmp;
-                    }
-                }
-            }
-            else if (tmp <= lowest)
-            {
-                lowestIdx = today;
-                lowest = tmp;
-            }
+            (lowestIdx, lowest) = CalcLowest(inReal, trailingIdx, today, lowestIdx, lowest);
 
             outReal[outIdx++] = lowest;
             trailingIdx++;
