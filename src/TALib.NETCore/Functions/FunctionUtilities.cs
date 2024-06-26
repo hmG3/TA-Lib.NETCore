@@ -566,29 +566,136 @@ public static partial class Functions
     {
         public enum HilbertKeys
         {
+            // DetrenderOdd = 0-2
+            // DetrenderEven = 3-5
             Detrender = 6,
+            // PrevDetrenderOdd = 7
+            // PrevDetrenderEven = 8
+            // PrevDetrenderInputOdd = 9
+            // PrevDetrenderInputEven = 10
+
+            // Q1Odd = 11-13
+            // Q1Even = 14-16
             Q1 = 17,
+            // PrevQ1Odd = 18
+            // PrevQ1Even = 19
+            // PrevQ1InputOdd = 20
+            // PrevQ1InputEven = 21
+
+            // JIOdd = 22-24
+            // JIEven = 25-27
             JI = 28,
+            // PrevJIOdd = 29
+            // PrevJIEven = 30
+            // PrevJIInputOdd = 31
+            // PrevJIInputEven = 32
+
+            // JQOdd = 33-35
+            // JQEven = 36-38
             JQ = 39
+            // PrevJQOdd = 40
+            // PrevJQEven = 41
+            // PrevJQInputOdd = 42
+            // PrevJQInputEven = 43
         }
 
         public static T[] HilbertBufferFactory<T>() where T : IFloatingPointIeee754<T> => new T[4 * 11];
 
-        public static void DoHilbertOdd<T>(
-            Span<T> buffer,
-            HilbertKeys baseKey,
-            T input,
+        public static void CalcHilbertOdd<T>(
+            Span<T> hilbertBuffer,
+            T smoothedValue,
             int hilbertIdx,
-            T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
-            DoHilbertTransform(buffer, baseKey, input, true, hilbertIdx, adjustedPrevPeriod);
+            T adjustedPrevPeriod,
+            out T i1ForEvenPrev3,
+            T prevQ2,
+            T prevI2,
+            T i1ForOddPrev3,
+            ref T i1ForEvenPrev2,
+            out T q2,
+            out T i2) where T : IFloatingPointIeee754<T>
+        {
+            T tPointTwo = T.CreateChecked(0.2);
+            T tPointEight = T.CreateChecked(0.8);
 
-        public static void DoHilbertEven<T>(
-            Span<T> buffer,
-            HilbertKeys baseKey,
-            T input,
-            int hilbertIdx,
-            T adjustedPrevPeriod) where T : IFloatingPointIeee754<T> =>
-            DoHilbertTransform(buffer, baseKey, input, false, hilbertIdx, adjustedPrevPeriod);
+            DoHilbertTransform(hilbertBuffer, HilbertKeys.Detrender, smoothedValue, true, hilbertIdx, adjustedPrevPeriod);
+            T input = hilbertBuffer[(int) HilbertKeys.Detrender];
+            DoHilbertTransform(hilbertBuffer, HilbertKeys.Q1, input, true, hilbertIdx, adjustedPrevPeriod);
+            DoHilbertTransform(hilbertBuffer, HilbertKeys.JI, i1ForOddPrev3, true, hilbertIdx, adjustedPrevPeriod);
+            T input1 = hilbertBuffer[(int) HilbertKeys.Q1];
+            DoHilbertTransform(hilbertBuffer, HilbertKeys.JQ, input1, true, hilbertIdx, adjustedPrevPeriod);
+
+            q2 = tPointTwo * (hilbertBuffer[(int) HilbertKeys.Q1] + hilbertBuffer[(int) HilbertKeys.JI]) + tPointEight * prevQ2;
+            i2 = tPointTwo * (i1ForOddPrev3 - hilbertBuffer[(int) HilbertKeys.JQ]) + tPointEight * prevI2;
+
+            i1ForEvenPrev3 = i1ForEvenPrev2;
+            i1ForEvenPrev2 = hilbertBuffer[(int) HilbertKeys.Detrender];
+        }
+
+        public static void CalcHilbertEven<T>(
+            Span<T> hilbertBuffer,
+            T smoothedValue,
+            ref int hilbertIdx,
+            T adjustedPrevPeriod,
+            T i1ForEvenPrev3,
+            T prevQ2,
+            T prevI2,
+            out T i1ForOddPrev3,
+            ref T i1ForOddPrev2,
+            out T q2,
+            out T i2) where T : IFloatingPointIeee754<T>
+        {
+            T tPointTwo = T.CreateChecked(0.2);
+            T tPointEight = T.CreateChecked(0.8);
+
+            DoHilbertTransform(hilbertBuffer, HilbertKeys.Detrender, smoothedValue, false, hilbertIdx, adjustedPrevPeriod);
+            T input = hilbertBuffer[(int) HilbertKeys.Detrender];
+            DoHilbertTransform(hilbertBuffer, HilbertKeys.Q1, input, false, hilbertIdx, adjustedPrevPeriod);
+            DoHilbertTransform(hilbertBuffer, HilbertKeys.JI, i1ForEvenPrev3, false, hilbertIdx, adjustedPrevPeriod);
+            T input1 = hilbertBuffer[(int) HilbertKeys.Q1];
+            DoHilbertTransform(hilbertBuffer, HilbertKeys.JQ, input1, false, hilbertIdx, adjustedPrevPeriod);
+
+            if (++hilbertIdx == 3)
+            {
+                hilbertIdx = 0;
+            }
+
+            q2 = tPointTwo * (hilbertBuffer[(int) HilbertKeys.Q1] + hilbertBuffer[(int) HilbertKeys.JI]) + tPointEight * prevQ2;
+            i2 = tPointTwo * (i1ForEvenPrev3 - hilbertBuffer[(int) HilbertKeys.JQ]) + tPointEight * prevI2;
+
+            i1ForOddPrev3 = i1ForOddPrev2;
+            i1ForOddPrev2 = hilbertBuffer[(int) HilbertKeys.Detrender];
+        }
+
+        public static void CalcSmoothedPeriod<T>(
+            ref T re,
+            T i2,
+            T q2,
+            ref T prevI2,
+            ref T prevQ2,
+            ref T im,
+            ref T period) where T : IFloatingPointIeee754<T>
+        {
+            T tPointTwo = T.CreateChecked(0.2);
+            T tPointEight = T.CreateChecked(0.8);
+
+            re = tPointTwo * (i2 * prevI2 + q2 * prevQ2) + tPointEight * re;
+            im = tPointTwo * (i2 * prevQ2 - q2 * prevI2) + tPointEight * im;
+            prevQ2 = q2;
+            prevI2 = i2;
+            var tempReal1 = period;
+            if (!T.IsZero(im) && !T.IsZero(re))
+            {
+                period = Ninety<T>() * Four<T>() / T.RadiansToDegrees(T.Atan(im / re));
+            }
+
+            T tempReal2 = T.CreateChecked(1.5) * tempReal1;
+            period = T.Min(period, tempReal2);
+
+            tempReal2 = T.CreateChecked(0.67) * tempReal1;
+            period = T.Max(period, tempReal2);
+            period = T.Clamp(period, T.CreateChecked(6), T.CreateChecked(50));
+            period = tPointTwo * period + tPointEight * tempReal1;
+        }
 
         private static void DoHilbertTransform<T>(
             Span<T> buffer,

@@ -84,9 +84,6 @@ public static partial class Functions
 
         int outIdx = default;
 
-        T tPointTwo = T.CreateChecked(0.2);
-        T tPointEight = T.CreateChecked(0.8);
-
         T prevI2, prevQ2, re, im, mama, fama, i1ForOddPrev3, i1ForEvenPrev3, i1ForOddPrev2, i1ForEvenPrev2, prevPhase;
         T period = prevI2 = prevQ2
             = re = im = mama = fama = i1ForOddPrev3 = i1ForEvenPrev3 = i1ForOddPrev2 = i1ForEvenPrev2 = prevPhase = T.Zero;
@@ -103,24 +100,8 @@ public static partial class Functions
                 out var smoothedValue);
             if (today % 2 == 0)
             {
-                HTHelper.DoHilbertEven(hilbertBuffer, HTHelper.HilbertKeys.Detrender, smoothedValue, hilbertIdx, adjustedPrevPeriod);
-                HTHelper.DoHilbertEven(hilbertBuffer, HTHelper.HilbertKeys.Q1, hilbertBuffer[(int) HTHelper.HilbertKeys.Detrender],
-                    hilbertIdx, adjustedPrevPeriod);
-                HTHelper.DoHilbertEven(hilbertBuffer, HTHelper.HilbertKeys.JI, i1ForEvenPrev3, hilbertIdx, adjustedPrevPeriod);
-                HTHelper.DoHilbertEven(hilbertBuffer, HTHelper.HilbertKeys.JQ, hilbertBuffer[(int) HTHelper.HilbertKeys.Q1],
-                    hilbertIdx, adjustedPrevPeriod);
-
-                if (++hilbertIdx == 3)
-                {
-                    hilbertIdx = 0;
-                }
-
-                q2 = tPointTwo * (hilbertBuffer[(int) HTHelper.HilbertKeys.Q1] + hilbertBuffer[(int) HTHelper.HilbertKeys.JI]) +
-                     tPointEight * prevQ2;
-                i2 = tPointTwo * (i1ForEvenPrev3 - hilbertBuffer[(int) HTHelper.HilbertKeys.JQ]) + tPointEight * prevI2;
-
-                i1ForOddPrev3 = i1ForOddPrev2;
-                i1ForOddPrev2 = hilbertBuffer[(int) HTHelper.HilbertKeys.Detrender];
+                HTHelper.CalcHilbertEven(hilbertBuffer, smoothedValue, ref hilbertIdx, adjustedPrevPeriod, i1ForEvenPrev3, prevQ2, prevI2,
+                    out i1ForOddPrev3, ref i1ForOddPrev2, out q2, out i2);
 
                 tempReal2 = !T.IsZero(i1ForEvenPrev3)
                     ? T.RadiansToDegrees(T.Atan(hilbertBuffer[(int) HTHelper.HilbertKeys.Q1] / i1ForEvenPrev3))
@@ -128,19 +109,9 @@ public static partial class Functions
             }
             else
             {
-                HTHelper.DoHilbertOdd(hilbertBuffer, HTHelper.HilbertKeys.Detrender, smoothedValue, hilbertIdx, adjustedPrevPeriod);
-                HTHelper.DoHilbertOdd(hilbertBuffer, HTHelper.HilbertKeys.Q1, hilbertBuffer[(int) HTHelper.HilbertKeys.Detrender],
-                    hilbertIdx, adjustedPrevPeriod);
-                HTHelper.DoHilbertOdd(hilbertBuffer, HTHelper.HilbertKeys.JI, i1ForOddPrev3, hilbertIdx, adjustedPrevPeriod);
-                HTHelper.DoHilbertOdd(hilbertBuffer, HTHelper.HilbertKeys.JQ, hilbertBuffer[(int) HTHelper.HilbertKeys.Q1],
-                    hilbertIdx, adjustedPrevPeriod);
+                HTHelper.CalcHilbertOdd(hilbertBuffer, smoothedValue, hilbertIdx, adjustedPrevPeriod, out i1ForEvenPrev3, prevQ2, prevI2,
+                    i1ForOddPrev3, ref i1ForEvenPrev2, out q2, out i2);
 
-                q2 = tPointTwo * (hilbertBuffer[(int) HTHelper.HilbertKeys.Q1] + hilbertBuffer[(int) HTHelper.HilbertKeys.JI]) +
-                     tPointEight * prevQ2;
-                i2 = tPointTwo * (i1ForOddPrev3 - hilbertBuffer[(int) HTHelper.HilbertKeys.JQ]) + tPointEight * prevI2;
-
-                i1ForEvenPrev3 = i1ForEvenPrev2;
-                i1ForEvenPrev2 = hilbertBuffer[(int) HTHelper.HilbertKeys.Detrender];
                 tempReal2 = !T.IsZero(i1ForOddPrev3)
                     ? T.RadiansToDegrees(T.Atan(hilbertBuffer[(int) HTHelper.HilbertKeys.Q1] / i1ForOddPrev3))
                     : T.Zero;
@@ -175,23 +146,7 @@ public static partial class Functions
                 outFAMA[outIdx++] = fama;
             }
 
-            re = tPointTwo * (i2 * prevI2 + q2 * prevQ2) + tPointEight * re;
-            im = tPointTwo * (i2 * prevQ2 - q2 * prevI2) + tPointEight * im;
-            prevQ2 = q2;
-            prevI2 = i2;
-            tempReal = period;
-            if (!T.IsZero(im) && !T.IsZero(re))
-            {
-                period = Ninety<T>() * Four<T>() / T.RadiansToDegrees(T.Atan(im / re));
-            }
-
-            tempReal2 = T.CreateChecked(1.5) * tempReal;
-            period = T.Min(period, tempReal2);
-
-            tempReal2 = T.CreateChecked(0.67) * tempReal;
-            period = T.Max(period, tempReal2);
-            period = T.Clamp(period, T.CreateChecked(6), T.CreateChecked(50));
-            period = tPointTwo * period + tPointEight * tempReal;
+            HTHelper.CalcSmoothedPeriod(ref re, i2, q2, ref prevI2, ref prevQ2, ref im, ref period);
             today++;
         }
 
