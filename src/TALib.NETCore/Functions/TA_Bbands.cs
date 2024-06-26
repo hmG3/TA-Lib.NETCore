@@ -52,23 +52,23 @@ public static partial class Functions
         Span<T> tempBuffer2;
         if (inReal == outRealUpperBand)
         {
-            tempBuffer1 = outRealMiddleBand.ToArray();
-            tempBuffer2 = outRealLowerBand.ToArray();
+            tempBuffer1 = outRealMiddleBand;
+            tempBuffer2 = outRealLowerBand;
         }
         else if (inReal == outRealLowerBand)
         {
-            tempBuffer1 = outRealMiddleBand.ToArray();
-            tempBuffer2 = outRealUpperBand.ToArray();
+            tempBuffer1 = outRealMiddleBand;
+            tempBuffer2 = outRealUpperBand;
         }
         else if (inReal == outRealMiddleBand)
         {
-            tempBuffer1 = outRealLowerBand.ToArray();
-            tempBuffer2 = outRealUpperBand.ToArray();
+            tempBuffer1 = outRealLowerBand;
+            tempBuffer2 = outRealUpperBand;
         }
         else
         {
-            tempBuffer1 = outRealMiddleBand.ToArray();
-            tempBuffer2 = outRealUpperBand.ToArray();
+            tempBuffer1 = outRealMiddleBand;
+            tempBuffer2 = outRealUpperBand;
         }
 
         if (tempBuffer1 == inReal || tempBuffer2 == inReal)
@@ -99,7 +99,7 @@ public static partial class Functions
 
         if (tempBuffer1 != outRealMiddleBand)
         {
-            tempBuffer1.Slice(0, outNbElement).CopyTo(outRealMiddleBand);
+            tempBuffer1[..outNbElement].CopyTo(outRealMiddleBand);
         }
 
         T nbDevUp = T.CreateChecked(optInNbDevUp);

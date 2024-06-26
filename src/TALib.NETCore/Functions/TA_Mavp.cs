@@ -78,27 +78,35 @@ public static partial class Functions
             localPeriodArray[i] = Math.Clamp(period, optInMinPeriod, optInMaxPeriod);
         }
 
+        Span<T> intermediateOutput = outReal == inReal ? new T[outputSize] : outReal;
         for (var i = 0; i < outputSize; i++)
         {
             var curPeriod = localPeriodArray[i];
-            if (curPeriod != 0)
+            if (curPeriod == 0)
             {
-                var retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, curPeriod, optInMAType);
-                if (retCode != Core.RetCode.Success)
-                {
-                    return retCode;
-                }
+                continue;
+            }
 
-                outReal[i] = localOutputArray[i];
-                for (var j = i + 1; j < outputSize; j++)
+            var retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, curPeriod, optInMAType);
+            if (retCode != Core.RetCode.Success)
+            {
+                return retCode;
+            }
+
+            intermediateOutput[i] = localOutputArray[i];
+            for (var j = i + 1; j < outputSize; j++)
+            {
+                if (localPeriodArray[j] == curPeriod)
                 {
-                    if (localPeriodArray[j] == curPeriod)
-                    {
-                        localPeriodArray[j] = 0;
-                        outReal[j] = localOutputArray[j];
-                    }
+                    localPeriodArray[j] = 0;
+                    intermediateOutput[j] = localOutputArray[j];
                 }
             }
+        }
+
+        if (intermediateOutput != outReal)
+        {
+            intermediateOutput[..outputSize].CopyTo(outReal);
         }
 
         outBegIdx = startIdx;

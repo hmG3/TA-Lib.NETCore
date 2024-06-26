@@ -58,7 +58,7 @@ public static partial class Functions
         Span<T> firstEMA;
         if (inReal == outReal)
         {
-            firstEMA = outReal.ToArray();
+            firstEMA = outReal;
         }
         else
         {

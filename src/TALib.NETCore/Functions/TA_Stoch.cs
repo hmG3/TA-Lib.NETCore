@@ -67,14 +67,15 @@ public static partial class Functions
         int outIdx = default;
         var trailingIdx = startIdx - lookbackTotal;
         var today = trailingIdx + lookbackK;
+
         Span<T> tempBuffer;
         if (outSlowK == inHigh || outSlowK == inLow || outSlowK == inClose)
         {
-            tempBuffer = outSlowK.ToArray();
+            tempBuffer = outSlowK;
         }
         else if (outSlowD == inHigh || outSlowD == inLow || outSlowD == inClose)
         {
-            tempBuffer = outSlowD.ToArray();
+            tempBuffer = outSlowD;
         }
         else
         {

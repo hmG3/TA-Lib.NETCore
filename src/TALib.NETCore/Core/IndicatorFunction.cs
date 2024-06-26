@@ -65,7 +65,7 @@ public sealed class IndicatorFunction
         var retCode = (Core.RetCode) functionMethod.MakeGenericMethod(typeof(T)).Invoke(null, paramsArray)!;
         if (isIntegerOutput && retCode == Core.RetCode.Success)
         {
-            for (var i = 0; i < outputs.Length; i++)
+            for (var i = 0; i < Outputs.Length; i++)
             {
                 var integerOutputs = (int[]) paramsArray[inputs.Length + 2 + i];
                 for (var j = 0; j < integerOutputs.Length; j++)
@@ -137,33 +137,33 @@ public sealed class IndicatorFunction
     {
         var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
 
-        var paramsArray = new object[inputs.Length + 2 + outputs.Length + optInParameters.Count];
-        for (var i = 0; i < inputs.Length; i++)
+        var paramsArray = new object[Inputs.Length + 2 + Outputs.Length + Options.Length];
+        for (var i = 0; i < Inputs.Length; i++)
         {
             paramsArray[i] = inputs[i];
         }
 
-        paramsArray[inputs.Length] = 0;
-        paramsArray[inputs.Length + 1] = inputs[0].Length - 1;
+        paramsArray[Inputs.Length] = 0;
+        paramsArray[Inputs.Length + 1] = inputs[0].Length - 1;
 
         isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
-        for (var i = 0; i < outputs.Length; i++)
+        for (var i = 0; i < Outputs.Length; i++)
         {
-            paramsArray[inputs.Length + 2 + i] = isIntegerOutput ? new int[outputs[i].Length] : outputs[i];
+            paramsArray[Inputs.Length + 2 + i] = isIntegerOutput ? new int[outputs[i].Length] : outputs[i];
         }
 
-        Array.Fill(paramsArray, Type.Missing, inputs.Length + 2 + outputs.Length, optInParameters.Count);
+        Array.Fill(paramsArray, Type.Missing, Inputs.Length + 2 + Outputs.Length, Options.Length);
 
         var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
         for (var i = 0; i < defOptInParameters.Count; i++)
         {
             var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
-            if (optInParameter is null || i >= options.Length)
+            if (optInParameter is null || i >= Options.Length)
             {
                 continue;
             }
 
-            var paramsArrayIndex = inputs.Length + 2 + outputs.Length + i;
+            var paramsArrayIndex = Inputs.Length + 2 + Outputs.Length + i;
             if (optInParameter.ParameterType == typeof(int) || optInParameter.ParameterType.IsEnum)
             {
                 var intOption = Convert.ToInt32(options[i]);

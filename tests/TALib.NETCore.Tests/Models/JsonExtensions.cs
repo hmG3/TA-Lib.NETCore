@@ -35,16 +35,6 @@ public static class JsonExtensions
             element.WriteTo(writer);
         }
 
-        try
-        {
-            JsonSerializer.Deserialize(bufferWriter.WrittenSpan, returnType, options);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-
         var result = JsonSerializer.Deserialize(bufferWriter.WrittenSpan, returnType, options);
         Debug.Assert(result != null);
         return result;
