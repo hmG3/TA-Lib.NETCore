@@ -44,6 +44,15 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* The Beta 'algorithm' is a measure of a stocks volatility vs from index. The stock prices are given in inReal0 and
+         * the index prices are give in inReal1. The size of these vectors should be equal.
+         * The algorithm is to calculate the change between prices in both vectors and then 'plot' these changes
+         * are points in the Euclidean plane. The x value of the point is market return and the y value is the security return.
+         * The beta value is the slope of a linear regression through these points. A beta of 1 is simple the line y=x,
+         * so the stock varies precisely with the market. A beta of less than one means the stock varies less than
+         * the market and a beta of more than one means the stock varies more than market.
+         */
+
         var lookbackTotal = BetaLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -56,12 +65,12 @@ public static partial class Functions
         }
 
         T x, y, tmpReal, sxy, sx, sy;
-        T sxx = sxy = sx = sy = T.Zero;
+        var sxx = sxy = sx = sy = T.Zero;
         var trailingIdx = startIdx - lookbackTotal;
-        var trailingLastPriceX = inReal0[trailingIdx];
-        var lastPriceX = trailingLastPriceX;
-        var trailingLastPriceY = inReal1[trailingIdx];
-        var lastPriceY = trailingLastPriceY;
+        var trailingLastPriceX = inReal0[trailingIdx]; // same as lastPriceX except used to remove elements from the trailing summation
+        var lastPriceX = trailingLastPriceX; // the last price read from inReal0
+        var trailingLastPriceY = inReal1[trailingIdx]; // same as lastPriceY except used to remove elements from the trailing summation
+        var lastPriceY = trailingLastPriceY; /* the last price read from inReal1 */
 
         var i = ++trailingIdx;
         while (i < startIdx)
@@ -80,7 +89,7 @@ public static partial class Functions
             sy += y;
         }
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
 
         int outIdx = default;
         do
@@ -98,6 +107,7 @@ public static partial class Functions
             sx += x;
             sy += y;
 
+            // Always read the trailing before writing the output because the input and output buffer can be the same.
             tmpReal = inReal0[trailingIdx];
             x = !T.IsZero(trailingLastPriceX) ? (tmpReal - trailingLastPriceX) / trailingLastPriceX : T.Zero;
             trailingLastPriceX = tmpReal;
@@ -109,6 +119,7 @@ public static partial class Functions
             tmpReal = timePeriod * sxx - sx * sx;
             outReal[outIdx++] = !T.IsZero(tmpReal) ? (timePeriod * sxy - sx * sy) / tmpReal : T.Zero;
 
+            // Remove the calculation starting with the trailingIdx.
             sxx -= x * x;
             sxy -= x * y;
             sx -= x;

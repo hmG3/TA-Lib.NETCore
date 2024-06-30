@@ -58,31 +58,36 @@ public static partial class Functions
         outBegIdx = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
 
+        // Calculate the initial values.
         T sumX, sumY, sumX2, sumY2;
-        T sumXY = sumX = sumY = sumX2 = sumY2 = T.Zero;
+        var sumXY = sumX = sumY = sumX2 = sumY2 = T.Zero;
         int today;
         for (today = trailingIdx; today <= startIdx; today++)
         {
-            T x = inReal0[today];
+            var x = inReal0[today];
             sumX += x;
             sumX2 += x * x;
 
-            T y = inReal1[today];
+            var y = inReal1[today];
             sumXY += x * y;
             sumY += y;
             sumY2 += y * y;
         }
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
 
-        T trailingX = inReal0[trailingIdx];
-        T trailingY = inReal1[trailingIdx++];
-        T tempReal = (sumX2 - sumX * sumX / timePeriod) * (sumY2 - sumY * sumY / timePeriod);
+        // Write the first output.
+        //Save first the trailing values since the input and output might be the same array.
+        var trailingX = inReal0[trailingIdx];
+        var trailingY = inReal1[trailingIdx++];
+        var tempReal = (sumX2 - sumX * sumX / timePeriod) * (sumY2 - sumY * sumY / timePeriod);
         outReal[0] = tempReal > T.Zero ? (sumXY - sumX * sumY / timePeriod) / T.Sqrt(tempReal) : T.Zero;
 
+        // Tight loop to do subsequent values.
         var outIdx = 1;
         while (today <= endIdx)
         {
+            // Remove trailing values
             sumX -= trailingX;
             sumX2 -= trailingX * trailingX;
 
@@ -90,15 +95,18 @@ public static partial class Functions
             sumY -= trailingY;
             sumY2 -= trailingY * trailingY;
 
-            T x = inReal0[today];
+            // Add new values
+            var x = inReal0[today];
             sumX += x;
             sumX2 += x * x;
 
-            T y = inReal1[today++];
+            var y = inReal1[today++];
             sumXY += x * y;
             sumY += y;
             sumY2 += y * y;
 
+            // Output new coefficient.
+            // Save first the trailing values since the input and output might be the same array.
             trailingX = inReal0[trailingIdx];
             trailingY = inReal1[trailingIdx++];
             tempReal = (sumX2 - sumX * sumX / timePeriod) * (sumY2 - sumY * sumY / timePeriod);

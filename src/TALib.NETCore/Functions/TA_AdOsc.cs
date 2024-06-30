@@ -48,6 +48,21 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* Note:
+         * The fastEMA variable is not necessarily the fastest EMA.
+         * In the same way, slowEMA is not necessarily the slowest EMA.
+         *
+         * The AdOsc is always the (fastEMA - slowEMA) regardless of the period specified. In other word:
+         *   ADOSC(3,10) = EMA(3, AD) - EMA(10, AD)
+         * while
+         *   ADOSC(10,3) = EMA(10, AD)- EMA(3, AD)
+         *
+         * In the first case the EMA(3) is truly a faster EMA, while in the second case,
+         * the EMA(10) is still call fastEMA in the algorithm, even if it is in fact slower.
+         *
+         * This allows for more flexibility, enabling experimentation with unusual parameter settings.
+         */
+
         var lookbackTotal = AdOscLookback(optInFastPeriod, optInSlowPeriod);
         if (startIdx < lookbackTotal)
         {
@@ -62,25 +77,25 @@ public static partial class Functions
         outBegIdx = startIdx;
         var today = startIdx - lookbackTotal;
 
-        T ad = T.Zero;
+        var fastK = Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
+        var oneMinusFastK = T.One - fastK;
 
-        T fastk = Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
-        T oneMinusFastk = T.One - fastk;
-
-        T slowk = Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
-        T oneMinusSlowk = T.One - slowk;
+        var slowK = Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
+        var oneMinusSlowK = T.One - slowK;
 
         // Use the same range of initialization inputs for both EMA and simply seed with the first A/D value.
+        var ad = T.Zero;
         ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
-        T fastEMA = ad;
-        T slowEMA = ad;
+
+        var fastEMA = ad;
+        var slowEMA = ad;
 
         // Initialize the EMA and skip the unstable period.
         while (today < startIdx)
         {
             ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
-            fastEMA = fastk * ad + oneMinusFastk * fastEMA;
-            slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
+            fastEMA = fastK * ad + oneMinusFastK * fastEMA;
+            slowEMA = slowK * ad + oneMinusSlowK * slowEMA;
         }
 
         // Perform the calculation for the requested range
@@ -88,8 +103,8 @@ public static partial class Functions
         while (today <= endIdx)
         {
             ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
-            fastEMA = fastk * ad + oneMinusFastk * fastEMA;
-            slowEMA = slowk * ad + oneMinusSlowk * slowEMA;
+            fastEMA = fastK * ad + oneMinusFastK * fastEMA;
+            slowEMA = slowK * ad + oneMinusSlowK * slowEMA;
 
             outReal[outIdx++] = fastEMA - slowEMA;
         }

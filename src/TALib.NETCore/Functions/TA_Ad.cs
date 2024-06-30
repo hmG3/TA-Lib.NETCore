@@ -42,18 +42,19 @@ public static partial class Functions
         }
 
         /* Note:
-         * Results from this function might vary slightly when using float instead of double
-         * and this cause a different floating-point precision to be used.
+         * Results from this function might vary slightly when using float instead of double and
+         * this cause a different floating-point precision to be used.
          * For most function, this is not an apparent difference but for function using large cumulative values
          * (like this AD function), minor imprecision adds up and becomes significant.
          * For better precision, use double in calculations.
          */
+
         var nbBar = endIdx - startIdx + 1;
         outBegIdx = startIdx;
         outNbElement = nbBar;
         var currentBar = startIdx;
         int outIdx = default;
-        T ad = T.Zero;
+        var ad = T.Zero;
 
         while (nbBar != 0)
         {

@@ -50,15 +50,18 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        // Make sure slow is really slower than the fast period. if not, swap.
         if (optInSlowPeriod < optInFastPeriod)
         {
             (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
             (optInSlowMAType, optInFastMAType) = (optInFastMAType, optInSlowMAType);
         }
 
+        // Add the lookback needed for the signal line
         var lookbackSignal = MaLookback(optInSignalPeriod, optInSignalMAType);
         var lookbackTotal = MacdExtLookback(optInFastPeriod, optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod,
             optInSignalMAType);
+
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -69,43 +72,47 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
+        // Allocate intermediate buffer for fast/slow MA.
         var tempInteger = endIdx - startIdx + 1 + lookbackSignal;
         Span<T> fastMABuffer = new T[tempInteger];
         Span<T> slowMABuffer = new T[tempInteger];
 
+        /* Calculate the slow MA.
+         *
+         * Move back the startIdx to get enough data for the signal period.
+         * That way, once the signal calculation is done, all the output will start at the requested 'startIdx'.
+         */
         tempInteger = startIdx - lookbackSignal;
-        var retCode = Ma(inReal, tempInteger, endIdx, slowMABuffer, out var outBegIdx1, out var outNbElement1, optInSlowPeriod,
-            optInSlowMAType);
+        var retCode = Ma(inReal, tempInteger, endIdx, slowMABuffer, out _, out var outNbElement1, optInSlowPeriod, optInSlowMAType);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
-        retCode = Ma(inReal, tempInteger, endIdx, fastMABuffer, out var outBegIdx2, out var outNbElement2, optInFastPeriod,
-            optInFastMAType);
+        // Calculate the fast MA.
+        retCode = Ma(inReal, tempInteger, endIdx, fastMABuffer, out _, out var outNbElement2, optInFastPeriod, optInFastMAType);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
-        if (outBegIdx1 != tempInteger || outBegIdx2 != tempInteger || outNbElement1 != outNbElement2 ||
-            outNbElement1 != endIdx - startIdx + 1 + lookbackSignal)
-        {
-            return Core.RetCode.InternalError;
-        }
-
+        // Calculate (fast MA) - (slow MA).
         for (var i = 0; i < outNbElement1; i++)
         {
             fastMABuffer[i] -= slowMABuffer[i];
         }
 
+        // Copy the result into the output for the caller.
         fastMABuffer.Slice(lookbackSignal, endIdx - startIdx + 1).CopyTo(outMACD);
+
+        // Calculate the signal/trigger line.
         retCode = Ma(fastMABuffer, 0, outNbElement1 - 1, outMACDSignal, out _, out outNbElement2, optInSignalPeriod, optInSignalMAType);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
+        // Calculate the histogram.
         for (var i = 0; i < outNbElement2; i++)
         {
             outMACDHist[i] = outMACD[i] - outMACDSignal[i];

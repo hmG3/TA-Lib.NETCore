@@ -44,8 +44,8 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        /* This code is almost identical to the Arron function
-         * except that instead of outputting AroonUp and AroonDown individually, an oscillator is build from both.
+        /* This code is almost identical to the Aroon function except that
+         * instead of outputting AroonUp and AroonDown individually, an oscillator is build from both.
          *
          *  AroonOsc = AroonUp- AroonDown;
          *
@@ -74,21 +74,23 @@ public static partial class Functions
 
         int highestIdx = -1, lowestIdx = -1;
         T highest = T.Zero, lowest = T.Zero;
-        T factor = Hundred<T>() / T.CreateChecked(optInTimePeriod);
+        var factor = Hundred<T>() / T.CreateChecked(optInTimePeriod);
         while (today <= endIdx)
         {
             (lowestIdx, lowest) = CalcLowest(inLow, trailingIdx, today, lowestIdx, lowest);
             (highestIdx, highest) = CalcHighest(inHigh, trailingIdx, today, highestIdx, highest);
 
             /* The oscillator is the following:
-             *  AroonUp   = factor*(optInTimePeriod-(today-highestIdx));
-             *  AroonDown = factor*(optInTimePeriod-(today-lowestIdx));
-             *  AroonOsc  = AroonUp-AroonDown;
+             *  AroonUp   = factor * (optInTimePeriod - (today - highestIdx));
+             *  AroonDown = factor * (optInTimePeriod - (today - lowestIdx));
+             *  AroonOsc  = AroonUp - AroonDown;
              *
              * An arithmetic simplification gives:
-             *  Aroon = factor*(highestIdx-lowestIdx)
+             *  Aroon = factor * (highestIdx - lowestIdx)
              */
             var arron = factor * T.CreateChecked(highestIdx - lowestIdx);
+
+            //Input and output buffer can be the same, so writing to the output is the last thing being done here.
             outReal[outIdx++] = arron;
 
             trailingIdx++;

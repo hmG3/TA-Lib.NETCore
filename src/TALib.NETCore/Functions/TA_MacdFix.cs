@@ -45,7 +45,17 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return CalcMACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, 0, 0,
+        return CalcMACD(
+            inReal,
+            startIdx,
+            endIdx,
+            outMACD,
+            outMACDSignal,
+            outMACDHist,
+            out outBegIdx,
+            out outNbElement,
+            0, /* 0 indicate fix 12 == 0.15  for optInFastPeriod */
+            0, /* 0 indicate fix 26 == 0.075 for optInSlowPeriod */
             optInSignalPeriod);
     }
 

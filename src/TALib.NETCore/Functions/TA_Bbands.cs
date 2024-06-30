@@ -48,6 +48,13 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* Identify two temporary buffers among the outputs.
+         *
+         * These temporary buffers allows to perform the calculation without any memory allocation.
+         *
+         * Whenever possible, make the tempBuffer1 be the middle band output. This will save one copy operation.
+         */
+
         Span<T> tempBuffer1;
         Span<T> tempBuffer2;
         if (inReal == outRealUpperBand)
@@ -71,11 +78,15 @@ public static partial class Functions
             tempBuffer2 = outRealUpperBand;
         }
 
+        // Check that the caller is not doing tricky things (like using the input buffer in two output)
         if (tempBuffer1 == inReal || tempBuffer2 == inReal)
         {
             return Core.RetCode.BadParam;
         }
 
+        /* Calculate the middle band, which is a moving average. The other two bands will simply
+         * add/subtract the standard deviation from this middle band.
+         */
         var retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
         if (retCode != Core.RetCode.Success || outNbElement == 0)
         {
@@ -84,10 +95,12 @@ public static partial class Functions
 
         if (optInMAType == Core.MAType.Sma)
         {
+            // A small speed optimization by re-using the already calculated SMA.
             CalcStandardDeviation(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
         }
         else
         {
+            // Calculate the Standard Deviation
             retCode = StdDev(inReal, outBegIdx, endIdx, tempBuffer2, out outBegIdx, out outNbElement, optInTimePeriod);
             if (retCode != Core.RetCode.Success)
             {
@@ -97,20 +110,28 @@ public static partial class Functions
             }
         }
 
+        // Copy the MA calculation into the middle band output, unless the calculation was done into it already
         if (tempBuffer1 != outRealMiddleBand)
         {
             tempBuffer1[..outNbElement].CopyTo(outRealMiddleBand);
         }
 
-        T nbDevUp = T.CreateChecked(optInNbDevUp);
-        T nbDevDn = T.CreateChecked(optInNbDevDn);
+        var nbDevUp = T.CreateChecked(optInNbDevUp);
+        var nbDevDn = T.CreateChecked(optInNbDevDn);
 
         T tempReal;
         T tempReal2;
+
+        /* Do a tight loop to calculate the upper/lower band at the same time.
+         *
+         * All the following 5 loops are doing the same,
+         * except there is an attempt to speed optimize by eliminating unneeded multiplication.
+         */
         if (optInNbDevUp.Equals(optInNbDevDn))
         {
             if (nbDevUp.Equals(T.One))
             {
+                // No standard deviation multiplier needed.
                 for (var i = 0; i < outNbElement; i++)
                 {
                     tempReal = tempBuffer2[i];
@@ -121,6 +142,7 @@ public static partial class Functions
             }
             else
             {
+                // Upper/lower band use the same standard deviation multiplier.
                 for (var i = 0; i < outNbElement; i++)
                 {
                     tempReal = tempBuffer2[i] * nbDevUp;
@@ -132,6 +154,7 @@ public static partial class Functions
         }
         else if (nbDevUp.Equals(T.One))
         {
+            // Only lower band has a standard deviation multiplier.
             for (var i = 0; i < outNbElement; i++)
             {
                 tempReal = tempBuffer2[i];
@@ -142,6 +165,7 @@ public static partial class Functions
         }
         else if (nbDevDn.Equals(T.One))
         {
+            // Only upper band has a standard deviation multiplier.
             for (var i = 0; i < outNbElement; i++)
             {
                 tempReal = tempBuffer2[i];
@@ -152,6 +176,7 @@ public static partial class Functions
         }
         else
         {
+            // Upper/lower band have distinctive standard deviation multiplier.
             for (var i = 0; i < outNbElement; i++)
             {
                 tempReal = tempBuffer2[i];
@@ -166,6 +191,44 @@ public static partial class Functions
 
     public static int BbandsLookback(int optInTimePeriod = 5, Core.MAType optInMAType = Core.MAType.Sma) =>
         optInTimePeriod < 2 ? -1 : MaLookback(optInTimePeriod, optInMAType);
+
+    private static void CalcStandardDeviation<T>(
+        ReadOnlySpan<T> inReal,
+        ReadOnlySpan<T> inMovAvg,
+        int inMovAvgBegIdx,
+        int inMovAvgNbElement,
+        Span<T> outReal,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
+    {
+        var startSum = inMovAvgBegIdx + 1 - optInTimePeriod;
+        var endSum = inMovAvgBegIdx;
+        var periodTotal2 = T.Zero;
+        for (var outIdx = startSum; outIdx < endSum; outIdx++)
+        {
+            var tempReal = inReal[outIdx];
+            tempReal *= tempReal;
+            periodTotal2 += tempReal;
+        }
+
+        var timePeriod = T.CreateChecked(optInTimePeriod);
+        for (var outIdx = 0; outIdx < inMovAvgNbElement; outIdx++, startSum++, endSum++)
+        {
+            var tempReal = inReal[endSum];
+            tempReal *= tempReal;
+            periodTotal2 += tempReal;
+            var meanValue2 = periodTotal2 / timePeriod;
+
+            tempReal = inReal[startSum];
+            tempReal *= tempReal;
+            periodTotal2 -= tempReal;
+
+            tempReal = inMovAvg[outIdx];
+            tempReal *= tempReal;
+            meanValue2 -= tempReal;
+
+            outReal[outIdx] = meanValue2 > T.Zero ? T.Sqrt(meanValue2) : T.Zero;
+        }
+    }
 
     /// <remarks>
     /// For compatibility with abstract API

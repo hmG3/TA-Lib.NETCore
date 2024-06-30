@@ -55,20 +55,20 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
 
         outBegIdx = today;
 
         int outIdx = default;
         while (today <= endIdx)
         {
-            T todaySum = T.Zero;
+            var todaySum = T.Zero;
             for (var i = 0; i < optInTimePeriod; i++)
             {
                 todaySum += inReal[today - i];
             }
 
-            T todayDev = T.Zero;
+            var todayDev = T.Zero;
             for (var i = 0; i < optInTimePeriod; i++)
             {
                 todayDev += T.Abs(inReal[today - i] - todaySum / timePeriod);

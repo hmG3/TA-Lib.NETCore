@@ -48,6 +48,7 @@ public static partial class Functions
         /* This function is using a speed optimized algorithm for the min/max logic.
          * It might be needed to first look at how Min/Max works and this function will become easier to understand.
          */
+
         var lookbackTotal = AroonLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -67,7 +68,7 @@ public static partial class Functions
 
         int highestIdx = -1, lowestIdx = -1;
         T highest = T.Zero, lowest = T.Zero;
-        T factor = Hundred<T>() / T.CreateChecked(optInTimePeriod);
+        var factor = Hundred<T>() / T.CreateChecked(optInTimePeriod);
         while (today <= endIdx)
         {
             (lowestIdx, lowest) = CalcLowest(inLow, trailingIdx, today, lowestIdx, lowest);

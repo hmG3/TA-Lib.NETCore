@@ -53,7 +53,7 @@ public static partial class Functions
         {
             today = startIdx - lookbackTotal;
             var i = optInTimePeriod;
-            T tempReal = T.Zero;
+            var tempReal = T.Zero;
             while (i-- > 0)
             {
                 tempReal += inReal[today++];
@@ -100,6 +100,7 @@ public static partial class Functions
     {
         outBegIdx = outNbElement = 0;
 
+        // Make sure slow is really slower than the fast period. if not, swap.
         if (optInSlowPeriod < optInFastPeriod)
         {
             (optInSlowPeriod, optInFastPeriod) = (optInFastPeriod, optInSlowPeriod);
@@ -107,6 +108,7 @@ public static partial class Functions
 
         T k1;
         T k2;
+        // Catch special case for fix 26/12 MACD.
         if (optInSlowPeriod != 0)
         {
             k1 = Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
@@ -114,7 +116,7 @@ public static partial class Functions
         else
         {
             optInSlowPeriod = 26;
-            k1 = T.CreateChecked(0.075);
+            k1 = T.CreateChecked(0.075); // Fix 26
         }
 
         if (optInFastPeriod != 0)
@@ -124,7 +126,7 @@ public static partial class Functions
         else
         {
             optInFastPeriod = 12;
-            k2 = T.CreateChecked(0.15);
+            k2 = T.CreateChecked(0.15); // Fix 12
         }
 
         var lookbackSignal = EmaLookback(optInSignalPeriod);
@@ -139,10 +141,16 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
+        // Allocate intermediate buffer for fast/slow EMA.
         var tempInteger = endIdx - startIdx + 1 + lookbackSignal;
         Span<T> fastEMABuffer = new T[tempInteger];
         Span<T> slowEMABuffer = new T[tempInteger];
 
+        /* Calculate the slow EMA.
+         *
+         * Move back the startIdx to get enough data for the signal period.
+         * That way, once the signal calculation is done, all the output will start at the requested 'startIdx'.
+         */
         tempInteger = startIdx - lookbackSignal;
         var retCode = CalcExponentialMA(inReal, tempInteger, endIdx, slowEMABuffer, out var outBegIdx1, out var outNbElement1,
             optInSlowPeriod, k1);
@@ -151,6 +159,7 @@ public static partial class Functions
             return retCode;
         }
 
+        // Calculate the fast EMA.
         retCode = CalcExponentialMA(inReal, tempInteger, endIdx, fastEMABuffer, out var outBegIdx2, out var outNbElement2, optInFastPeriod,
             k2);
         if (retCode != Core.RetCode.Success)
@@ -158,18 +167,16 @@ public static partial class Functions
             return retCode;
         }
 
-        if (outBegIdx1 != tempInteger || outBegIdx2 != tempInteger || outNbElement1 != outNbElement2 ||
-            outNbElement1 != endIdx - startIdx + 1 + lookbackSignal)
-        {
-            return Core.RetCode.InternalError;
-        }
-
+        // Calculate (fast EMA) - (slow EMA)
         for (var i = 0; i < outNbElement1; i++)
         {
             fastEMABuffer[i] -= slowEMABuffer[i];
         }
 
+        // Copy the result into the output for the caller.
         fastEMABuffer.Slice(lookbackSignal, endIdx - startIdx + 1).CopyTo(outMacd);
+
+        // Calculate the signal/trigger line.
         retCode = CalcExponentialMA(fastEMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalPeriod,
             Two<T>() / (T.CreateChecked(optInSignalPeriod) + T.One));
         if (retCode != Core.RetCode.Success)
@@ -177,6 +184,7 @@ public static partial class Functions
             return retCode;
         }
 
+        // Calculate the histogram.
         for (var i = 0; i < outNbElement2; i++)
         {
             outMacdHist[i] = outMacd[i] - outMacdSignal[i];
@@ -228,7 +236,7 @@ public static partial class Functions
             if (doPercentageOutput)
             {
                 // Calculate ((fast MA)-(slow MA))/(slow MA) in the output.
-                T tempReal = outReal[i];
+                var tempReal = outReal[i];
                 outReal[i] = !T.IsZero(tempReal) ? (tempBuffer[j] - tempReal) / tempReal * Hundred<T>() : T.Zero;
             }
             else
@@ -266,7 +274,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        T periodTotal = T.Zero;
+        var periodTotal = T.Zero;
         var trailingIdx = startIdx - lookbackTotal;
         var i = trailingIdx;
         if (optInTimePeriod > 1)
@@ -282,7 +290,7 @@ public static partial class Functions
         do
         {
             periodTotal += inReal[i++];
-            T tempReal = periodTotal;
+            var tempReal = periodTotal;
             periodTotal -= inReal[trailingIdx++];
             outReal[outIdx++] = tempReal / timePeriod;
         } while (i <= endIdx);
@@ -291,44 +299,6 @@ public static partial class Functions
         outNbElement = outIdx;
 
         return Core.RetCode.Success;
-    }
-
-    private static void CalcStandardDeviation<T>(
-        ReadOnlySpan<T> inReal,
-        ReadOnlySpan<T> inMovAvg,
-        int inMovAvgBegIdx,
-        int inMovAvgNbElement,
-        Span<T> outReal,
-        int optInTimePeriod) where T : IFloatingPointIeee754<T>
-    {
-        var startSum = inMovAvgBegIdx + 1 - optInTimePeriod;
-        var endSum = inMovAvgBegIdx;
-        T periodTotal2 = T.Zero;
-        for (var outIdx = startSum; outIdx < endSum; outIdx++)
-        {
-            T tempReal = inReal[outIdx];
-            tempReal *= tempReal;
-            periodTotal2 += tempReal;
-        }
-
-        var timePeriod = T.CreateChecked(optInTimePeriod);
-        for (var outIdx = 0; outIdx < inMovAvgNbElement; outIdx++, startSum++, endSum++)
-        {
-            T tempReal = inReal[endSum];
-            tempReal *= tempReal;
-            periodTotal2 += tempReal;
-            T meanValue2 = periodTotal2 / timePeriod;
-
-            tempReal = inReal[startSum];
-            tempReal *= tempReal;
-            periodTotal2 -= tempReal;
-
-            tempReal = inMovAvg[outIdx];
-            tempReal *= tempReal;
-            meanValue2 -= tempReal;
-
-            outReal[outIdx] = meanValue2 > T.Zero ? T.Sqrt(meanValue2) : T.Zero;
-        }
     }
 
     private static Core.RetCode CalcVariance<T>(
@@ -353,15 +323,15 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        T periodTotal1 = T.Zero;
-        T periodTotal2 = T.Zero;
+        var periodTotal1 = T.Zero;
+        var periodTotal2 = T.Zero;
         var trailingIdx = startIdx - lookbackTotal;
         var i = trailingIdx;
         if (optInTimePeriod > 1)
         {
             while (i < startIdx)
             {
-                T tempReal = inReal[i++];
+                var tempReal = inReal[i++];
                 periodTotal1 += tempReal;
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
@@ -369,15 +339,15 @@ public static partial class Functions
         }
 
         int outIdx = default;
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
         do
         {
-            T tempReal = inReal[i++];
+            var tempReal = inReal[i++];
             periodTotal1 += tempReal;
             tempReal *= tempReal;
             periodTotal2 += tempReal;
-            T meanValue1 = periodTotal1 / timePeriod;
-            T meanValue2 = periodTotal2 / timePeriod;
+            var meanValue1 = periodTotal1 / timePeriod;
+            var meanValue2 = periodTotal2 / timePeriod;
             tempReal = inReal[trailingIdx++];
             periodTotal1 -= tempReal;
             tempReal *= tempReal;
@@ -399,10 +369,10 @@ public static partial class Functions
         ref int today,
         T ad) where T : IFloatingPointIeee754<T>
     {
-        T h = high[today];
-        T l = low[today];
-        T tmp = h - l;
-        T c = close[today];
+        var h = high[today];
+        var l = low[today];
+        var tmp = h - l;
+        var c = close[today];
         if (tmp > T.Zero)
         {
             ad += (c - l - (h - c)) / tmp * volume[today];
@@ -421,7 +391,7 @@ public static partial class Functions
         T lowest)
         where T : IFloatingPointIeee754<T>
     {
-        T tmp = input[today];
+        var tmp = input[today];
         if (lowestIdx < trailingIdx)
         {
             lowestIdx = trailingIdx;
@@ -456,7 +426,7 @@ public static partial class Functions
         T highest)
         where T : IFloatingPointIeee754<T>
     {
-        T tmp = input[today];
+        var tmp = input[today];
         if (highestIdx < trailingIdx)
         {
             highestIdx = trailingIdx;
@@ -481,6 +451,32 @@ public static partial class Functions
         }
 
         return (highestIdx, highest);
+    }
+
+    private static void InitDMAndTR<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        out T prevHigh,
+        ref int today,
+        out T prevLow,
+        out T prevClose,
+        T timePeriod,
+        ref T prevPlusDM,
+        ref T prevMinusDM,
+        ref T prevTR) where T : IFloatingPointIeee754<T>
+    {
+        prevHigh = high[today];
+        prevLow = low[today];
+        prevClose = close[today];
+
+        for (var i = Int32.CreateTruncating(timePeriod) - 1; i > 0; i--)
+        {
+            today++;
+
+            UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+                ref prevTR, timePeriod, false);
+        }
     }
 
     private static void UpdateDMAndTR<T>(
@@ -511,10 +507,12 @@ public static partial class Functions
 
         if (diffM > T.Zero && diffP < diffM)
         {
+            // Case 2 and 4: +DM = 0, -DM = diffM
             prevMinusDM += diffM;
         }
         else if (diffP > T.Zero && diffP > diffM)
         {
+            // Case 1 and 3: +DM = diffP, -DM = 0
             prevPlusDM += diffP;
         }
 
@@ -528,7 +526,7 @@ public static partial class Functions
         prevClose = close[today];
     }
 
-    private static (T minusDI, T plusDI) CalculateDI<T>(T prevMinusDM, T prevPlusDM, T prevTR) where T : IFloatingPointIeee754<T>
+    private static (T minusDI, T plusDI) CalcDI<T>(T prevMinusDM, T prevPlusDM, T prevTR) where T : IFloatingPointIeee754<T>
     {
         var minusDI = Hundred<T>() * (prevMinusDM / prevTR);
         var plusDI = Hundred<T>() * (prevPlusDM / prevTR);
@@ -538,7 +536,7 @@ public static partial class Functions
 
     private static T TrueRange<T>(T th, T tl, T yc) where T : IFloatingPointIeee754<T>
     {
-        T range = th - tl;
+        var range = th - tl;
         range = T.Max(range, T.Abs(th - yc));
         range = T.Max(range, T.Abs(tl - yc));
 
@@ -599,7 +597,7 @@ public static partial class Functions
             // PrevJQInputEven = 43
         }
 
-        public static T[] HilbertBufferFactory<T>() where T : IFloatingPointIeee754<T> => new T[4 * 11];
+        public static T[] BufferFactory<T>() where T : IFloatingPointIeee754<T> => new T[4 * 11];
 
         public static void CalcHilbertOdd<T>(
             Span<T> hilbertBuffer,
@@ -614,19 +612,21 @@ public static partial class Functions
             out T q2,
             out T i2) where T : IFloatingPointIeee754<T>
         {
-            T tPointTwo = T.CreateChecked(0.2);
-            T tPointEight = T.CreateChecked(0.8);
+            var tPointTwo = T.CreateChecked(0.2);
+            var tPointEight = T.CreateChecked(0.8);
 
             DoHilbertTransform(hilbertBuffer, HilbertKeys.Detrender, smoothedValue, true, hilbertIdx, adjustedPrevPeriod);
-            T input = hilbertBuffer[(int) HilbertKeys.Detrender];
+            var input = hilbertBuffer[(int) HilbertKeys.Detrender];
             DoHilbertTransform(hilbertBuffer, HilbertKeys.Q1, input, true, hilbertIdx, adjustedPrevPeriod);
             DoHilbertTransform(hilbertBuffer, HilbertKeys.JI, i1ForOddPrev3, true, hilbertIdx, adjustedPrevPeriod);
-            T input1 = hilbertBuffer[(int) HilbertKeys.Q1];
+            var input1 = hilbertBuffer[(int) HilbertKeys.Q1];
             DoHilbertTransform(hilbertBuffer, HilbertKeys.JQ, input1, true, hilbertIdx, adjustedPrevPeriod);
 
             q2 = tPointTwo * (hilbertBuffer[(int) HilbertKeys.Q1] + hilbertBuffer[(int) HilbertKeys.JI]) + tPointEight * prevQ2;
             i2 = tPointTwo * (i1ForOddPrev3 - hilbertBuffer[(int) HilbertKeys.JQ]) + tPointEight * prevI2;
 
+            // The variable I1 is the detrender delayed for 3 price bars.
+            // Save the current detrender value for being used by the "even" logic later.
             i1ForEvenPrev3 = i1ForEvenPrev2;
             i1ForEvenPrev2 = hilbertBuffer[(int) HilbertKeys.Detrender];
         }
@@ -644,14 +644,14 @@ public static partial class Functions
             out T q2,
             out T i2) where T : IFloatingPointIeee754<T>
         {
-            T tPointTwo = T.CreateChecked(0.2);
-            T tPointEight = T.CreateChecked(0.8);
+            var tPointTwo = T.CreateChecked(0.2);
+            var tPointEight = T.CreateChecked(0.8);
 
             DoHilbertTransform(hilbertBuffer, HilbertKeys.Detrender, smoothedValue, false, hilbertIdx, adjustedPrevPeriod);
-            T input = hilbertBuffer[(int) HilbertKeys.Detrender];
+            var input = hilbertBuffer[(int) HilbertKeys.Detrender];
             DoHilbertTransform(hilbertBuffer, HilbertKeys.Q1, input, false, hilbertIdx, adjustedPrevPeriod);
             DoHilbertTransform(hilbertBuffer, HilbertKeys.JI, i1ForEvenPrev3, false, hilbertIdx, adjustedPrevPeriod);
-            T input1 = hilbertBuffer[(int) HilbertKeys.Q1];
+            var input1 = hilbertBuffer[(int) HilbertKeys.Q1];
             DoHilbertTransform(hilbertBuffer, HilbertKeys.JQ, input1, false, hilbertIdx, adjustedPrevPeriod);
 
             if (++hilbertIdx == 3)
@@ -662,6 +662,8 @@ public static partial class Functions
             q2 = tPointTwo * (hilbertBuffer[(int) HilbertKeys.Q1] + hilbertBuffer[(int) HilbertKeys.JI]) + tPointEight * prevQ2;
             i2 = tPointTwo * (i1ForEvenPrev3 - hilbertBuffer[(int) HilbertKeys.JQ]) + tPointEight * prevI2;
 
+            // The variable i1 is the detrender delayed for 3 price bars.
+            // Save the current detrender value for being used by the "odd" logic later.
             i1ForOddPrev3 = i1ForOddPrev2;
             i1ForOddPrev2 = hilbertBuffer[(int) HilbertKeys.Detrender];
         }
@@ -675,8 +677,8 @@ public static partial class Functions
             ref T im,
             ref T period) where T : IFloatingPointIeee754<T>
         {
-            T tPointTwo = T.CreateChecked(0.2);
-            T tPointEight = T.CreateChecked(0.8);
+            var tPointTwo = T.CreateChecked(0.2);
+            var tPointEight = T.CreateChecked(0.8);
 
             re = tPointTwo * (i2 * prevI2 + q2 * prevQ2) + tPointEight * re;
             im = tPointTwo * (i2 * prevQ2 - q2 * prevI2) + tPointEight * im;
@@ -688,7 +690,7 @@ public static partial class Functions
                 period = Ninety<T>() * Four<T>() / T.RadiansToDegrees(T.Atan(im / re));
             }
 
-            T tempReal2 = T.CreateChecked(1.5) * tempReal1;
+            var tempReal2 = T.CreateChecked(1.5) * tempReal1;
             period = T.Min(period, tempReal2);
 
             tempReal2 = T.CreateChecked(0.67) * tempReal1;

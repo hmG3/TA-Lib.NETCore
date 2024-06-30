@@ -69,7 +69,7 @@ public static partial class Functions
         // Must start calculation back enough to cover the lookback required later for the SMA.
         for (int j = 0, i = startIdx - lookbackTotal; i <= endIdx; i++, j++)
         {
-            T tempReal = inHigh[i] + inLow[i];
+            var tempReal = inHigh[i] + inLow[i];
             if (!T.IsZero(tempReal))
             {
                 tempReal = Four<T>() * (inHigh[i] - inLow[i]) / tempReal;

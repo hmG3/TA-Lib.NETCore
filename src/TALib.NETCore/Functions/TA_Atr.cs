@@ -47,14 +47,14 @@ public static partial class Functions
         }
 
         /* Average True Range is the greatest of the following:
-        *
-        *  val1 = distance from today's high to today's low.
-        *  val2 = distance from yesterday's close to today's high.
-        *  val3 = distance from yesterday's close to today's low.
-        *
-        * These value are averaged for the specified period using Wilder method.
-        * The method has an unstable period comparable to and Exponential Moving Average (EMA).
-        */
+         *
+         *  val1 = distance from today's high to today's low.
+         *  val2 = distance from yesterday's close to today's high.
+         *  val3 = distance from yesterday's close to today's low.
+         *
+         * These value are averaged for the specified period using Wilder method.
+         * The method has an unstable period comparable to and Exponential Moving Average (EMA).
+         */
         var lookbackTotal = AtrLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -72,8 +72,6 @@ public static partial class Functions
             return TRange(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
         }
 
-        Span<T> prevATRTemp = new T[1];
-
         Span<T> tempBuffer = new T[lookbackTotal + (endIdx - startIdx) + 1];
         var retCode = TRange(inHigh, inLow, inClose, startIdx - lookbackTotal + 1, endIdx, tempBuffer, out _, out _);
         if (retCode != Core.RetCode.Success)
@@ -82,15 +80,16 @@ public static partial class Functions
         }
 
         // First value of the ATR is a simple Average of the TRange output for the specified period.
+        Span<T> prevATRTemp = new T[1];
         retCode = CalcSimpleMA(tempBuffer, optInTimePeriod - 1, optInTimePeriod - 1, prevATRTemp, out _, out _, optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
 
-        T prevATR = prevATRTemp[0];
+        var prevATR = prevATRTemp[0];
 
         /* Subsequent value are smoothed using the previous ATR value (Wilder's approach).
          *  1) Multiply the previous ATR by 'period-1'.

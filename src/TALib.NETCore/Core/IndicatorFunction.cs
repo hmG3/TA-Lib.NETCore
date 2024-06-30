@@ -88,8 +88,9 @@ public sealed class IndicatorFunction
         var paramsArray = new object[optInParameters.Count];
         Array.Fill(paramsArray, Type.Missing);
 
+        var paramsArrayIndex = 0;
         var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
-        for (int i = 0, paramsArrayIndex = 0; i < defOptInParameters.Count; i++)
+        for (var i = 0; i < defOptInParameters.Count; i++)
         {
             var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
             if (optInParameter is null || i >= options.Length)
@@ -205,7 +206,7 @@ public sealed class IndicatorFunction
 
         var optInParameters = parameters.Where(pi => pi.Name!.StartsWith(OptInPrefix)).Select(pi => pi.Name);
 
-        var defInParameters = Inputs.Length > 1 && Inputs.All(p => p == GeneralRealParam)
+        var defInParameters = Inputs.Length > 1 && Array.TrueForAll(Inputs, p => p == GeneralRealParam)
             ? Inputs.Select((p, i) => InPrefix + p + i)
             : Inputs.Select(p => InPrefix + p);
 

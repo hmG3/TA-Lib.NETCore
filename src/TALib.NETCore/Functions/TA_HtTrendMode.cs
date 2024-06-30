@@ -40,12 +40,12 @@ public static partial class Functions
         const int smoothPriceSize = 50;
         Span<T> smoothPrice = new T[smoothPriceSize];
 
-        T iTrend3 = T.Zero;
-        T iTrend2 = iTrend3;
-        T iTrend1 = iTrend2;
+        var iTrend3 = T.Zero;
+        var iTrend2 = iTrend3;
+        var iTrend1 = iTrend2;
         int daysInTrend = default;
-        T sine = T.Zero;
-        T leadSine = T.Zero;
+        var sine = T.Zero;
+        var leadSine = T.Zero;
 
         var lookbackTotal = HtTrendModeLookback();
         if (startIdx < lookbackTotal)
@@ -59,67 +59,88 @@ public static partial class Functions
         }
 
         outBegIdx = startIdx;
+
+        // Initialize the price smoother, which is simply a weighted moving average of the price.
         var trailingWMAIdx = startIdx - lookbackTotal;
         var today = trailingWMAIdx;
-        T tempReal = inReal[today++];
-        T periodWMASub = tempReal;
-        T periodWMASum = tempReal;
+
+        // Initialization is same as WMA, except loop is unrolled for speed optimization.
+        var tempReal = inReal[today++];
+        var periodWMASub = tempReal;
+        var periodWMASum = tempReal;
         tempReal = inReal[today++];
         periodWMASub += tempReal;
         periodWMASum += tempReal * Two<T>();
         tempReal = inReal[today++];
         periodWMASub += tempReal;
         periodWMASum += tempReal * Three<T>();
-        T trailingWMAValue = T.Zero;
+
+        var trailingWMAValue = T.Zero;
+
         var i = 34;
         do
         {
             tempReal = inReal[today++];
+            // Evaluate subsequent WMA value
             DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, tempReal, out _);
         } while (--i != 0);
 
         int hilbertIdx = default;
         int smoothPriceIdx = default;
 
-        Span<T> hilbertBuffer = HTHelper.HilbertBufferFactory<T>();
+        /* Initialize the circular buffer used by the hilbert transform logic.
+         * A buffer is used for odd day and another for even days.
+         * This minimizes the number of memory access and floating point operations needed
+         * By using static circular buffer, no large dynamic memory allocation is needed for storing intermediate calculation.
+         */
+        Span<T> circBuffer = HTHelper.BufferFactory<T>();
 
         int outIdx = default;
 
         T prevI2, prevQ2, re, im, i1ForOddPrev3, i1ForEvenPrev3, i1ForOddPrev2, i1ForEvenPrev2, smoothPeriod, dcPhase;
-        T period = prevI2 = prevQ2 =
+        var period = prevI2 = prevQ2 =
             re = im = i1ForOddPrev3 = i1ForEvenPrev3 = i1ForOddPrev2 = i1ForEvenPrev2 = smoothPeriod = dcPhase = T.Zero;
+
+        // The code is speed optimized and is most likely very hard to follow if you do not already know well the original algorithm.
         while (today <= endIdx)
         {
-            T adjustedPrevPeriod = T.CreateChecked(0.075) * period + T.CreateChecked(0.54);
+            var adjustedPrevPeriod = T.CreateChecked(0.075) * period + T.CreateChecked(0.54);
 
             DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
                 out var smoothedValue);
 
+            // Remember the smoothedValue into the smoothPrice circular buffer.
             smoothPrice[smoothPriceIdx] = smoothedValue;
 
             T q2;
             T i2;
             if (today % 2 == 0)
             {
-                HTHelper.CalcHilbertEven(hilbertBuffer, smoothedValue, ref hilbertIdx, adjustedPrevPeriod, i1ForEvenPrev3, prevQ2, prevI2,
+                // Do the Hilbert Transforms for even price bar
+                HTHelper.CalcHilbertEven(circBuffer, smoothedValue, ref hilbertIdx, adjustedPrevPeriod, i1ForEvenPrev3, prevQ2, prevI2,
                     out i1ForOddPrev3, ref i1ForOddPrev2, out q2, out i2);
             }
             else
             {
-                HTHelper.CalcHilbertOdd(hilbertBuffer, smoothedValue, hilbertIdx, adjustedPrevPeriod, out i1ForEvenPrev3, prevQ2, prevI2,
+                // Do the Hilbert Transforms for odd price bar
+                HTHelper.CalcHilbertOdd(circBuffer, smoothedValue, hilbertIdx, adjustedPrevPeriod, out i1ForEvenPrev3, prevQ2, prevI2,
                     i1ForOddPrev3, ref i1ForEvenPrev2, out q2, out i2);
             }
 
+            // Adjust the period for next price bar
             HTHelper.CalcSmoothedPeriod(ref re, i2, q2, ref prevI2, ref prevQ2, ref im, ref period);
 
             smoothPeriod = T.CreateChecked(0.33) * period + T.CreateChecked(0.67) * smoothPeriod;
 
-            T prevDCPhase = dcPhase;
-            T dcPeriod = smoothPeriod + T.CreateChecked(0.5);
-            var dcPeriodInt = Int32.CreateTruncating(dcPeriod);
-            T realPart = T.Zero;
-            T imagPart = T.Zero;
+            var prevDCPhase = dcPhase;
 
+            /* Compute Dominant Cycle Phase */
+            var dcPeriod = smoothPeriod + T.CreateChecked(0.5);
+            var dcPeriodInt = Int32.CreateTruncating(dcPeriod);
+            var realPart = T.Zero;
+            var imagPart = T.Zero;
+
+            // idx is used to iterate for up to 50 of the last value of smoothPrice.
             var idx = smoothPriceIdx;
             for (i = 0; i < dcPeriodInt; i++)
             {
@@ -153,8 +174,9 @@ public static partial class Functions
                     dcPhase += Ninety<T>();
                 }
             }
-
             dcPhase += Ninety<T>();
+
+            // Compensate for one bar lag of the weighted moving average
             dcPhase += Ninety<T>() * Four<T>() / smoothPeriod;
             if (imagPart < T.Zero)
             {
@@ -166,11 +188,12 @@ public static partial class Functions
                 dcPhase -= Ninety<T>() * Four<T>();
             }
 
-            T prevSine = sine;
-            T prevLeadSine = leadSine;
+            var prevSine = sine;
+            var prevLeadSine = leadSine;
             sine = T.Sin(T.DegreesToRadians(dcPhase));
             leadSine = T.Sin(T.DegreesToRadians(dcPhase + Ninety<T>() / Two<T>()));
 
+            // idx is used to iterate for up to 50 of the last value of smoothPrice.
             idx = today;
             tempReal = T.Zero;
             for (i = 0; i < dcPeriodInt; i++)
@@ -183,13 +206,16 @@ public static partial class Functions
                 tempReal /= T.CreateChecked(dcPeriodInt);
             }
 
-            T trendline = (Four<T>() * tempReal + Three<T>() * iTrend1 + Two<T>() * iTrend2 + iTrend3) / T.CreateChecked(10);
+            // Compute Trendline
+            var trendLine = (Four<T>() * tempReal + Three<T>() * iTrend1 + Two<T>() * iTrend2 + iTrend3) / T.CreateChecked(10);
             iTrend3 = iTrend2;
             iTrend2 = iTrend1;
             iTrend1 = tempReal;
 
+            // Compute the Trend Mode and assume trend by default
             var trend = 1;
 
+            // Measure days in trend from last crossing of the SineWave Indicator lines
             if (sine > leadSine && prevSine <= prevLeadSine || sine < leadSine && prevSine >= prevLeadSine)
             {
                 daysInTrend = 0;
@@ -209,7 +235,7 @@ public static partial class Functions
             }
 
             tempReal = smoothPrice[smoothPriceIdx];
-            if (!T.IsZero(trendline) && T.Abs((tempReal - trendline) / trendline) >= T.CreateChecked(0.015))
+            if (!T.IsZero(trendLine) && T.Abs((tempReal - trendLine) / trendLine) >= T.CreateChecked(0.015))
             {
                 trend = 1;
             }
@@ -232,7 +258,17 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int HtTrendModeLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendMode) + 63;
+    public static int HtTrendModeLookback()
+    {
+        /*  31 input are skip
+         * +32 output are skip to account for misc lookback
+         * ──────────────────
+         *  63 Total Lookback
+         *
+         * See MamaLookback for an explanation of the "32"
+         */
+        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendMode) + 63;
+    }
 
     /// <remarks>
     /// For compatibility with abstract API

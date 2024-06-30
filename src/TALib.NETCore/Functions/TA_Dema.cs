@@ -43,6 +43,27 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* An explanation of this function, can be found at
+         *
+         * Stocks & Commodities V. 12:1 (11-19):
+         *   Smoothing Data With Faster Moving Averages
+         * Stocks & Commodities V. 12:2 (72-80):
+         *   Smoothing Data With Less Lag
+         *
+         * Both magazine articles written by Patrick G. Mulloy
+         *
+         * Essentially, a DEMA of time series "t" is:
+         *   EMA2 = EMA(EMA(t, period), period)
+         *   DEMA = 2 * EMA(t, period) - EMA2
+         *
+         * DEMA offers a moving average with lesser lags than the traditional EMA.
+         *
+         * Do not confuse a DEMA with the EMA2. Both are called "Double EMA" in the literature,
+         * but EMA2 is a simple EMA of an EMA, while DEMA is a composite of a single EMA with EMA2.
+         *
+         * TEMA is very similar (and from the same author).
+         */
+
         var lookbackEMA = EmaLookback(optInTimePeriod);
         var lookbackTotal = DemaLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
@@ -55,6 +76,10 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
+        /* Allocate a temporary buffer for the firstEMA.
+         *
+         * When possible, re-use the outputBuffer for temp calculation.
+         */
         Span<T> firstEMA;
         if (inReal == outReal)
         {
@@ -66,7 +91,8 @@ public static partial class Functions
             firstEMA = new T[tempInt];
         }
 
-        T k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
+        // Calculate the first EMA
+        var k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
         var retCode = CalcExponentialMA(inReal, startIdx - lookbackEMA, endIdx, firstEMA, out var firstEMABegIdx,
             out var firstEMANbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || firstEMANbElement == 0)
@@ -74,8 +100,8 @@ public static partial class Functions
             return retCode;
         }
 
+        // Allocate a temporary buffer for storing the EMA of the EMA.
         Span<T> secondEMA = new T[firstEMANbElement];
-
         retCode = CalcExponentialMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
             optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || secondEMANbElement == 0)
@@ -83,6 +109,7 @@ public static partial class Functions
             return retCode;
         }
 
+        // Iterate through the second EMA and write the DEMA into the output.
         var firstEMAIdx = secondEMABegIdx;
         int outIdx = default;
         while (outIdx < secondEMANbElement)
@@ -108,5 +135,6 @@ public static partial class Functions
         int startIdx,
         int endIdx,
         T[] outReal,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> => Dema<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        Dema<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

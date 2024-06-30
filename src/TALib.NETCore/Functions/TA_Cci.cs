@@ -57,9 +57,14 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
+        // Allocate a circular buffer equal to the requested period.
         Span<T> circBuffer = new T[optInTimePeriod];
         int circBufferIdx = default;
         var maxIdxCircBuffer = optInTimePeriod - 1;
+
+        // Do the MA calculation using tight loops.
+
+        // Add-up the initial period, except for the last value. Fill up the circular buffer at the same time.
         var i = startIdx - lookbackTotal;
         while (i < startIdx)
         {
@@ -71,16 +76,19 @@ public static partial class Functions
             }
         }
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
-        T tPointZeroOneFive = T.CreateChecked(0.015);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
+        var tPointZeroOneFive = T.CreateChecked(0.015);
 
+        // Proceed with the calculation for the requested range.
+        // The algorithm allows the inReal and outReal to be the same buffer.
         int outIdx = default;
         do
         {
-            T lastValue = (inHigh[i] + inLow[i] + inClose[i]) / Three<T>();
+            var lastValue = (inHigh[i] + inLow[i] + inClose[i]) / Three<T>();
             circBuffer[circBufferIdx++] = lastValue;
 
-            T theAverage = T.Zero;
+            // Calculate the average for the whole period.
+            var theAverage = T.Zero;
             for (var j = 0; j < optInTimePeriod; j++)
             {
                 theAverage += circBuffer[j];
@@ -88,17 +96,19 @@ public static partial class Functions
 
             theAverage /= timePeriod;
 
-            T tempReal2 = T.Zero;
+            // Do the summation of the Abs(TypePrice-average) for the whole period.
+            var tempReal2 = T.Zero;
             for (var j = 0; j < optInTimePeriod; j++)
             {
                 tempReal2 += T.Abs(circBuffer[j] - theAverage);
             }
 
-            T tempReal = lastValue - theAverage;
+            var tempReal = lastValue - theAverage;
             outReal[outIdx++] = !T.IsZero(tempReal) && !T.IsZero(tempReal2)
                 ? tempReal / (tPointZeroOneFive * (tempReal2 / timePeriod))
                 : T.Zero;
 
+            // Move forward the circular buffer indexes.
             if (circBufferIdx > maxIdxCircBuffer)
             {
                 circBufferIdx = 0;

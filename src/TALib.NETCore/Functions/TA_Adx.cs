@@ -122,7 +122,7 @@ public static partial class Functions
          *
          * Calculation of the DX14 is:
          *
-         *    diffDI = ABS( (-DI14) - (+DI14) )
+         *    diffDI = ABS((-DI14) - (+DI14))
          *    sumDI  = (-DI14) + (+DI14)
          *
          *    DX14 = 100 * (diffDI / sumDI)
@@ -158,124 +158,143 @@ public static partial class Functions
         outBegIdx = today;
         today = startIdx - lookbackTotal;
 
-        T prevHigh;
-        T prevLow;
-        T prevClose;
+        InitDMAndTR(inHigh, inLow, inClose, out var prevHigh, ref today, out var prevLow, out var prevClose, timePeriod, ref prevPlusDM,
+            ref prevMinusDM, ref prevTR);
 
-        InitDMAndTR(inHigh, inLow, inClose);
-
-        T sumDX = AddAllInitialDX(inHigh, inLow, inClose);
+        var sumDX = AddAllInitialDX(inHigh, inLow, inClose, timePeriod, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM,
+            ref prevMinusDM, ref prevTR);
 
         // Calculate the first ADX
-        T prevADX = sumDX / timePeriod;
+        var prevADX = sumDX / timePeriod;
 
-        SkipUnstablePeriod(inHigh, inLow, inClose);
+        SkipAdxUnstablePeriod(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+            ref prevTR, timePeriod, ref prevADX);
 
         // Output the first ADX
         outReal[0] = prevADX;
         var outIdx = 1;
 
-        CalcAndOutputSubsequentADX(inHigh, inLow, inClose, outReal);
+        CalcAndOutputSubsequentADX(inHigh, inLow, inClose, outReal, ref today, endIdx, ref prevHigh, ref prevLow, ref prevClose,
+            ref prevPlusDM, ref prevMinusDM, ref prevTR, timePeriod, ref prevADX, ref outIdx);
 
         outNbElement = outIdx;
 
         return Core.RetCode.Success;
-
-        void InitDMAndTR(ReadOnlySpan<T> high, ReadOnlySpan<T> low, ReadOnlySpan<T> close)
-        {
-            prevHigh = high[today];
-            prevLow = low[today];
-            prevClose = close[today];
-
-            for (var i = Int32.CreateTruncating(timePeriod) - 1; i > 0; i--)
-            {
-                today++;
-
-                UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
-                    ref prevTR, timePeriod, false);
-            }
-        }
-
-        T AddAllInitialDX(ReadOnlySpan<T> high, ReadOnlySpan<T> low, ReadOnlySpan<T> close)
-        {
-            T sumDX = T.Zero;
-            for (var i = Int32.CreateTruncating(timePeriod); i > 0; i--)
-            {
-                today++;
-                UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
-                    ref prevTR, timePeriod);
-
-                if (T.IsZero(prevTR))
-                {
-                    continue;
-                }
-
-                (T minusDI, T plusDI) = CalculateDI(prevMinusDM, prevPlusDM, prevTR);
-                var tempReal = minusDI + plusDI;
-                if (!T.IsZero(tempReal))
-                {
-                    sumDX += Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
-                }
-            }
-
-            return sumDX;
-        }
-
-        void SkipUnstablePeriod(ReadOnlySpan<T> high, ReadOnlySpan<T> low, ReadOnlySpan<T> close)
-        {
-            for (var i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx); i > 0; i--)
-            {
-                today++;
-                UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
-                    ref prevTR, timePeriod);
-
-                if (T.IsZero(prevTR))
-                {
-                    continue;
-                }
-
-                (T minusDI, T plusDI) = CalculateDI(prevMinusDM, prevPlusDM, prevTR);
-                var tempReal = minusDI + plusDI;
-                if (T.IsZero(tempReal))
-                {
-                    continue;
-                }
-
-                tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
-                prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
-            }
-        }
-
-        void CalcAndOutputSubsequentADX(
-            ReadOnlySpan<T> high,
-            ReadOnlySpan<T> low,
-            ReadOnlySpan<T> close,
-            Span<T> outputReal)
-        {
-            while (today < endIdx)
-            {
-                today++;
-                UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
-                    ref prevTR, timePeriod);
-
-                if (!T.IsZero(prevTR))
-                {
-                    (T minusDI, T plusDI) = CalculateDI(prevMinusDM, prevPlusDM, prevTR);
-                    var tempReal = minusDI + plusDI;
-                    if (!T.IsZero(tempReal))
-                    {
-                        tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
-                        prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
-                    }
-                }
-
-                outputReal[outIdx++] = prevADX;
-            }
-        }
     }
 
     public static int AdxLookback(int optInTimePeriod = 14) =>
         optInTimePeriod < 2 ? -1 : optInTimePeriod * 2 + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx) - 1;
+
+    private static T AddAllInitialDX<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        T timePeriod,
+        ref int today,
+        ref T prevHigh,
+        ref T prevLow,
+        ref T prevClose,
+        ref T prevPlusDM,
+        ref T prevMinusDM,
+        ref T prevTR) where T : IFloatingPointIeee754<T>
+    {
+        var sumDX = T.Zero;
+        for (var i = Int32.CreateTruncating(timePeriod); i > 0; i--)
+        {
+            today++;
+            UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+                ref prevTR, timePeriod);
+
+            if (T.IsZero(prevTR))
+            {
+                continue;
+            }
+
+            var (minusDI, plusDI) = CalcDI(prevMinusDM, prevPlusDM, prevTR);
+            var tempReal = minusDI + plusDI;
+            if (!T.IsZero(tempReal))
+            {
+                sumDX += Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
+            }
+        }
+
+        return sumDX;
+    }
+
+    private static void SkipAdxUnstablePeriod<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        ref int today,
+        ref T prevHigh,
+        ref T prevLow,
+        ref T prevClose,
+        ref T prevPlusDM,
+        ref T prevMinusDM,
+        ref T prevTR,
+        T timePeriod,
+        ref T prevADX) where T : IFloatingPointIeee754<T>
+    {
+        for (var i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx); i > 0; i--)
+        {
+            today++;
+            UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+                ref prevTR, timePeriod);
+
+            if (T.IsZero(prevTR))
+            {
+                continue;
+            }
+
+            var (minusDI, plusDI) = CalcDI(prevMinusDM, prevPlusDM, prevTR);
+            var tempReal = minusDI + plusDI;
+            if (T.IsZero(tempReal))
+            {
+                continue;
+            }
+
+            tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
+            prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
+        }
+    }
+
+    private static void CalcAndOutputSubsequentADX<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        Span<T> outputReal,
+        ref int today,
+        int endIdx,
+        ref T prevHigh,
+        ref T prevLow,
+        ref T prevClose,
+        ref T prevPlusDM,
+        ref T prevMinusDM,
+        ref T prevTR,
+        T timePeriod,
+        ref T prevADX,
+        ref int outIdx) where T : IFloatingPointIeee754<T>
+    {
+        while (today < endIdx)
+        {
+            today++;
+            UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+                ref prevTR, timePeriod);
+
+            if (!T.IsZero(prevTR))
+            {
+                var (minusDI, plusDI) = CalcDI(prevMinusDM, prevPlusDM, prevTR);
+                var tempReal = minusDI + plusDI;
+                if (!T.IsZero(tempReal))
+                {
+                    tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
+                    prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
+                }
+            }
+
+            outputReal[outIdx++] = prevADX;
+        }
+    }
 
     /// <remarks>
     /// For compatibility with abstract API

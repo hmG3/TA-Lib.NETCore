@@ -46,7 +46,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = MinusDILookback(optInTimePeriod);
+        var lookbackTotal = MinusDILookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -72,7 +72,7 @@ public static partial class Functions
             while (today < endIdx)
             {
                 today++;
-                T tempReal = inHigh[today];
+                var tempReal = inHigh[today];
                 var diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
@@ -100,7 +100,7 @@ public static partial class Functions
         outBegIdx = today;
         today = startIdx - lookbackTotal;
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
         T prevMinusDM = T.Zero, prevTR = T.Zero, _ = T.Zero;
         prevHigh = inHigh[today];
         prevLow = inLow[today];
@@ -122,7 +122,7 @@ public static partial class Functions
 
         if (!T.IsZero(prevTR))
         {
-            var (minusDI, _) = CalculateDI(prevMinusDM, _, prevTR);
+            var (minusDI, _) = CalcDI(prevMinusDM, _, prevTR);
             outReal[0] = minusDI;
         }
         else
@@ -139,7 +139,7 @@ public static partial class Functions
                 timePeriod);
             if (!T.IsZero(prevTR))
             {
-                var (minusDI, _) = CalculateDI(prevMinusDM, _, prevTR);
+                var (minusDI, _) = CalcDI(prevMinusDM, _, prevTR);
                 outReal[outIdx++] = minusDI;
             }
             else

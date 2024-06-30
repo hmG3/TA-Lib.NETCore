@@ -30,7 +30,6 @@ public static partial class Core
         Success,
         BadParam,
         OutOfRangeStartIndex,
-        InternalError = 5000,
         UnknownErr = UInt16.MaxValue
     }
 }

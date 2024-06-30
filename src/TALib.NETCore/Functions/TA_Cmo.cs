@@ -43,6 +43,16 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* CMO calculation is mostly identical to RSI.
+         *
+         * The only difference is in the last step of calculation:
+         *
+         *   RSI = gain / (gain+loss)
+         *   CMO = (gain-loss) / (gain+loss)
+         *
+         * See the Rsi function for potentially some more info on this algo.
+         */
+
         var lookbackTotal = CmoLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -54,19 +64,26 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
 
         T prevLoss;
         T prevGain;
         T tempValue1;
         T tempValue2;
         int outIdx = default;
+
+        // Accumulate Wilder's "Average Gain" and "Average Loss" among the initial period.
         var today = startIdx - lookbackTotal;
-        T prevValue = inReal[today];
+        var prevValue = inReal[today];
+
+        // If there is an unstable period, no need to calculate since this first value will be surely skip.
         if (Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Cmo) == 0 &&
             Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
         {
-            T savePrevValue = prevValue;
+            // Preserve prevValue because it may get overwritten by the output.
+            // (because output ptr could be the same as input ptr).
+            var savePrevValue = prevValue;
+
             prevGain = T.Zero;
             prevLoss = T.Zero;
             for (var i = optInTimePeriod; i > 0; i--)
@@ -86,8 +103,8 @@ public static partial class Functions
 
             tempValue1 = prevLoss / timePeriod;
             tempValue2 = prevGain / timePeriod;
-            T tempValue3 = tempValue2 - tempValue1;
-            T tempValue4 = tempValue1 + tempValue2;
+            var tempValue3 = tempValue2 - tempValue1;
+            var tempValue4 = tempValue1 + tempValue2;
             outReal[outIdx++] = !T.IsZero(tempValue4) ? Hundred<T>() * (tempValue3 / tempValue4) : T.Zero;
 
             if (today > endIdx)
@@ -98,10 +115,12 @@ public static partial class Functions
                 return Core.RetCode.Success;
             }
 
+            // Start over for the next price bar.
             today -= optInTimePeriod;
             prevValue = savePrevValue;
         }
 
+        // Remaining of the processing is identical.
         prevGain = T.Zero;
         prevLoss = T.Zero;
         today++;
@@ -120,9 +139,22 @@ public static partial class Functions
             }
         }
 
+        /* Subsequent prevLoss and prevGain are smoothed using the previous values (Wilder's approach).
+         * 1) Multiply the previous by 'period-1'.
+         * 2) Add today value.
+         * 3) Divide by 'period'.
+         */
         prevLoss /= timePeriod;
         prevGain /= timePeriod;
 
+        /* Often documentation present the RSI calculation as follows:
+         *    RSI = 100 - (100 / 1 + (prevGain / prevLoss))
+         *
+         * The following is equivalent:
+         *    RSI = 100 * (prevGain / (prevGain + prevLoss))
+         *
+         * The second equation is used here for speed optimization.
+         */
         if (today > startIdx)
         {
             tempValue1 = prevGain + prevLoss;
@@ -130,6 +162,7 @@ public static partial class Functions
         }
         else
         {
+            // Skip the unstable period. Do the processing but do not write it in the output.
             while (today < startIdx)
             {
                 tempValue1 = inReal[today];
@@ -154,6 +187,7 @@ public static partial class Functions
             }
         }
 
+        // Unstable period skipped... now continue processing if needed.
         while (today <= endIdx)
         {
             tempValue1 = inReal[today++];

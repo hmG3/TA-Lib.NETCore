@@ -44,7 +44,7 @@ public static partial class Functions
         int outIdx = default;
         for (var i = startIdx; i <= endIdx; i++)
         {
-            T tempReal = inHigh[i] - inLow[i];
+            var tempReal = inHigh[i] - inLow[i];
             outReal[outIdx++] = tempReal > T.Zero ? (inClose[i] - inOpen[i]) / tempReal : T.Zero;
         }
 

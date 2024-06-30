@@ -72,7 +72,7 @@ public static partial class Functions
             while (today < endIdx)
             {
                 today++;
-                T tempReal = inHigh[today];
+                var tempReal = inHigh[today];
                 var diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
                 tempReal = inLow[today];
@@ -100,7 +100,7 @@ public static partial class Functions
         outBegIdx = today;
         today = startIdx - lookbackTotal;
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
         T prevPlusDM = T.Zero, prevTR = T.Zero, _ = T.Zero;
         prevHigh = inHigh[today];
         prevLow = inLow[today];
@@ -122,7 +122,7 @@ public static partial class Functions
 
         if (!T.IsZero(prevTR))
         {
-            var (_, plusDI) = CalculateDI(_, prevPlusDM, prevTR);
+            var (_, plusDI) = CalcDI(_, prevPlusDM, prevTR);
             outReal[0] = plusDI;
         }
         else
@@ -139,7 +139,7 @@ public static partial class Functions
                 timePeriod);
             if (!T.IsZero(prevTR))
             {
-                var (_, plusDI) = CalculateDI(_, prevPlusDM, prevTR);
+                var (_, plusDI) = CalcDI(_, prevPlusDM, prevTR);
                 outReal[outIdx++] = plusDI;
             }
             else
