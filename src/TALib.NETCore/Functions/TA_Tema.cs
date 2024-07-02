@@ -43,6 +43,27 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* An explanation of the function can be found at:
+         *
+         * Stocks & Commodities V. 12:1 (11-19):
+         *   Smoothing Data With Faster Moving Averages
+         * Stocks & Commodities V. 12:2 (72-80):
+         *   Smoothing Data With Less Lag
+         *
+         * Both magazine articles written by Patrick G. Mulloy
+         *
+         * Essentially, a TEMA of time series "t" is:
+         *   EMA1 = EMA(t, period)
+         *   EMA2 = EMA(EMA(t, period), period)
+         *   EMA3 = EMA(EMA(EMA(t, period), period))
+         *   TEMA = 3 * EMA1 - 3 * EMA2 + EMA3
+         *
+         * TEMA offers a moving average with lesser lags than the traditional EMA.
+         *
+         * TEMA should not be confused with EMA3. Both are called "Triple EMA" in the literature.
+         * DEMA is very similar (and from the same author).
+         */
+
         var lookbackEMA = EmaLookback(optInTimePeriod);
         var lookbackTotal = TemaLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
@@ -56,7 +77,7 @@ public static partial class Functions
         }
 
         var tempInt = lookbackTotal + (endIdx - startIdx) + 1;
-        T k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
+        var k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
 
         Span<T> firstEMA = new T[tempInt];
         var retCode = CalcExponentialMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
@@ -84,6 +105,8 @@ public static partial class Functions
         var firstEMAIdx = thirdEMABegIdx + secondEMABegIdx;
         var secondEMAIdx = thirdEMABegIdx;
         outBegIdx = firstEMAIdx + firstEMABegIdx;
+
+        // Iterate through the EMA3 (output buffer) and adjust the value by using the EMA2 and EMA1.
         int outIdx = default;
         while (outIdx < thirdEMANbElement)
         {

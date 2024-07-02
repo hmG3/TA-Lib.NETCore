@@ -127,8 +127,7 @@ public static partial class Functions
 
             // Compute Dominant Cycle Phase
             var dcPeriod = smoothPeriod + T.CreateChecked(0.5);
-            var realPart = T.Zero;
-            var imagPart = T.Zero;
+            T realPart = T.Zero, imagPart = T.Zero;
 
             // idx is used to iterate for up to 50 of the last value of smoothPrice.
             var idx = smoothPriceIdx;

@@ -53,7 +53,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int AvgPriceLookback() => 0;
+    public static int AvgPriceLookback() => default;
 
     /// <remarks>
     /// For compatibility with abstract API

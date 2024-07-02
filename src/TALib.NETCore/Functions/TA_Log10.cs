@@ -49,7 +49,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int Log10Lookback() => 0;
+    public static int Log10Lookback() => default;
 
     /// <remarks>
     /// For compatibility with abstract API

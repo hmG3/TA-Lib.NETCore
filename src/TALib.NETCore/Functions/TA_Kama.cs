@@ -68,7 +68,7 @@ public static partial class Functions
         var tempReal = inReal[trailingIdx++];
         var periodROC = inReal[today] - tempReal;
 
-        // Save the trailing value. Do this because inReal and outReal can be pointers to the same buffer.
+        // Save the trailing value. Do this because input and output can point to the same buffer.
         var trailingValue = tempReal;
 
         var efficiencyRatio = CalculateEfficiencyRatio(sumROC1, periodROC);
@@ -162,7 +162,7 @@ public static partial class Functions
         sumROC1 -= T.Abs(trailingValue - tempReal2);
         sumROC1 += T.Abs(tempReal - inReal[today - 1]);
 
-        // Save the trailing value. Do this because inReal and outReal can be pointers to the same buffer.
+        // Save the trailing value. Do this because input and output can point to the same buffer.
         trailingValue = tempReal2;
     }
 

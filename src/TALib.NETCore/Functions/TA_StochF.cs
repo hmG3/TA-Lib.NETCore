@@ -49,6 +49,33 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* With stochastic, there is a total of 4 different lines that are defined: FastK, FastD, SlowK and SlowD.
+         *
+         * The D is the signal line usually drawn over its corresponding K function.
+         *
+         *                    (Today's Close - LowestLow)
+         *  FastK(Kperiod) =  ─────────────────────────── * 100
+         *                     (HighestHigh - LowestLow)
+         *
+         *  FastD(FastDperiod, MA type) = MA Smoothed FastK over FastDperiod
+         *
+         *  SlowK(SlowKperiod, MA type) = MA Smoothed FastK over SlowKperiod
+         *
+         *  SlowD(SlowDperiod, MA Type) = MA Smoothed SlowK over SlowDperiod
+         *
+         * The HighestHigh and LowestLow are the extreme values among the last 'Kperiod'.
+         *
+         * SlowK and FastD are equivalent when using the same period.
+         *
+         * The following shows how these four lines are made available in the library:
+         *
+         *  Stoch  : Returns the SlowK and SlowD
+         *  StochF : Returns the FastK and FastD
+         *
+         * The Stoch function correspond to the more widely implemented version found in much software/charting package.
+         * The StochF is more rarely used because its higher volatility cause often whipsaws.
+         */
+
         var lookbackK = optInFastKPeriod - 1;
         var lookbackFastD = MaLookback(optInFastDPeriod, optInFastDMAType);
         var lookbackTotal = StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
@@ -62,10 +89,27 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
+        /* Do the K calculation:
+         *
+         *    Kt = 100 * ((Ct - Lt) / (Ht - Lt))
+         *
+         * Kt is today stochastic
+         * Ct is today closing price.
+         * Lt is the lowest price of the last K Period (including today)
+         * Ht is the highest price of the last K Period (including today)
+         */
+
+        // Proceed with the calculation for the requested range.
+        // The algorithm allows the input and output to be the same buffer.
         int outIdx = default;
+
+        // Calculate just enough K for ending up with the caller requested range.
+        // (The range of k must consider allthe lookback involve with the smoothing).
         var trailingIdx = startIdx - lookbackTotal;
         var today = trailingIdx + lookbackK;
 
+        // Allocate a temporary buffer large enough to store the K.
+        // If the output is the same as the input, just save one memory allocation.
         Span<T> tempBuffer;
         if (outFastK == inHigh || outFastK == inLow || outFastK == inClose)
         {
@@ -80,6 +124,7 @@ public static partial class Functions
             tempBuffer = new T[endIdx - today + 1];
         }
 
+        // Do the K calculation
         int highestIdx = -1, lowestIdx = -1;
         T highest = T.Zero, lowest = T.Zero;
         while (today <= endIdx)
@@ -89,18 +134,24 @@ public static partial class Functions
 
             var diff = (highest - lowest) / Hundred<T>();
 
+            // Calculate stochastic.
             tempBuffer[outIdx++] = !T.IsZero(diff) ? (inClose[today] - lowest) / diff : T.Zero;
 
             trailingIdx++;
             today++;
         }
 
+        // Fast-K calculation completed. This K calculation is returned to the caller. It is smoothed to become Fast-D.
         var retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDPeriod, optInFastDMAType);
         if (retCode != Core.RetCode.Success || outNbElement == 0)
         {
             return retCode;
         }
 
+        /* Copy tempBuffer into the caller buffer.
+         * (Calculation could not be done directly in the caller buffer because
+         * more input data than the requested range was needed for doing %D).
+         */
         tempBuffer.Slice(lookbackFastD, outNbElement).CopyTo(outFastK);
         outBegIdx = startIdx;
 

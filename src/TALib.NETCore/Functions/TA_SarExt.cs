@@ -64,52 +64,15 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        T sar;
-        T ep;
-        bool isLong;
+        // Check if the acceleration factors are being defined by the user.
+        // Make sure the acceleration and maximum are coherent. If not, correct the acceleration.
+        var afLong = AdjustAcceleration(ref optInAccelerationInitLong, ref optInAccelerationLong, optInAccelerationMaxLong);
+        var afShort = AdjustAcceleration(ref optInAccelerationInitShort, ref optInAccelerationShort, optInAccelerationMaxShort);
 
-        var afLong = optInAccelerationInitLong;
-        var afShort = optInAccelerationInitShort;
-        if (afLong > optInAccelerationMaxLong)
+        var (isLong, retCode) = DetermineInitialDirection(inHigh, inLow, optInStartValue, startIdx);
+        if (retCode != Core.RetCode.Success)
         {
-            optInAccelerationInitLong = optInAccelerationMaxLong;
-            afLong = optInAccelerationInitLong;
-        }
-
-        if (optInAccelerationLong > optInAccelerationMaxLong)
-        {
-            optInAccelerationLong = optInAccelerationMaxLong;
-        }
-
-        if (afShort > optInAccelerationMaxShort)
-        {
-            optInAccelerationInitShort = optInAccelerationMaxShort;
-            afShort = optInAccelerationInitShort;
-        }
-
-        if (optInAccelerationShort > optInAccelerationMaxShort)
-        {
-            optInAccelerationShort = optInAccelerationMaxShort;
-        }
-
-        if (optInStartValue.Equals(0.0))
-        {
-            Span<T> epTemp = new T[1];
-            var retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
-            if (retCode != Core.RetCode.Success)
-            {
-                return retCode;
-            }
-
-            isLong = epTemp[0] <= T.Zero;
-        }
-        else if (optInStartValue > 0.0)
-        {
-            isLong = true;
-        }
-        else
-        {
-            isLong = false;
+            return retCode;
         }
 
         outBegIdx = startIdx;
@@ -117,39 +80,18 @@ public static partial class Functions
 
         var todayIdx = startIdx;
 
-        T newHigh = inHigh[todayIdx - 1];
-        T newLow = inLow[todayIdx - 1];
-        if (optInStartValue.Equals(0.0))
-        {
-            if (isLong)
-            {
-                ep = inHigh[todayIdx];
-                sar = newLow;
-            }
-            else
-            {
-                ep = inLow[todayIdx];
-                sar = newHigh;
-            }
-        }
-        else if (optInStartValue > 0.0)
-        {
-            ep = inHigh[todayIdx];
-            sar = T.CreateChecked(optInStartValue);
-        }
-        else
-        {
-            ep = inLow[todayIdx];
-            sar = T.CreateChecked(Math.Abs(optInStartValue));
-        }
+        var newHigh = inHigh[todayIdx - 1];
+        var newLow = inLow[todayIdx - 1];
+        var sar = InitializeSar(inHigh, inLow, optInStartValue, isLong, todayIdx, newLow, newHigh, out var ep);
 
+        // Cheat on the newLow and newHigh for the first iteration.
         newLow = inLow[todayIdx];
         newHigh = inHigh[todayIdx];
 
         while (todayIdx <= endIdx)
         {
-            T prevLow = newLow;
-            T prevHigh = newHigh;
+            var prevLow = newLow;
+            var prevHigh = newHigh;
             newLow = inLow[todayIdx];
             newHigh = inHigh[todayIdx++];
             if (isLong)
@@ -157,127 +99,28 @@ public static partial class Functions
                 if (newLow <= sar)
                 {
                     isLong = false;
-                    sar = ep;
-
-                    if (sar < prevHigh)
-                    {
-                        sar = prevHigh;
-                    }
-
-                    if (sar < newHigh)
-                    {
-                        sar = newHigh;
-                    }
-
-                    if (!optInOffsetOnReverse.Equals(0.0))
-                    {
-                        sar += sar * T.CreateChecked(optInOffsetOnReverse);
-                    }
-
-                    outReal[outIdx++] = -sar;
-
-                    afShort = optInAccelerationInitShort;
-                    ep = newLow;
-
-                    sar += T.CreateChecked(afShort) * (ep - sar);
-
-                    if (sar < prevHigh)
-                    {
-                        sar = prevHigh;
-                    }
-
-                    if (sar < newHigh)
-                    {
-                        sar = newHigh;
-                    }
+                    sar = SwitchToShort(ref ep, prevHigh, newLow, newHigh, out afShort, optInAccelerationInitShort,
+                        T.CreateChecked(optInOffsetOnReverse), ref outIdx, outReal);
                 }
                 else
                 {
                     outReal[outIdx++] = sar;
-                    if (newHigh > ep)
-                    {
-                        ep = newHigh;
-                        afLong += optInAccelerationLong;
-                        if (afLong > optInAccelerationMaxLong)
-                        {
-                            afLong = optInAccelerationMaxLong;
-                        }
-                    }
-
-                    sar += T.CreateChecked(afLong) * (ep - sar);
-
-                    if (sar > prevLow)
-                    {
-                        sar = prevLow;
-                    }
-
-                    if (sar > newLow)
-                    {
-                        sar = newLow;
-                    }
+                    sar = ProcessLongPosition(ref ep, prevLow, newLow, newHigh, ref afLong, optInAccelerationLong, optInAccelerationMaxLong,
+                        sar);
                 }
             }
             else if (newHigh >= sar)
             {
                 isLong = true;
-                sar = ep;
-
-                if (sar > prevLow)
-                {
-                    sar = prevLow;
-                }
-
-                if (sar > newLow)
-                {
-                    sar = newLow;
-                }
-
-                if (!optInOffsetOnReverse.Equals(0.0))
-                {
-                    sar -= sar * T.CreateChecked(optInOffsetOnReverse);
-                }
-
-                outReal[outIdx++] = sar;
-
-                afLong = optInAccelerationInitLong;
-                ep = newHigh;
-
-                sar += T.CreateChecked(afLong) * (ep - sar);
-
-                if (sar > prevLow)
-                {
-                    sar = prevLow;
-                }
-
-                if (sar > newLow)
-                {
-                    sar = newLow;
-                }
+                sar = SwitchToLong(ref ep, prevLow, newLow, newHigh, out afLong, optInAccelerationInitLong,
+                    T.CreateChecked(optInOffsetOnReverse), ref outIdx, outReal);
             }
             else
             {
                 outReal[outIdx++] = -sar;
-                if (newLow < ep)
-                {
-                    ep = newLow;
-                    afShort += optInAccelerationShort;
-                    if (afShort > optInAccelerationMaxShort)
-                    {
-                        afShort = optInAccelerationMaxShort;
-                    }
-                }
 
-                sar += T.CreateChecked(afShort) * (ep - sar);
-
-                if (sar < prevHigh)
-                {
-                    sar = prevHigh;
-                }
-
-                if (sar < newHigh)
-                {
-                    sar = newHigh;
-                }
+                sar = ProcessShortPosition(ref ep, prevHigh, newLow, newHigh, ref afShort, optInAccelerationShort,
+                    optInAccelerationMaxShort, sar);
             }
         }
 
@@ -287,6 +130,71 @@ public static partial class Functions
     }
 
     public static int SarExtLookback() => 1;
+
+    private static double AdjustAcceleration(ref double optInAccelerationInit, ref double optInAcceleration, double optInAccelerationMax)
+    {
+        var af = optInAccelerationInit;
+        if (af > optInAccelerationMax)
+        {
+            optInAccelerationInit = optInAccelerationMax;
+            af = optInAccelerationInit;
+        }
+
+        optInAcceleration = Math.Min(optInAcceleration, optInAccelerationMax);
+
+        return af;
+    }
+
+    private static (bool, Core.RetCode) DetermineInitialDirection<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        double optInStartValue,
+        int startIdx) where T : IFloatingPointIeee754<T>
+    {
+        if (!optInStartValue.Equals(0.0))
+        {
+            return (optInStartValue > 0.0, Core.RetCode.Success);
+        }
+
+        Span<T> epTemp = new T[1];
+        var retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
+
+        return retCode == Core.RetCode.Success ? (epTemp[0] <= T.Zero, Core.RetCode.Success) : (default, retCode);
+    }
+
+    private static T InitializeSar<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        double optInStartValue,
+        bool isLong,
+        int todayIdx,
+        T newLow,
+        T newHigh,
+        out T ep) where T : IFloatingPointIeee754<T>
+    {
+        T sar;
+        switch (optInStartValue)
+        {
+            case 0.0 when isLong:
+                ep = inHigh[todayIdx];
+                sar = newLow;
+                break;
+            case 0.0:
+                ep = inLow[todayIdx];
+                sar = newHigh;
+                break;
+            case > 0.0:
+                ep = inHigh[todayIdx];
+                sar = T.CreateChecked(optInStartValue);
+                break;
+            default:
+                ep = inLow[todayIdx];
+                sar = T.CreateChecked(Math.Abs(optInStartValue));
+                break;
+        }
+
+        return sar;
+    }
 
     /// <remarks>
     /// For compatibility with abstract API

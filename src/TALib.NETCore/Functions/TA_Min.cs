@@ -59,7 +59,7 @@ public static partial class Functions
         var trailingIdx = startIdx - lookbackTotal;
 
         var lowestIdx = -1;
-        T lowest = T.Zero;
+        var lowest = T.Zero;
         while (today <= endIdx)
         {
             (lowestIdx, lowest) = CalcLowest(inReal, trailingIdx, today, lowestIdx, lowest);

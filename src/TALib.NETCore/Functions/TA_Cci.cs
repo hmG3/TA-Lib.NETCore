@@ -80,7 +80,7 @@ public static partial class Functions
         var tPointZeroOneFive = T.CreateChecked(0.015);
 
         // Proceed with the calculation for the requested range.
-        // The algorithm allows the inReal and outReal to be the same buffer.
+        // The algorithm allows the input and output to be the same buffer.
         int outIdx = default;
         do
         {

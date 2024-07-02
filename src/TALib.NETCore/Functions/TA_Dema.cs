@@ -43,7 +43,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        /* An explanation of this function, can be found at
+        /* An explanation of the function, can be found at
          *
          * Stocks & Commodities V. 12:1 (11-19):
          *   Smoothing Data With Faster Moving Averages

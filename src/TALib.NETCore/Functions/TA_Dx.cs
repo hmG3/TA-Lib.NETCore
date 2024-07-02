@@ -110,10 +110,10 @@ public static partial class Functions
          * Calculation of the TR14 is:
          *
          *                                   Previous TR14
-         *    Today's TR14 = Previous TR14 - ────────────── + Today's TR1
+         *    Today's TR14 = Previous TR14 - ───────────── + Today's TR1
          *                                         14
          *
-         *    The first TR14 is the summation of the first 14 TR1. See the Trange function on how to calculate the true range.
+         *    The first TR14 is the summation of the first 14 TR1. See the TRange function on how to calculate the true range.
          *
          * Calculation of the DX14 is:
          *
@@ -138,7 +138,8 @@ public static partial class Functions
         }
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
-        T prevMinusDM = T.Zero, prevPlusDM = T.Zero, prevTR = T.Zero;
+        T prevMinusDM, prevPlusDM;
+        var prevTR = prevMinusDM = prevPlusDM = T.Zero;
         var today = startIdx - lookbackTotal;
 
         InitDMAndTR(inHigh, inLow, inClose, out var prevHigh, ref today, out var prevLow, out var prevClose, timePeriod, ref prevPlusDM,
@@ -173,9 +174,9 @@ public static partial class Functions
         optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Dx);
 
     private static void SkipDxUnstablePeriod<T>(
-        ReadOnlySpan<T> high,
-        ReadOnlySpan<T> low,
-        ReadOnlySpan<T> close,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
         ref int today,
         ref T prevHigh,
         ref T prevLow,
@@ -188,16 +189,16 @@ public static partial class Functions
         for (var i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Dx) + 1; i > 0; i--)
         {
             today++;
-            UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+            UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
                 ref prevTR, timePeriod);
         }
     }
 
     private static void CalcAndOutputDX<T>(
-        ReadOnlySpan<T> high,
-        ReadOnlySpan<T> low,
-        ReadOnlySpan<T> close,
-        Span<T> outputReal,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        Span<T> outReal,
         ref int today,
         int endIdx,
         ref T prevHigh,
@@ -212,11 +213,11 @@ public static partial class Functions
         while (today < endIdx)
         {
             today++;
-            T tempReal = high[today];
+            T tempReal = inHigh[today];
             T diffP = tempReal - prevHigh;
             prevHigh = tempReal;
 
-            tempReal = low[today];
+            tempReal = inLow[today];
             T diffM = prevLow - tempReal;
             prevLow = tempReal;
 
@@ -234,18 +235,18 @@ public static partial class Functions
 
             tempReal = TrueRange(prevHigh, prevLow, prevClose);
             prevTR = prevTR - prevTR / timePeriod + tempReal;
-            prevClose = close[today];
+            prevClose = inClose[today];
 
             if (!T.IsZero(prevTR))
             {
                 T minusDI = Hundred<T>() * (prevMinusDM / prevTR);
                 T plusDI = Hundred<T>() * (prevPlusDM / prevTR);
                 tempReal = minusDI + plusDI;
-                outputReal[outIdx] = !T.IsZero(tempReal) ? Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal) : outputReal[outIdx - 1];
+                outReal[outIdx] = !T.IsZero(tempReal) ? Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal) : outReal[outIdx - 1];
             }
             else
             {
-                outputReal[outIdx] = outputReal[outIdx - 1];
+                outReal[outIdx] = outReal[outIdx - 1];
             }
 
             outIdx++;

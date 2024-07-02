@@ -43,6 +43,15 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* Find the highest and lowest value of a time series over the period.
+         *   MidPoint = (Highest Value + Lowest Value) / 2
+         *
+         * See MidPrice if the input is a price bar with a high and low time series.
+         */
+
+        /* Identify the minimum number of price bar needed to identify at least one output over the specified period.
+         */
+
         var lookbackTotal = MidPointLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -54,16 +63,18 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
+        // Proceed with the calculation for the requested range.
+        // The algorithm allows the input and output to be the same buffer.
         int outIdx = default;
         var today = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
         while (today <= endIdx)
         {
-            T lowest = inReal[trailingIdx++];
-            T highest = lowest;
+            var lowest = inReal[trailingIdx++];
+            var highest = lowest;
             for (var i = trailingIdx; i <= today; i++)
             {
-                T tmp = inReal[i];
+                var tmp = inReal[i];
                 if (tmp < lowest)
                 {
                     lowest = tmp;
@@ -78,6 +89,7 @@ public static partial class Functions
             today++;
         }
 
+        // Keep the outBegIdx relative to the caller input before returning.
         outBegIdx = startIdx;
         outNbElement = outIdx;
 

@@ -43,6 +43,14 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* Roc and RocP are centered at zero and can have positive and negative value. Here are some equivalence:
+         *    ROC = ROCP/100
+         *        = ((price - prevPrice) / prevPrice) / 100
+         *        = ((price / prevPrice) - 1) * 100
+         *
+         * RocR and RocR100 are ratio respectively centered at 1 and 100 and are always positive values.
+         */
+
         var lookbackTotal = RocPLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -59,7 +67,7 @@ public static partial class Functions
         var trailingIdx = startIdx - lookbackTotal;
         while (inIdx <= endIdx)
         {
-            T tempReal = inReal[trailingIdx++];
+            var tempReal = inReal[trailingIdx++];
             outReal[outIdx++] = !T.IsZero(tempReal) ? (inReal[inIdx] - tempReal) / tempReal : T.Zero;
             inIdx++;
         }

@@ -66,7 +66,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int AdLookback() => 0;
+    public static int AdLookback() => default;
 
     /// <remarks>
     /// For compatibility with abstract API

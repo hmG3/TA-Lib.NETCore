@@ -40,6 +40,17 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
+        /* True Range is the greatest of the following:
+         *
+         *  val1 = distance from today's high to today's low.
+         *  val2 = distance from yesterday's close to today's high.
+         *  val3 = distance from yesterday's close to today's low.
+         *
+         * Some books and software makes the first TR value to be the (high - low) of the first bar.
+         * This function instead ignores the first price bar, and only outputs starting at the second price bar are valid.
+         * This is done for avoiding inconsistency.
+         */
+
         var lookbackTotal = TRangeLookback();
         if (startIdx < lookbackTotal)
         {
@@ -55,9 +66,9 @@ public static partial class Functions
         var today = startIdx;
         while (today <= endIdx)
         {
-            T tempHT = inHigh[today];
-            T tempLT = inLow[today];
-            T tempCY = inClose[today - 1];
+            var tempHT = inHigh[today];
+            var tempLT = inLow[today];
+            var tempCY = inClose[today - 1];
 
             outReal[outIdx++] = TrueRange(tempHT, tempLT, tempCY);
             today++;

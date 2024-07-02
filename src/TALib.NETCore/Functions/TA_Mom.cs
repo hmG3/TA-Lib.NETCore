@@ -43,6 +43,9 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+         // The Mom function is the only one who is not normalized, and thus
+         // should be avoided for comparing different time series of prices.
+
         var lookbackTotal = MomLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -54,6 +57,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
+        // Calculate Momentum. Just subtract the value from 'period' ago from current value.
         int outIdx = default;
         var inIdx = startIdx;
         var trailingIdx = startIdx - lookbackTotal;

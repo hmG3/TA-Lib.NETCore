@@ -38,6 +38,12 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
+        /* MedPrice = (High + Low ) / 2
+         * This is the high and low of the same price bar.
+         *
+         * See MidPrice to use instead the highest high and lowest low over multiple price bar.
+         */
+
         int outIdx = default;
         for (var i = startIdx; i <= endIdx; i++)
         {
@@ -50,7 +56,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int MedPriceLookback() => 0;
+    public static int MedPriceLookback() => default;
 
     /// <remarks>
     /// For compatibility with abstract API

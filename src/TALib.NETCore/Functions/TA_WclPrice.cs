@@ -52,7 +52,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int WclPriceLookback() => 0;
+    public static int WclPriceLookback() => default;
 
     /// <remarks>
     /// For compatibility with abstract API

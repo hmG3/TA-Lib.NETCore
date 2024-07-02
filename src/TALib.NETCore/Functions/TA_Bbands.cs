@@ -55,27 +55,21 @@ public static partial class Functions
          * Whenever possible, make the tempBuffer1 be the middle band output. This will save one copy operation.
          */
 
-        Span<T> tempBuffer1;
+        Span<T> tempBuffer1 = outRealMiddleBand;
         Span<T> tempBuffer2;
+
         if (inReal == outRealUpperBand)
         {
-            tempBuffer1 = outRealMiddleBand;
             tempBuffer2 = outRealLowerBand;
-        }
-        else if (inReal == outRealLowerBand)
-        {
-            tempBuffer1 = outRealMiddleBand;
-            tempBuffer2 = outRealUpperBand;
-        }
-        else if (inReal == outRealMiddleBand)
-        {
-            tempBuffer1 = outRealLowerBand;
-            tempBuffer2 = outRealUpperBand;
         }
         else
         {
-            tempBuffer1 = outRealMiddleBand;
             tempBuffer2 = outRealUpperBand;
+
+            if (inReal == outRealMiddleBand)
+            {
+                tempBuffer1 = outRealLowerBand;
+            }
         }
 
         // Check that the caller is not doing tricky things (like using the input buffer in two output)

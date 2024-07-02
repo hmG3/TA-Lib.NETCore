@@ -43,6 +43,13 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* The following algorithm is base on the original work from Wilder's and shall represent
+         * the original idea behind the classic RSI.
+         *
+         * Metastock is starting the calculation one price bar earlier.
+         * To make this possible, they assume that the very first bar will be identical to the previous one (no gain or loss).
+         */
+
         var lookbackTotal = RsiLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -54,19 +61,27 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
 
         int outIdx = default;
+
+        // Accumulate Wilder's "Average Gain" and "Average Loss" among the initial period.
         var today = startIdx - lookbackTotal;
-        T prevValue = inReal[today];
+        var prevValue = inReal[today];
         T prevGain;
         T prevLoss;
+
+        // If there is no unstable period, calculate the 'additional' initial price bar who is particular to Metastock.
+        // If there is an unstable period, no need to calculate since this first value will be surely skip.
         if (Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Rsi) == 0 &&
             Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
         {
-            T savePrevValue = prevValue;
+            // Preserve prevValue because it may get overwritten by the output.
+            var savePrevValue = prevValue;
             T tempValue1;
             T tempValue2;
+
+            // No unstable period, so must calculate first output particular to Metastock.
             prevGain = T.Zero;
             prevLoss = T.Zero;
             for (var i = optInTimePeriod; i > 0; i--)
@@ -97,17 +112,19 @@ public static partial class Functions
                 return Core.RetCode.Success;
             }
 
+            // Start over for the next price bar.
             today -= optInTimePeriod;
             prevValue = savePrevValue;
         }
 
+        // Remaining of the processing is identical.
         prevGain = T.Zero;
         prevLoss = T.Zero;
         today++;
         for (var i = optInTimePeriod; i > 0; i--)
         {
-            T tempValue1 = inReal[today++];
-            T tempValue2 = tempValue1 - prevValue;
+            var tempValue1 = inReal[today++];
+            var tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
             if (tempValue2 < T.Zero)
             {
@@ -119,20 +136,34 @@ public static partial class Functions
             }
         }
 
+        /* Subsequent prevLoss and prevGain are smoothed using the previous values (Wilder's approach).
+         * 1) Multiply the previous by 'period - 1'.
+         * 2) Add today value.
+         * 3) Divide by 'period'.
+         */
         prevLoss /= timePeriod;
         prevGain /= timePeriod;
 
+        /* Often documentation present the RSI calculation as follows:
+         *   RSI = 100 - (100 / 1 + (prevGain / prevLoss))
+         *
+         * The following is equivalent:
+         *   RSI = 100 * (prevGain / (prevGain + prevLoss))
+         *
+         * The second equation is used here for speed optimization.
+         */
         if (today > startIdx)
         {
-            T tempValue1 = prevGain + prevLoss;
+            var tempValue1 = prevGain + prevLoss;
             outReal[outIdx++] = !T.IsZero(tempValue1) ? Hundred<T>() * (prevGain / tempValue1) : T.Zero;
         }
         else
         {
+            // Skip the unstable period. Do the processing but do not write it in the output.
             while (today < startIdx)
             {
-                T tempValue1 = inReal[today];
-                T tempValue2 = tempValue1 - prevValue;
+                var tempValue1 = inReal[today];
+                var tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
 
                 prevLoss *= timePeriod - T.One;
@@ -153,10 +184,11 @@ public static partial class Functions
             }
         }
 
+        // Unstable period skipped... now continue processing if needed.
         while (today <= endIdx)
         {
-            T tempValue1 = inReal[today++];
-            T tempValue2 = tempValue1 - prevValue;
+            var tempValue1 = inReal[today++];
+            var tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
 
             prevLoss *= timePeriod - T.One;

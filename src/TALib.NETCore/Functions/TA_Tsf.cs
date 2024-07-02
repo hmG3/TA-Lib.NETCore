@@ -43,6 +43,15 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* Linear Regression is a concept also known as the "least squares method" or "best fit."
+         * Linear Regression attempts to fit a straight line between several data points in such a way that
+         * distance between each data point and the line is minimized.
+         *
+         * For each point, a straight line over the specified previous bar period is determined in terms of y = b + m * x:
+         *
+         * Returns b + m * (period)
+         */
+
         var lookbackTotal = TsfLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -59,22 +68,22 @@ public static partial class Functions
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
 
-        T sumX = timePeriod * (timePeriod - T.One) * T.CreateChecked(0.5);
-        T sumXSqr = timePeriod * (timePeriod - T.One) * (timePeriod * Two<T>() - T.One) / T.CreateChecked(6);
-        T divisor = sumX * sumX - timePeriod * sumXSqr;
+        var sumX = timePeriod * (timePeriod - T.One) * T.CreateChecked(0.5);
+        var sumXSqr = timePeriod * (timePeriod - T.One) * (timePeriod * Two<T>() - T.One) / T.CreateChecked(6);
+        var divisor = sumX * sumX - timePeriod * sumXSqr;
         while (today <= endIdx)
         {
-            T sumXY = T.Zero;
-            T sumY = T.Zero;
+            var sumXY = T.Zero;
+            var sumY = T.Zero;
             for (var i = optInTimePeriod; i-- != 0;)
             {
-                T tempValue1 = inReal[today - i];
+                var tempValue1 = inReal[today - i];
                 sumY += tempValue1;
                 sumXY += T.CreateChecked(i) * tempValue1;
             }
 
-            T m = (timePeriod * sumXY - sumX * sumY) / divisor;
-            T b = (sumY - m * sumX) / timePeriod;
+            var m = (timePeriod * sumXY - sumX * sumY) / divisor;
+            var b = (sumY - m * sumX) / timePeriod;
             outReal[outIdx++] = b + m * timePeriod;
             today++;
         }

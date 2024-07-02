@@ -55,6 +55,8 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
+        // Proceed with the calculation for the requested range.
+        // The algorithm allows the input and output to be the same buffer.
         int outIdx = default;
         var today = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
@@ -72,6 +74,7 @@ public static partial class Functions
             today++;
         }
 
+        // Keep the outBegIdx relative to the caller input before returning.
         outBegIdx = startIdx;
         outNbElement = outIdx;
 

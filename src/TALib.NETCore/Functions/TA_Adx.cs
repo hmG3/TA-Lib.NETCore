@@ -115,7 +115,7 @@ public static partial class Functions
          * Calculation of the TR14 is:
          *
          *                                   Previous TR14
-         *    Today's TR14 = Previous TR14 - ────────────── + Today's TR1
+         *    Today's TR14 = Previous TR14 - ───────────── + Today's TR1
          *                                         14
          *
          *    The first TR14 is the summation of the first 14 TR1. See the TRange function on how to calculate the true range.
@@ -133,8 +133,8 @@ public static partial class Functions
          *
          * Calculation of subsequent ADX:
          *
-         *            ((Previous ADX14)*(14-1))+ Today's DX
-         *    ADX14 = ─────────────────────────────────────
+         *            ((Previous ADX14) * (14 - 1)) + Today's DX
+         *    ADX14 = ──────────────────────────────────────────
          *                             14
          *
          * Reference:
@@ -153,7 +153,8 @@ public static partial class Functions
         }
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
-        T prevMinusDM = T.Zero, prevPlusDM = T.Zero, prevTR = T.Zero;
+        T prevMinusDM, prevPlusDM;
+        var prevTR = prevMinusDM = prevPlusDM = T.Zero;
         var today = startIdx;
         outBegIdx = today;
         today = startIdx - lookbackTotal;
@@ -186,9 +187,9 @@ public static partial class Functions
         optInTimePeriod < 2 ? -1 : optInTimePeriod * 2 + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx) - 1;
 
     private static T AddAllInitialDX<T>(
-        ReadOnlySpan<T> high,
-        ReadOnlySpan<T> low,
-        ReadOnlySpan<T> close,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
         T timePeriod,
         ref int today,
         ref T prevHigh,
@@ -202,7 +203,7 @@ public static partial class Functions
         for (var i = Int32.CreateTruncating(timePeriod); i > 0; i--)
         {
             today++;
-            UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+            UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
                 ref prevTR, timePeriod);
 
             if (T.IsZero(prevTR))
@@ -222,9 +223,9 @@ public static partial class Functions
     }
 
     private static void SkipAdxUnstablePeriod<T>(
-        ReadOnlySpan<T> high,
-        ReadOnlySpan<T> low,
-        ReadOnlySpan<T> close,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> icClose,
         ref int today,
         ref T prevHigh,
         ref T prevLow,
@@ -238,7 +239,7 @@ public static partial class Functions
         for (var i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx); i > 0; i--)
         {
             today++;
-            UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+            UpdateDMAndTR(inHigh, inLow, icClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
                 ref prevTR, timePeriod);
 
             if (T.IsZero(prevTR))
@@ -259,10 +260,10 @@ public static partial class Functions
     }
 
     private static void CalcAndOutputSubsequentADX<T>(
-        ReadOnlySpan<T> high,
-        ReadOnlySpan<T> low,
-        ReadOnlySpan<T> close,
-        Span<T> outputReal,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        Span<T> outReal,
         ref int today,
         int endIdx,
         ref T prevHigh,
@@ -278,7 +279,7 @@ public static partial class Functions
         while (today < endIdx)
         {
             today++;
-            UpdateDMAndTR(high, low, close, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+            UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
                 ref prevTR, timePeriod);
 
             if (!T.IsZero(prevTR))
@@ -292,7 +293,7 @@ public static partial class Functions
                 }
             }
 
-            outputReal[outIdx++] = prevADX;
+            outReal[outIdx++] = prevADX;
         }
     }
 

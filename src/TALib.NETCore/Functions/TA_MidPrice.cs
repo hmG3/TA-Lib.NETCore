@@ -44,6 +44,11 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* MidPrice = (Highest High + Lowest Low) / 2
+         *
+         * This function is equivalent to MedPrice when the period is 1.
+         */
+
         var lookbackTotal = MidPriceLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -60,11 +65,11 @@ public static partial class Functions
         var trailingIdx = startIdx - lookbackTotal;
         while (today <= endIdx)
         {
-            T lowest = inLow[trailingIdx];
-            T highest = inHigh[trailingIdx++];
+            var lowest = inLow[trailingIdx];
+            var highest = inHigh[trailingIdx++];
             for (var i = trailingIdx; i <= today; i++)
             {
-                T tmp = inLow[i];
+                var tmp = inLow[i];
                 if (tmp < lowest)
                 {
                     lowest = tmp;

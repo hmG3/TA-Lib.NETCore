@@ -55,6 +55,7 @@ public static partial class Functions
          * These value are averaged for the specified period using Wilder method.
          * The method has an unstable period comparable to and Exponential Moving Average (EMA).
          */
+
         var lookbackTotal = AtrLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -92,12 +93,13 @@ public static partial class Functions
         var prevATR = prevATRTemp[0];
 
         /* Subsequent value are smoothed using the previous ATR value (Wilder's approach).
-         *  1) Multiply the previous ATR by 'period-1'.
+         *  1) Multiply the previous ATR by 'period - 1'.
          *  2) Add today TR value.
          *  3) Divide by 'period'.
          */
         var today = optInTimePeriod;
         var outIdx = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Atr);
+        // Skip the unstable period.
         while (outIdx != 0)
         {
             prevATR *= timePeriod - T.One;
@@ -109,7 +111,7 @@ public static partial class Functions
         outIdx = 1;
         outReal[0] = prevATR;
 
-        /* Do the number of requested ATR. */
+        // Do the number of requested ATR.
         var nbATR = endIdx - startIdx + 1;
 
         while (--nbATR != 0)

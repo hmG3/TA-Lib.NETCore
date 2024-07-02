@@ -47,6 +47,26 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* Reference: "Stochastic RSI and Dynamic Momentum Index"
+         *            by Tushar Chande and Stanley Kroll
+         *            Stock&Commodities V.11:5 (189-199)
+         *
+         * The version offer flexibility beyond what is explained in the Stock&Commodities article.
+         *
+         * To calculate the "Unsmoothed stochastic RSI" with symmetry like explain in the article,
+         * keep the optInTimePeriod and optInFastKPeriod equal. Example:
+         *
+         *    un-smoothed stoch RSI 14 : optInTimePeriod   = 14
+         *                               optInFastK_Period = 14
+         *                               optInFastD_Period = 'x'
+         *
+         * The outFastK is the un-smoothed RSI discuss in the article.
+         *
+         * optInFastDPeriod can be set to smooth the RSI. The smooth* version will be found in outFastD.
+         * The outFastK will still contain the un-smoothed stoch RSI.
+         * If the smoothing of the StochRSI is not a concern, optInFastDPeriod should be left at 1, and outFastD can be ignored.
+         */
+
         var lookbackStochF = StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
         var lookbackTotal = StochRsiLookback(optInTimePeriod, optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
         if (startIdx < lookbackTotal)

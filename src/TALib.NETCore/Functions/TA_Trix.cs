@@ -59,7 +59,7 @@ public static partial class Functions
         var nbElementToOutput = endIdx - startIdx + 1 + lookbackTotal;
         Span<T> tempBuffer = new T[nbElementToOutput];
 
-        T k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
+        var k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
         var retCode =
             CalcExponentialMA(inReal, startIdx - lookbackTotal, endIdx, tempBuffer, out _, out var nbElement, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || nbElement == 0)
@@ -83,6 +83,7 @@ public static partial class Functions
             return retCode;
         }
 
+        // Calculate the 1-day Rate-Of-Change
         nbElementToOutput -= emaLookback;
         retCode = Roc(tempBuffer, 0, nbElementToOutput, outReal, out _, out outNbElement, 1);
         if (retCode != Core.RetCode.Success || outNbElement == 0)

@@ -46,7 +46,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = MavpLookback(optInMaxPeriod, optInMAType);
+        var lookbackTotal = MavpLookback(optInMaxPeriod, optInMAType);
         if (inPeriods.Length < lookbackTotal)
         {
             return Core.RetCode.BadParam;
@@ -68,17 +68,26 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        int outputSize = endIdx - tempInt + 1;
+        var outputSize = endIdx - tempInt + 1;
+
+        // Allocate intermediate local buffer.
         Span<T> localOutputArray = new T[outputSize];
         Span<int> localPeriodArray = new int[outputSize];
 
+        // Copy caller array of period into local buffer. At the same time, truncate to min/max.
         for (var i = 0; i < outputSize; i++)
         {
             var period = Int32.CreateTruncating(inPeriods[startIdx + i]);
             localPeriodArray[i] = Math.Clamp(period, optInMinPeriod, optInMaxPeriod);
         }
 
-        Span<T> intermediateOutput = outReal == inReal ? new T[outputSize] : outReal;
+        var intermediateOutput = outReal == inReal ? new T[outputSize] : outReal;
+
+        /* Process each element of the input.
+         * For each possible period value, the MA is calculated only once.
+         * The outReal is then fill up for all element with the same period.
+         * A local flag (value 0) is set in localPeriodArray to avoid doing a second time the same calculation.
+         */
         for (var i = 0; i < outputSize; i++)
         {
             var curPeriod = localPeriodArray[i];
@@ -87,6 +96,7 @@ public static partial class Functions
                 continue;
             }
 
+            // Calculation of the MA required.
             var retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, curPeriod, optInMAType);
             if (retCode != Core.RetCode.Success)
             {
@@ -98,12 +108,13 @@ public static partial class Functions
             {
                 if (localPeriodArray[j] == curPeriod)
                 {
-                    localPeriodArray[j] = 0;
+                    localPeriodArray[j] = 0; // Flag to avoid recalculation
                     intermediateOutput[j] = localOutputArray[j];
                 }
             }
         }
 
+        // Copy intermediate buffer to output buffer if necessary.
         if (intermediateOutput != outReal)
         {
             intermediateOutput[..outputSize].CopyTo(outReal);

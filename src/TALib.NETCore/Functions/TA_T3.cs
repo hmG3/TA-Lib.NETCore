@@ -44,6 +44,20 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* An explanation of the function can be found at:
+         *
+         * Magazine articles written by Tim Tillson
+         *
+         * Essentially, a T3 of time series "t" is:
+         *   EMA1(x, Period) = EMA(x, Period)
+         *   EMA2(x, Period) = EMA(EMA1(x, Period), Period)
+         *   GD(x, Period, vFactor) = (EMA1(x, Period) * (1 + vFactor)) - (EMA2(x, Period) * vFactor)
+         *   T3 = GD(GD(GD(t, Period, vFactor), Period, vFactor), Period, vFactor);
+         *
+         * T3 offers a moving average with lesser lags than the traditional EMA.
+         * T3 should not be confused with EMA3. Both are called "Triple EMA" in the literature.
+         */
+
         var lookbackTotal = T3Lookback(optInTimePeriod);
         if (startIdx <= lookbackTotal)
         {
@@ -58,18 +72,18 @@ public static partial class Functions
         outBegIdx = startIdx;
         var today = startIdx - lookbackTotal;
 
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
 
-        T k = Two<T>() / (timePeriod + T.One);
-        T oneMinusK = T.One - k;
+        var k = Two<T>() / (timePeriod + T.One);
+        var oneMinusK = T.One - k;
 
-        T tempReal = inReal[today++];
+        var tempReal = inReal[today++];
         for (var i = optInTimePeriod - 1; i > 0; i--)
         {
             tempReal += inReal[today++];
         }
 
-        T e1 = tempReal / timePeriod;
+        var e1 = tempReal / timePeriod;
 
         tempReal = e1;
         for (var i = optInTimePeriod - 1; i > 0; i--)
@@ -78,7 +92,7 @@ public static partial class Functions
             tempReal += e1;
         }
 
-        T e2 = tempReal / timePeriod;
+        var e2 = tempReal / timePeriod;
 
         tempReal = e2;
         for (var i = optInTimePeriod - 1; i > 0; i--)
@@ -88,7 +102,7 @@ public static partial class Functions
             tempReal += e2;
         }
 
-        T e3 = tempReal / timePeriod;
+        var e3 = tempReal / timePeriod;
 
         tempReal = e3;
         for (var i = optInTimePeriod - 1; i > 0; i--)
@@ -99,7 +113,7 @@ public static partial class Functions
             tempReal += e3;
         }
 
-        T e4 = tempReal / timePeriod;
+        var e4 = tempReal / timePeriod;
 
         tempReal = e4;
         for (var i = optInTimePeriod - 1; i > 0; i--)
@@ -111,7 +125,7 @@ public static partial class Functions
             tempReal += e4;
         }
 
-        T e5 = tempReal / timePeriod;
+        var e5 = tempReal / timePeriod;
 
         tempReal = e5;
         for (var i = optInTimePeriod - 1; i > 0; i--)
@@ -124,8 +138,9 @@ public static partial class Functions
             tempReal += e5;
         }
 
-        T e6 = tempReal / timePeriod;
+        var e6 = tempReal / timePeriod;
 
+        // Skip the unstable period
         while (today <= startIdx)
         {
             e1 = k * inReal[today++] + oneMinusK * e1;
@@ -136,16 +151,19 @@ public static partial class Functions
             e6 = k * e5 + oneMinusK * e6;
         }
 
-        T vFactor = T.CreateChecked(optInVFactor);
+        // Calculate the constants
+        var vFactor = T.CreateChecked(optInVFactor);
         tempReal = vFactor * vFactor;
-        T c1 = T.NegativeOne * tempReal * vFactor;
-        T c2 = Three<T>() * (tempReal - c1);
-        T c3 = T.NegativeOne * Two<T>() * Three<T>() * tempReal - Three<T>() * (vFactor - c1);
-        T c4 = T.One + Three<T>() * vFactor - c1 + Three<T>() * tempReal;
+        var c1 = T.NegativeOne * tempReal * vFactor;
+        var c2 = Three<T>() * (tempReal - c1);
+        var c3 = T.NegativeOne * Two<T>() * Three<T>() * tempReal - Three<T>() * (vFactor - c1);
+        var c4 = T.One + Three<T>() * vFactor - c1 + Three<T>() * tempReal;
 
+        // Write the first output
         int outIdx = default;
         outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
 
+        // Calculate and output the remaining of the range.
         while (today <= endIdx)
         {
             e1 = k * inReal[today++] + oneMinusK * e1;

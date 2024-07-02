@@ -50,7 +50,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int MultLookback() => 0;
+    public static int MultLookback() => default;
 
     /// <remarks>
     /// For compatibility with abstract API

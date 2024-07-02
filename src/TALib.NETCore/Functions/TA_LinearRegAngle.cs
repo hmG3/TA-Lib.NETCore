@@ -72,8 +72,7 @@ public static partial class Functions
         var divisor = sumX * sumX - timePeriod * sumXSqr;
         while (today <= endIdx)
         {
-            var sumXY = T.Zero;
-            var sumY = T.Zero;
+            T sumXY = T.Zero, sumY = T.Zero;
             for (var i = optInTimePeriod; i-- != 0;)
             {
                 var tempValue1 = inReal[today - i];

@@ -54,7 +54,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        T periodTotal = T.Zero;
+        var periodTotal = T.Zero;
         var trailingIdx = startIdx - lookbackTotal;
         var i = trailingIdx;
         while (i < startIdx)
@@ -66,7 +66,7 @@ public static partial class Functions
         do
         {
             periodTotal += inReal[i++];
-            T tempReal = periodTotal;
+            var tempReal = periodTotal;
             periodTotal -= inReal[trailingIdx++];
             outReal[outIdx++] = tempReal;
         } while (i <= endIdx);

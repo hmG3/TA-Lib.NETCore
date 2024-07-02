@@ -47,7 +47,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        int lookbackTotal = MfiLookback(optInTimePeriod);
+        var lookbackTotal = MfiLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
             startIdx = lookbackTotal;
@@ -65,16 +65,17 @@ public static partial class Functions
         int mflowIdx = default;
         var maxIdxMflow = optInTimePeriod - 1;
 
-        int today = startIdx - lookbackTotal;
-        T prevValue = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
+        // Accumulate the positive and negative money flow among the initial period.
+        var today = startIdx - lookbackTotal;
+        var prevValue = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
 
-        T posSumMF = T.Zero;
-        T negSumMF = T.Zero;
+        var posSumMF = T.Zero;
+        var negSumMF = T.Zero;
         today++;
         for (var i = optInTimePeriod; i > 0; i--)
         {
-            T tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
-            T tempValue2 = tempValue1 - prevValue;
+            var tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
+            var tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
             tempValue1 *= inVolume[today++];
             if (tempValue2 < T.Zero)
@@ -101,20 +102,26 @@ public static partial class Functions
             }
         }
 
+        /* The following two equations are equivalent:
+         *   MFI = 100 - (100 / 1 + (posSumMF / negSumMF))
+         *   MFI = 100 * (posSumMF / (posSumMF + negSumMF))
+         * The second equation is used here for speed optimization.
+         */
         if (today > startIdx)
         {
-            T tempValue1 = posSumMF + negSumMF;
+            var tempValue1 = posSumMF + negSumMF;
             outReal[outIdx++] = tempValue1 >= T.One ? Hundred<T>() * (posSumMF / tempValue1) : T.Zero;
         }
         else
         {
+            // Skip the unstable period. Do the processing but do not write it in the output.
             while (today < startIdx)
             {
                 posSumMF -= moneyFlow[mflowIdx].positive;
                 negSumMF -= moneyFlow[mflowIdx].negative;
 
-                T tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
-                T tempValue2 = tempValue1 - prevValue;
+                var tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
+                var tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
                 tempValue1 *= inVolume[today++];
                 if (tempValue2 < T.Zero)
@@ -147,8 +154,8 @@ public static partial class Functions
             posSumMF -= moneyFlow[mflowIdx].positive;
             negSumMF -= moneyFlow[mflowIdx].negative;
 
-            T tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
-            T tempValue2 = tempValue1 - prevValue;
+            var tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
+            var tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
             tempValue1 *= inVolume[today++];
             if (tempValue2 < T.Zero)

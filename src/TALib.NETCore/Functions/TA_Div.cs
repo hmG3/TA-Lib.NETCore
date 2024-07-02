@@ -50,7 +50,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int DivLookback() => 0;
+    public static int DivLookback() => default;
 
     /// <remarks>
     /// For compatibility with abstract API

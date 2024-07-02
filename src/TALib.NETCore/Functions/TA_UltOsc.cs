@@ -60,6 +60,7 @@ public static partial class Functions
         }
 
         Span<bool> usedFlag = new bool[3];
+        // Sort to ensure that the time periods are ordered from shortest to longest.
         Span<int> periods = new[] { optInTimePeriod1, optInTimePeriod2, optInTimePeriod3 };
         Span<int> sortedPeriods = new int[3];
 
@@ -88,7 +89,9 @@ public static partial class Functions
         var totals2 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod2);
         var totals3 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod3);
 
-        T TSeven = T.CreateChecked(7);
+        var TSeven = T.CreateChecked(7);
+
+        // Calculate oscillator
         var today = startIdx;
         int outIdx = default;
         var trailingIdx1 = today - optInTimePeriod1 + 1;
@@ -96,6 +99,7 @@ public static partial class Functions
         var trailingIdx3 = today - optInTimePeriod3 + 1;
         while (today <= endIdx)
         {
+            // Add on today's terms
             var terms = CalcTerms(inLow, inHigh, inClose, today);
             totals1.aTotal += terms.closeMinusTrueLow;
             totals2.aTotal += terms.closeMinusTrueLow;
@@ -104,7 +108,8 @@ public static partial class Functions
             totals2.bTotal += terms.trueRange;
             totals3.bTotal += terms.trueRange;
 
-            T output = T.Zero;
+            // Calculate the oscillator value for today
+            var output = T.Zero;
 
             if (!T.IsZero(totals1.bTotal))
             {
@@ -121,6 +126,7 @@ public static partial class Functions
                 output += totals3.aTotal / totals3.bTotal;
             }
 
+            // Remove the trailing terms to prepare for next day
             terms = CalcTerms(inLow, inHigh, inClose, trailingIdx1);
             totals1.aTotal -= terms.closeMinusTrueLow;
             totals1.bTotal -= terms.trueRange;
@@ -133,6 +139,10 @@ public static partial class Functions
             totals3.aTotal -= terms.closeMinusTrueLow;
             totals3.bTotal -= terms.trueRange;
 
+            /* Last operation is to write the output.
+             * Must be done after the trailing index have all been taken care of because
+             * the caller is allowed to have the input array to be also the output array.
+             */
             outReal[outIdx++] = Hundred<T>() * (output / TSeven);
             today++;
             trailingIdx1++;
@@ -151,10 +161,10 @@ public static partial class Functions
             ReadOnlySpan<T> close,
             int day)
         {
-            T tempLT = low[day];
-            T tempHT = high[day];
-            T tempCY = close[day - 1];
-            T trueLow = T.Min(tempLT, tempCY);
+            var tempLT = low[day];
+            var tempHT = high[day];
+            var tempCY = close[day - 1];
+            var trueLow = T.Min(tempLT, tempCY);
             var closeMinusTrueLow = close[day] - trueLow;
             var trueRange = TrueRange(tempHT, tempLT, tempCY);
 
@@ -167,8 +177,7 @@ public static partial class Functions
             ReadOnlySpan<T> close,
             int period)
         {
-            T aTotal = T.Zero;
-            T bTotal = T.Zero;
+            T aTotal = T.Zero, bTotal = T.Zero;
             for (var i = startIdx - period + 1; i < startIdx; ++i)
             {
                 var terms = CalcTerms(low, high, close, i);

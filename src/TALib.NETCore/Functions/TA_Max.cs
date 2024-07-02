@@ -54,12 +54,14 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
+        // Proceed with the calculation for the requested range.
+        // The algorithm allows the input and output to be the same buffer.
         int outIdx = default;
         var today = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
 
         var highestIdx = -1;
-        T highest = T.Zero;
+        var highest = T.Zero;
         while (today <= endIdx)
         {
             (highestIdx, highest) = CalcHighest(inReal, trailingIdx, today, highestIdx, highest);
@@ -69,6 +71,7 @@ public static partial class Functions
             today++;
         }
 
+        // Keep the outBegIdx relative to the caller input before returning.
         outBegIdx = startIdx;
         outNbElement = outIdx;
 

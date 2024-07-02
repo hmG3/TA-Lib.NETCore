@@ -49,7 +49,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int SqrtLookback() => 0;
+    public static int SqrtLookback() => default;
 
     /// <remarks>
     /// For compatibility with abstract API

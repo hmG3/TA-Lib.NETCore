@@ -61,7 +61,7 @@ public static partial class Functions
         }
 
         // Proceed with the calculation for the requested range.
-        // Note that the algorithm allows the input and output to be the same buffer.
+        // The algorithm allows the input and output to be the same buffer.
         int outIdx = default;
         var today = startIdx;
         var trailingIdx = startIdx - lookbackTotal;

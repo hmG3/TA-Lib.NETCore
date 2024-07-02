@@ -43,6 +43,26 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
+        /* The algo uses a very basic property of multiplication/addition: (x * 2) = x + x
+         *
+         * As an example, a 3 period weighted can be interpreted in two ways:
+         *   (x1 * 1) + (x2 * 2) + (x3 * 3)
+         *     OR
+         *   x1 + x2 + x2 + x3 + x3 + x3 (this is the periodSum)
+         *
+         * When moving forward in the time series the periodSum can be quickly adjusted for the period by subtracting:
+         *   x1 + x2 + x3 (This is the periodSub)
+         * Making the new periodSum equals to:
+         *   x2 + x3 + x3
+         *
+         * Then the new price bar can be added which is x4 + x4 + x4 giving:
+         *   x2 + x3 + x3 + x4 + x4 + x4
+         *
+         * At this point, one iteration is completed, and it can be seen that step 1 of this example is reached again.
+         *
+         * The number of memory access and floating point operations are kept to a minimum with this algo.
+         */
+
         var lookbackTotal = WmaLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -57,30 +77,41 @@ public static partial class Functions
         int outIdx = default;
         var trailingIdx = startIdx - lookbackTotal;
 
-        T periodSub = T.Zero;
-        T periodSum = periodSub;
+        var periodSub = T.Zero;
+        var periodSum = periodSub;
         var inIdx = trailingIdx;
         var i = 1;
         while (inIdx < startIdx)
         {
-            T tempReal = inReal[inIdx++];
+            var tempReal = inReal[inIdx++];
             periodSub += tempReal;
             periodSum += tempReal * T.CreateChecked(i);
             i++;
         }
 
-        T trailingValue = T.Zero;
+        var trailingValue = T.Zero;
 
-        T divider = T.CreateChecked((optInTimePeriod * (optInTimePeriod + 1)) >> 1);
-        T timePeriod = T.CreateChecked(optInTimePeriod);
+        // Calculate the divider (always an integer value).
+        // By induction: 1 + 2 + 3 + 4 + ... + n = n * (n + 1) / 2
+        var divider = T.CreateChecked((optInTimePeriod * (optInTimePeriod + 1)) >> 1);
+        var timePeriod = T.CreateChecked(optInTimePeriod);
+
+        // Tight loop for the requested range.
         while (inIdx <= endIdx)
         {
-            T tempReal = inReal[inIdx++];
+            // Add the current price bar to the sum carried through the iterations.
+            var tempReal = inReal[inIdx++];
             periodSub += tempReal;
             periodSub -= trailingValue;
             periodSum += tempReal * timePeriod;
+
+            // Save the trailing value for being subtracted at the next iteration.
+            // Do this because input and output can point to the same buffer.
             trailingValue = inReal[trailingIdx++];
+
+            // Calculate the WMA for this price bar.
             outReal[outIdx++] = periodSum / divider;
+
             periodSum -= periodSub;
         }
 

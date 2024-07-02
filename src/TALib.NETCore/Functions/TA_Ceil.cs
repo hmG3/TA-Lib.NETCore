@@ -49,7 +49,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int CeilLookback() => 0;
+    public static int CeilLookback() => default;
 
     /// <remarks>
     /// For compatibility with abstract API

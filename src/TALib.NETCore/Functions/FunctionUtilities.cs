@@ -323,8 +323,9 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        var periodTotal1 = T.Zero;
-        var periodTotal2 = T.Zero;
+        // Do the MA calculation using tight loops.
+        // Add-up the initial periods, except for the last value.
+        T periodTotal1 = T.Zero, periodTotal2 = T.Zero;
         var trailingIdx = startIdx - lookbackTotal;
         var i = trailingIdx;
         if (optInTimePeriod > 1)
@@ -338,16 +339,23 @@ public static partial class Functions
             }
         }
 
+        // Proceed with the calculation for the requested range.
+        // The algorithm allows the input and output to be the same buffer.
         int outIdx = default;
         var timePeriod = T.CreateChecked(optInTimePeriod);
         do
         {
             var tempReal = inReal[i++];
+
+            // Square and add all the deviation over the same periods.
             periodTotal1 += tempReal;
             tempReal *= tempReal;
             periodTotal2 += tempReal;
+
+            // Square and add all the deviation over the same period.
             var meanValue1 = periodTotal1 / timePeriod;
             var meanValue2 = periodTotal2 / timePeriod;
+
             tempReal = inReal[trailingIdx++];
             periodTotal1 -= tempReal;
             tempReal *= tempReal;
@@ -468,7 +476,7 @@ public static partial class Functions
     {
         prevHigh = high[today];
         prevLow = low[today];
-        prevClose = close[today];
+        prevClose = !close.IsEmpty ? close[today] : T.Zero;
 
         for (var i = Int32.CreateTruncating(timePeriod) - 1; i > 0; i--)
         {
@@ -536,6 +544,7 @@ public static partial class Functions
 
     private static T TrueRange<T>(T th, T tl, T yc) where T : IFloatingPointIeee754<T>
     {
+        // Find the greatest of the 3 values.
         var range = th - tl;
         range = T.Max(range, T.Abs(th - yc));
         range = T.Max(range, T.Abs(tl - yc));

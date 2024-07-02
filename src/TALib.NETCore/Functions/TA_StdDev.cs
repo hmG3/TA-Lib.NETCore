@@ -50,11 +50,13 @@ public static partial class Functions
             return retCode;
         }
 
+        // Calculate the square root of each variance, this is the standard deviation.
+        // Multiply also by the ratio specified.
         if (!optInNbDev.Equals(1.0))
         {
             for (var i = 0; i < outNbElement; i++)
             {
-                T tempReal = outReal[i];
+                var tempReal = outReal[i];
                 outReal[i] = tempReal > T.Zero ? T.Sqrt(tempReal) * T.CreateChecked(optInNbDev) : T.Zero;
             }
         }
@@ -62,7 +64,7 @@ public static partial class Functions
         {
             for (var i = 0; i < outNbElement; i++)
             {
-                T tempReal = outReal[i];
+                var tempReal = outReal[i];
                 outReal[i] = tempReal > T.Zero ? T.Sqrt(tempReal) : T.Zero;
             }
         }

@@ -38,13 +38,13 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        T prevOBV = inVolume[startIdx];
-        T prevReal = inReal[startIdx];
+        var prevOBV = inVolume[startIdx];
+        var prevReal = inReal[startIdx];
         int outIdx = default;
 
         for (var i = startIdx; i <= endIdx; i++)
         {
-            T tempReal = inReal[i];
+            var tempReal = inReal[i];
             if (tempReal > prevReal)
             {
                 prevOBV += inVolume[i];
@@ -64,7 +64,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int ObvLookback() => 0;
+    public static int ObvLookback() => default;
 
     /// <remarks>
     /// For compatibility with abstract API
