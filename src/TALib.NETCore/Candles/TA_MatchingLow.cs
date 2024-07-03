@@ -51,7 +51,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T equalPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var equalPeriodTotal = T.Zero;
         var equalTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Equal);
         var i = equalTrailingIdx;
         while (i < startIdx)
@@ -61,30 +63,26 @@ public static partial class Candles
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: black candle
+         *   - second candle: black candle with the close equal to the previous close
+         * The meaning of "equal" is specified with CandleSettings
+         * outInteger is always positive (1 to 100): matching low is always bullish;
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // first black
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // second black
-                inClose[i] <= inClose[i - 1] +
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal,
-                    i - 1) && // 1st and 2nd same close
-                inClose[i] >= inClose[i - 1] -
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1)
-               )
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsMatchingLowPattern(inOpen, inHigh, inLow, inClose, i, equalPeriodTotal) ? 100 : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            equalPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
-                                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            equalPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+
             i++;
             equalTrailingIdx++;
         } while (i <= endIdx);
@@ -96,6 +94,23 @@ public static partial class Candles
     }
 
     public static int MatchingLowLookback() => CandleAveragePeriod(Core.CandleSettingType.Equal) + 1;
+
+    private static bool IsMatchingLowPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T equalPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st black
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        // 2nd black
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+        // 1st and 2nd same close
+        inClose[i] <= inClose[i - 1] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) &&
+        inClose[i] >= inClose[i - 1] -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1);
 
     /// <remarks>
     /// For compatibility with abstract API

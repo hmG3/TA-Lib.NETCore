@@ -57,9 +57,11 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyLongPeriodTotal = T.Zero;
-        T bodyDojiPeriodTotal = T.Zero;
-        T bodyShortPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyLongPeriodTotal = T.Zero;
+        var bodyDojiPeriodTotal = T.Zero;
+        var bodyShortPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var bodyDojiTrailingIdx = startIdx - 1 - CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
         var bodyShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
@@ -85,37 +87,43 @@ public static partial class Candles
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: long black real body
+         *   - second candle: doji gapping down
+         *   - third candle: white real body that moves well within the first candle's real body
+         * The meaning of "doji" and "long" is specified with CandleSettings
+         * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean the real body should
+         * not be short ("short" is specified with CandleSettings) -
+         * Greg Morris wants it to be long, someone else wants it to be relatively long
+         * outInteger is positive (1 to 100): morning doji star is always bullish;
+         * the user should consider that a morning star is significant when it appears in a downtrend,
+         * while this function does not consider the trend
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i - 2) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i - 2) && // 1st: long
-                CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && //           black
-                RealBody(inClose, inOpen, i - 1) <= CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
-                    bodyDojiPeriodTotal, i - 1) && // 2nd: doji
-                RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && //           gapping down
-                RealBody(inClose, inOpen, i) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
-                    bodyShortPeriodTotal, i) && // 3rd: longer than short
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.White && //          white real body
-                inClose[i] > inClose[i - 2] +
-                RealBody(inClose, inOpen, i - 2) * T.CreateChecked(optInPenetration)) //               closing well within 1st rb
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsMorningDojiStarPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal,
+                bodyDojiPeriodTotal, bodyShortPeriodTotal)
+                ? 100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
-            bodyDojiPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i - 1) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
-            bodyShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
-                                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+
+            bodyDojiPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+
+            bodyShortPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+
             i++;
             bodyLongTrailingIdx++;
             bodyDojiTrailingIdx++;
@@ -133,6 +141,34 @@ public static partial class Candles
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyDoji), CandleAveragePeriod(Core.CandleSettingType.BodyLong)),
             CandleAveragePeriod(Core.CandleSettingType.BodyShort)
         ) + 2;
+
+    private static bool IsMorningDojiStarPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        double optInPenetration,
+        int i,
+        T bodyLongPeriodTotal,
+        T bodyDojiPeriodTotal,
+        T bodyShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st: long
+        RealBody(inClose, inOpen, i - 2) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
+        // black
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+        // 2nd: doji
+        RealBody(inClose, inOpen, i - 1) <=
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i - 1) &&
+        // gapping down
+        RealBodyGapDown(inOpen, inClose, i - 1, i - 2) &&
+        // 3rd: longer than short
+        RealBody(inClose, inOpen, i) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortPeriodTotal, i) &&
+        // white real body
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+        // closing well within 1st real body
+        inClose[i] > inClose[i - 2] + RealBody(inClose, inOpen, i - 2) * T.CreateChecked(optInPenetration);
 
     /// <remarks>
     /// For compatibility with abstract API

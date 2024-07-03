@@ -51,8 +51,10 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyLongPeriodTotal = T.Zero;
-        T bodyDojiPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyLongPeriodTotal = T.Zero;
+        var bodyDojiPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - 1 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var bodyDojiTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
         var i = bodyLongTrailingIdx;
@@ -69,34 +71,36 @@ public static partial class Candles
             i++;
         }
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: long real body
+         *   - second candle: star (open gapping up in an uptrend or down in a downtrend) with a doji
+         * The meaning of "doji" and "long" is specified with CandleSettings
+         * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+         * it's defined bullish when the long candle is white and the star gaps up,
+         * bearish when the long candle is black and the star gaps down;
+         * the user should consider that a doji star is bullish when it appears in an uptrend,
+         * and it's bearish when it appears in a downtrend,
+         * so to determine the bullishness or bearishness of the pattern the trend must be analyzed
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i - 1) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i - 1) && // 1st: long real body
-                RealBody(inClose, inOpen, i) <= CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
-                    bodyDojiPeriodTotal, i) && // 2nd: doji
-                (CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
-                 RealBodyGapUp(inOpen, inClose, i, i - 1) //      that gaps up if 1st is white
-                 ||
-                 CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
-                 RealBodyGapDown(inOpen, inClose, i, i - 1) //      or down if 1st is black
-                ))
-            {
-                outInteger[outIdx++] = -(int) CandleColor(inClose, inOpen, i - 1) * 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsDojiStarPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal)
+                ? -(int) CandleColor(inClose, inOpen, i - 1) * 100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 1) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
-            bodyDojiPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+
+            bodyDojiPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+
             i++;
             bodyLongTrailingIdx++;
             bodyDojiTrailingIdx++;
@@ -110,6 +114,28 @@ public static partial class Candles
 
     public static int DojiStarLookback() =>
         Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyDoji), CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 1;
+
+    private static bool IsDojiStarPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyLongPeriodTotal,
+        T bodyDojiPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st: long real body
+        RealBody(inClose, inOpen, i - 1) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 1) &&
+        // 2nd: doji
+        RealBody(inClose, inOpen, i) <=
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) &&
+        (
+            // that gaps up if 1st is white
+            CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White && RealBodyGapUp(inOpen, inClose, i, i - 1)
+            ||
+            // or down if 1st is black
+            CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && RealBodyGapDown(inOpen, inClose, i, i - 1)
+        );
 
     /// <remarks>
     /// For compatibility with abstract API

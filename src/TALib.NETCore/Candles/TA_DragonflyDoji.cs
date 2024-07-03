@@ -51,9 +51,11 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyDojiPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyDojiPeriodTotal = T.Zero;
         var bodyDojiTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
-        T shadowVeryShortPeriodTotal = T.Zero;
+        var shadowVeryShortPeriodTotal = T.Zero;
         var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
         var i = bodyDojiTrailingIdx;
         while (i < startIdx)
@@ -69,32 +71,32 @@ public static partial class Candles
             i++;
         }
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - doji body
+         *   - open and close at the high of the day = no or very short upper shadow
+         *   - lower shadow (to distinguish from other dojis, here lower shadow should not be very short)
+         * The meaning of "doji" and "very short" is specified with CandleSettings
+         * outInteger is always positive (1 to 100) but this does not mean it is bullish:
+         * dragonfly doji must be considered relatively to the trend
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i) <=
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) &&
-                UpperShadow(inHigh, inClose, inOpen, i) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i) &&
-                LowerShadow(inClose, inOpen, inLow, i) > CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i)
-               )
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] =
+                IsDragonflyDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowVeryShortPeriodTotal) ? 100 : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyDojiPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
-            shadowVeryShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i)
-                                          - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort,
-                                              shadowVeryShortTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyDojiPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+
+            shadowVeryShortPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx);
+
             i++;
             bodyDojiTrailingIdx++;
             shadowVeryShortTrailingIdx++;
@@ -108,6 +110,24 @@ public static partial class Candles
 
     public static int DragonflyDojiLookback() =>
         Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyDoji), CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort)) + 1;
+
+    private static bool IsDragonflyDojiPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyDojiPeriodTotal,
+        T shadowVeryShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // doji body
+        RealBody(inClose, inOpen, i) <=
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) &&
+        // very short upper shadow
+        UpperShadow(inHigh, inClose, inOpen, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i) &&
+        // longer lower shadow
+        LowerShadow(inClose, inOpen, inLow, i) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i);
 
     /// <remarks>
     /// For compatibility with abstract API

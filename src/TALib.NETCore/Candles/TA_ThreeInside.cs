@@ -51,8 +51,10 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyLongPeriodTotal = T.Zero;
-        T bodyShortPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyLongPeriodTotal = T.Zero;
+        var bodyShortPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var bodyShortTrailingIdx = startIdx - 1 - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
 
@@ -72,34 +74,33 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: long white (black) real body
+         *   - second candle: short real body totally engulfed by the first
+         *   - third candle: black (white) candle that closes lower (higher) than the first candle's open
+         * The meaning of "short" and "long" is specified with CandleSettings
+         * outInteger is positive (1 to 100) for the three inside up or negative (-1 to -100) for the three inside down;
+         * the user should consider that a three inside up is significant when it appears in a downtrend and a three inside
+         * down is significant when it appears in an uptrend, while this function does not consider the trend
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i - 2) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i - 2) &&
-                RealBody(inClose, inOpen, i - 1) <= CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
-                    bodyShortPeriodTotal, i - 1) &&
-                T.Max(inClose[i - 1], inOpen[i - 1]) < T.Max(inClose[i - 2], inOpen[i - 2]) &&
-                T.Min(inClose[i - 1], inOpen[i - 1]) > T.Min(inClose[i - 2], inOpen[i - 2]) &&
-                (CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
-                 CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
-                 inClose[i] < inOpen[i - 2]
-                 ||
-                 CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
-                 CandleColor(inClose, inOpen, i) == Core.CandleColor.White && inClose[i] > inOpen[i - 2]
-                ))
-            {
-                outInteger[outIdx++] = -(int) CandleColor(inClose, inOpen, i - 2) * 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsThreeInsidePattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
+                ? -(int) CandleColor(inClose, inOpen, i - 2) * 100
+                : 0;
 
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
-            bodyShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i - 1) -
-                                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+            bodyShortPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+
             i++;
             bodyLongTrailingIdx++;
             bodyShortTrailingIdx++;
@@ -113,6 +114,34 @@ public static partial class Candles
 
     public static int ThreeInsideLookback() =>
         Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyShort), CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 2;
+
+    private static bool IsThreeInsidePattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyLongPeriodTotal,
+        T bodyShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st: long
+        RealBody(inClose, inOpen, i - 2) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
+        // 2nd: short
+        RealBody(inClose, inOpen, i - 1) <=
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortPeriodTotal, i - 1) &&
+        // engulfed by 1st
+        T.Max(inClose[i - 1], inOpen[i - 1]) < T.Max(inClose[i - 2], inOpen[i - 2]) &&
+        T.Min(inClose[i - 1], inOpen[i - 1]) > T.Min(inClose[i - 2], inOpen[i - 2]) &&
+        (
+            // 3rd: opposite to 1st
+            CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+            CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+            inClose[i] < inOpen[i - 2]
+            ||
+            // and closing out
+            CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+            CandleColor(inClose, inOpen, i) == Core.CandleColor.White && inClose[i] > inOpen[i - 2]
+        );
 
     /// <remarks>
     /// For compatibility with abstract API

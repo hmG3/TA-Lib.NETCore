@@ -51,11 +51,13 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         Span<T> bodyLongPeriodTotal = new T[3];
         var bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
-        T bodyShortPeriodTotal = T.Zero;
+        var bodyShortPeriodTotal = T.Zero;
         var bodyShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
-        T shadowVeryShortPeriodTotal = T.Zero;
+        var shadowVeryShortPeriodTotal = T.Zero;
         var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
         Span<T> nearPeriodTotal = new T[3];
         var nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
@@ -90,56 +92,50 @@ public static partial class Candles
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - three white candlesticks with consecutively higher closes
+         *   - first candle: long white
+         *   - second candle: long white with no or very short upper shadow opening within or near the previous white real body
+         *     and closing higher than the prior candle
+         * - third candle: small white that gaps away or "rides on the shoulder" of the prior long real body
+         * (= it's at the upper end of the prior real body)
+         * The meanings of "long", "very short", "short", "near" are specified with CandleSettings;
+         * outInteger is negative (-1 to -100): stalled pattern is always bearish;
+         * the user should consider that stalled pattern is significant when it appears in uptrend,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White && // 1st white
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White && // 2nd white
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.White && // 3rd white
-                inClose[i] > inClose[i - 1] && inClose[i - 1] > inClose[i - 2] && // consecutive higher closes
-                RealBody(inClose, inOpen, i - 2) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal[2], i - 2) && // 1st: long real body
-                RealBody(inClose, inOpen, i - 1) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal[1], i - 1) && // 2nd: long real body
-                // very short upper shadow
-                UpperShadow(inHigh, inClose, inOpen, i - 1) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i - 1) &&
-                // opens within/near 1st real body
-                inOpen[i - 1] > inOpen[i - 2] &&
-                inOpen[i - 1] <= inClose[i - 2] + CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near,
-                    nearPeriodTotal[2], i - 2) &&
-                RealBody(inClose, inOpen, i) < CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
-                    bodyShortPeriodTotal, i) && // 3rd: small real body
-                // rides on the shoulder of 2nd real body
-                inOpen[i] >= inClose[i - 1] - RealBody(inClose, inOpen, i) - CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.Near, nearPeriodTotal[1], i - 1)
-               )
-            {
-                outInteger[outIdx++] = -100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsStalledPatternPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal,
+                shadowVeryShortPeriodTotal, nearPeriodTotal, bodyShortPeriodTotal)
+                ? -100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             for (var totIdx = 2; totIdx >= 1; --totIdx)
             {
                 bodyLongPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - totIdx)
-                    - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - totIdx);
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - totIdx) -
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - totIdx);
+
                 nearPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - totIdx)
-                    - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - totIdx);
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - totIdx) -
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - totIdx);
             }
 
-            bodyShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
-                                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+            bodyShortPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+
             shadowVeryShortPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - 1)
-                - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx - 1);
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx - 1);
+
             i++;
             bodyLongTrailingIdx++;
             bodyShortTrailingIdx++;
@@ -158,6 +154,43 @@ public static partial class Candles
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyLong), CandleAveragePeriod(Core.CandleSettingType.BodyShort)),
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort), CandleAveragePeriod(Core.CandleSettingType.Near))
         ) + 2;
+
+    private static bool IsStalledPatternPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        Span<T> bodyLongPeriodTotal,
+        T shadowVeryShortPeriodTotal,
+        Span<T> nearPeriodTotal,
+        T bodyShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st white
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+        // 2nd white
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+        // 3rd white
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+        // consecutive higher closes
+        inClose[i] > inClose[i - 1] && inClose[i - 1] > inClose[i - 2] &&
+        // 1st: long real body
+        RealBody(inClose, inOpen, i - 2) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal[2], i - 2) &&
+        // 2nd: long real body
+        RealBody(inClose, inOpen, i - 1) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal[1], i - 1) &&
+        // very short upper shadow
+        UpperShadow(inHigh, inClose, inOpen, i - 1) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i - 1) &&
+        // opens within/near 1st real body
+        inOpen[i - 1] > inOpen[i - 2] && inOpen[i - 1] <= inClose[i - 2] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[2], i - 2) &&
+        // 3rd: small real body
+        RealBody(inClose, inOpen, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortPeriodTotal, i) &&
+        // rides on the shoulder of 2nd real body
+        inOpen[i] >= inClose[i - 1] - RealBody(inClose, inOpen, i) -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[1], i - 1);
 
     /// <remarks>
     /// For compatibility with abstract API

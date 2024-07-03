@@ -51,7 +51,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T equalPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var equalPeriodTotal = T.Zero;
         var equalTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Equal);
         Span<T> bodyLongPeriodTotal = new T[2];
         var bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
@@ -72,37 +74,34 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: long black (white)
+         *   - second candle: long white (black) with close equal to the prior close
+         * The meaning of "equal" and "long" is specified with CandleSettings
+         * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+         * the user should consider that counterattack is significant in a trend,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if ((int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) && // opposite candles
-                RealBody(inClose, inOpen, i - 1) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal[1], i - 1) && // 1st long
-                RealBody(inClose, inOpen, i) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal[0], i) && // 2nd long
-                inClose[i] <= inClose[i - 1] +
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) && // equal closes
-                inClose[i] >= inClose[i - 1] -
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1)
-               )
-            {
-                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i) * 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsCounterAttackPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, equalPeriodTotal)
+                ? (int) CandleColor(inClose, inOpen, i) * 100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            equalPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
-                                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            equalPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+
             for (var totIdx = 1; totIdx >= 0; --totIdx)
             {
                 bodyLongPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - totIdx)
-                    - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - totIdx);
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - totIdx) -
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - totIdx);
             }
 
             i++;
@@ -118,6 +117,28 @@ public static partial class Candles
 
     public static int CounterAttackLookback() =>
         Math.Max(CandleAveragePeriod(Core.CandleSettingType.Equal), CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 1;
+
+    private static bool IsCounterAttackPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        Span<T> bodyLongPeriodTotal,
+        T equalPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // opposite candles
+        (int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) &&
+        // 1st long
+        RealBody(inClose, inOpen, i - 1) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal[1], i - 1) &&
+        // 2nd long
+        RealBody(inClose, inOpen, i) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal[0], i) &&
+        // equal closes
+        inClose[i] <= inClose[i - 1] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) &&
+        inClose[i] >= inClose[i - 1] -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1);
 
     /// <remarks>
     /// For compatibility with abstract API

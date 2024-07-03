@@ -51,9 +51,11 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T equalPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var equalPeriodTotal = T.Zero;
         var equalTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Equal);
-        T bodyLongPeriodTotal = T.Zero;
+        var bodyLongPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var i = equalTrailingIdx;
         while (i < startIdx)
@@ -70,36 +72,32 @@ public static partial class Candles
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: long black candle
+         *   - second candle: white candle with open below previous day low and close equal to previous day low
+         * The meaning of "equal" is specified with CandleSettings
+         * outInteger is negative (-1 to -100): on-neck is always bearish
+         * the user should consider that on-neck is significant when it appears in a downtrend,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 1st: black
-                RealBody(inClose, inOpen, i - 1) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i - 1) && //      long
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.White && // 2nd: white
-                inOpen[i] < inLow[i - 1] && //   open below prior low
-                inClose[i] <= inLow[i - 1] +
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal,
-                    i - 1) && //   close equal to prior low
-                inClose[i] >= inLow[i - 1] -
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1)
-               )
-            {
-                outInteger[outIdx++] = -100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsOnNeckPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, equalPeriodTotal) ? -100 : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            equalPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
-                                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            equalPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+
             bodyLongPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 1)
-                - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - 1);
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - 1);
+
             i++;
             equalTrailingIdx++;
             bodyLongTrailingIdx++;
@@ -127,4 +125,27 @@ public static partial class Candles
         int endIdx,
         int[] outInteger) where T : IFloatingPointIeee754<T> =>
         OnNeck<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+
+    private static bool IsOnNeckPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyLongPeriodTotal,
+        T equalPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st: black
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        // long
+        RealBody(inClose, inOpen, i - 1) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 1) &&
+        // 2nd: white
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+        // open below prior low
+        inOpen[i] < inLow[i - 1] &&
+        // close equal to prior low
+        inClose[i] <= inLow[i - 1] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) &&
+        inClose[i] >= inLow[i - 1] -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1);
 }

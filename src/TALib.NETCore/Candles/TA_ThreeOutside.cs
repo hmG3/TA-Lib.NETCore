@@ -51,26 +51,24 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         var i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first: black (white) real body
+         *   - second: white (black) real body that engulfs the prior real body
+         *   - third: candle that closes higher (lower) than the second candle
+         * outInteger is positive (1 to 100) for the three outside up or negative (-1 to -100) for the three outside down;
+         * the user should consider that a three outside up must appear in a downtrend and three outside down must appear
+         * in an uptrend, while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
-                CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
-                inClose[i - 1] > inOpen[i - 2] && inOpen[i - 1] < inClose[i - 2] &&
-                inClose[i] > inClose[i - 1]
-                ||
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
-                CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
-                inOpen[i - 1] > inClose[i - 2] && inClose[i - 1] < inOpen[i - 2] &&
-                inClose[i] < inClose[i - 1])
-            {
-                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i - 1) * 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsThreeOutsidePattern(inOpen, inClose, i) ? (int) CandleColor(inClose, inOpen, i - 1) * 100 : 0;
 
             i++;
         } while (i <= endIdx);
@@ -82,6 +80,22 @@ public static partial class Candles
     }
 
     public static int ThreeOutsideLookback() => 3;
+
+    private static bool IsThreeOutsidePattern<T>(ReadOnlySpan<T> inOpen, ReadOnlySpan<T> inClose, int i)
+        where T : IFloatingPointIeee754<T> =>
+        // white engulfs black
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+        inClose[i - 1] > inOpen[i - 2] && inOpen[i - 1] < inClose[i - 2] &&
+        // third candle higher
+        inClose[i] > inClose[i - 1]
+        ||
+        // black engulfs white
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+        inOpen[i - 1] > inClose[i - 2] && inClose[i - 1] < inOpen[i - 2] &&
+        // third candle lower
+        inClose[i] < inClose[i - 1];
 
     /// <remarks>
     /// For compatibility with abstract API

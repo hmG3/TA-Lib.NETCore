@@ -51,9 +51,11 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyDojiPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyDojiPeriodTotal = T.Zero;
         var bodyDojiTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
-        T shadowLongPeriodTotal = T.Zero;
+        var shadowLongPeriodTotal = T.Zero;
         var shadowLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowLong);
         var i = bodyDojiTrailingIdx;
         while (i < startIdx)
@@ -69,32 +71,31 @@ public static partial class Candles
             i++;
         }
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - doji body
+         *   - one or two long shadows
+         * The meaning of "doji" is specified with CandleSettings
+         * outInteger is always positive (1 to 100) but this does not mean it is bullish: long-legged doji shows uncertainty
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i) <=
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) &&
-                (LowerShadow(inClose, inOpen, inLow, i) > CandleAverage(inOpen, inHigh, inLow, inClose,
-                     Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i)
-                 ||
-                 UpperShadow(inHigh, inClose, inOpen, i) > CandleAverage(inOpen, inHigh, inLow, inClose,
-                     Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i)))
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsLongLeggedDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowLongPeriodTotal)
+                ? 100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyDojiPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
-            shadowLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i) -
-                                     CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong,
-                                         shadowLongTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyDojiPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+
+            shadowLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongTrailingIdx);
+
             i++;
             bodyDojiTrailingIdx++;
             shadowLongTrailingIdx++;
@@ -108,6 +109,24 @@ public static partial class Candles
 
     public static int LongLeggedDojiLookback() =>
         Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyDoji), CandleAveragePeriod(Core.CandleSettingType.ShadowLong));
+
+    private static bool IsLongLeggedDojiPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyDojiPeriodTotal,
+        T shadowLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        RealBody(inClose, inOpen, i) <=
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) &&
+        (
+            LowerShadow(inClose, inOpen, inLow, i) >
+            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i)
+            ||
+            UpperShadow(inHigh, inClose, inOpen, i) >
+            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i)
+        );
 
     /// <remarks>
     /// For compatibility with abstract API

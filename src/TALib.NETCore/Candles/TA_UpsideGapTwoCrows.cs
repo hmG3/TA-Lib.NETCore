@@ -51,8 +51,10 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyLongPeriodTotal = T.Zero;
-        T bodyShortPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyLongPeriodTotal = T.Zero;
+        var bodyShortPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var bodyShortTrailingIdx = startIdx - 1 - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
         var i = bodyLongTrailingIdx;
@@ -73,34 +75,20 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White && // 1st: white
-                RealBody(inClose, inOpen, i - 2) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i - 2) && //      long
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 2nd: black
-                RealBody(inClose, inOpen, i - 1) <= CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
-                    bodyShortPeriodTotal, i - 1) && //      short
-                RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && //      gapping up
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // 3rd: black
-                inOpen[i] > inOpen[i - 1] && inClose[i] < inClose[i - 1] && // 3rd: engulfing prior rb
-                inClose[i] > inClose[i - 2] //      closing above 1st
-               )
-            {
-                outInteger[outIdx++] = -100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsUpsideGapTwoCrowsPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
+                ? -100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             bodyLongPeriodTotal +=
                 CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
                 CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+
             bodyShortPeriodTotal +=
                 CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i - 1) -
                 CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+
             i++;
             bodyLongTrailingIdx++;
             bodyShortTrailingIdx++;
@@ -114,6 +102,33 @@ public static partial class Candles
 
     public static int UpsideGapTwoCrowsLookback() =>
         Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyShort), CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 2;
+
+    private static bool IsUpsideGapTwoCrowsPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyLongPeriodTotal,
+        T bodyShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st: white
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+        // long
+        RealBody(inClose, inOpen, i - 2) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
+        // 2nd: black
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        // short
+        RealBody(inClose, inOpen, i - 1) <=
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortPeriodTotal, i - 1) &&
+        // gapping up
+        RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
+        // 3rd: black
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+        // 3rd: engulfing prior rb
+        inOpen[i] > inOpen[i - 1] && inClose[i] < inClose[i - 1] &&
+        // closing above 1st
+        inClose[i] > inClose[i - 2];
 
     /// <remarks>
     /// For compatibility with abstract API

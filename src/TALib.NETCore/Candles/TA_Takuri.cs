@@ -51,11 +51,13 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyDojiPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyDojiPeriodTotal = T.Zero;
         var bodyDojiTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
-        T shadowVeryShortPeriodTotal = T.Zero;
+        var shadowVeryShortPeriodTotal = T.Zero;
         var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
-        T shadowVeryLongPeriodTotal = T.Zero;
+        var shadowVeryLongPeriodTotal = T.Zero;
         var shadowVeryLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryLong);
         var i = bodyDojiTrailingIdx;
         while (i < startIdx)
@@ -78,35 +80,39 @@ public static partial class Candles
             i++;
         }
 
+        /* Proceed with the calculation for the requested range.
+         *
+         * Must have:
+         *   - doji body
+         *   - open and close at the high of the day = no or very short upper shadow
+         *   - very long lower shadow
+         * The meaning of "doji", "very short" and "very long" is specified with CandleSettings
+         * outInteger is always positive (1 to 100) but this does not mean it is bullish:
+         * takuri must be considered relatively to the trend
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i) <=
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) &&
-                UpperShadow(inHigh, inClose, inOpen, i) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i) &&
-                LowerShadow(inClose, inOpen, inLow, i) > CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryLongPeriodTotal, i)
-               )
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsTakuriPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowVeryShortPeriodTotal,
+                shadowVeryLongPeriodTotal)
+                ? 100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyDojiPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyDojiPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+
             shadowVeryShortPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i)
-                - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx);
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx);
+
             shadowVeryLongPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i)
-                - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, shadowVeryLongTrailingIdx);
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, shadowVeryLongTrailingIdx);
+
             i++;
             bodyDojiTrailingIdx++;
             shadowVeryShortTrailingIdx++;
@@ -123,6 +129,22 @@ public static partial class Candles
         Math.Max(
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyDoji), CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort)),
             CandleAveragePeriod(Core.CandleSettingType.ShadowVeryLong));
+
+    private static bool IsTakuriPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyDojiPeriodTotal,
+        T shadowVeryShortPeriodTotal,
+        T shadowVeryLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        RealBody(inClose, inOpen, i) <=
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) &&
+        UpperShadow(inHigh, inClose, inOpen, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i) &&
+        LowerShadow(inClose, inOpen, inLow, i) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryLongPeriodTotal, i);
 
     /// <remarks>
     /// For compatibility with abstract API

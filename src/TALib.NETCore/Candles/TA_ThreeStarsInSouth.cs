@@ -51,13 +51,15 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         Span<T> shadowVeryShortPeriodTotal = new T[2];
-        T bodyLongPeriodTotal = T.Zero;
+        var bodyLongPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
-        T shadowLongPeriodTotal = T.Zero;
+        var shadowLongPeriodTotal = T.Zero;
         var shadowLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowLong);
         var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
-        T bodyShortPeriodTotal = T.Zero;
+        var bodyShortPeriodTotal = T.Zero;
         var bodyShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
 
         var i = bodyLongTrailingIdx;
@@ -91,53 +93,48 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: long black candle with long lower shadow
+         *   - second candle: smaller black candle that opens higher than prior close but within prior candle's range
+         *     and trades lower than prior close but not lower than prior low and closes off of its low (it has a shadow)
+         *   - third candle: small black marubozu (or candle with very short shadows) engulfed by prior candle's range
+         * The meanings of "long body", "short body", "very short shadow" are specified with CandleSettings;
+         * outInteger is positive (1 to 100): 3 stars in the south is always bullish;
+         * the user should consider that 3 stars in the south is significant when it appears in downtrend,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
-                RealBody(inClose, inOpen, i - 2) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i - 2) &&
-                LowerShadow(inClose, inOpen, inLow, i - 2) > CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i - 2) &&
-                RealBody(inClose, inOpen, i - 1) < RealBody(inClose, inOpen, i - 2) &&
-                inOpen[i - 1] > inClose[i - 2] && inOpen[i - 1] <= inHigh[i - 2] &&
-                inLow[i - 1] < inClose[i - 2] &&
-                inLow[i - 1] >= inLow[i - 2] &&
-                LowerShadow(inClose, inOpen, inLow, i - 1) > CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
-                RealBody(inClose, inOpen, i) < CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
-                    bodyShortPeriodTotal, i) &&
-                LowerShadow(inClose, inOpen, inLow, i) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
-                UpperShadow(inHigh, inLow, inOpen, i) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
-                inLow[i] > inLow[i - 1] && inHigh[i] < inHigh[i - 1])
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsThreeStarsInSouthPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, shadowLongPeriodTotal,
+                shadowVeryShortPeriodTotal, bodyShortPeriodTotal)
+                ? 100
+                : 0;
 
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2)
-                                   - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                                       bodyLongTrailingIdx - 2);
-            shadowLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i - 2)
-                                     - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong,
-                                         shadowLongTrailingIdx - 2);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - 2);
+
+            shadowLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i - 2) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongTrailingIdx - 2);
+
             for (var totIdx = 1; totIdx >= 0; --totIdx)
             {
                 shadowVeryShortPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - totIdx)
-                    - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort,
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - totIdx) -
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort,
                         shadowVeryShortTrailingIdx - totIdx);
             }
 
-            bodyShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i)
-                                    - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+            bodyShortPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+
             i++;
             bodyLongTrailingIdx++;
             shadowLongTrailingIdx++;
@@ -156,6 +153,49 @@ public static partial class Candles
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort), CandleAveragePeriod(Core.CandleSettingType.ShadowLong)),
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyLong), CandleAveragePeriod(Core.CandleSettingType.BodyShort))
         ) + 2;
+
+    private static bool IsThreeStarsInSouthPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyLongPeriodTotal,
+        T shadowLongPeriodTotal,
+        Span<T> shadowVeryShortPeriodTotal,
+        T bodyShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st black
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+        // 2nd black
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        // 3rd black
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+        // 1st: long
+        RealBody(inClose, inOpen, i - 2) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
+        // with long lower shadow
+        LowerShadow(inClose, inOpen, inLow, i - 2) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i - 2) &&
+        // 2nd: smaller candle
+        RealBody(inClose, inOpen, i - 1) < RealBody(inClose, inOpen, i - 2) &&
+        // that opens higher but within 1st range
+        inOpen[i - 1] > inClose[i - 2] && inOpen[i - 1] <= inHigh[i - 2] &&
+        // and trades lower than 1st close
+        inLow[i - 1] < inClose[i - 2] &&
+        // but not lower than 1st low
+        inLow[i - 1] >= inLow[i - 2] &&
+        // and has a lower shadow
+        LowerShadow(inClose, inOpen, inLow, i - 1) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
+        // 3rd: small marubozu
+        RealBody(inClose, inOpen, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortPeriodTotal, i) &&
+        LowerShadow(inClose, inOpen, inLow, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
+        UpperShadow(inHigh, inLow, inOpen, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
+        // engulfed by prior candle's range
+        inLow[i] > inLow[i - 1] && inHigh[i] < inHigh[i - 1];
 
     /// <remarks>
     /// For compatibility with abstract API

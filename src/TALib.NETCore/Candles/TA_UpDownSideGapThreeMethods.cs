@@ -51,32 +51,30 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         var i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: white (black) candle
+         *   - second candle: white (black) candle
+         *   - upside (downside) gap between the first and the second real bodies
+         *   - third candle: black (white) candle that opens within the second real body and closes within the first real body
+         * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+         * the user should consider that up/downside gap 3 methods is significant when it appears in a trend,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 2) == CandleColor(inClose, inOpen, i - 1) && // 1st and 2nd of same color
-                (int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) && // 3rd opposite color
-                inOpen[i] < T.Max(inClose[i - 1], inOpen[i - 1]) && // 3rd opens within 2nd rb
-                inOpen[i] > T.Min(inClose[i - 1], inOpen[i - 1]) &&
-                inClose[i] < T.Max(inClose[i - 2], inOpen[i - 2]) && // 3rd closes within 1st rb
-                inClose[i] > T.Min(inClose[i - 2], inOpen[i - 2]) &&
-                (CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White && // when 1st is white
-                 RealBodyGapUp(inOpen, inClose, i - 1, i - 2) // upside gap
-                 ||
-                 CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && // when 1st is black
-                 RealBodyGapDown(inOpen, inClose, i - 1, i - 2))) // downside gap
-            {
-                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i - 2) * 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsUpDownSideGapThreeMethodsPattern(inOpen, inClose, i)
+                ? (int) CandleColor(inClose, inOpen, i - 2) * 100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             i++;
         } while (i <= endIdx);
 
@@ -87,6 +85,28 @@ public static partial class Candles
     }
 
     public static int UpDownSideGapThreeMethodsLookback() => 2;
+
+    private static bool IsUpDownSideGapThreeMethodsPattern<T>(ReadOnlySpan<T> inOpen, ReadOnlySpan<T> inClose, int i)
+        where T : IFloatingPointIeee754<T> =>
+        // 1st and 2nd of same color
+        CandleColor(inClose, inOpen, i - 2) == CandleColor(inClose, inOpen, i - 1) &&
+        // 3rd opposite color
+        (int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) &&
+        // 3rd opens within 2nd rb
+        inOpen[i] < T.Max(inClose[i - 1], inOpen[i - 1]) && inOpen[i] > T.Min(inClose[i - 1], inOpen[i - 1]) &&
+        // 3rd closes within 1st rb
+        inClose[i] < T.Max(inClose[i - 2], inOpen[i - 2]) && inClose[i] > T.Min(inClose[i - 2], inOpen[i - 2]) &&
+        (
+            // when 1st is white
+            CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+            // upside gap
+            RealBodyGapUp(inOpen, inClose, i - 1, i - 2)
+            ||
+            // when 1st is black
+            CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+            // downside gap
+            RealBodyGapDown(inOpen, inClose, i - 1, i - 2)
+        );
 
     /// <remarks>
     /// For compatibility with abstract API

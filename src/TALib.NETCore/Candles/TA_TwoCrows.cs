@@ -51,7 +51,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyLongPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyLongPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var i = bodyLongTrailingIdx;
         while (i < startIdx - 2)
@@ -62,27 +64,29 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: long white candle
+         *   - second candle: black real body
+         *   - gap between the first and the second candle's real bodies
+         *   - third candle: black candle that opens within the second real body and closes within the first real body
+         * The meaning of "long" is specified with CandleSettings
+         * outInteger is negative (-1 to -100): two crows is always bearish;
+         * it should be considered that two crows is significant when it appears in an uptrend,
+         * while the function does not consider the trend
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
-                RealBody(inClose, inOpen, i - 2) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i - 2) &&
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
-                RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
-                inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] &&
-                inClose[i] > inOpen[i - 2] && inClose[i] < inClose[i - 2])
-            {
-                outInteger[outIdx++] = -100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsTwoCrowsPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal) ? -100 : 0;
 
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+
             i++;
             bodyLongTrailingIdx++;
         } while (i <= endIdx);
@@ -94,6 +98,29 @@ public static partial class Candles
     }
 
     public static int TwoCrowsLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 2;
+
+    private static bool IsTwoCrowsPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st: white
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+        // long
+        RealBody(inClose, inOpen, i - 2) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
+        // 2nd: black
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        // gapping up
+        RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
+        // 3rd: black
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+        // opening within 2nd real body
+        inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] &&
+        // opening within 1st real body
+        inClose[i] > inOpen[i - 2] && inClose[i] < inClose[i - 2];
 
     /// <remarks>
     /// For compatibility with abstract API

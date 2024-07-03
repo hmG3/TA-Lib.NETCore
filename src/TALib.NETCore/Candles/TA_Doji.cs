@@ -51,7 +51,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyDojiPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyDojiPeriodTotal = T.Zero;
         var bodyDojiTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
         var i = bodyDojiTrailingIdx;
         while (i < startIdx)
@@ -60,24 +62,26 @@ public static partial class Candles
             i++;
         }
 
+        /* Proceed with the calculation for the requested range.
+         *
+         * Must have:
+         *   - open quite equal to close
+         * How much can be the maximum distance between open and close is specified with CandleSettings
+         * outInteger is always positive (1 to 100) but this does not mean it is bullish: doji shows uncertainty,
+         * and it is neither bullish nor bearish when considered alone
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i) <=
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i))
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal) ? 100 : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyDojiPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyDojiPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+
             i++;
             bodyDojiTrailingIdx++;
         } while (i <= endIdx);
@@ -89,6 +93,16 @@ public static partial class Candles
     }
 
     public static int DojiLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
+
+    private static bool IsDojiPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyDojiPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        RealBody(inClose, inOpen, i) <=
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i);
 
     /// <remarks>
     /// For compatibility with abstract API

@@ -51,7 +51,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T nearPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var nearPeriodTotal = T.Zero;
         var nearTrailingIdx = startIdx - 3 - CandleAveragePeriod(Core.CandleSettingType.Near);
         var i = nearTrailingIdx;
         while (i < startIdx - 3)
@@ -65,59 +67,55 @@ public static partial class Candles
         i = startIdx - 3;
         while (i < startIdx)
         {
-            if (inHigh[i - 2] < inHigh[i - 3] && inLow[i - 2] > inLow[i - 3] && // 2nd: lower high and higher low than 1st
-                inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 3rd: lower high and higher low than 2nd
-                (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] && // (bull) 4th: lower high and lower low
-                 inClose[i - 2] <= inLow[i - 2] +
-                 CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
-                 ||
-                 inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] && // (bear) 4th: higher high and higher low
-                 inClose[i - 2] >= inHigh[i - 2] -
-                 CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)))
+            if (IsHikkakeModifiedPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal))
             {
                 patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                 patternIdx = i;
             }
-            else
-                /* search for confirmation if modified hikkake was no more than 3 bars ago */
-            if (i <= patternIdx + 3 &&
-                (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] // close higher than the high of 3rd
-                 ||
-                 patternResult < 0 && inClose[i] < inLow[patternIdx - 1])) // close lower than the low of 3rd
+            // search for confirmation if modified hikkake was no more than 3 bars ago
+            else if (IsHikkakeModifiedPatternConfirmation(inHigh, inLow, inClose, i, patternIdx, patternResult))
             {
                 patternIdx = 0;
             }
 
-            nearPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
-                               CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
+            nearPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
+
             nearTrailingIdx++;
             i++;
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle
+         *   - second candle: candle with range less than first candle and close near the bottom (near the top)
+         *   - third candle: lower high and higher low than 2nd
+         *   - fourth candle: lower high and lower low (higher high and higher low) than 3rd
+         * outInteger[hikkake bar] is positive (1 to 100) or negative (-1 to -100) meaning bullish or bearish hikkake
+         * Confirmation could come in the next 3 days with:
+         *   - a day that closes higher than the high (lower than the low) of the 3rd candle
+         * outInteger[confirmationbar] is equal to 100 + the bullish hikkake result or -100 - the bearish hikkake result
+         * Note: if confirmation and a new hikkake come at the same bar, only the new hikkake is reported (the new hikkake
+         * overwrites the confirmation of the old hikkake);
+         * the user should consider that modified hikkake is a reversal pattern, while hikkake could be both a reversal
+         * or a continuation pattern, so bullish (bearish) modified hikkake is significant when appearing in a downtrend
+         * (uptrend)
+         */
+
         int outIdx = default;
         do
         {
-            if (inHigh[i - 2] < inHigh[i - 3] && inLow[i - 2] > inLow[i - 3] && // 2nd: lower high and higher low than 1st
-                inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 3rd: lower high and higher low than 2nd
-                (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] && // (bull) 4th: lower high and lower low
-                 inClose[i - 2] <= inLow[i - 2] +
-                 CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
-                 ||
-                 inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] && // (bear) 4th: higher high and higher low
-                 inClose[i - 2] >= inHigh[i - 2] -
-                 CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)))
+            if (IsHikkakeModifiedPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal))
             {
                 patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                 patternIdx = i;
                 outInteger[outIdx++] = patternResult;
             }
-            else
-                /* search for confirmation if modified hikkake was no more than 3 bars ago */
-            if (i <= patternIdx + 3 &&
-                (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] // close higher than the high of 3rd
-                 ||
-                 patternResult < 0 && inClose[i] < inLow[patternIdx - 1])) // close lower than the low of 3rd
+            // search for confirmation if modified hikkake was no more than 3 bars ago
+            else if (IsHikkakeModifiedPatternConfirmation(inHigh, inLow, inClose, i, patternIdx, patternResult))
             {
                 outInteger[outIdx++] = patternResult + 100 * (patternResult > 0 ? 1 : -1);
                 patternIdx = 0;
@@ -127,8 +125,10 @@ public static partial class Candles
                 outInteger[outIdx++] = 0;
             }
 
-            nearPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
-                               CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
+            nearPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
+
             nearTrailingIdx++;
             i++;
         } while (i <= endIdx);
@@ -140,6 +140,45 @@ public static partial class Candles
     }
 
     public static int HikkakeModifiedLookback() => Math.Max(1, CandleAveragePeriod(Core.CandleSettingType.Near)) + 5;
+
+    private static bool IsHikkakeModifiedPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T nearPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 2nd: lower high and higher low than 1st
+        inHigh[i - 2] < inHigh[i - 3] && inLow[i - 2] > inLow[i - 3] &&
+        // 3rd: lower high and higher low than 2nd
+        inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] &&
+        (
+            // (bull) 4th: lower high and lower low
+            inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] &&
+            inClose[i - 2] <= inLow[i - 2] +
+            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
+            ||
+            // (bear) 4th: higher high and higher low
+            inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] &&
+            inClose[i - 2] >= inHigh[i - 2] -
+            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
+        );
+
+    private static bool IsHikkakeModifiedPatternConfirmation<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        int patternIdx,
+        int patternResult) where T : IFloatingPointIeee754<T> =>
+        i <= patternIdx + 3 &&
+        (
+            // close higher than the high of 3rd
+            patternResult > 0 && inClose[i] > inHigh[patternIdx - 1]
+            ||
+            // close lower than the low of 3rd
+            patternResult < 0 && inClose[i] < inLow[patternIdx - 1]
+        );
 
     /// <remarks>
     /// For compatibility with abstract API

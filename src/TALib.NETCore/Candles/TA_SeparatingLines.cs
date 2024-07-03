@@ -51,11 +51,13 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T shadowVeryShortPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var shadowVeryShortPeriodTotal = T.Zero;
         var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
-        T bodyLongPeriodTotal = T.Zero;
+        var bodyLongPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
-        T equalPeriodTotal = T.Zero;
+        var equalPeriodTotal = T.Zero;
         var equalTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Equal);
         var i = shadowVeryShortTrailingIdx;
         while (i < startIdx)
@@ -79,44 +81,40 @@ public static partial class Candles
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: black (white) candle
+         *   - second candle: bullish (bearish) belt hold with the same open as the prior candle
+         * The meaning of "long body" and "very short shadow" of the belt hold is specified with CandleSettings
+         * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+         * the user should consider that separating lines is significant when coming in a trend and the belt hold has
+         * the same direction of the trend, while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if ((int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) && // opposite candles
-                inOpen[i] <= inOpen[i - 1] +
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) && // same open
-                inOpen[i] >= inOpen[i - 1] -
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) &&
-                RealBody(inClose, inOpen, i) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i) && // belt hold: long body
-                (
-                    CandleColor(inClose, inOpen, i) == Core.CandleColor.White && // with no lower shadow if bullish
-                    LowerShadow(inClose, inOpen, inLow, i) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                        Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i)
-                    ||
-                    CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // with no upper shadow if bearish
-                    UpperShadow(inHigh, inClose, inOpen, i) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                        Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i)
-                )
-               )
-            {
-                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i) * 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] =
+                IsSeparatingLinesPattern(inOpen, inHigh, inLow, inClose, i, equalPeriodTotal, bodyLongPeriodTotal,
+                    shadowVeryShortPeriodTotal)
+                    ? (int) CandleColor(inClose, inOpen, i) * 100
+                    : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             shadowVeryShortPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i)
-                - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx);
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
-            equalPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
-                                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx);
+
+            bodyLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+
+            equalPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+
             i++;
             shadowVeryShortTrailingIdx++;
             bodyLongTrailingIdx++;
@@ -134,6 +132,37 @@ public static partial class Candles
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort), CandleAveragePeriod(Core.CandleSettingType.BodyLong)),
             CandleAveragePeriod(Core.CandleSettingType.Equal)
         ) + 1;
+
+    private static bool IsSeparatingLinesPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T equalPeriodTotal,
+        T bodyLongPeriodTotal,
+        T shadowVeryShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // opposite candles
+        (int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) &&
+        // same open
+        inOpen[i] <= inOpen[i - 1] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) &&
+        inOpen[i] >= inOpen[i - 1] -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) &&
+        // belt hold: long body
+        RealBody(inClose, inOpen, i) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i) &&
+        (
+            // with no lower shadow if bullish
+            CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+            LowerShadow(inClose, inOpen, inLow, i) <
+            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i)
+            ||
+            // with no upper shadow if bearish
+            CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+            UpperShadow(inHigh, inClose, inOpen, i) <
+            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i)
+        );
 
     /// <remarks>
     /// For compatibility with abstract API

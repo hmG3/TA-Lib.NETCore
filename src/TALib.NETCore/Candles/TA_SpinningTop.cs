@@ -51,7 +51,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyPeriodTotal = T.Zero;
         var bodyTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
         var i = bodyTrailingIdx;
         while (i < startIdx)
@@ -60,27 +62,28 @@ public static partial class Candles
             i++;
         }
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - small real body
+         *   - shadows longer than the real body
+         * The meaning of "short" is specified with CandleSettings
+         * outInteger is positive (1 to 100) when white or negative (-1 to -100) when black;
+         * it does not mean bullish or bearish
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i) <
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
-                UpperShadow(inHigh, inClose, inOpen, i) > RealBody(inClose, inOpen, i) &&
-                LowerShadow(inClose, inOpen, inLow, i) > RealBody(inClose, inOpen, i)
-               )
-            {
-                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i) * 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsSpinningTopPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal)
+                ? (int) CandleColor(inClose, inOpen, i) * 100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
-                               CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyTrailingIdx);
+
             i++;
             bodyTrailingIdx++;
         } while (i <= endIdx);
@@ -92,6 +95,18 @@ public static partial class Candles
     }
 
     public static int SpinningTopLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyShort);
+
+    private static bool IsSpinningTopPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        RealBody(inClose, inOpen, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
+        UpperShadow(inHigh, inClose, inOpen, i) > RealBody(inClose, inOpen, i) &&
+        LowerShadow(inClose, inOpen, inLow, i) > RealBody(inClose, inOpen, i);
 
     /// <remarks>
     /// For compatibility with abstract API

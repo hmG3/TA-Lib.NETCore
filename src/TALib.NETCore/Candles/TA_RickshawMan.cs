@@ -51,11 +51,13 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyDojiPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyDojiPeriodTotal = T.Zero;
         var bodyDojiTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
-        T shadowLongPeriodTotal = T.Zero;
+        var shadowLongPeriodTotal = T.Zero;
         var shadowLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowLong);
-        T nearPeriodTotal = T.Zero;
+        var nearPeriodTotal = T.Zero;
         var nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
         var i = bodyDojiTrailingIdx;
         while (i < startIdx)
@@ -78,44 +80,42 @@ public static partial class Candles
             i++;
         }
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - doji body
+         *   - two long shadows
+         *   - body near the midpoint of the high-low range
+         * The meaning of "doji" and "near" is specified with CandleSettings
+         * outInteger is always positive (1 to 100) but this does not mean it is bullish: rickshaw man shows uncertainty
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i) <=
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) && // doji
-                LowerShadow(inClose, inOpen, inLow, i) > CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && // long shadow
-                UpperShadow(inHigh, inClose, inOpen, i) > CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && T.Min(inOpen[i], inClose[i]) <= inLow[i] +
-                HighLowRange(inHigh, inLow, i) / T.CreateChecked(2) + CandleAverage(inOpen,
-                    inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i) && T.Max(inOpen[i], inClose[i]) >= inLow[i] +
-                HighLowRange(inHigh, inLow, i) / T.CreateChecked(2) - CandleAverage(inOpen,
-                    inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i))
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] =
+                IsRickshawManPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowLongPeriodTotal, nearPeriodTotal)
+                    ? 100
+                    : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyDojiPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyDojiPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+
             shadowLongPeriodTotal +=
                 CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i) -
                 CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongTrailingIdx);
-            nearPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i) -
-                               CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx);
+
+            nearPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx);
 
             i++;
             bodyDojiTrailingIdx++;
             shadowLongTrailingIdx++;
             nearTrailingIdx++;
         } while (i <= endIdx);
-
 
         outBegIdx = startIdx;
         outNbElement = outIdx;
@@ -127,6 +127,29 @@ public static partial class Candles
         Math.Max(
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyDoji), CandleAveragePeriod(Core.CandleSettingType.ShadowLong)),
             CandleAveragePeriod(Core.CandleSettingType.Near));
+
+    private static bool IsRickshawManPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyDojiPeriodTotal,
+        T shadowLongPeriodTotal,
+        T nearPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // doji
+        RealBody(inClose, inOpen, i) <=
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) &&
+        // long shadow
+        LowerShadow(inClose, inOpen, inLow, i) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) &&
+        UpperShadow(inHigh, inClose, inOpen, i) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) &&
+        // body near midpoint
+        T.Min(inOpen[i], inClose[i]) <= inLow[i] + HighLowRange(inHigh, inLow, i) / T.CreateChecked(2) +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i) &&
+        T.Max(inOpen[i], inClose[i]) >= inLow[i] + HighLowRange(inHigh, inLow, i) / T.CreateChecked(2) -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i);
 
     /// <remarks>
     /// For compatibility with abstract API

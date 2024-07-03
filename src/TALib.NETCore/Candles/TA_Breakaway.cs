@@ -51,7 +51,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyLongPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyLongPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var i = bodyLongTrailingIdx;
         while (i < startIdx)
@@ -62,40 +64,32 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: long black (white)
+         *   - second candle: black (white) day whose body gaps down (up)
+         *   - third candle: black or white day with lower (higher) high and lower (higher) low than prior candle's
+         *   - fourth candle: black (white) day with lower (higher) high and lower (higher) low than prior candle's
+         *   - fifth candle: white (black) day that closes inside the gap, erasing the prior 3 days
+         * The meaning of "long" is specified with CandleSettings
+         * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+         * the user should consider that breakaway is significant in a trend opposite to the last candle,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i - 4) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i - 4) && // 1st long
-                CandleColor(inClose, inOpen, i - 4) ==
-                CandleColor(inClose, inOpen, i - 3) && // 1st, 2nd, 4th same color, 5th opposite
-                CandleColor(inClose, inOpen, i - 3) == CandleColor(inClose, inOpen, i - 1) &&
-                (int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) &&
-                (CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.Black && // when 1st is black:
-                 RealBodyGapDown(inOpen, inClose, i - 3, i - 4) && // 2nd gaps down
-                 inHigh[i - 2] < inHigh[i - 3] && inLow[i - 2] < inLow[i - 3] && // 3rd has lower high and low than 2nd
-                 inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] < inLow[i - 2] && // 4th has lower high and low than 3rd
-                 inClose[i] > inOpen[i - 3] && inClose[i] < inClose[i - 4] // 5th closes inside the gap
-                 ||
-                 CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.White && // when 1st is white:
-                 RealBodyGapUp(inClose, inOpen, i - 3, i - 4) && // 2nd gaps up
-                 inHigh[i - 2] > inHigh[i - 3] && inLow[i - 2] > inLow[i - 3] && // 3rd has higher high and low than 2nd
-                 inHigh[i - 1] > inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && // 4th has higher high and low than 3rd
-                 inClose[i] < inOpen[i - 3] && inClose[i] > inClose[i - 4])) // 5th closes inside the gap
-            {
-                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i) * 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsBreakawayPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal)
+                ? (int) CandleColor(inClose, inOpen, i) * 100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 4)
-                                   - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                                       bodyLongTrailingIdx - 4);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 4) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - 4);
+
             i++;
             bodyLongTrailingIdx++;
         } while (i <= endIdx);
@@ -107,6 +101,44 @@ public static partial class Candles
     }
 
     public static int BreakawayLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 4;
+
+    private static bool IsBreakawayPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st long
+        RealBody(inClose, inOpen, i - 4) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 4) &&
+        // 1st, 2nd, 4th same color, 5th opposite
+        CandleColor(inClose, inOpen, i - 4) == CandleColor(inClose, inOpen, i - 3) &&
+        CandleColor(inClose, inOpen, i - 3) == CandleColor(inClose, inOpen, i - 1) &&
+        (int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) &&
+        (
+            // when 1st is black:
+            CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.Black &&
+            // 2nd gaps down
+            RealBodyGapDown(inOpen, inClose, i - 3, i - 4) &&
+            // 3rd has lower high and low than 2nd
+            inHigh[i - 2] < inHigh[i - 3] && inLow[i - 2] < inLow[i - 3] &&
+            // 4th has lower high and low than 3rd
+            inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] < inLow[i - 2] &&
+            // 5th closes inside the gap
+            inClose[i] > inOpen[i - 3] && inClose[i] < inClose[i - 4]
+            ||
+            // when 1st is white:
+            CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.White &&
+            // 2nd gaps up
+            RealBodyGapUp(inClose, inOpen, i - 3, i - 4) &&
+            // 3rd has higher high and low than 2nd
+            inHigh[i - 2] > inHigh[i - 3] && inLow[i - 2] > inLow[i - 3] &&
+            // 4th has higher high and low than 3rd
+            inHigh[i - 1] > inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] &&
+            // 5th closes inside the gap
+            inClose[i] < inOpen[i - 3] && inClose[i] > inClose[i - 4]
+        );
 
     /// <remarks>
     /// For compatibility with abstract API

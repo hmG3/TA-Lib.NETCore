@@ -51,13 +51,15 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyPeriodTotal = T.Zero;
         var bodyTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
-        T shadowLongPeriodTotal = T.Zero;
+        var shadowLongPeriodTotal = T.Zero;
         var shadowLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowLong);
-        T shadowVeryShortPeriodTotal = T.Zero;
+        var shadowVeryShortPeriodTotal = T.Zero;
         var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
-        T nearPeriodTotal = T.Zero;
+        var nearPeriodTotal = T.Zero;
         var nearTrailingIdx = startIdx - 1 - CandleAveragePeriod(Core.CandleSettingType.Near);
         var i = bodyTrailingIdx;
         while (i < startIdx)
@@ -89,40 +91,43 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - small real body
+         *   - long lower shadow
+         *   - no, or very short, upper shadow
+         *   - body below or near the lows of the previous candle
+         * The meaning of "short", "long" and "near the lows" is specified with CandleSettings;
+         * outInteger is positive (1 to 100): hammer is always bullish;
+         * the user should consider that a hammer must appear in a downtrend, while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBody(inClose, inOpen, i) <
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyPeriodTotal, i) && // small rb
-                LowerShadow(inClose, inOpen, inLow, i) > CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) && // long lower shadow
-                UpperShadow(inHigh, inClose, inOpen, i) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i) && // very short upper shadow
-                T.Min(inClose[i], inOpen[i]) <= inLow[i - 1] +
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal,
-                    i - 1) // rb near the prior candle's lows
-               )
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsHammerPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowLongPeriodTotal,
+                shadowVeryShortPeriodTotal, nearPeriodTotal)
+                ? 100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i)
-                               - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyTrailingIdx);
+
             shadowLongPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i)
-                - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongTrailingIdx);
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongTrailingIdx);
+
             shadowVeryShortPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i)
-                - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx);
-            nearPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1)
-                               - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx);
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx);
+
+            nearPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx);
+
             i++;
             bodyTrailingIdx++;
             shadowLongTrailingIdx++;
@@ -143,6 +148,29 @@ public static partial class Candles
                 CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort)),
             CandleAveragePeriod(Core.CandleSettingType.Near)
         ) + 1;
+
+    private static bool IsHammerPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyPeriodTotal,
+        T shadowLongPeriodTotal,
+        T shadowVeryShortPeriodTotal,
+        T nearPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // small real body
+        RealBody(inClose, inOpen, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
+        // long lower shadow
+        LowerShadow(inClose, inOpen, inLow, i) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i) &&
+        // very short upper shadow
+        UpperShadow(inHigh, inClose, inOpen, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i) &&
+        // real body near the prior candle's lows
+        T.Min(inClose[i], inOpen[i]) <= inLow[i - 1] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1);
 
     /// <remarks>
     /// For compatibility with abstract API

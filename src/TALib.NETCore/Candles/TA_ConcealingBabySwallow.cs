@@ -51,6 +51,8 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         Span<T> shadowVeryShortPeriodTotal = new T[4];
         var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
         var i = shadowVeryShortTrailingIdx;
@@ -64,47 +66,30 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: black marubozu (very short shadows)
+         *   - second candle: black marubozu (very short shadows)
+         *   - third candle: black candle that opens gapping down but has an upper shadow that extends into the prior body
+         *   - fourth candle: black candle that completely engulfs the third candle, including the shadows
+         * The meanings of "very short shadow" are specified with CandleSettings;
+         * outInteger is positive (1 to 100): concealing baby swallow is always bullish;
+         * the user should consider that concealing baby swallow is significant when it appears in downtrend,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black && // 1st black
-                CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && // 2nd black
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 3rd black
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // 4th black
-                // 1st: marubozu
-                LowerShadow(inClose, inOpen, inLow, i - 3) < CandleAverage(inOpen, inHigh, inLow, inOpen,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[3], i - 3) &&
-                UpperShadow(inHigh, inClose, inOpen, i - 3) < CandleAverage(inOpen, inHigh, inLow, inOpen,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[3], i - 3) &&
-                // 2nd: marubozu
-                LowerShadow(inClose, inOpen, inLow, i - 2) < CandleAverage(inOpen, inHigh, inLow, inOpen,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
-                UpperShadow(inHigh, inClose, inOpen, i - 2) < CandleAverage(inOpen, inHigh, inLow, inOpen,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
-                RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && // 3rd: opens gapping down
-                //      and HAS an upper shadow
-                UpperShadow(inHigh, inClose, inOpen, i - 1) > CandleAverage(inOpen, inHigh, inLow, inOpen,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
-                inHigh[i - 1] > inClose[i - 2] && //      that extends into the prior body
-                inHigh[i] > inHigh[i - 1] && inLow[i] < inLow[i - 1] // 4th: engulfs the 3rd including the shadows
-               )
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsConcealingBabySwallowPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal) ? 100 : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             for (var totIdx = 3; totIdx >= 1; --totIdx)
             {
                 shadowVeryShortPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, i - totIdx)
-                    - CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort,
-                        shadowVeryShortTrailingIdx - totIdx);
+                    CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, i - totIdx) -
+                    CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx - totIdx);
             }
 
             i++;
@@ -118,6 +103,41 @@ public static partial class Candles
     }
 
     public static int ConcealingBabySwallowLookback() => CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 3;
+
+    private static bool IsConcealingBabySwallowPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        Span<T> shadowVeryShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st black
+        CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black &&
+        // 2nd black
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+        // 3rd black
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        // 4th black
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+        // 1st: marubozu
+        LowerShadow(inClose, inOpen, inLow, i - 3) <
+        CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[3], i - 3) &&
+        UpperShadow(inHigh, inClose, inOpen, i - 3) <
+        CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[3], i - 3) &&
+        // 2nd: marubozu
+        LowerShadow(inClose, inOpen, inLow, i - 2) <
+        CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
+        UpperShadow(inHigh, inClose, inOpen, i - 2) <
+        CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
+        // 3rd: opens gapping down
+        RealBodyGapDown(inOpen, inClose, i - 1, i - 2) &&
+        // and has an upper shadow
+        UpperShadow(inHigh, inClose, inOpen, i - 1) >
+        CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
+        // that extends into the prior body
+        inHigh[i - 1] > inClose[i - 2] &&
+        // 4th: engulfs the 3rd including the shadows
+        inHigh[i] > inHigh[i - 1] && inLow[i] < inLow[i - 1];
 
     /// <remarks>
     /// For compatibility with abstract API

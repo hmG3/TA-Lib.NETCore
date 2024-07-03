@@ -51,13 +51,15 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         Span<T> shadowVeryShortPeriodTotal = new T[3];
         var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
         Span<T> nearPeriodTotal = new T[3];
         var nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
         Span<T> farPeriodTotal = new T[3];
         var farTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Far);
-        T bodyShortPeriodTotal = T.Zero;
+        var bodyShortPeriodTotal = T.Zero;
         var bodyShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
 
         var i = shadowVeryShortTrailingIdx;
@@ -94,59 +96,53 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - three white candlesticks with consecutively higher closes
+         *   - Greg Morris wants them to be long, Steve Nison doesn't; anyway they should not be short
+         *   - each candle opens within or near the previous white real body
+         *   - each candle must have no or very short upper shadow
+         *   - to differentiate this pattern from advance block, each candle must not be far shorter than the prior candle
+         * The meanings of "not short", "very short shadow", "far" and "near" are specified with CandleSettings;
+         * here the 3 candles must be not short, if you want them to be long use CandleSettings on BodyShort;
+         * outInteger is positive (1 to 100): advancing 3 white soldiers is always bullish;
+         * the user should consider that 3 white soldiers is significant when it appears in downtrend,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
-                UpperShadow(inHigh, inClose, inOpen, i - 2) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
-                UpperShadow(inHigh, inClose, inOpen, i - 1) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
-                UpperShadow(inHigh, inClose, inOpen, i) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
-                inClose[i] > inClose[i - 1] && inClose[i - 1] > inClose[i - 2] &&
-                inOpen[i - 1] > inOpen[i - 2] &&
-                inOpen[i - 1] <= inClose[i - 2] + CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near,
-                    nearPeriodTotal[2], i - 2) &&
-                inOpen[i] > inOpen[i - 1] &&
-                inOpen[i] <= inClose[i - 1] +
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[1], i - 1) &&
-                RealBody(inClose, inOpen, i - 1) > RealBody(inClose, inOpen, i - 2) - CandleAverage(inOpen, inHigh,
-                    inLow, inClose, Core.CandleSettingType.Far, farPeriodTotal[2], i - 2) &&
-                RealBody(inClose, inOpen, i) > RealBody(inClose, inOpen, i - 1) - CandleAverage(inOpen, inHigh, inLow,
-                    inClose, Core.CandleSettingType.Far, farPeriodTotal[1], i - 1) &&
-                RealBody(inClose, inOpen, i) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
-                    bodyShortPeriodTotal, i))
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsThreeWhiteSoldiersPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal,
+                nearPeriodTotal, farPeriodTotal, bodyShortPeriodTotal)
+                ? 100
+                : 0;
 
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             for (var totIdx = 2; totIdx >= 0; --totIdx)
             {
                 shadowVeryShortPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - totIdx)
-                    - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort,
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - totIdx) -
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort,
                         shadowVeryShortTrailingIdx - totIdx);
             }
 
             for (var totIdx = 2; totIdx >= 1; --totIdx)
             {
-                farPeriodTotal[totIdx] += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Far, i - totIdx)
-                                          - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Far,
-                                              farTrailingIdx - totIdx);
-                nearPeriodTotal[totIdx] += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - totIdx)
-                                           - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near,
-                                               nearTrailingIdx - totIdx);
+                farPeriodTotal[totIdx] +=
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Far, i - totIdx) -
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Far, farTrailingIdx - totIdx);
+
+                nearPeriodTotal[totIdx] +=
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - totIdx) -
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - totIdx);
             }
 
-            bodyShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
-                                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+            bodyShortPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+
             i++;
             shadowVeryShortTrailingIdx++;
             nearTrailingIdx++;
@@ -165,6 +161,49 @@ public static partial class Candles
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort), CandleAveragePeriod(Core.CandleSettingType.BodyShort)),
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.Far), CandleAveragePeriod(Core.CandleSettingType.Near))
         ) + 2;
+
+    private static bool IsThreeWhiteSoldiersPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        Span<T> shadowVeryShortPeriodTotal,
+        Span<T> nearPeriodTotal,
+        Span<T> farPeriodTotal,
+        T bodyShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st white
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+        // very short upper shadow
+        UpperShadow(inHigh, inClose, inOpen, i - 2) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
+        // 2nd white
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+        // very short upper shadow
+        UpperShadow(inHigh, inClose, inOpen, i - 1) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
+        // 3rd white
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+        // very short upper shadow
+        UpperShadow(inHigh, inClose, inOpen, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
+        // consecutive higher closes
+        inClose[i] > inClose[i - 1] && inClose[i - 1] > inClose[i - 2] &&
+        // 2nd opens within/near 1st real body
+        inOpen[i - 1] > inOpen[i - 2] && inOpen[i - 1] <= inClose[i - 2] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[2], i - 2) &&
+        // 3rd opens within/near 2nd real body
+        inOpen[i] > inOpen[i - 1] && inOpen[i] <= inClose[i - 1] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[1], i - 1) &&
+        // 2nd not far shorter than 1st
+        RealBody(inClose, inOpen, i - 1) > RealBody(inClose, inOpen, i - 2) -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Far, farPeriodTotal[2], i - 2) &&
+        // 3rd not far shorter than 2nd
+        RealBody(inClose, inOpen, i) > RealBody(inClose, inOpen, i - 1) -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Far, farPeriodTotal[1], i - 1) &&
+        // not short real body
+        RealBody(inClose, inOpen, i) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortPeriodTotal, i);
 
     /// <remarks>
     /// For compatibility with abstract API

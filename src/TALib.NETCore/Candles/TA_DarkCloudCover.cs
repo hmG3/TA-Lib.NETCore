@@ -57,7 +57,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyLongPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyLongPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var i = bodyLongTrailingIdx;
         while (i < startIdx)
@@ -68,30 +70,31 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: long white candle
+         *   - second candle: black candle that opens above previous day high and closes within previous day real body;
+         * Greg Morris wants the close to be below the midpoint of the previous real body
+         * The meaning of "long" is specified with CandleSettings,
+         * the penetration of the first real body is specified with optInPenetration
+         * outInteger is negative (-1 to -100): dark cloud cover is always bearish
+         * the user should consider that a dark cloud cover is significant when it appears in an uptrend,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White && // 1st: white
-                RealBody(inClose, inOpen, i - 1) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i - 1) && //      long
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // 2nd: black
-                inOpen[i] > inHigh[i - 1] && //      open above prior high
-                inClose[i] > inOpen[i - 1] && //      close within prior body
-                inClose[i] < inClose[i - 1] - RealBody(inClose, inOpen, i - 1) * T.CreateChecked(optInPenetration)
-               )
-            {
-                outInteger[outIdx++] = -100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsDarkCloudCoverPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal)
+                ? -100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 1) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - 1);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - 1);
+
             i++;
             bodyLongTrailingIdx++;
         } while (i <= endIdx);
@@ -103,6 +106,27 @@ public static partial class Candles
     }
 
     public static int DarkCloudCoverLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 1;
+
+    private static bool IsDarkCloudCoverPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        double optInPenetration,
+        int i,
+        T bodyLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st: white
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+        // long
+        RealBody(inClose, inOpen, i - 1) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 1) &&
+        // 2nd: black
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+        // open above prior high
+        inOpen[i] > inHigh[i - 1] &&
+        // close within prior body
+        inClose[i] > inOpen[i - 1] &&
+        inClose[i] < inClose[i - 1] - RealBody(inClose, inOpen, i - 1) * T.CreateChecked(optInPenetration);
 
     /// <remarks>
     /// For compatibility with abstract API

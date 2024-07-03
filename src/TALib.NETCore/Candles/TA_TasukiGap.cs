@@ -51,7 +51,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T nearPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var nearPeriodTotal = T.Zero;
         var nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
         var i = nearTrailingIdx;
         while (i < startIdx)
@@ -61,41 +63,33 @@ public static partial class Candles
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - upside (downside) gap
+         *   - first candle after the window: white (black) candlestick
+         *   - second candle: black (white) candlestick that opens within the previous real body and closes under (above)
+         *     the previous real body inside the gap
+         *   - the size of two real bodies should be near the same
+         * The meaning of "near" is specified with CandleSettings
+         * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+         * the user should consider that tasuki gap is significant when it appears in a trend,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && // upside gap
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White && // 1st: white
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // 2nd: black
-                inOpen[i] < inClose[i - 1] && inOpen[i] > inOpen[i - 1] && //      that opens within the white rb
-                inClose[i] < inOpen[i - 1] && //      and closes under the white rb
-                inClose[i] > T.Max(inClose[i - 2], inOpen[i - 2]) && //      inside the gap
-                // size of 2 rb near the same
-                T.Abs(RealBody(inClose, inOpen, i - 1) - RealBody(inClose, inOpen, i)) <
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
-                ||
-                RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && // downside gap
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 1st: black
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.White && // 2nd: white
-                inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] && //      that opens within the black rb
-                inClose[i] > inOpen[i - 1] && //      and closes above the black rb
-                inClose[i] < T.Min(inClose[i - 2], inOpen[i - 2]) && //      inside the gap
-                // size of 2 rb near the same
-                T.Abs(RealBody(inClose, inOpen, i - 1) - RealBody(inClose, inOpen, i)) <
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1))
-            {
-                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i - 1) * 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsTasukiGapPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal)
+                ? (int) CandleColor(inClose, inOpen, i - 1) * 100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            nearPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
-                               CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            nearPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
+
             i++;
             nearTrailingIdx++;
         } while (i <= endIdx);
@@ -107,6 +101,49 @@ public static partial class Candles
     }
 
     public static int TasukiGapLookback() => CandleAveragePeriod(Core.CandleSettingType.Near) + 2;
+
+    private static bool IsTasukiGapPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T nearPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // upside gap
+        (
+            RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
+            // 1st: white
+            CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+            // 2nd: black
+            CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+            // that opens within the white real body
+            inOpen[i] < inClose[i - 1] && inOpen[i] > inOpen[i - 1] &&
+            // and closes under the white real body
+            inClose[i] < inOpen[i - 1] &&
+            //      inside the gap
+            inClose[i] > T.Max(inClose[i - 2], inOpen[i - 2]) &&
+            // size of 2 real body near the same
+            T.Abs(RealBody(inClose, inOpen, i - 1) - RealBody(inClose, inOpen, i)) <
+            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
+        )
+        ||
+        (
+            // downside gap
+            RealBodyGapDown(inOpen, inClose, i - 1, i - 2) &&
+            // 1st: black
+            CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+            // 2nd: white
+            CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+            // that opens within the black rb
+            inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] &&
+            // and closes above the black rb
+            inClose[i] > inOpen[i - 1] &&
+            // inside the gap
+            inClose[i] < T.Min(inClose[i - 2], inOpen[i - 2]) &&
+            // size of 2 real body near the same
+            T.Abs(RealBody(inClose, inOpen, i - 1) - RealBody(inClose, inOpen, i)) <
+            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
+        );
 
     /// <remarks>
     /// For compatibility with abstract API

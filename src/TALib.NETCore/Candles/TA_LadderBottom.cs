@@ -51,7 +51,9 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T shadowVeryShortPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var shadowVeryShortPeriodTotal = T.Zero;
         var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
         var i = shadowVeryShortTrailingIdx;
         while (i < startIdx)
@@ -61,34 +63,29 @@ public static partial class Candles
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - three black candlesticks with consecutively lower opens and closes
+         *   - fourth candle: black candle with an upper shadow (it's supposed to be not very short)
+         *   - fifth candle: white candle that opens above prior candle's body and closes above prior candle's high
+         * The meaning of "very short" is specified with CandleSettings
+         * outInteger is positive (1 to 100): ladder bottom is always bullish;
+         * the user should consider that ladder bottom is significant when it appears in a downtrend,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.Black &&
-                CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black &&
-                CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && // 3 black candlesticks
-                inOpen[i - 4] > inOpen[i - 3] && inOpen[i - 3] > inOpen[i - 2] && // with consecutively lower opens
-                inClose[i - 4] > inClose[i - 3] && inClose[i - 3] > inClose[i - 2] && // and closes
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 4th: black with an upper shadow
-                UpperShadow(inHigh, inClose, inOpen, i - 1) > CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i - 1) &&
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.White && // 5th: white
-                inOpen[i] > inOpen[i - 1] && // that opens above prior candle's body
-                inClose[i] > inHigh[i - 1]) // and closes above prior candle's high
-            {
-                outInteger[outIdx++] = 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsLadderBottomPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal) ? 100 : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             shadowVeryShortPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - 1)
-                - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx - 1);
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx - 1);
+
             i++;
             shadowVeryShortTrailingIdx++;
         } while (i <= endIdx);
@@ -100,6 +97,32 @@ public static partial class Candles
     }
 
     public static int LadderBottomLookback() => CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 4;
+
+    private static bool IsLadderBottomPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T shadowVeryShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 3 black candlesticks
+        CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.Black &&
+        CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black &&
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+        // with consecutively lower opens
+        inOpen[i - 4] > inOpen[i - 3] && inOpen[i - 3] > inOpen[i - 2] &&
+        // and closes
+        inClose[i - 4] > inClose[i - 3] && inClose[i - 3] > inClose[i - 2] &&
+        // 4th: black with an upper shadow
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        UpperShadow(inHigh, inClose, inOpen, i - 1) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i - 1) &&
+        // 5th: white
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+        // that opens above prior candle's body
+        inOpen[i] > inOpen[i - 1] &&
+        // and closes above prior candle's high
+        inClose[i] > inHigh[i - 1];
 
     /// <remarks>
     /// For compatibility with abstract API

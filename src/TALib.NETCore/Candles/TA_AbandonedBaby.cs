@@ -57,9 +57,11 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T bodyLongPeriodTotal = T.Zero;
-        T bodyDojiPeriodTotal = T.Zero;
-        T bodyShortPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var bodyLongPeriodTotal = T.Zero;
+        var bodyDojiPeriodTotal = T.Zero;
+        var bodyShortPeriodTotal = T.Zero;
         var bodyLongTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var bodyDojiTrailingIdx = startIdx - 1 - CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
         var bodyShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
@@ -90,40 +92,26 @@ public static partial class Candles
         var penetration = T.CreateChecked(optInPenetration);
         do
         {
-            if (RealBody(inClose, inOpen, i - 2) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
-                    bodyLongPeriodTotal, i - 2) &&
-                RealBody(inClose, inOpen, i - 1) <= CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji,
-                    bodyDojiPeriodTotal, i - 1) &&
-                RealBody(inClose, inOpen, i) > CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort,
-                    bodyShortPeriodTotal, i) &&
-                (CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
-                 CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
-                 inClose[i] < inClose[i - 2] - RealBody(inClose, inOpen, i - 2) * penetration &&
-                 CandleGapUp(inLow, inHigh, i - 1, i - 2) &&
-                 CandleGapDown(inLow, inHigh, i, i - 1)
-                 ||
-                 CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
-                 CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
-                 inClose[i] > inClose[i - 2] +
-                 RealBody(inClose, inOpen, i - 2) * penetration &&
-                 CandleGapDown(inLow, inHigh, i - 1, i - 2) &&
-                 CandleGapUp(inLow, inHigh, i, i - 1)
-                )
-               )
-            {
-                outInteger[outIdx++] = (int) CandleColor(inClose, inOpen, i) * 100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] =
+                IsAbandonedBabyPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal, bodyShortPeriodTotal,
+                    penetration)
+                    ? (int) CandleColor(inClose, inOpen, i) * 100
+                    : 0;
 
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
-            bodyDojiPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i - 1) -
-                                   CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
-            bodyShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
-                                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            bodyLongPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+
+            bodyDojiPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+
+            bodyShortPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+
             i++;
             bodyLongTrailingIdx++;
             bodyDojiTrailingIdx++;
@@ -141,6 +129,49 @@ public static partial class Candles
             Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyDoji), CandleAveragePeriod(Core.CandleSettingType.BodyLong)),
             CandleAveragePeriod(Core.CandleSettingType.BodyShort)
         ) + 2;
+
+    private static bool IsAbandonedBabyPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T bodyLongPeriodTotal,
+        T bodyDojiPeriodTotal,
+        T bodyShortPeriodTotal,
+        T penetration) where T : IFloatingPointIeee754<T> =>
+        // 1st: long
+        RealBody(inClose, inOpen, i - 2) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
+        // 2nd: doji
+        RealBody(inClose, inOpen, i - 1) <=
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i - 1) &&
+        // 3rd: longer than short
+        RealBody(inClose, inOpen, i) >
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortPeriodTotal, i) &&
+        (
+            // 1st white
+            CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+            // 3rd black
+            CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+            // 3rd closes well within 1st real body
+            inClose[i] < inClose[i - 2] - RealBody(inClose, inOpen, i - 2) * penetration &&
+            // upside gap between 1st and 2nd
+            CandleGapUp(inLow, inHigh, i - 1, i - 2) &&
+            // downside gap between 2nd and 3rd
+            CandleGapDown(inLow, inHigh, i, i - 1)
+            ||
+            // 1st black
+            CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+            // 3rd white
+            CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+            // 3rd closes well within 1st real body
+            inClose[i] > inClose[i - 2] + RealBody(inClose, inOpen, i - 2) * penetration &&
+            // downside gap between 1st and 2nd
+            CandleGapDown(inLow, inHigh, i - 1, i - 2) &&
+            // upside gap between 2nd and 3rd
+            CandleGapUp(inLow, inHigh, i, i - 1)
+        );
 
     /// <remarks>
     /// For compatibility with abstract API

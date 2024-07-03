@@ -51,6 +51,8 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
         Span<T> shadowVeryShortPeriodTotal = new T[3];
         var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
         Span<T> equalPeriodTotal = new T[3];
@@ -73,33 +75,23 @@ public static partial class Candles
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - three consecutive and declining black candlesticks
+         *   - each candle must have no or very short lower shadow
+         *   - each candle after the first must open at or very close to the prior candle's close
+         * The meaning of "very short" is specified with CandleSettings;
+         * the meaning of "very close" is specified with CandleSettings (Equal);
+         * outInteger is negative (-1 to -100): identical three crows is always bearish;
+         * the user should consider that identical 3 crows is significant when it appears after a mature advance or at high levels,
+         * while this function does not consider it
+         */
+
         int outIdx = default;
         do
         {
-            if (CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black && // 1st black
-                // very short lower shadow
-                LowerShadow(inClose, inOpen, inLow, i - 2) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && // 2nd black
-                // very short lower shadow
-                LowerShadow(inClose, inOpen, inLow, i - 1) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.Black && // 3rd black
-                // very short lower shadow
-                LowerShadow(inClose, inOpen, inLow, i) < CandleAverage(inOpen, inHigh, inLow, inClose,
-                    Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
-                inClose[i - 2] > inClose[i - 1] && // three declining
-                inClose[i - 1] > inClose[i] &&
-                // 2nd black opens very close to 1st close
-                inOpen[i - 1] <= inClose[i - 2] + CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal,
-                    equalPeriodTotal[2], i - 2) &&
-                inOpen[i - 1] >= inClose[i - 2] - CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal,
-                    equalPeriodTotal[2], i - 2) &&
-                // 3rd black opens very close to 2nd close
-                inOpen[i] <= inClose[i - 1] + CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal,
-                    equalPeriodTotal[1], i - 1) &&
-                inOpen[i] >= inClose[i - 1] - CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal,
-                    equalPeriodTotal[1], i - 1))
+            if (IsIdenticalThreeCrowsPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal, equalPeriodTotal))
             {
                 outInteger[outIdx++] = -100;
             }
@@ -108,22 +100,21 @@ public static partial class Candles
                 outInteger[outIdx++] = 0;
             }
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             for (var totIdx = 2; totIdx >= 0; --totIdx)
             {
                 shadowVeryShortPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - totIdx)
-                    - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort,
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - totIdx) -
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort,
                         shadowVeryShortTrailingIdx - totIdx);
             }
 
             for (var totIdx = 2; totIdx >= 1; --totIdx)
             {
                 equalPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - totIdx)
-                    - CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - totIdx);
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - totIdx) -
+                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - totIdx);
             }
 
             i++;
@@ -139,6 +130,42 @@ public static partial class Candles
 
     public static int IdenticalThreeCrowsLookback() =>
         Math.Max(CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort), CandleAveragePeriod(Core.CandleSettingType.Equal)) + 2;
+
+    private static bool IsIdenticalThreeCrowsPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        Span<T> shadowVeryShortPeriodTotal,
+        Span<T> equalPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // 1st black
+        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+        // very short lower shadow
+        LowerShadow(inClose, inOpen, inLow, i - 2) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
+        // 2nd black
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        // very short lower shadow
+        LowerShadow(inClose, inOpen, inLow, i - 1) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
+        // 3rd black
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+        // very short lower shadow
+        LowerShadow(inClose, inOpen, inLow, i) <
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
+        // three declining
+        inClose[i - 2] > inClose[i - 1] && inClose[i - 1] > inClose[i] &&
+        // 2nd black opens very close to 1st close
+        inOpen[i - 1] <= inClose[i - 2] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal[2], i - 2) &&
+        inOpen[i - 1] >= inClose[i - 2] -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal[2], i - 2) &&
+        // 3rd black opens very close to 2nd close
+        inOpen[i] <= inClose[i - 1] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal[1], i - 1) &&
+        inOpen[i] >= inClose[i - 1] -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal[1], i - 1);
 
     /// <remarks>
     /// For compatibility with abstract API

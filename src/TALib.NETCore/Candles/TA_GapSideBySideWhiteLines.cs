@@ -51,8 +51,10 @@ public static partial class Candles
             return Core.RetCode.Success;
         }
 
-        T nearPeriodTotal = T.Zero;
-        T equalPeriodTotal = T.Zero;
+        // Do the calculation using tight loops.
+        // Add-up the initial period, except for the last value.
+        var nearPeriodTotal = T.Zero;
+        var equalPeriodTotal = T.Zero;
         var nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
         var equalTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Equal);
         var i = nearTrailingIdx;
@@ -71,40 +73,36 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - upside or downside gap (between the bodies)
+         *   - first candle after the window: white candlestick
+         *   - second candle after the window: white candlestick with similar size (near the same) and about the same
+         *     open (equal) of the previous candle
+         *   - the second candle does not close the window
+         * The meaning of "near" and "equal" is specified with CandleSettings
+         * outInteger is positive (1 to 100) or negative (-1 to -100): the user should consider that upside
+         * or downside gap side-by-side white lines is significant when it appears in a trend,
+         * while this function does not consider the trend
+         */
+
         int outIdx = default;
         do
         {
-            if (( // upside or downside gap between the 1st candle and both the next 2 candles
-                    RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && RealBodyGapUp(inOpen, inClose, i, i - 2)
-                    ||
-                    RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && RealBodyGapDown(inOpen, inClose, i, i - 2)
-                ) &&
-                CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White && // 2nd: white
-                CandleColor(inClose, inOpen, i) == Core.CandleColor.White && // 3rd: white
-                RealBody(inClose, inOpen, i) >= RealBody(inClose, inOpen, i - 1) -
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1) && // same size 2 and 3
-                RealBody(inClose, inOpen, i) <= RealBody(inClose, inOpen, i - 1) +
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1) &&
-                inOpen[i] >= inOpen[i - 1] -
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal,
-                    i - 1) && // same open 2 and 3
-                inOpen[i] <= inOpen[i - 1] +
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1))
-            {
-                outInteger[outIdx++] = RealBodyGapUp(inOpen, inClose, i - 1, i - 2) ? 100 : -100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outInteger[outIdx++] = IsGapSideBySideWhiteLinesPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal, equalPeriodTotal)
+                ? RealBodyGapUp(inOpen, inClose, i - 1, i - 2) ? 100 : -100
+                : 0;
 
-            /* add the current range and subtract the first range: this is done after the pattern recognition
-             * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
-             */
-            nearPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
-                               CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
-            equalPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
-                                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+            // add the current range and subtract the first range: this is done after the pattern recognition
+            // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+            nearPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
+
+            equalPeriodTotal +=
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
+                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+
             i++;
             nearTrailingIdx++;
             equalTrailingIdx++;
@@ -118,6 +116,36 @@ public static partial class Candles
 
     public static int GapSideBySideWhiteLinesLookback() =>
         Math.Max(CandleAveragePeriod(Core.CandleSettingType.Near), CandleAveragePeriod(Core.CandleSettingType.Equal)) + 2;
+
+    private static bool IsGapSideBySideWhiteLinesPattern<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int i,
+        T nearPeriodTotal,
+        T equalPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // upside or downside gap between the 1st candle and both the next 2 candles
+        (
+            RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && RealBodyGapUp(inOpen, inClose, i, i - 2)
+            ||
+            RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && RealBodyGapDown(inOpen, inClose, i, i - 2)
+        )
+        &&
+        // 2nd: white
+        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+        // 3rd: white
+        CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+        // same size 2 and 3
+        RealBody(inClose, inOpen, i) >= RealBody(inClose, inOpen, i - 1) -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1) &&
+        RealBody(inClose, inOpen, i) <= RealBody(inClose, inOpen, i - 1) +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1) &&
+        // same open 2 and 3
+        inOpen[i] >= inOpen[i - 1] -
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) &&
+        inOpen[i] <= inOpen[i - 1] +
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1);
 
     /// <remarks>
     /// For compatibility with abstract API
