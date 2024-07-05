@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -69,7 +69,7 @@ public static partial class Candles
          *   - 3 consecutive doji days
          *   - the second doji is a star
          * The meaning of "doji" is specified with CandleSettings
-         * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish
+         * outType is Bullish or Bearish
          */
 
         int outIdx = default;
@@ -78,7 +78,7 @@ public static partial class Candles
             if (IsTristarPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal))
             {
                 // 3rd: doji
-                outInteger[outIdx] = 0;
+                outType[outIdx] = 0;
                 if
                 (
                     // 2nd gaps up
@@ -87,7 +87,7 @@ public static partial class Candles
                     T.Max(inOpen[i], inClose[i]) < T.Max(inOpen[i - 1], inClose[i - 1])
                 )
                 {
-                    outInteger[outIdx] = -100;
+                    outType[outIdx] = Core.CandlePatternType.Bearish;
                 }
 
                 if
@@ -98,14 +98,14 @@ public static partial class Candles
                     T.Min(inOpen[i], inClose[i]) > T.Min(inOpen[i - 1], inClose[i - 1])
                 )
                 {
-                    outInteger[outIdx] = 100;
+                    outType[outIdx] = Core.CandlePatternType.Bullish;
                 }
 
                 outIdx++;
             }
             else
             {
-                outInteger[outIdx++] = 0;
+                outType[outIdx++] = 0;
             }
 
             // add the current range and subtract the first range: this is done after the pattern recognition
@@ -154,6 +154,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        Tristar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        Tristar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

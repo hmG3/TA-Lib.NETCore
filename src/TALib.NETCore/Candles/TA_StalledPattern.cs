@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -99,10 +99,10 @@ public static partial class Candles
          *   - first candle: long white
          *   - second candle: long white with no or very short upper shadow opening within or near the previous white real body
          *     and closing higher than the prior candle
-         * - third candle: small white that gaps away or "rides on the shoulder" of the prior long real body
-         * (= it's at the upper end of the prior real body)
+         *   - third candle: small white that gaps away or "rides on the shoulder" of the prior long real body
+         *     (= it's at the upper end of the prior real body)
          * The meanings of "long", "very short", "short", "near" are specified with CandleSettings;
-         * outInteger is negative (-1 to -100): stalled pattern is always bearish;
+         * outType is Bearish: stalled pattern is always bearish;
          * the user should consider that stalled pattern is significant when it appears in uptrend,
          * while this function does not consider it
          */
@@ -110,10 +110,10 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsStalledPatternPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal,
+            outType[outIdx++] = IsStalledPatternPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal,
                 shadowVeryShortPeriodTotal, nearPeriodTotal, bodyShortPeriodTotal)
-                ? -100
-                : 0;
+                ? Core.CandlePatternType.Bearish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -203,6 +203,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        StalledPattern<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        StalledPattern<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

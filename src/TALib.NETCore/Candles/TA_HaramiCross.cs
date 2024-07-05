@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -78,17 +78,18 @@ public static partial class Candles
          *   - first candle: long white (black) real body
          *   - second candle: doji totally engulfed by the first
          * The meaning of "doji" and "long" is specified with CandleSettings
-         * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
-         * the user should consider that a harami cross is significant when it appears in a downtrend if bullish or
-         * in an uptrend when bearish, while this function does not consider the trend
+         * outType is Bullish or Bearish;
+         * the user should consider that a harami cross is significant when
+         * it appears in a downtrend if bullish or in an uptrend when bearish,
+         * while this function does not consider the trend
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsHaramiCrossPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal)
-                ? -(int) CandleColor(inClose, inOpen, i - 1) * 100
-                : 0;
+            outType[outIdx++] = IsHaramiCrossPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal)
+                ? (Core.CandlePatternType) (-(int) CandleColor(inClose, inOpen, i - 1) * 100)
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -143,6 +144,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        HaramiCross<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        HaramiCross<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

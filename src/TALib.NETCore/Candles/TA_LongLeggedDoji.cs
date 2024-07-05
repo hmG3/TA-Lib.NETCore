@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -76,15 +76,15 @@ public static partial class Candles
          *   - doji body
          *   - one or two long shadows
          * The meaning of "doji" is specified with CandleSettings
-         * outInteger is always positive (1 to 100) but this does not mean it is bullish: long-legged doji shows uncertainty
+         * outType is always Bullish but this does not mean it is bullish: long-legged doji shows uncertainty
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsLongLeggedDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowLongPeriodTotal)
-                ? 100
-                : 0;
+            outType[outIdx++] = IsLongLeggedDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowLongPeriodTotal)
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -118,12 +118,15 @@ public static partial class Candles
         int i,
         T bodyDojiPeriodTotal,
         T shadowLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // doji body
         RealBody(inClose, inOpen, i) <=
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) &&
         (
+            // long lower shadow
             LowerShadow(inClose, inOpen, inLow, i) >
             CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i)
             ||
+            // lower upper shadow
             UpperShadow(inHigh, inClose, inOpen, i) >
             CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, shadowLongPeriodTotal, i)
         );
@@ -139,6 +142,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        LongLeggedDoji<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        LongLeggedDoji<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

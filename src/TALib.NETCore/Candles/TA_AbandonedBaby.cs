@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement,
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T>
@@ -88,15 +88,30 @@ public static partial class Candles
 
         i = startIdx;
 
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: long white (black) real body
+         *   - second candle: doji
+         *   - third candle: black (white) real body that moves well within the first candle's real body
+         *   - upside (downside) gap between the first candle and the doji (the shadows of the two candles don't touch)
+         *   - downside (upside) gap between the doji and the third candle (the shadows of the two candles don't touch)
+         * The meaning of "doji" and "long" is specified with CandleSettings
+         * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean
+         * the real body should not be short ("short" is specified with CandleSettings) -
+         * Greg Morris wants it to be long, someone else wants it to be relatively long
+         * outType is Bullish when it's an abandoned baby bottom or Bearish when it's an abandoned baby top;
+         * the user should consider that an abandoned baby is significant when it appears in an uptrend or downtrend,
+         * while this function does not consider the trend
+         */
+
         int outIdx = default;
         var penetration = T.CreateChecked(optInPenetration);
         do
         {
-            outInteger[outIdx++] =
-                IsAbandonedBabyPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal, bodyShortPeriodTotal,
-                    penetration)
-                    ? (int) CandleColor(inClose, inOpen, i) * 100
-                    : 0;
+            outType[outIdx++] = IsAbandonedBabyPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal,
+                bodyShortPeriodTotal, penetration)
+                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i) * 100)
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -184,7 +199,7 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger,
+        Core.CandlePatternType[] outType,
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
-        AbandonedBaby<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _, optInPenetration);
+        AbandonedBaby<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _, optInPenetration);
 }

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -77,15 +77,17 @@ public static partial class Candles
          *   - open and close at the high of the day = no or very short upper shadow
          *   - lower shadow (to distinguish from other dojis, here lower shadow should not be very short)
          * The meaning of "doji" and "very short" is specified with CandleSettings
-         * outInteger is always positive (1 to 100) but this does not mean it is bullish:
+         * outType is always Bullish but this does not mean it is bullish:
          * dragonfly doji must be considered relatively to the trend
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] =
-                IsDragonflyDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowVeryShortPeriodTotal) ? 100 : 0;
+            outType[outIdx++] =
+                IsDragonflyDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowVeryShortPeriodTotal)
+                    ? Core.CandlePatternType.Bullish
+                    : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -140,6 +142,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        DragonflyDoji<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        DragonflyDoji<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

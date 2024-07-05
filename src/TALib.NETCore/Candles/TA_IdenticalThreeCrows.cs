@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -83,7 +83,7 @@ public static partial class Candles
          *   - each candle after the first must open at or very close to the prior candle's close
          * The meaning of "very short" is specified with CandleSettings;
          * the meaning of "very close" is specified with CandleSettings (Equal);
-         * outInteger is negative (-1 to -100): identical three crows is always bearish;
+         * outType is always Bearish;
          * the user should consider that identical 3 crows is significant when it appears after a mature advance or at high levels,
          * while this function does not consider it
          */
@@ -91,14 +91,10 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            if (IsIdenticalThreeCrowsPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal, equalPeriodTotal))
-            {
-                outInteger[outIdx++] = -100;
-            }
-            else
-            {
-                outInteger[outIdx++] = 0;
-            }
+            outType[outIdx++] =
+                IsIdenticalThreeCrowsPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal, equalPeriodTotal)
+                    ? Core.CandlePatternType.Bearish
+                    : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -178,6 +174,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        IdenticalThreeCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        IdenticalThreeCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -72,7 +72,7 @@ public static partial class Candles
          *     the previous real body inside the gap
          *   - the size of two real bodies should be near the same
          * The meaning of "near" is specified with CandleSettings
-         * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+         * outType is Bullish or Bearish;
          * the user should consider that tasuki gap is significant when it appears in a trend,
          * while this function does not consider it
          */
@@ -80,9 +80,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsTasukiGapPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal)
-                ? (int) CandleColor(inClose, inOpen, i - 1) * 100
-                : 0;
+            outType[outIdx++] = IsTasukiGapPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal)
+                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i - 1) * 100)
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -109,8 +109,8 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int i,
         T nearPeriodTotal) where T : IFloatingPointIeee754<T> =>
-        // upside gap
         (
+            // upside gap
             RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
             // 1st: white
             CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
@@ -120,7 +120,7 @@ public static partial class Candles
             inOpen[i] < inClose[i - 1] && inOpen[i] > inOpen[i - 1] &&
             // and closes under the white real body
             inClose[i] < inOpen[i - 1] &&
-            //      inside the gap
+            // inside the gap
             inClose[i] > T.Max(inClose[i - 2], inOpen[i - 2]) &&
             // size of 2 real body near the same
             T.Abs(RealBody(inClose, inOpen, i - 1) - RealBody(inClose, inOpen, i)) <
@@ -156,6 +156,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        TasukiGap<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        TasukiGap<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

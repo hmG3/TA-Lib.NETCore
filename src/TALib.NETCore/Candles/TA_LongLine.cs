@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -76,15 +76,15 @@ public static partial class Candles
          *   - long real body
          *   - short upper and lower shadow
          * The meaning of "long" and "short" is specified with CandleSettings
-         * outInteger is positive (1 to 100) when white (bullish), negative (-1 to -100) when black (bearish)
+         * outType is Bullish when white, Bearish when black
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsLongLinePattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowPeriodTotal)
-                ? (int) CandleColor(inClose, inOpen, i) * 100
-                : 0;
+            outType[outIdx++] = IsLongLinePattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowPeriodTotal)
+                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i) * 100)
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -118,10 +118,13 @@ public static partial class Candles
         int i,
         T bodyPeriodTotal,
         T shadowPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // long body
         RealBody(inClose, inOpen, i) >
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyPeriodTotal, i) &&
+        // short upper shadow
         UpperShadow(inHigh, inClose, inOpen, i) <
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowShort, shadowPeriodTotal, i) &&
+        // short lower shadow
         LowerShadow(inClose, inOpen, inLow, i) <
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowShort, shadowPeriodTotal, i);
 
@@ -136,6 +139,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        LongLine<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        LongLine<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -70,7 +70,7 @@ public static partial class Candles
          *   - second candle: white candle that trades only above the prior close (low > prior close)
          *   - third candle: black candle with the close equal to the first candle's close
          * The meaning of "equal" is specified with CandleSettings
-         * outInteger is always positive (1 to 100): stick sandwich is always bullish;
+         * outType is always Bullish
          * the user should consider that stick sandwich is significant when coming in a downtrend,
          * while this function does not consider it
          */
@@ -78,7 +78,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsStickSandwichPattern(inOpen, inHigh, inLow, inClose, i, equalPeriodTotal) ? 100 : 0;
+            outType[outIdx++] = IsStickSandwichPattern(inOpen, inHigh, inLow, inClose, i, equalPeriodTotal)
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -105,11 +107,11 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int i,
         T equalPeriodTotal) where T : IFloatingPointIeee754<T> =>
-        // 1st black
+        // 1st: black
         CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
-        // 2nd white
+        // 2nd: white
         CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
-        // 3rd black
+        // 3rd: black
         CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
         // 2nd low > prior close
         inLow[i - 1] > inClose[i - 2] &&
@@ -130,6 +132,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        StickSandwich<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        StickSandwich<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

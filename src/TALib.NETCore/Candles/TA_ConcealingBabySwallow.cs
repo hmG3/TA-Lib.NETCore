@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -73,7 +73,7 @@ public static partial class Candles
          *   - third candle: black candle that opens gapping down but has an upper shadow that extends into the prior body
          *   - fourth candle: black candle that completely engulfs the third candle, including the shadows
          * The meanings of "very short shadow" are specified with CandleSettings;
-         * outInteger is positive (1 to 100): concealing baby swallow is always bullish;
+         * outType is always Bullish;
          * the user should consider that concealing baby swallow is significant when it appears in downtrend,
          * while this function does not consider it
          */
@@ -81,7 +81,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsConcealingBabySwallowPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal) ? 100 : 0;
+            outType[outIdx++] = IsConcealingBabySwallowPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal)
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -150,6 +152,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        ConcealingBabySwallow<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        ConcealingBabySwallow<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

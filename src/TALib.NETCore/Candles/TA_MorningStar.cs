@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement,
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T>
@@ -87,10 +87,10 @@ public static partial class Candles
          *   - second candle: star (Short real body gapping down)
          *   - third candle: white real body that moves well within the first candle's real body
          * The meaning of "short" and "long" is specified with CandleSettings
-         * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean the real body should
-         * not be short ("short" is specified with CandleSettings) -
+         * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean
+         * the real body should not be short ("short" is specified with CandleSettings) -
          * Greg Morris wants it to be long, someone else wants it to be relatively long
-         * outInteger is positive (1 to 100): morning star is always bullish;
+         * outType is Bullish: morning star is always bullish;
          * the user should consider that a morning star is significant when it appears in a downtrend,
          * while this function does not consider the trend
          */
@@ -98,10 +98,10 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsMorningStarPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal,
+            outType[outIdx++] = IsMorningStarPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal,
                 bodyShortPeriodTotal, bodyShortPeriodTotal2)
-                ? 100
-                : 0;
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -170,7 +170,7 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger,
+        Core.CandlePatternType[] outType,
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
-        MorningStar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _, optInPenetration);
+        MorningStar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _, optInPenetration);
 }

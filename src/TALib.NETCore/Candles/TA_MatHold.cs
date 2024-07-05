@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement,
         double optInPenetration = 0.5) where T : IFloatingPointIeee754<T>
@@ -87,20 +87,22 @@ public static partial class Candles
          *   - second candle: small black candle
          *   - third and fourth candles: falling small real body candlesticks (commonly black) that hold within the long
          *     white candle's body and are higher than the reaction days of the rising three methods
-         *   - fifth candle: white candle that opens above the previous small candle's close and closes higher than the
-         *     high of the highest reaction day
+         *   - fifth candle: white candle that opens above the previous small candle's close and closes higher than
+         *     the high of the highest reaction day
          * The meaning of "short" and "long" is specified with CandleSettings;
          * "hold within" means "a part of the real body must be within";
          * optInPenetration is the maximum percentage of the first white body the reaction days can penetrate
          * (it is to specify how much the reaction days should be "higher than the reaction days of the rising three methods")
-         * outInteger is positive (1 to 100): mat hold is always bullish
+         * outType is Bullish: mat hold is always bullish
          */
 
         int outIdx = default;
         var penetration = T.CreateChecked(optInPenetration);
         do
         {
-            outInteger[outIdx++] = IsMatHoldPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, penetration) ? 100 : 0;
+            outType[outIdx++] = IsMatHoldPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, penetration)
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -177,7 +179,7 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger,
+        Core.CandlePatternType[] outType,
         double optInPenetration = 0.5) where T : IFloatingPointIeee754<T> =>
-        MatHold<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _, optInPenetration);
+        MatHold<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _, optInPenetration);
 }

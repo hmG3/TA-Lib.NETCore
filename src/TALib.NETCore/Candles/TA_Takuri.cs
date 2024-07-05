@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -81,23 +81,21 @@ public static partial class Candles
         }
 
         /* Proceed with the calculation for the requested range.
-         *
          * Must have:
          *   - doji body
          *   - open and close at the high of the day = no or very short upper shadow
          *   - very long lower shadow
          * The meaning of "doji", "very short" and "very long" is specified with CandleSettings
-         * outInteger is always positive (1 to 100) but this does not mean it is bullish:
-         * takuri must be considered relatively to the trend
+         * outType is always Bullish but this does not mean it is bullish: takuri must be considered relatively to the trend
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsTakuriPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowVeryShortPeriodTotal,
+            outType[outIdx++] = IsTakuriPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowVeryShortPeriodTotal,
                 shadowVeryLongPeriodTotal)
-                ? 100
-                : 0;
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -139,12 +137,15 @@ public static partial class Candles
         T bodyDojiPeriodTotal,
         T shadowVeryShortPeriodTotal,
         T shadowVeryLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // doji boy
         RealBody(inClose, inOpen, i) <=
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i) &&
+        // very short upper shadow
         UpperShadow(inHigh, inClose, inOpen, i) <
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i) &&
+        // very long lower shadow
         LowerShadow(inClose, inOpen, inLow, i) >
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryLongPeriodTotal, i);
+        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, shadowVeryLongPeriodTotal, i);
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -157,6 +158,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        Takuri<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        Takuri<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -67,14 +67,16 @@ public static partial class Candles
          * Must have:
          *   - open quite equal to close
          * How much can be the maximum distance between open and close is specified with CandleSettings
-         * outInteger is always positive (1 to 100) but this does not mean it is bullish: doji shows uncertainty,
-         * and it is neither bullish nor bearish when considered alone
+         * outType is always Bullish but this does not mean it is bullish:
+         * doji shows uncertainty, and it is neither bullish nor bearish when considered alone
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal) ? 100 : 0;
+            outType[outIdx++] = IsDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal)
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -101,6 +103,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int i,
         T bodyDojiPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // doji body
         RealBody(inClose, inOpen, i) <=
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i);
 
@@ -115,6 +118,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        Doji<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        Doji<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

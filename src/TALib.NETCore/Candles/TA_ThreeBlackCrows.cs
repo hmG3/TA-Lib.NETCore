@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -73,7 +73,7 @@ public static partial class Candles
          *   - each candle after the first must open within the prior candle's real body
          *   - the first candle's close should be under the prior white candle's high
          * The meaning of "very short" is specified with CandleSettings
-         * outInteger is negative (-1 to -100): three black crows is always bearish;
+         * outType is Bearish: three black crows is always bearish;
          * it should be considered that 3 black crows is significant when it appears after a mature advance or at high levels,
          * while this function does not consider it
          */
@@ -81,7 +81,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsThreeBlackCrowsPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal) ? -100 : 0;
+            outType[outIdx++] = IsThreeBlackCrowsPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal)
+                ? Core.CandlePatternType.Bearish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -151,6 +153,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        ThreeBlackCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        ThreeBlackCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

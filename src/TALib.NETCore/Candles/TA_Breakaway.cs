@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -72,7 +72,7 @@ public static partial class Candles
          *   - fourth candle: black (white) day with lower (higher) high and lower (higher) low than prior candle's
          *   - fifth candle: white (black) day that closes inside the gap, erasing the prior 3 days
          * The meaning of "long" is specified with CandleSettings
-         * outInteger is positive (1 to 100) when bullish or negative (-1 to -100) when bearish;
+         * outType is Bullish or Bearish;
          * the user should consider that breakaway is significant in a trend opposite to the last candle,
          * while this function does not consider it
          */
@@ -80,9 +80,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsBreakawayPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal)
-                ? (int) CandleColor(inClose, inOpen, i) * 100
-                : 0;
+            outType[outIdx++] = IsBreakawayPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal)
+                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i) * 100)
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -151,6 +151,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        Breakaway<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        Breakaway<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

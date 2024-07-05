@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -110,10 +110,10 @@ public static partial class Candles
          *   - three white candlesticks with consecutively higher closes
          *   - each candle opens within or near the previous white real body
          *   - first candle: long white with no or very short upper shadow (a short shadow is accepted too for more flexibility)
-         *   - second and third candles, or only third candle, show signs of weakening: progressively smaller white real bodies
-         * and/or relatively long upper shadows; see below for specific conditions
+         *   - second and third candles, or only third candle, show signs of weakening:
+         *     progressively smaller white real bodies and/or relatively long upper shadows;
          * The meanings of "long body", "short shadow", "far" and "near" are specified with CandleSettings;
-         * outInteger is negative (-1 to -100): advance block is always bearish;
+         * outType is always Bearish;
          * the user should consider that advance block is significant when it appears in uptrend,
          * while this function does not consider it
          */
@@ -121,10 +121,10 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsAdvanceBlockPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal, bodyLongPeriodTotal,
+            outType[outIdx++] = IsAdvanceBlockPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal, bodyLongPeriodTotal,
                 shadowShortPeriodTotal, farPeriodTotal, shadowLongPeriodTotal)
-                ? -100
-                : 0;
+                ? Core.CandlePatternType.Bearish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -231,7 +231,8 @@ public static partial class Candles
             RealBody(inClose, inOpen, i - 1) < RealBody(inClose, inOpen, i - 2) &&
             (
                 UpperShadow(inHigh, inClose, inOpen, i) >
-                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowShort, shadowShortPeriodTotal[0], i) ||
+                CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowShort, shadowShortPeriodTotal[0], i)
+                ||
                 UpperShadow(inHigh, inClose, inOpen, i - 1) >
                 CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowShort, shadowShortPeriodTotal[1], i - 1)
             )
@@ -254,6 +255,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        AdvanceBlock<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        AdvanceBlock<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

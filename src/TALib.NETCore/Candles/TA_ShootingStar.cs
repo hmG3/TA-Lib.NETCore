@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -87,17 +87,18 @@ public static partial class Candles
          *   - no, or very short, lower shadow
          *   - gap up from prior real body
          * The meaning of "short", "very short" and "long" is specified with CandleSettings;
-         * outInteger is negative (-1 to -100): shooting star is always bearish;
-         * the user should consider that a shooting star must appear in an uptrend, while this function does not consider it
+         * outType is Bearish: shooting star is always bearish;
+         * the user should consider that a shooting star must appear in an uptrend,
+         * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsShootingStarPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowLongPeriodTotal,
+            outType[outIdx++] = IsShootingStarPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowLongPeriodTotal,
                 shadowVeryShortPeriodTotal)
-                ? -100
-                : 0;
+                ? Core.CandlePatternType.Bearish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -163,6 +164,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        ShootingStar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        ShootingStar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

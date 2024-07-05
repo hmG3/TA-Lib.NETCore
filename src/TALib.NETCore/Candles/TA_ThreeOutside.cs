@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -60,15 +60,17 @@ public static partial class Candles
          *   - first: black (white) real body
          *   - second: white (black) real body that engulfs the prior real body
          *   - third: candle that closes higher (lower) than the second candle
-         * outInteger is positive (1 to 100) for the three outside up or negative (-1 to -100) for the three outside down;
-         * the user should consider that a three outside up must appear in a downtrend and three outside down must appear
-         * in an uptrend, while this function does not consider it
+         * outType is Bullish for the three outside up or Bearish for the three outside down;
+         * the user should consider that a three outside up must appear in a downtrend and three outside down must appear in an uptrend,
+         * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsThreeOutsidePattern(inOpen, inClose, i) ? (int) CandleColor(inClose, inOpen, i - 1) * 100 : 0;
+            outType[outIdx++] = IsThreeOutsidePattern(inOpen, inClose, i)
+                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i - 1) * 100)
+                : Core.CandlePatternType.None;
 
             i++;
         } while (i <= endIdx);
@@ -108,6 +110,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        ThreeOutside<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        ThreeOutside<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

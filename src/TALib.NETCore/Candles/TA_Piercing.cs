@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -70,7 +70,7 @@ public static partial class Candles
          *   - first candle: long black candle
          *   - second candle: long white candle with open below previous day low and close at least at 50% of previous day real body
          * The meaning of "long" is specified with CandleSettings
-         * outInteger is positive (1 to 100): piercing pattern is always bullish
+         * outType is Bullish: piercing pattern is always bullish
          * the user should consider that a piercing pattern is significant when it appears in a downtrend,
          * while this function does not consider it
          */
@@ -78,7 +78,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsPiercingPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal) ? 100 : 0;
+            outType[outIdx++] = IsPiercingPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal)
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -110,12 +112,12 @@ public static partial class Candles
         Span<T> bodyLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // 1st: black
         CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
-        // long
+        // long body
         RealBody(inClose, inOpen, i - 1) >
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal[1], i - 1) &&
         // 2nd: white
         CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
-        // long
+        // long body
         RealBody(inClose, inOpen, i) >
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal[0], i) &&
         // open below prior low
@@ -136,6 +138,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        Piercing<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        Piercing<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

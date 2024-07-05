@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -78,7 +78,7 @@ public static partial class Candles
          *   - first candle: long black candle
          *   - second candle: white candle with open below previous day low and close slightly into previous day body
          * The meaning of "equal" is specified with CandleSettings
-         * outInteger is negative (-1 to -100): in-neck is always bearish
+         * outType is always Bearish;
          * the user should consider that in-neck is significant when it appears in a downtrend,
          * while this function does not consider it
          */
@@ -86,7 +86,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = InNeckPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, equalPeriodTotal) ? -100 : 0;
+            outType[outIdx++] = InNeckPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, equalPeriodTotal)
+                ? Core.CandlePatternType.Bearish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -122,7 +124,7 @@ public static partial class Candles
         T equalPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // 1st: black
         CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
-        // long
+        // long body
         RealBody(inClose, inOpen, i - 1) >
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 1) &&
         // 2nd: white
@@ -145,6 +147,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        InNeck<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        InNeck<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

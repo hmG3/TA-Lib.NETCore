@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement,
         double optInPenetration = 0.5) where T : IFloatingPointIeee754<T>
@@ -77,7 +77,7 @@ public static partial class Candles
          * Greg Morris wants the close to be below the midpoint of the previous real body
          * The meaning of "long" is specified with CandleSettings,
          * the penetration of the first real body is specified with optInPenetration
-         * outInteger is negative (-1 to -100): dark cloud cover is always bearish
+         * outType is always Bearish;
          * the user should consider that a dark cloud cover is significant when it appears in an uptrend,
          * while this function does not consider it
          */
@@ -85,9 +85,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsDarkCloudCoverPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal)
-                ? -100
-                : 0;
+            outType[outIdx++] = IsDarkCloudCoverPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal)
+                ? Core.CandlePatternType.Bearish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -117,7 +117,7 @@ public static partial class Candles
         T bodyLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // 1st: white
         CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
-        // long
+        // long body
         RealBody(inClose, inOpen, i - 1) >
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 1) &&
         // 2nd: black
@@ -139,7 +139,7 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger,
+        Core.CandlePatternType[] outType,
         double optInPenetration = 0.5) where T : IFloatingPointIeee754<T> =>
-        DarkCloudCover<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _, optInPenetration);
+        DarkCloudCover<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _, optInPenetration);
 }

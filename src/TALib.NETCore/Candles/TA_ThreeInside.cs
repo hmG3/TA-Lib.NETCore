@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -80,17 +80,18 @@ public static partial class Candles
          *   - second candle: short real body totally engulfed by the first
          *   - third candle: black (white) candle that closes lower (higher) than the first candle's open
          * The meaning of "short" and "long" is specified with CandleSettings
-         * outInteger is positive (1 to 100) for the three inside up or negative (-1 to -100) for the three inside down;
-         * the user should consider that a three inside up is significant when it appears in a downtrend and a three inside
-         * down is significant when it appears in an uptrend, while this function does not consider the trend
+         * outType is Bullish) for the three inside up or Bearish for the three inside down;
+         * the user should consider that a three inside up is significant when it appears in a downtrend and
+         * a three inside down is significant when it appears in an uptrend,
+         * while this function does not consider the trend
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsThreeInsidePattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
-                ? -(int) CandleColor(inClose, inOpen, i - 2) * 100
-                : 0;
+            outType[outIdx++] = IsThreeInsidePattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
+                ? (Core.CandlePatternType) (-(int) CandleColor(inClose, inOpen, i - 2) * 100)
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -154,6 +155,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        ThreeInside<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        ThreeInside<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

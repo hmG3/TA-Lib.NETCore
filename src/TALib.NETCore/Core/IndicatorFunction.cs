@@ -39,7 +39,7 @@ public sealed class IndicatorFunction
         string group,
         string[] inputs,
         (string displayName, string hint)[] options,
-        (string displayName, Core.OutputFlags flags)[] outputs) =>
+        (string displayName, Core.OutputDisplayHint displayHint)[] outputs) =>
         (Name, Description, Group, Inputs, Options, Outputs) = (name, description, group, inputs, options, outputs);
 
     public string Name { get; }
@@ -52,7 +52,7 @@ public sealed class IndicatorFunction
 
     public (string displayName, string hint)[] Options { get; }
 
-    public (string displayName, Core.OutputFlags flags)[] Outputs { get; }
+    public (string displayName, Core.OutputDisplayHint displayHint)[] Outputs { get; }
 
     public Core.RetCode Run<T>(T[][] inputs, T[] options, T[][] outputs) where T : IFloatingPointIeee754<T>
     {
@@ -60,17 +60,27 @@ public sealed class IndicatorFunction
                                  .FirstOrDefault(mi => !mi.Name.EndsWith(LookbackSuffix) && FunctionMethodSelector(mi)) ??
                              throw new MissingMethodException(null, $"{Name}<{typeof(T).Name}>");
 
-        var paramsArray = PrepareFunctionMethodParams(inputs, options, outputs, functionMethod, out var isIntegerOutput);
+        var paramsArray =
+            PrepareFunctionMethodParams(inputs, options, outputs, functionMethod, out var isIntegerOutput, out var isPatternOutput);
 
         var retCode = (Core.RetCode) functionMethod.MakeGenericMethod(typeof(T)).Invoke(null, paramsArray)!;
-        if (isIntegerOutput && retCode == Core.RetCode.Success)
+        if (retCode != Core.RetCode.Success || !isIntegerOutput && !isPatternOutput)
         {
-            for (var i = 0; i < Outputs.Length; i++)
+            return retCode;
+        }
+
+        for (var i = 0; i < Outputs.Length; i++)
+        {
+            var outputArray = paramsArray[inputs.Length + 2 + i];
+            for (var j = 0; j < outputs[i].Length; j++)
             {
-                var integerOutputs = (int[]) paramsArray[inputs.Length + 2 + i];
-                for (var j = 0; j < integerOutputs.Length; j++)
+                if (isIntegerOutput)
                 {
-                    outputs[i][j] = (T) Convert.ChangeType(integerOutputs[j], typeof(T));
+                    outputs[i][j] = (T) Convert.ChangeType(((int[]) outputArray)[j], typeof(T));
+                }
+                else if (isPatternOutput)
+                {
+                    outputs[i][j] = (T) Convert.ChangeType(((Core.CandlePatternType[]) outputArray)[j], typeof(T));
                 }
             }
         }
@@ -134,7 +144,8 @@ public sealed class IndicatorFunction
         T[] options,
         T[][] outputs,
         MethodInfo method,
-        out bool isIntegerOutput) where T : IFloatingPointIeee754<T>
+        out bool isIntegerOutput,
+        out bool isPatternOutput) where T : IFloatingPointIeee754<T>
     {
         var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
 
@@ -148,9 +159,22 @@ public sealed class IndicatorFunction
         paramsArray[Inputs.Length + 1] = inputs[0].Length - 1;
 
         isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
+        isPatternOutput = method.GetParameters()
+            .Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(Core.CandlePatternType[])) == 1;
         for (var i = 0; i < Outputs.Length; i++)
         {
-            paramsArray[Inputs.Length + 2 + i] = isIntegerOutput ? new int[outputs[i].Length] : outputs[i];
+            if (isIntegerOutput)
+            {
+                paramsArray[Inputs.Length + 2 + i] = new int[outputs[i].Length];
+            }
+            else if (isPatternOutput)
+            {
+                paramsArray[Inputs.Length + 2 + i] = new Core.CandlePatternType[outputs[i].Length];
+            }
+            else
+            {
+                paramsArray[Inputs.Length + 2 + i] = outputs[i];
+            }
         }
 
         Array.Fill(paramsArray, Type.Missing, Inputs.Length + 2 + Outputs.Length, Options.Length);

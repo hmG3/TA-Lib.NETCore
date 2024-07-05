@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -69,13 +69,15 @@ public static partial class Candles
          *   - first candle: black candle
          *   - second candle: black candle with the close equal to the previous close
          * The meaning of "equal" is specified with CandleSettings
-         * outInteger is always positive (1 to 100): matching low is always bullish;
+         * outType is always Bullish;
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsMatchingLowPattern(inOpen, inHigh, inLow, inClose, i, equalPeriodTotal) ? 100 : 0;
+            outType[outIdx++] = IsMatchingLowPattern(inOpen, inHigh, inLow, inClose, i, equalPeriodTotal)
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -123,6 +125,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        MatchingLow<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        MatchingLow<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

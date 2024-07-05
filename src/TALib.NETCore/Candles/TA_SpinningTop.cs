@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -67,16 +67,15 @@ public static partial class Candles
          *   - small real body
          *   - shadows longer than the real body
          * The meaning of "short" is specified with CandleSettings
-         * outInteger is positive (1 to 100) when white or negative (-1 to -100) when black;
-         * it does not mean bullish or bearish
+         * outType is Bullish when white or Bearish when black, but this does not mean bullish or bearish
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsSpinningTopPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal)
-                ? (int) CandleColor(inClose, inOpen, i) * 100
-                : 0;
+            outType[outIdx++] = IsSpinningTopPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal)
+                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i) * 100)
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -103,9 +102,12 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int i,
         T bodyPeriodTotal) where T : IFloatingPointIeee754<T> =>
+        // short body
         RealBody(inClose, inOpen, i) <
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyPeriodTotal, i) &&
+        // upper shadow longer real body
         UpperShadow(inHigh, inClose, inOpen, i) > RealBody(inClose, inOpen, i) &&
+        // lower shadow longer real body
         LowerShadow(inClose, inOpen, inLow, i) > RealBody(inClose, inOpen, i);
 
     /// <remarks>
@@ -119,6 +121,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        SpinningTop<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        SpinningTop<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

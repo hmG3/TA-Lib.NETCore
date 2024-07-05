@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -98,17 +98,18 @@ public static partial class Candles
          *   - no, or very short, upper shadow
          *   - body below or near the lows of the previous candle
          * The meaning of "short", "long" and "near the lows" is specified with CandleSettings;
-         * outInteger is positive (1 to 100): hammer is always bullish;
-         * the user should consider that a hammer must appear in a downtrend, while this function does not consider it
+         * outType is always Bullish;
+         * the user should consider that a hammer must appear in a downtrend,
+         * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsHammerPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowLongPeriodTotal,
+            outType[outIdx++] = IsHammerPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowLongPeriodTotal,
                 shadowVeryShortPeriodTotal, nearPeriodTotal)
-                ? 100
-                : 0;
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -183,6 +184,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        Hammer<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        Hammer<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

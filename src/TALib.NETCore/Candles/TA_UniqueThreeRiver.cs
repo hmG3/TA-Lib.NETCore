@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -77,19 +77,19 @@ public static partial class Candles
          * Must have:
          *   - first candle: long black candle
          *   - second candle: black harami candle with a lower low than the first candle's low
-         *   - third candle: small white candle with open not lower than the second candle's low, better if its open and
-         *     close are under the second candle's close
+         *   - third candle: small white candle with open not lower than the second candle's low,
+         *     better if its open and close are under the second candle's close
          * The meaning of "short" and "long" is specified with CandleSettings
-         * outInteger is positive (1 to 100): unique 3 river is always bullish and should appear in a downtrend to be significant,
+         * outType is Bullish: unique three river is always bullish and should appear in a downtrend to be significant,
          * while this function does not consider the trend
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsUniqueThreeRiverPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
-                ? 100
-                : 0;
+            outType[outIdx++] = IsUniqueThreeRiverPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
+                ? Core.CandlePatternType.Bullish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -153,6 +153,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        UniqueThreeRiver<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        UniqueThreeRiver<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

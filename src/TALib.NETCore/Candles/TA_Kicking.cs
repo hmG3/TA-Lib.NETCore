@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -74,12 +74,22 @@ public static partial class Candles
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: marubozu
+         *   - second candle: opposite color marubozu
+         *   - gap between the two candles: upside gap if black then white, downside gap if white then black
+         * The meaning of "long body" and "very short shadow" is specified with CandleSettings
+         * outType is Bullish or Bearish
+         */
+
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsKickingPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, shadowVeryShortPeriodTotal)
-                ? (int) CandleColor(inClose, inOpen, i) * 100
-                : 0;
+            outType[outIdx++] = IsKickingPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, shadowVeryShortPeriodTotal)
+                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i) * 100)
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -135,7 +145,8 @@ public static partial class Candles
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[0], i) &&
         // gap
         (
-            CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && CandleGapUp(inLow, inHigh, i, i - 1) ||
+            CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black && CandleGapUp(inLow, inHigh, i, i - 1)
+            ||
             CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White && CandleGapDown(inLow, inHigh, i, i - 1)
         );
 
@@ -150,6 +161,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        Kicking<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        Kicking<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

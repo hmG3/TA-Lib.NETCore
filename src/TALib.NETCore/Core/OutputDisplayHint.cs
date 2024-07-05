@@ -6,7 +6,7 @@ public static partial class Core
     /// Flags providing hints on how to display the output.
     /// </summary>
     [Flags]
-    public enum OutputFlags
+    public enum OutputDisplayHint
     {
         /// <summary>
         /// Suggests displaying the output as a connected line.

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -72,12 +72,26 @@ public static partial class Candles
         }
 
         i = startIdx;
+
+        /* Proceed with the calculation for the requested range.
+         * Must have:
+         *   - first candle: white candle, usually long
+         *   - second candle: small black real body
+         *   - gap between the first and the second candle's real bodies
+         *   - third candle: black candle with a real body that engulfs the preceding candle
+         *     and closes above the white candle's close
+         * The meaning of "short" and "long" is specified with CandleSettings
+         * outType is Bearish: upside gap two crows is always bearish;
+         * the user should consider that an upside gap two crows is significant when it appears in an uptrend,
+         * while this function does not consider the trend
+         */
+
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsUpsideGapTwoCrowsPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
-                ? -100
-                : 0;
+            outType[outIdx++] = IsUpsideGapTwoCrowsPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
+                ? Core.CandlePatternType.Bearish
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -113,7 +127,7 @@ public static partial class Candles
         T bodyShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // 1st: white
         CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
-        // long
+        // long body
         RealBody(inClose, inOpen, i - 2) >
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
         // 2nd: black
@@ -141,6 +155,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        UpsideGapTwoCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        UpsideGapTwoCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }

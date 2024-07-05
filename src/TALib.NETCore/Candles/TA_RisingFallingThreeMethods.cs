@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<int> outInteger,
+        Span<Core.CandlePatternType> outType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -84,15 +84,15 @@ public static partial class Candles
          *     and closes above (below) the first long candle's close
          * The meaning of "short" and "long" is specified with CandleSettings;
          * here only patterns with 3 small candles are considered;
-         * outInteger is positive (1 to 100) or negative (-1 to -100)
+         * outType is Bullish or Bearish
          */
 
         int outIdx = default;
         do
         {
-            outInteger[outIdx++] = IsRisingFallingThreeMethodsPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal)
-                ? (int) CandleColor(inClose, inOpen, i - 4) * 100
-                : 0;
+            outType[outIdx++] = IsRisingFallingThreeMethodsPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal)
+                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i - 4) * 100)
+                : Core.CandlePatternType.None;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -147,7 +147,7 @@ public static partial class Candles
             CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyPeriodTotal[1], i - 1) &&
             RealBody(inClose, inOpen, i) >
             CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyPeriodTotal[0], i) &&
-            // white, 3 black, white || black, 3 white, black
+            // white, 3 black, white or black, 3 white, black
             (int) CandleColor(inClose, inOpen, i - 4) == -(int) CandleColor(inClose, inOpen, i - 3) &&
             CandleColor(inClose, inOpen, i - 3) == CandleColor(inClose, inOpen, i - 2) &&
             CandleColor(inClose, inOpen, i - 2) == CandleColor(inClose, inOpen, i - 1) &&
@@ -176,6 +176,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> =>
-        RisingFallingThreeMethods<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outInteger, out _, out _);
+        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
+        RisingFallingThreeMethods<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
 }
