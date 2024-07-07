@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -72,18 +72,18 @@ public static partial class Candles
          *   - second candle: black marubozu (very short shadows)
          *   - third candle: black candle that opens gapping down but has an upper shadow that extends into the prior body
          *   - fourth candle: black candle that completely engulfs the third candle, including the shadows
-         * The meanings of "very short shadow" are specified with CandleSettings;
-         * outType is always Bullish;
-         * the user should consider that concealing baby swallow is significant when it appears in downtrend,
+         * The meanings of "very short shadow" are specified with CandleSettings
+         * outIntType is positive (100): concealing baby swallow is always bullish
+         * it should be considered that concealing baby swallow is significant when it appears in downtrend,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsConcealingBabySwallowPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal)
-                ? Core.CandlePatternType.Bullish
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsConcealingBabySwallowPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal)
+                ? 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -152,6 +152,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        ConcealingBabySwallow<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        ConcealingBabySwallow<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

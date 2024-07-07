@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement,
         double optInPenetration = 0.5) where T : IFloatingPointIeee754<T>
@@ -73,21 +73,21 @@ public static partial class Candles
         /* Proceed with the calculation for the requested range.
          * Must have:
          *   - first candle: long white candle
-         *   - second candle: black candle that opens above previous day high and closes within previous day real body;
+         *   - second candle: black candle that opens above previous day high and closes within previous day real body
          * Greg Morris wants the close to be below the midpoint of the previous real body
          * The meaning of "long" is specified with CandleSettings,
          * the penetration of the first real body is specified with optInPenetration
-         * outType is always Bearish;
-         * the user should consider that a dark cloud cover is significant when it appears in an uptrend,
+         * outIntType is negative (-100): dark cloud cover is always bearish
+         * it should be considered that a dark cloud cover is significant when it appears in an uptrend,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsDarkCloudCoverPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal)
-                ? Core.CandlePatternType.Bearish
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsDarkCloudCoverPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal)
+                ? -100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -139,7 +139,7 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType,
+        int[] outIntType,
         double optInPenetration = 0.5) where T : IFloatingPointIeee754<T> =>
-        DarkCloudCover<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _, optInPenetration);
+        DarkCloudCover<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _, optInPenetration);
 }

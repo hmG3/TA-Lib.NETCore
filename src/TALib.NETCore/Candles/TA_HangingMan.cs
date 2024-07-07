@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -97,19 +97,19 @@ public static partial class Candles
          *   - long lower shadow
          *   - no, or very short, upper shadow
          *   - body above or near the highs of the previous candle
-         * The meaning of "short", "long" and "near the highs" is specified with CandleSettings;
-         * outType is always Bearish;
-         * the user should consider that a hanging man must appear in an uptrend,
+         * The meaning of "short", "long" and "near the highs" is specified with CandleSettings
+         * outIntType is negative (-100): hanging man is always bearish
+         * it should be considered that a hanging man must appear in an uptrend,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsHangingManPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowLongPeriodTotal,
+            outIntType[outIdx++] = IsHangingManPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowLongPeriodTotal,
                 shadowVeryShortPeriodTotal, nearPeriodTotal)
-                ? Core.CandlePatternType.Bearish
-                : Core.CandlePatternType.None;
+                ? -100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -184,6 +184,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        HangingMan<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        HangingMan<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

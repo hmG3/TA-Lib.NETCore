@@ -30,7 +30,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -72,8 +72,8 @@ public static partial class Candles
          *     each opening within or near the previous real body
          *   - fourth candle: black (white) candle that opens above (below) prior candle's close and closes below (above)
          *     the first candle's open
-         * The meaning of "near" is specified with CandleSettings;
-         * outType is Bullish or Bearish;
+         * The meaning of "near" is specified with CandleSettings
+         * outIntType is positive (100) when bullish or negative (-100) when bearish
          * it should be considered that 3-line strike is significant when it appears in a trend
          * in the same direction of the first three candles,
          * while this function does not consider it
@@ -82,9 +82,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsThreeLineStrikePattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal)
-                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i - 1) * 100)
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsThreeLineStrikePattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal)
+                ? (int) CandleColor(inClose, inOpen, i - 1) * 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -160,6 +160,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        ThreeLineStrike<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        ThreeLineStrike<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -81,15 +81,15 @@ public static partial class Candles
          *   - second candle: opposite color marubozu
          *   - gap between the two candles: upside gap if black then white, downside gap if white then black
          * The meaning of "long body" and "very short shadow" is specified with CandleSettings
-         * outType is Bullish or Bearish
+         * outIntType is positive (100) when bullish or negative (-100) when bearish
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsKickingPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, shadowVeryShortPeriodTotal)
-                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i) * 100)
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsKickingPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, shadowVeryShortPeriodTotal)
+                ? (int) CandleColor(inClose, inOpen, i) * 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -161,6 +161,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        Kicking<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        Kicking<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

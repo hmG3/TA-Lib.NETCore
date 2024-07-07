@@ -60,11 +60,10 @@ public sealed class IndicatorFunction
                                  .FirstOrDefault(mi => !mi.Name.EndsWith(LookbackSuffix) && FunctionMethodSelector(mi)) ??
                              throw new MissingMethodException(null, $"{Name}<{typeof(T).Name}>");
 
-        var paramsArray =
-            PrepareFunctionMethodParams(inputs, options, outputs, functionMethod, out var isIntegerOutput, out var isPatternOutput);
+        var paramsArray = PrepareFunctionMethodParams(inputs, options, outputs, functionMethod, out var isIntegerOutput);
 
         var retCode = (Core.RetCode) functionMethod.MakeGenericMethod(typeof(T)).Invoke(null, paramsArray)!;
-        if (retCode != Core.RetCode.Success || !isIntegerOutput && !isPatternOutput)
+        if (retCode != Core.RetCode.Success || !isIntegerOutput)
         {
             return retCode;
         }
@@ -77,10 +76,6 @@ public sealed class IndicatorFunction
                 if (isIntegerOutput)
                 {
                     outputs[i][j] = (T) Convert.ChangeType(((int[]) outputArray)[j], typeof(T));
-                }
-                else if (isPatternOutput)
-                {
-                    outputs[i][j] = (T) Convert.ChangeType(((Core.CandlePatternType[]) outputArray)[j], typeof(T));
                 }
             }
         }
@@ -144,8 +139,7 @@ public sealed class IndicatorFunction
         T[] options,
         T[][] outputs,
         MethodInfo method,
-        out bool isIntegerOutput,
-        out bool isPatternOutput) where T : IFloatingPointIeee754<T>
+        out bool isIntegerOutput) where T : IFloatingPointIeee754<T>
     {
         var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
 
@@ -159,22 +153,9 @@ public sealed class IndicatorFunction
         paramsArray[Inputs.Length + 1] = inputs[0].Length - 1;
 
         isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
-        isPatternOutput = method.GetParameters()
-            .Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(Core.CandlePatternType[])) == 1;
         for (var i = 0; i < Outputs.Length; i++)
         {
-            if (isIntegerOutput)
-            {
-                paramsArray[Inputs.Length + 2 + i] = new int[outputs[i].Length];
-            }
-            else if (isPatternOutput)
-            {
-                paramsArray[Inputs.Length + 2 + i] = new Core.CandlePatternType[outputs[i].Length];
-            }
-            else
-            {
-                paramsArray[Inputs.Length + 2 + i] = outputs[i];
-            }
+            paramsArray[Inputs.Length + 2 + i] = isIntegerOutput ? new int[outputs[i].Length] : outputs[i];
         }
 
         Array.Fill(paramsArray, Type.Missing, Inputs.Length + 2 + Outputs.Length, Options.Length);

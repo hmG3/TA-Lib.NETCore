@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -87,8 +87,8 @@ public static partial class Candles
          *   - first candle: black (white) candle
          *   - second candle: bullish (bearish) belt hold with the same open as the prior candle
          * The meaning of "long body" and "very short shadow" of the belt hold is specified with CandleSettings
-         * outType is Bullish or Bearish;
-         * the user should consider that separating lines is significant when coming in a trend and
+         * outIntType is positive (100) when bullish or negative (-100) when bearish
+         * it should be considered that separating lines is significant when coming in a trend and
          * the belt hold has the same direction of the trend,
          * while this function does not consider it
          */
@@ -96,10 +96,10 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsSeparatingLinesPattern(inOpen, inHigh, inLow, inClose, i, equalPeriodTotal, bodyLongPeriodTotal,
+            outIntType[outIdx++] = IsSeparatingLinesPattern(inOpen, inHigh, inLow, inClose, i, equalPeriodTotal, bodyLongPeriodTotal,
                 shadowVeryShortPeriodTotal)
-                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i) * 100)
-                : Core.CandlePatternType.None;
+                ? (int) CandleColor(inClose, inOpen, i) * 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -175,6 +175,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        SeparatingLines<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        SeparatingLines<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -73,7 +73,7 @@ public static partial class Candles
          *   - each candle after the first must open within the prior candle's real body
          *   - the first candle's close should be under the prior white candle's high
          * The meaning of "very short" is specified with CandleSettings
-         * outType is Bearish: three black crows is always bearish;
+         * outIntType is negative (-100): three black crows is always bearish
          * it should be considered that 3 black crows is significant when it appears after a mature advance or at high levels,
          * while this function does not consider it
          */
@@ -81,9 +81,7 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsThreeBlackCrowsPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal)
-                ? Core.CandlePatternType.Bearish
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsThreeBlackCrowsPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal) ? -100 : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -153,6 +151,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        ThreeBlackCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        ThreeBlackCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

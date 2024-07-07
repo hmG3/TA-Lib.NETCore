@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -99,24 +99,24 @@ public static partial class Candles
         /* Proceed with the calculation for the requested range.
          * Must have:
          *   - three white candlesticks with consecutively higher closes -
-         *   - Greg Morris wants them to be long, Steve Nison doesn't; anyway they should not be short
+         *     Greg Morris wants them to be long, Steve Nison doesn't; anyway they should not be short
          *   - each candle opens within or near the previous white real body
          *   - each candle must have no or very short upper shadow
          *   - to differentiate this pattern from advance block, each candle must not be far shorter than the prior candle
-         * The meanings of "not short", "very short shadow", "far" and "near" are specified with CandleSettings;
-         * here the 3 candles must be not short, if you want them to be long use CandleSettings on BodyShort;
-         * outType is Bullish: advancing three white soldiers is always bullish;
-         * the user should consider that three white soldiers is significant when it appears in downtrend,
+         * The meanings of "not short", "very short shadow", "far" and "near" are specified with CandleSettings
+         * here the 3 candles must be not short, if you want them to be long use CandleSettings on BodyShort
+         * outIntType is positive (100): advancing three white soldiers is always bullish
+         * it should be considered that three white soldiers is significant when it appears in downtrend,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsThreeWhiteSoldiersPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal,
+            outIntType[outIdx++] = IsThreeWhiteSoldiersPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal,
                 nearPeriodTotal, farPeriodTotal, bodyShortPeriodTotal)
-                ? Core.CandlePatternType.Bullish
-                : Core.CandlePatternType.None;
+                ? 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -216,6 +216,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        ThreeWhiteSoldiers<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        ThreeWhiteSoldiers<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

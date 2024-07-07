@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -81,17 +81,17 @@ public static partial class Candles
          *   - third candle: black candle with a real body that engulfs the preceding candle
          *     and closes above the white candle's close
          * The meaning of "short" and "long" is specified with CandleSettings
-         * outType is Bearish: upside gap two crows is always bearish;
-         * the user should consider that an upside gap two crows is significant when it appears in an uptrend,
+         * outIntType is positive (100) when bullish or negative (-100) when bearish
+         * it should be considered that an upside gap two crows is significant when it appears in an uptrend,
          * while this function does not consider the trend
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsUpsideGapTwoCrowsPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
-                ? Core.CandlePatternType.Bearish
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsUpsideGapTwoCrowsPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
+                ? -100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -155,6 +155,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        UpsideGapTwoCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        UpsideGapTwoCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

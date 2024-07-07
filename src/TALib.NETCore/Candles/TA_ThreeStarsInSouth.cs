@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -99,19 +99,19 @@ public static partial class Candles
          *   - second candle: smaller black candle that opens higher than prior close but within prior candle's range and
          *     trades lower than prior close but not lower than prior low and closes off of its low (it has a shadow)
          *   - third candle: small black marubozu (or candle with very short shadows) engulfed by prior candle's range
-         * The meanings of "long body", "short body", "very short shadow" are specified with CandleSettings;
-         * outType is Bullish: three stars in the south is always bullish;
-         * the user should consider that three stars in the south is significant when it appears in downtrend,
+         * The meanings of "long body", "short body", "very short shadow" are specified with CandleSettings
+         * outIntType is positive (100): three stars in the south is always bullish
+         * it should be considered that three stars in the south is significant when it appears in downtrend,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsThreeStarsInSouthPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, shadowLongPeriodTotal,
+            outIntType[outIdx++] = IsThreeStarsInSouthPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, shadowLongPeriodTotal,
                 shadowVeryShortPeriodTotal, bodyShortPeriodTotal)
-                ? Core.CandlePatternType.Bullish
-                : Core.CandlePatternType.None;
+                ? 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -208,6 +208,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        ThreeStarsInSouth<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        ThreeStarsInSouth<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -70,17 +70,15 @@ public static partial class Candles
          *   - fourth candle: black candle with an upper shadow (it's supposed to be not very short)
          *   - fifth candle: white candle that opens above prior candle's body and closes above prior candle's high
          * The meaning of "very short" is specified with CandleSettings
-         * outType is always Bullish;
-         * the user should consider that ladder bottom is significant when it appears in a downtrend,
+         * outIntType is positive (100): ladder bottom is always bullish
+         * it should be considered that ladder bottom is significant when it appears in a downtrend,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsLadderBottomPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal)
-                ? Core.CandlePatternType.Bullish
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsLadderBottomPattern(inOpen, inHigh, inLow, inClose, i, shadowVeryShortPeriodTotal) ? 100 : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -137,6 +135,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        LadderBottom<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        LadderBottom<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

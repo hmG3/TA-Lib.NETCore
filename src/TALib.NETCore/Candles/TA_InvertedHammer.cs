@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -86,19 +86,19 @@ public static partial class Candles
          *   - long upper shadow
          *   - no, or very short, lower shadow
          *   - gap down
-         * The meaning of "short", "very short" and "long" is specified with CandleSettings;
-         * outType is always Bullish;
-         * the user should consider that an inverted hammer must appear in a downtrend,
+         * The meaning of "short", "very short" and "long" is specified with CandleSettings
+         * outIntType is positive (100): inverted hammer is always bullish
+         * it should be considered that an inverted hammer must appear in a downtrend,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsInvertedHammerPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowLongPeriodTotal,
+            outIntType[outIdx++] = IsInvertedHammerPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal, shadowLongPeriodTotal,
                 shadowVeryShortPeriodTotal)
-                ? Core.CandlePatternType.Bullish
-                : Core.CandlePatternType.None;
+                ? 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -164,6 +164,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        InvertedHammer<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        InvertedHammer<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

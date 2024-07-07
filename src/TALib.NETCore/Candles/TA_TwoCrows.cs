@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -71,7 +71,7 @@ public static partial class Candles
          *   - gap between the first and the second candle's real bodies
          *   - third candle: black candle that opens within the second real body and closes within the first real body
          * The meaning of "long" is specified with CandleSettings
-         * outType is Bearish: two crows is always bearish;
+         * outIntType is negative (-100): two crows is always bearish
          * it should be considered that two crows is significant when it appears in an uptrend,
          * while the function does not consider the trend
          */
@@ -79,9 +79,7 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsTwoCrowsPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal)
-                ? Core.CandlePatternType.Bearish
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsTwoCrowsPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal) ? -100 : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -135,6 +133,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        TwoCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        TwoCrows<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -80,16 +80,16 @@ public static partial class Candles
          *   - third candle: small white candle with open not lower than the second candle's low,
          *     better if its open and close are under the second candle's close
          * The meaning of "short" and "long" is specified with CandleSettings
-         * outType is Bullish: unique three river is always bullish and should appear in a downtrend to be significant,
+         * outIntType is positive (100): unique three river is always bullish and should appear in a downtrend to be significant,
          * while this function does not consider the trend
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsUniqueThreeRiverPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
-                ? Core.CandlePatternType.Bullish
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsUniqueThreeRiverPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
+                ? 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -153,6 +153,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        UniqueThreeRiver<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        UniqueThreeRiver<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

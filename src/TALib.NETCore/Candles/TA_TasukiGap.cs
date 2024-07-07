@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -72,17 +72,17 @@ public static partial class Candles
          *     the previous real body inside the gap
          *   - the size of two real bodies should be near the same
          * The meaning of "near" is specified with CandleSettings
-         * outType is Bullish or Bearish;
-         * the user should consider that tasuki gap is significant when it appears in a trend,
+         * outIntType is positive (100) when bullish or negative (-100) when bearish
+         * it should be considered that tasuki gap is significant when it appears in a trend,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsTasukiGapPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal)
-                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i - 1) * 100)
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsTasukiGapPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal)
+                ? (int) CandleColor(inClose, inOpen, i - 1) * 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -156,6 +156,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        TasukiGap<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        TasukiGap<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -111,20 +111,20 @@ public static partial class Candles
          *   - each candle opens within or near the previous white real body
          *   - first candle: long white with no or very short upper shadow (a short shadow is accepted too for more flexibility)
          *   - second and third candles, or only third candle, show signs of weakening:
-         *     progressively smaller white real bodies and/or relatively long upper shadows;
-         * The meanings of "long body", "short shadow", "far" and "near" are specified with CandleSettings;
-         * outType is always Bearish;
-         * the user should consider that advance block is significant when it appears in uptrend,
+         *     progressively smaller white real bodies and/or relatively long upper shadows
+         * The meanings of "long body", "short shadow", "far" and "near" are specified with CandleSettings
+         * outIntType is negative (-100): advance block is always bearish
+         * it should be considered that advance block is significant when it appears in uptrend,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsAdvanceBlockPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal, bodyLongPeriodTotal,
+            outIntType[outIdx++] = IsAdvanceBlockPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal, bodyLongPeriodTotal,
                 shadowShortPeriodTotal, farPeriodTotal, shadowLongPeriodTotal)
-                ? Core.CandlePatternType.Bearish
-                : Core.CandlePatternType.None;
+                ? -100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -255,6 +255,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        AdvanceBlock<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        AdvanceBlock<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

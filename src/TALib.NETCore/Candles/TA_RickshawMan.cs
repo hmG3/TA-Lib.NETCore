@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -86,16 +86,16 @@ public static partial class Candles
          *   - two long shadows
          *   - body near the midpoint of the high-low range
          * The meaning of "doji" and "near" is specified with CandleSettings
-         * outType is always Bullish but this does not mean it is bullish: rickshaw man shows uncertainty
+         * outIntType is always positive (100) but this does not mean it is bullish: rickshaw man shows uncertainty
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] =
+            outIntType[outIdx++] =
                 IsRickshawManPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowLongPeriodTotal, nearPeriodTotal)
-                    ? Core.CandlePatternType.Bullish
-                    : Core.CandlePatternType.None;
+                    ? 100
+                    : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -162,6 +162,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        RickshawMan<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        RickshawMan<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

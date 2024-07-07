@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -94,13 +94,13 @@ public static partial class Candles
          *   - second candle: candle with range less than first candle and close near the bottom (near the top)
          *   - third candle: lower high and higher low than 2nd
          *   - fourth candle: lower high and lower low (higher high and higher low) than 3rd
-         * outType[hikkakebar] is Bullish or Bearish meaning bullish or bearish hikkake
+         * outInteger[hikkake bar] is positive (100) or negative (-100) meaning bullish or bearish hikkake
          * Confirmation could come in the next 3 days with:
          *   - a day that closes higher than the high (lower than the low) of the 3rd candle
-         * outType[confirmationbar] is StrongBullish or StrongBearish
+         * outIntType[confirmationbar] is equal to 100 + the bullish hikkake result or -100 - the bearish hikkake result
          * Note: if confirmation and a new hikkake come at the same bar, only the new hikkake is reported
-         * (the new hikkake overwrites the confirmation of the old hikkake);
-         * the user should consider that modified hikkake is a reversal pattern,
+         * (the new hikkake overwrites the confirmation of the old hikkake)
+         * it should be considered that modified hikkake is a reversal pattern,
          * while hikkake could be both a reversal or a continuation pattern,
          * so bullish (bearish) modified hikkake is significant when appearing in a downtrend (uptrend)
          */
@@ -112,17 +112,17 @@ public static partial class Candles
             {
                 patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                 patternIdx = i;
-                outType[outIdx++] = (Core.CandlePatternType) patternResult;
+                outIntType[outIdx++] = patternResult;
             }
             // search for confirmation if modified hikkake was no more than 3 bars ago
             else if (IsHikkakeModifiedPatternConfirmation(inHigh, inLow, inClose, i, patternIdx, patternResult))
             {
-                outType[outIdx++] = (Core.CandlePatternType) patternResult + 100 * (patternResult > 0 ? 1 : -1);
+                outIntType[outIdx++] = patternResult + 100 * (patternResult > 0 ? 1 : -1);
                 patternIdx = 0;
             }
             else
             {
-                outType[outIdx++] = 0;
+                outIntType[outIdx++] = 0;
             }
 
             nearPeriodTotal +=
@@ -191,6 +191,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        HikkakeModified<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        HikkakeModified<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

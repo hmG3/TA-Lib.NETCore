@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -60,17 +60,15 @@ public static partial class Candles
          *   - first: black (white) real body
          *   - second: white (black) real body that engulfs the prior real body
          *   - third: candle that closes higher (lower) than the second candle
-         * outType is Bullish for the three outside up or Bearish for the three outside down;
-         * the user should consider that a three outside up must appear in a downtrend and three outside down must appear in an uptrend,
+         * outIntType is positive (100) for the three outside up or negative (-100) for the three outside down
+         * it should be considered that a three outside up must appear in a downtrend and three outside down must appear in an uptrend,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsThreeOutsidePattern(inOpen, inClose, i)
-                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i - 1) * 100)
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsThreeOutsidePattern(inOpen, inClose, i) ? (int) CandleColor(inClose, inOpen, i - 1) * 100 : 0;
 
             i++;
         } while (i <= endIdx);
@@ -110,6 +108,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        ThreeOutside<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        ThreeOutside<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

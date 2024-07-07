@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -76,10 +76,10 @@ public static partial class Candles
          *   - first candle: long real body
          *   - second candle: star (open gapping up in an uptrend or down in a downtrend) with a doji
          * The meaning of "doji" and "long" is specified with CandleSettings
-         * outType is Bullish or Bearish;
+         * outIntType is positive (100) when bullish or negative (-100) when bearish
          * it's defined bullish when the long candle is white and the star gaps up,
-         * bearish when the long candle is black and the star gaps down;
-         * the user should consider that a doji star is bullish when it appears in an uptrend,
+         * bearish when the long candle is black and the star gaps down
+         * it should be considered that a doji star is bullish when it appears in an uptrend,
          * and it's bearish when it appears in a downtrend,
          * so to determine the bullishness or bearishness of the pattern the trend must be analyzed
          */
@@ -87,9 +87,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsDojiStarPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal)
-                ? (Core.CandlePatternType) (-(int) CandleColor(inClose, inOpen, i - 1) * 100)
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsDojiStarPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal)
+                ? -(int) CandleColor(inClose, inOpen, i - 1) * 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -148,6 +148,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        DojiStar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        DojiStar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

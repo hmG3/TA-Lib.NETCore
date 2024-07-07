@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement,
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T>
@@ -90,18 +90,18 @@ public static partial class Candles
          * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean
          * the real body should not be short ("short" is specified with CandleSettings) -
          * Greg Morris wants it to be long, someone else wants it to be relatively long
-         * outType is always Bearish;
-         * the user should consider that an evening star is significant when it appears in an uptrend,
+         * outIntType is negative (-100): evening star is always bearish
+         * it should be considered that an evening star is significant when it appears in an uptrend,
          * while this function does not consider the trend
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsEveningStarPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal,
+            outIntType[outIdx++] = IsEveningStarPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal,
                 bodyShortPeriodTotal, bodyShortPeriodTotal2)
-                ? Core.CandlePatternType.Bearish
-                : Core.CandlePatternType.None;
+                ? -100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -170,7 +170,7 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType,
+        int[] outIntType,
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
-        EveningStar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _, optInPenetration);
+        EveningStar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _, optInPenetration);
 }

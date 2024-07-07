@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -82,17 +82,17 @@ public static partial class Candles
          *     the prior long candle's range: ideally they should be three but two or more than three are ok too
          *   - final candle: long white (black) candle that opens above (below) the previous small candle's close
          *     and closes above (below) the first long candle's close
-         * The meaning of "short" and "long" is specified with CandleSettings;
-         * here only patterns with 3 small candles are considered;
-         * outType is Bullish or Bearish
+         * The meaning of "short" and "long" is specified with CandleSettings
+         * here only patterns with 3 small candles are considered
+         * outIntType is positive (100) or negative (-100)
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsRisingFallingThreeMethodsPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal)
-                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i - 4) * 100)
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsRisingFallingThreeMethodsPattern(inOpen, inHigh, inLow, inClose, i, bodyPeriodTotal)
+                ? (int) CandleColor(inClose, inOpen, i - 4) * 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -176,6 +176,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        RisingFallingThreeMethods<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        RisingFallingThreeMethods<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -77,17 +77,15 @@ public static partial class Candles
          *   - open and close at the low of the day = no or very short lower shadow
          *   - upper shadow (to distinguish from other dojis, here upper shadow should not be very short)
          * The meaning of "doji" and "very short" is specified with CandleSettings
-         * outType is always Bullish but this does not mean it is bullish:
+         * outIntType is always positive (100) but this does not mean it is bullish:
          * gravestone doji must be considered relatively to the trend
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] =
-                IsGravestoneDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowVeryShortPeriodTotal)
-                    ? Core.CandlePatternType.Bullish
-                    : Core.CandlePatternType.None;
+            outIntType[outIdx++] =
+                IsGravestoneDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowVeryShortPeriodTotal) ? 100 : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -142,6 +140,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        GravestoneDoji<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        GravestoneDoji<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

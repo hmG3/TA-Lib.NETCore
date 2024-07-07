@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -59,18 +59,16 @@ public static partial class Candles
          * Must have:
          *   - first: black (white) real body
          *   - second: white (black) real body that engulfs the prior real body
-         * outType is Bullish or Bearish:
-         *   - Bullish is returned when the second candle's real body begins before and ends after the first candle's real body
-         * The user should consider that an engulfing must appear in a downtrend if bullish or in an uptrend if bearish,
+         * outIntType is positive (100) when bullish or negative (-100) when bearish:
+         *   - 100 is returned when the second candle's real body begins before and ends after the first candle's real body
+         * it should be considered that an engulfing must appear in a downtrend if bullish or in an uptrend if bearish,
          * while this function does not consider it
          */
 
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsEngulfingPattern(inOpen, inClose, i)
-                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i) * 100)
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsEngulfingPattern(inOpen, inClose, i) ? (int) CandleColor(inClose, inOpen, i) * 100 : 0;
 
             i++;
         } while (i <= endIdx);
@@ -105,6 +103,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        Engulfing<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        Engulfing<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

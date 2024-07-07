@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement,
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T>
@@ -99,8 +99,8 @@ public static partial class Candles
          * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean
          * the real body should not be short ("short" is specified with CandleSettings) -
          * Greg Morris wants it to be long, someone else wants it to be relatively long
-         * outType is Bullish when it's an abandoned baby bottom or Bearish when it's an abandoned baby top;
-         * the user should consider that an abandoned baby is significant when it appears in an uptrend or downtrend,
+         * outIntType is positive (100) when it's an abandoned baby bottom or negative (-100) when it's an abandoned baby top
+         * it should be considered that an abandoned baby is significant when it appears in an uptrend or downtrend,
          * while this function does not consider the trend
          */
 
@@ -108,10 +108,10 @@ public static partial class Candles
         var penetration = T.CreateChecked(optInPenetration);
         do
         {
-            outType[outIdx++] = IsAbandonedBabyPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal,
+            outIntType[outIdx++] = IsAbandonedBabyPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal,
                 bodyShortPeriodTotal, penetration)
-                ? (Core.CandlePatternType) ((int) CandleColor(inClose, inOpen, i) * 100)
-                : Core.CandlePatternType.None;
+                ? (int) CandleColor(inClose, inOpen, i) * 100
+                : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -199,7 +199,7 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType,
+        int[] outIntType,
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
-        AbandonedBaby<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _, optInPenetration);
+        AbandonedBaby<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _, optInPenetration);
 }

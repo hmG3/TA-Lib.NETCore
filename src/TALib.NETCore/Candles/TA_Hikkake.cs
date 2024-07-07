@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -78,10 +78,10 @@ public static partial class Candles
          * Must have:
          *   - first and second candle: inside bar (2nd has lower high and higher low than 1st)
          *   - third candle: lower high and lower low than 2nd (higher high and higher low than 2nd)
-         * outType[hikkakebar] is Bullish or Bearish meaning bullish or bearish hikkake
+         * outIntType[hikkakebar] is positive (100) or negative (-100) meaning bullish or bearish hikkake
          * Confirmation could come in the next 3 days with:
          *   - a day that closes higher than the high (lower than the low) of the 2nd candle
-         * outType[confirmationbar] is StrongBullish or StrongBearish
+         * outIntType[confirmationbar] is equal to 100 + the bullish hikkake result or -100 - the bearish hikkake result
          * Note: if confirmation and a new hikkake come at the same bar, only the new hikkake is reported
          * (the new hikkake overwrites the confirmation of the old hikkake)
          */
@@ -93,17 +93,17 @@ public static partial class Candles
             {
                 patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
                 patternIdx = i;
-                outType[outIdx++] = (Core.CandlePatternType) patternResult;
+                outIntType[outIdx++] = patternResult;
             }
             // search for confirmation if hikkake was no more than 3 bars ago
             else if (IsHikkakePatternConfirmation(inHigh, inLow, inClose, i, patternIdx, patternResult))
             {
-                outType[outIdx++] = (Core.CandlePatternType) patternResult + 100 * (patternResult > 0 ? 1 : -1);
+                outIntType[outIdx++] = patternResult + 100 * (patternResult > 0 ? 1 : -1);
                 patternIdx = 0;
             }
             else
             {
-                outType[outIdx++] = 0;
+                outIntType[outIdx++] = 0;
             }
 
             i++;
@@ -155,6 +155,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        Hikkake<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        Hikkake<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

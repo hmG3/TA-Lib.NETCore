@@ -29,7 +29,7 @@ public static partial class Candles
         ReadOnlySpan<T> inClose,
         int startIdx,
         int endIdx,
-        Span<Core.CandlePatternType> outType,
+        Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
@@ -76,11 +76,11 @@ public static partial class Candles
         /* Proceed with the calculation for the requested range.
          * Must have:
          *   - first candle: long black candle
-         *   - second candle: white candle with open below previous day low and close into previous day body under the midpoint;
+         *   - second candle: white candle with open below previous day low and close into previous day body under the midpoint
          * to differentiate it from in-neck the close should not be equal to the black candle's close
          * The meaning of "equal" is specified with CandleSettings
-         * outType is Bearish: thrusting pattern is always bearish
-         * the user should consider that the thrusting pattern is significant when it appears in a downtrend,
+         * outIntType is negative (-100): thrusting pattern is always bearish
+         * it should be considered that the thrusting pattern is significant when it appears in a downtrend,
          * and it could be even bullish "when coming in an uptrend or occurring twice within several days" (Steve Nison says),
          * while this function does not consider the trend
          */
@@ -88,9 +88,7 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outType[outIdx++] = IsThrustingPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, equalPeriodTotal)
-                ? Core.CandlePatternType.Bearish
-                : Core.CandlePatternType.None;
+            outIntType[outIdx++] = IsThrustingPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, equalPeriodTotal) ? -100 : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -150,6 +148,6 @@ public static partial class Candles
         T[] inClose,
         int startIdx,
         int endIdx,
-        Core.CandlePatternType[] outType) where T : IFloatingPointIeee754<T> =>
-        Thrusting<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outType, out _, out _);
+        int[] outIntType) where T : IFloatingPointIeee754<T> =>
+        Thrusting<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }
