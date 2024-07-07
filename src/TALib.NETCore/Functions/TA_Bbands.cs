@@ -49,9 +49,7 @@ public static partial class Functions
         }
 
         /* Identify two temporary buffers among the outputs.
-         *
          * These temporary buffers allows to perform the calculation without any memory allocation.
-         *
          * Whenever possible, make the tempBuffer1 be the middle band output. This will save one copy operation.
          */
 
@@ -78,9 +76,8 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        /* Calculate the middle band, which is a moving average. The other two bands will simply
-         * add/subtract the standard deviation from this middle band.
-         */
+        // Calculate the middle band, which is a moving average.
+        // The other two bands will simply add/subtract the standard deviation from this middle band.
         var retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
         if (retCode != Core.RetCode.Success || outNbElement == 0)
         {

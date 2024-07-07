@@ -96,7 +96,7 @@ public static partial class Functions
 
             theAverage /= timePeriod;
 
-            // Do the summation of the Abs(TypePrice-average) for the whole period.
+            // Do the summation of the Abs(TypePrice - average) for the whole period.
             var tempReal2 = T.Zero;
             for (var j = 0; j < optInTimePeriod; j++)
             {

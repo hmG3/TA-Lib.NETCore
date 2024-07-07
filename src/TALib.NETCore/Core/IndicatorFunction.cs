@@ -39,7 +39,7 @@ public sealed class IndicatorFunction
         string group,
         string[] inputs,
         (string displayName, string hint)[] options,
-        (string displayName, Core.OutputDisplayHint displayHint)[] outputs) =>
+        (string displayName, Core.OutputDisplayHints displayHint)[] outputs) =>
         (Name, Description, Group, Inputs, Options, Outputs) = (name, description, group, inputs, options, outputs);
 
     public string Name { get; }
@@ -52,7 +52,7 @@ public sealed class IndicatorFunction
 
     public (string displayName, string hint)[] Options { get; }
 
-    public (string displayName, Core.OutputDisplayHint displayHint)[] Outputs { get; }
+    public (string displayName, Core.OutputDisplayHints displayHint)[] Outputs { get; }
 
     public Core.RetCode Run<T>(T[][] inputs, T[] options, T[][] outputs) where T : IFloatingPointIeee754<T>
     {
@@ -73,10 +73,7 @@ public sealed class IndicatorFunction
             var outputArray = paramsArray[inputs.Length + 2 + i];
             for (var j = 0; j < outputs[i].Length; j++)
             {
-                if (isIntegerOutput)
-                {
-                    outputs[i][j] = (T) Convert.ChangeType(((int[]) outputArray)[j], typeof(T));
-                }
+                outputs[i][j] = (T) Convert.ChangeType(((int[]) outputArray)[j], typeof(T));
             }
         }
 

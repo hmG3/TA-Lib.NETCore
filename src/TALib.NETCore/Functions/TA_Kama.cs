@@ -94,7 +94,7 @@ public static partial class Functions
         var outIdx = 1;
         outBegIdx = today - 1;
 
-        // Do the KAMA calculation for the requested range.
+        // Skip the unstable period. Do the whole processing needed for KAMA, but do not write it in the output.
         while (today <= endIdx)
         {
             UpdateSumROC(inReal, ref sumROC1, ref today, ref trailingIdx, ref trailingValue);

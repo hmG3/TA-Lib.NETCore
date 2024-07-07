@@ -110,9 +110,9 @@ public static partial class Functions
         var prevATR = prevATRTemp[0];
 
         /* Subsequent value are smoothed using the previous ATR value (Wilder's approach).
-         *  1) Multiply the previous ATR by 'period-1'.
-         *  2) Add today TR value.
-         *  3) Divide by 'period'.
+         *   1) Multiply the previous ATR by 'period-1'.
+         *   2) Add today TR value.
+         *   3) Divide by 'period'.
          */
         var today = optInTimePeriod;
         var outIdx = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Natr);

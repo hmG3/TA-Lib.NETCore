@@ -49,7 +49,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int FloorLookback() => default;
+    public static int FloorLookback() => 0;
 
     /// <remarks>
     /// For compatibility with abstract API

@@ -48,9 +48,9 @@ public static partial class Functions
 
         /* Average True Range is the greatest of the following:
          *
-         *  val1 = distance from today's high to today's low.
-         *  val2 = distance from yesterday's close to today's high.
-         *  val3 = distance from yesterday's close to today's low.
+         *   val1 = distance from today's high to today's low.
+         *   val2 = distance from yesterday's close to today's high.
+         *   val3 = distance from yesterday's close to today's low.
          *
          * These value are averaged for the specified period using Wilder method.
          * The method has an unstable period comparable to and Exponential Moving Average (EMA).
@@ -93,9 +93,9 @@ public static partial class Functions
         var prevATR = prevATRTemp[0];
 
         /* Subsequent value are smoothed using the previous ATR value (Wilder's approach).
-         *  1) Multiply the previous ATR by 'period - 1'.
-         *  2) Add today TR value.
-         *  3) Divide by 'period'.
+         *   1) Multiply the previous ATR by 'period - 1'.
+         *   2) Add today TR value.
+         *   3) Divide by 'period'.
          */
         var today = optInTimePeriod;
         var outIdx = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Atr);

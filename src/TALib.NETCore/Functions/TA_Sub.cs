@@ -50,7 +50,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int SubLookback() => default;
+    public static int SubLookback() => 0;
 
     /// <remarks>
     /// For compatibility with abstract API

@@ -42,9 +42,9 @@ public static partial class Functions
 
         /* True Range is the greatest of the following:
          *
-         *  val1 = distance from today's high to today's low.
-         *  val2 = distance from yesterday's close to today's high.
-         *  val3 = distance from yesterday's close to today's low.
+         *   val1 = distance from today's high to today's low.
+         *   val2 = distance from yesterday's close to today's high.
+         *   val3 = distance from yesterday's close to today's low.
          *
          * Some books and software makes the first TR value to be the (high - low) of the first bar.
          * This function instead ignores the first price bar, and only outputs starting at the second price bar are valid.

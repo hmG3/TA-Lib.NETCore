@@ -56,9 +56,9 @@ public static partial class Functions
          * To calculate the "Unsmoothed stochastic RSI" with symmetry like explain in the article,
          * keep the optInTimePeriod and optInFastKPeriod equal. Example:
          *
-         *    un-smoothed stoch RSI 14 : optInTimePeriod   = 14
-         *                               optInFastK_Period = 14
-         *                               optInFastD_Period = 'x'
+         *   un-smoothed stoch RSI 14 : optInTimePeriod   = 14
+         *                              optInFastK_Period = 14
+         *                              optInFastD_Period = 'x'
          *
          * The outFastK is the un-smoothed RSI discuss in the article.
          *

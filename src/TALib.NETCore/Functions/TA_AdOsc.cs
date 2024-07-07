@@ -48,14 +48,13 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        /* Note:
-         * The fastEMA variable is not necessarily the fastest EMA.
+        /* The fastEMA variable is not necessarily the fastest EMA.
          * In the same way, slowEMA is not necessarily the slowest EMA.
          *
          * The AdOsc is always the (fastEMA - slowEMA) regardless of the period specified. In other word:
-         *   ADOSC(3,10) = EMA(3, AD) - EMA(10, AD)
+         *   ADOSC(3, 10) = EMA(3, AD) - EMA(10, AD)
          * while
-         *   ADOSC(10,3) = EMA(10, AD)- EMA(3, AD)
+         *   ADOSC(10, 3) = EMA(10, AD)- EMA(3, AD)
          *
          * In the first case the EMA(3) is truly a faster EMA, while in the second case,
          * the EMA(10) is still call fastEMA in the algorithm, even if it is in fact slower.

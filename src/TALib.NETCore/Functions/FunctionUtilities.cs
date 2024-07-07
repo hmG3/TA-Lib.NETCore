@@ -47,6 +47,21 @@ public static partial class Functions
 
         outBegIdx = startIdx;
 
+        /* Do the EMA calculation using tight loops.
+
+         * The first EMA is calculated differently. It then becomes the seed for subsequent EMA.
+         *
+         * The algorithm for this seed vary widely.
+         * Only 3 are implemented here:
+         *
+         * Classic:
+         *   Use a simple MA of the first 'period'.
+         *   This is the approach most widely documented.
+         *
+         * Metastock:
+         *   Use first price bar value as a seed from the beginning of all the available data.
+         */
+
         int today;
         T prevMA;
         if (Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Default)
@@ -67,13 +82,19 @@ public static partial class Functions
             today = 1;
         }
 
+        // At this point, prevMA is the first EMA (the seed for the rest).
+        // 'today' keep track of where the processing is within the input.
+
+        // Skip the unstable period. Do the processing but do not write it in the output.
         while (today <= startIdx)
         {
             prevMA = (inReal[today++] - prevMA) * optInK1 + prevMA;
         }
 
+        // Write the first value.
         outReal[0] = prevMA;
         var outIdx = 1;
+        // Calculate the remaining range.
         while (today <= endIdx)
         {
             prevMA = (inReal[today++] - prevMA) * optInK1 + prevMA;
@@ -235,13 +256,13 @@ public static partial class Functions
         {
             if (doPercentageOutput)
             {
-                // Calculate ((fast MA)-(slow MA))/(slow MA) in the output.
+                // Calculate ((fast MA) - (slow MA)) / (slow MA) in the output.
                 var tempReal = outReal[i];
                 outReal[i] = !T.IsZero(tempReal) ? (tempBuffer[j] - tempReal) / tempReal * Hundred<T>() : T.Zero;
             }
             else
             {
-                // Calculate (fast MA)-(slow MA) in the output.
+                // Calculate (fast MA) - (slow MA) in the output.
                 outReal[i] = tempBuffer[j] - outReal[i];
             }
         }

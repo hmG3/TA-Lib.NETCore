@@ -137,9 +137,9 @@ public static partial class Functions
         }
 
         /* Subsequent prevLoss and prevGain are smoothed using the previous values (Wilder's approach).
-         * 1) Multiply the previous by 'period - 1'.
-         * 2) Add today value.
-         * 3) Divide by 'period'.
+         *   1) Multiply the previous by 'period - 1'.
+         *   2) Add today value.
+         *   3) Divide by 'period'.
          */
         prevLoss /= timePeriod;
         prevGain /= timePeriod;

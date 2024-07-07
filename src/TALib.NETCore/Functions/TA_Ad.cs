@@ -41,8 +41,7 @@ public static partial class Functions
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
-        /* Note:
-         * Results from this function might vary slightly when using float instead of double and
+        /* Results from this function might vary slightly when using float instead of double and
          * this cause a different floating-point precision to be used.
          * For most function, this is not an apparent difference but for function using large cumulative values
          * (like this AD function), minor imprecision adds up and becomes significant.
@@ -66,7 +65,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int AdLookback() => default;
+    public static int AdLookback() => 0;
 
     /// <remarks>
     /// For compatibility with abstract API

@@ -64,7 +64,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        // Check if the acceleration factors are being defined by the user.
+        // Check if the acceleration factors are being defined by the caller.
         // Make sure the acceleration and maximum are coherent. If not, correct the acceleration.
         var afLong = AdjustAcceleration(ref optInAccelerationInitLong, ref optInAccelerationLong, optInAccelerationMaxLong);
         var afShort = AdjustAcceleration(ref optInAccelerationInitShort, ref optInAccelerationShort, optInAccelerationMaxShort);

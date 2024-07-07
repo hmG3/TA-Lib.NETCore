@@ -58,7 +58,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        // Simply forward the job to the corresponding TA function.
+        // Simply forward the job to the corresponding function.
         switch (optInMAType)
         {
             case Core.MAType.Sma:

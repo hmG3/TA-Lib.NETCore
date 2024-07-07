@@ -47,13 +47,13 @@ public static partial class Functions
         /* This code is almost identical to the Aroon function except that
          * instead of outputting AroonUp and AroonDown individually, an oscillator is build from both.
          *
-         *  AroonOsc = AroonUp - AroonDown;
+         *   AroonOsc = AroonUp - AroonDown
          *
          */
 
-        /* This function is using a speed optimized algorithm for the min/max logic.
-         * It might be needed to first look at how Min/Max works and this function will become easier to understand.
-         */
+        // This function is using a speed optimized algorithm for the min/max logic.
+        //It might be needed to first look at how Min/Max works and this function will become easier to understand.
+
         var lookbackTotal = AroonOscLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {
@@ -80,12 +80,12 @@ public static partial class Functions
             (highestIdx, highest) = CalcHighest(inHigh, trailingIdx, today, highestIdx, highest);
 
             /* The oscillator is the following:
-             *  AroonUp   = factor * (optInTimePeriod - (today - highestIdx));
-             *  AroonDown = factor * (optInTimePeriod - (today - lowestIdx));
-             *  AroonOsc  = AroonUp - AroonDown;
+             *   AroonUp   = factor * (optInTimePeriod - (today - highestIdx))
+             *   AroonDown = factor * (optInTimePeriod - (today - lowestIdx))
+             *   AroonOsc  = AroonUp - AroonDown
              *
              * An arithmetic simplification gives:
-             *  Aroon = factor * (highestIdx - lowestIdx)
+             *   Aroon = factor * (highestIdx - lowestIdx)
              */
             var arron = factor * T.CreateChecked(highestIdx - lowestIdx);
 

@@ -44,8 +44,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        /*
-         * The DM1 (one period) is based on the largest part of today's range that is outside of yesterday's range.
+        /* The DM1 (one period) is based on the largest part of today's range that is outside of yesterday's range.
          *
          * The following 7 cases explain how the +DM and -DM are calculated on one period:
          *
@@ -96,11 +95,11 @@ public static partial class Functions
          * (that's 13 values because there is no DM for the first day!)
          * Subsequent DM are calculated using Wilder's smoothing approach:
          *
-         *                                    Previous -DM14
-         *  Today's -DM14 = Previous -DM14 -  ────────────── + Today's -DM1
-         *                                         14
+         *                                     Previous -DM14
+         *   Today's -DM14 = Previous -DM14 -  ────────────── + Today's -DM1
+         *                                           14
          * Reference:
-         *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
+         *   New Concepts In Technical Trading Systems, J. Welles Wilder Jr
          */
 
         var lookbackTotal = MinusDMLookback(optInTimePeriod);
@@ -189,9 +188,12 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int MinusDMLookback(int optInTimePeriod = 14) =>
-        optInTimePeriod < 1 ? -1 :
-        optInTimePeriod > 1 ? optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.MinusDM) - 1 : 1;
+    public static int MinusDMLookback(int optInTimePeriod = 14) => optInTimePeriod switch
+    {
+        < 1 => -1,
+        > 1 => optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.MinusDM) - 1,
+        _ => 1
+    };
 
     /// <remarks>
     /// For compatibility with abstract API

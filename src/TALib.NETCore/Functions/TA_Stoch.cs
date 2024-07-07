@@ -55,15 +55,15 @@ public static partial class Functions
          *
          * The D is the signal line usually drawn over its corresponding K function.
          *
-         *                    (Today's Close - LowestLow)
-         *  FastK(Kperiod) =  ─────────────────────────── * 100
-         *                     (HighestHigh - LowestLow)
+         *                     (Today's Close - LowestLow)
+         *   FastK(Kperiod) =  ─────────────────────────── * 100
+         *                      (HighestHigh - LowestLow)
          *
-         *  FastD(FastDperiod, MA type) = MA Smoothed FastK over FastDperiod
+         *   FastD(FastDperiod, MA type) = MA Smoothed FastK over FastDperiod
          *
-         *  SlowK(SlowKperiod, MA type) = MA Smoothed FastK over SlowKperiod
+         *   SlowK(SlowKperiod, MA type) = MA Smoothed FastK over SlowKperiod
          *
-         *  SlowD(SlowDperiod, MA Type) = MA Smoothed SlowK over SlowDperiod
+         *   SlowD(SlowDperiod, MA Type) = MA Smoothed SlowK over SlowDperiod
          *
          * The HighestHigh and LowestLow are the extreme values among the last 'Kperiod'.
          *
@@ -71,8 +71,8 @@ public static partial class Functions
          *
          * The following shows how these four lines are made available in the library:
          *
-         *  Stoch  : Returns the SlowK and SlowD
-         *  StochF : Returns the FastK and FastD
+         *   Stoch  : Returns the SlowK and SlowD
+         *   StochF : Returns the FastK and FastD
          *
          * The Stoch function correspond to the more widely implemented version found in much software/charting package.
          * The StochF is more rarely used because its higher volatility cause often whipsaws.
@@ -93,7 +93,7 @@ public static partial class Functions
 
         /* Do the K calculation:
          *
-         *    Kt = 100 * ((Ct - Lt) / (Ht - Lt))
+         *   Kt = 100 * ((Ct - Lt) / (Ht - Lt))
          *
          * Kt is today stochastic
          * Ct is today closing price.

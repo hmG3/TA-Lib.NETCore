@@ -54,7 +54,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int BopLookback() => default;
+    public static int BopLookback() => 0;
 
     /// <remarks>
     /// For compatibility with abstract API

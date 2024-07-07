@@ -44,9 +44,9 @@ public static partial class Functions
         }
 
         /* Roc and RocP are centered at zero and can have positive and negative value. Here are some equivalence:
-         *    ROC = ROCP/100
-         *        = ((price - prevPrice) / prevPrice) / 100
-         *        = ((price / prevPrice) - 1) * 100
+         *   ROC = ROCP/100
+         *       = ((price - prevPrice) / prevPrice) / 100
+         *       = ((price / prevPrice) - 1) * 100
          *
          * RocR and RocR100 are ratio respectively centered at 1 and 100 and are always positive values.
          */

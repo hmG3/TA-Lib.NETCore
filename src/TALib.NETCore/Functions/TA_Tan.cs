@@ -49,7 +49,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int TanLookback() => default;
+    public static int TanLookback() => 0;
 
     /// <remarks>
     /// For compatibility with abstract API

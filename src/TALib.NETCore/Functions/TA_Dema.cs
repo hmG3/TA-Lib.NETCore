@@ -76,10 +76,8 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        /* Allocate a temporary buffer for the firstEMA.
-         *
-         * When possible, re-use the outputBuffer for temp calculation.
-         */
+        // Allocate a temporary buffer for the firstEMA.
+        // When possible, re-use the outputBuffer for temp calculation.
         Span<T> firstEMA;
         if (inReal == outReal)
         {

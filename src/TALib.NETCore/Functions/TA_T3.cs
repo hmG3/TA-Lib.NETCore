@@ -52,7 +52,7 @@ public static partial class Functions
          *   EMA1(x, Period) = EMA(x, Period)
          *   EMA2(x, Period) = EMA(EMA1(x, Period), Period)
          *   GD(x, Period, vFactor) = (EMA1(x, Period) * (1 + vFactor)) - (EMA2(x, Period) * vFactor)
-         *   T3 = GD(GD(GD(t, Period, vFactor), Period, vFactor), Period, vFactor);
+         *   T3 = GD(GD(GD(t, Period, vFactor), Period, vFactor), Period, vFactor)
          *
          * T3 offers a moving average with lesser lags than the traditional EMA.
          * T3 should not be confused with EMA3. Both are called "Triple EMA" in the literature.

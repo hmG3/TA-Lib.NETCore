@@ -77,7 +77,7 @@ public static partial class Functions
         var timePeriod = T.CreateChecked(optInTimePeriod);
 
         // Write the first output.
-        //Save first the trailing values since the input and output might be the same array.
+        // Save first the trailing values since the input and output might be the same array.
         var trailingX = inReal0[trailingIdx];
         var trailingY = inReal1[trailingIdx++];
         var tempReal = (sumX2 - sumX * sumX / timePeriod) * (sumY2 - sumY * sumY / timePeriod);

@@ -55,20 +55,20 @@ public static partial class Functions
          * particularly since the caller to the function does not specify the initial direction of the trade.
          *
          * The following logic is used:
-         *  - Calculate +DM and -DM between the first and second bar.
-         *    The highest directional indication will indicate the assumed direction of the trade for the second price bar.
-         *  - In the case of a tie between +DM and -DM, the direction is LONG by default.
+         *   - Calculate +DM and -DM between the first and second bar.
+         *     The highest directional indication will indicate the assumed direction of the trade for the second price bar.
+         *   - In the case of a tie between +DM and -DM, the direction is LONG by default.
          *
          * What is the initial "extreme point" and thus SAR?
          * ─────────────────────────────────────────────────
          * The following shows how different people took different approach:
-         *  - Metastock use the first price bar high/low depending on the direction.
-         *    No SAR is calculated for the first price bar.
-         *  - Tradestation use the closing price of the second bar.
-         *    No SAR are calculated for the first price bar.
-         *  - Wilder (the original author) use the SIP from the previous trade
-         *    (cannot be implemented here since the direction and length of the previous trade is unknown).
-         *  - The Magazine TASC seems to follow Wilder approach which is not practical here.
+         *   - Metastock use the first price bar high/low depending on the direction.
+         *     No SAR is calculated for the first price bar.
+         *   - Tradestation use the closing price of the second bar.
+         *     No SAR are calculated for the first price bar.
+         *   - Wilder (the original author) use the SIP from the previous trade
+         *     (cannot be implemented here since the direction and length of the previous trade is unknown).
+         *   - The Magazine TASC seems to follow Wilder approach which is not practical here.
          *
          * The library "consume" the first price bar and use its high/low as the initial SAR of the second price bar.
          * It has found that approach to be the closest to Wilder's idea of having

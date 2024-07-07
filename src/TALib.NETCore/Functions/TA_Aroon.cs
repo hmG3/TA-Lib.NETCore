@@ -45,9 +45,8 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        /* This function is using a speed optimized algorithm for the min/max logic.
-         * It might be needed to first look at how Min/Max works and this function will become easier to understand.
-         */
+        // This function is using a speed optimized algorithm for the min/max logic.
+        // It might be needed to first look at how Min/Max works and this function will become easier to understand.
 
         var lookbackTotal = AroonLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)

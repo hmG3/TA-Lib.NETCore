@@ -46,8 +46,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        /*
-         * The DM1 (one period) is based on the largest part of today's range that is outside of yesterday's range.
+        /* The DM1 (one period) is based on the largest part of today's range that is outside of yesterday's range.
          *
          * The following 7 cases explain how the +DM and -DM are calculated on one period:
          *
@@ -99,46 +98,46 @@ public static partial class Functions
          * Subsequent DM are calculated using Wilder's smoothing approach:
          *
          *                                    Previous -DM14
-         *  Today's -DM14 = Previous -DM14 -  ────────────── + Today's -DM1
-         *                                         14
+         *   Today's -DM14 = Previous -DM14 -  ────────────── + Today's -DM1
+         *                                          14
          *
          * (Same thing for +DM14)
          *
          * Calculation of a -DI14 is as follows:
          *
-         *               -DM14
-         *     -DI14 =  ────────
-         *                TR14
+         *             -DM14
+         *   -DI14 =  ────────
+         *              TR14
          *
          * (Same thing for +DI14)
          *
          * Calculation of the TR14 is:
          *
-         *                                   Previous TR14
-         *    Today's TR14 = Previous TR14 - ───────────── + Today's TR1
-         *                                         14
+         *                                  Previous TR14
+         *   Today's TR14 = Previous TR14 - ───────────── + Today's TR1
+         *                                        14
          *
-         *    The first TR14 is the summation of the first 14 TR1. See the TRange function on how to calculate the true range.
+         *   The first TR14 is the summation of the first 14 TR1. See the TRange function on how to calculate the true range.
          *
          * Calculation of the DX14 is:
          *
-         *    diffDI = ABS((-DI14) - (+DI14))
-         *    sumDI  = (-DI14) + (+DI14)
+         *   diffDI = ABS((-DI14) - (+DI14))
+         *   sumDI  = (-DI14) + (+DI14)
          *
-         *    DX14 = 100 * (diffDI / sumDI)
+         *   DX14 = 100 * (diffDI / sumDI)
          *
          * Calculation of the first ADX:
          *
-         *    ADX14 = SUM of the first 14 DX
+         *   ADX14 = SUM of the first 14 DX
          *
          * Calculation of subsequent ADX:
          *
-         *            ((Previous ADX14) * (14 - 1)) + Today's DX
-         *    ADX14 = ──────────────────────────────────────────
-         *                             14
+         *           ((Previous ADX14) * (14 - 1)) + Today's DX
+         *   ADX14 = ──────────────────────────────────────────
+         *                            14
          *
          * Reference:
-         *    New Concepts In Technical Trading Systems, J. Welles Wilder Jr
+         *   New Concepts In Technical Trading Systems, J. Welles Wilder Jr
          */
 
         var lookbackTotal = AdxLookback(optInTimePeriod);

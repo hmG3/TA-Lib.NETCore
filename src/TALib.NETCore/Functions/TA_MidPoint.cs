@@ -49,9 +49,6 @@ public static partial class Functions
          * See MidPrice if the input is a price bar with a high and low time series.
          */
 
-        /* Identify the minimum number of price bar needed to identify at least one output over the specified period.
-         */
-
         var lookbackTotal = MidPointLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
         {

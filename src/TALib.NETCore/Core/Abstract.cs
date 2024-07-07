@@ -21,7 +21,7 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 using F = TALib.IndicatorFunction;
-using OH = TALib.Core.OutputDisplayHint;
+using OH = TALib.Core.OutputDisplayHints;
 
 namespace TALib;
 
