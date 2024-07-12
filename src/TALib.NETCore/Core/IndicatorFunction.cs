@@ -23,208 +23,211 @@ using System.Reflection;
 
 namespace TALib;
 
-public sealed class IndicatorFunction
+public partial class Abstract
 {
-    private const string LookbackSuffix = "Lookback";
-    private const string InPrefix = "in";
-    private const string OutPrefix = "out";
-    private const string OptInPrefix = "optIn";
-    private const string GeneralRealParam = "Real";
-    private const string BegIdxParam = "BegIdx";
-    private const string NbElementParam = "NbElement";
-
-    internal IndicatorFunction(
-        string name,
-        string description,
-        string group,
-        string[] inputs,
-        (string displayName, string hint)[] options,
-        (string displayName, Core.OutputDisplayHints displayHint)[] outputs) =>
-        (Name, Description, Group, Inputs, Options, Outputs) = (name, description, group, inputs, options, outputs);
-
-    public string Name { get; }
-
-    public string Description { get; }
-
-    public string Group { get; }
-
-    public string[] Inputs { get; }
-
-    public (string displayName, string hint)[] Options { get; }
-
-    public (string displayName, Core.OutputDisplayHints displayHint)[] Outputs { get; }
-
-    public Core.RetCode Run<T>(T[][] inputs, T[] options, T[][] outputs) where T : IFloatingPointIeee754<T>
+    public sealed class IndicatorFunction
     {
-        var functionMethod = ReflectMethods(publicOnly: false)
-                                 .FirstOrDefault(mi => !mi.Name.EndsWith(LookbackSuffix) && FunctionMethodSelector(mi)) ??
-                             throw new MissingMethodException(null, $"{Name}<{typeof(T).Name}>");
+        private const string LookbackSuffix = "Lookback";
+        private const string InPrefix = "in";
+        private const string OutPrefix = "out";
+        private const string OptInPrefix = "optIn";
+        private const string GeneralRealParam = "Real";
+        private const string BegIdxParam = "BegIdx";
+        private const string NbElementParam = "NbElement";
 
-        var paramsArray = PrepareFunctionMethodParams(inputs, options, outputs, functionMethod, out var isIntegerOutput);
+        internal IndicatorFunction(
+            string name,
+            string description,
+            string group,
+            string[] inputs,
+            (string displayName, string hint)[] options,
+            (string displayName, Core.OutputDisplayHints displayHint)[] outputs) =>
+            (Name, Description, Group, Inputs, Options, Outputs) = (name, description, group, inputs, options, outputs);
 
-        var retCode = (Core.RetCode) functionMethod.MakeGenericMethod(typeof(T)).Invoke(null, paramsArray)!;
-        if (retCode != Core.RetCode.Success || !isIntegerOutput)
+        public string Name { get; }
+
+        public string Description { get; }
+
+        public string Group { get; }
+
+        public string[] Inputs { get; }
+
+        public (string displayName, string hint)[] Options { get; }
+
+        public (string displayName, Core.OutputDisplayHints displayHint)[] Outputs { get; }
+
+        public Core.RetCode Run<T>(T[][] inputs, T[] options, T[][] outputs) where T : IFloatingPointIeee754<T>
         {
+            var functionMethod = ReflectMethods(publicOnly: false)
+                                     .FirstOrDefault(mi => !mi.Name.EndsWith(LookbackSuffix) && FunctionMethodSelector(mi)) ??
+                                 throw new MissingMethodException(null, $"{Name}<{typeof(T).Name}>");
+
+            var paramsArray = PrepareFunctionMethodParams(inputs, options, outputs, functionMethod, out var isIntegerOutput);
+
+            var retCode = (Core.RetCode) functionMethod.MakeGenericMethod(typeof(T)).Invoke(null, paramsArray)!;
+            if (retCode != Core.RetCode.Success || !isIntegerOutput)
+            {
+                return retCode;
+            }
+
+            for (var i = 0; i < Outputs.Length; i++)
+            {
+                var outputArray = paramsArray[inputs.Length + 2 + i];
+                for (var j = 0; j < outputs[i].Length; j++)
+                {
+                    outputs[i][j] = (T) Convert.ChangeType(((int[]) outputArray)[j], typeof(T));
+                }
+            }
+
             return retCode;
         }
 
-        for (var i = 0; i < Outputs.Length; i++)
+        public int Lookback(params int[] options)
         {
-            var outputArray = paramsArray[inputs.Length + 2 + i];
-            for (var j = 0; j < outputs[i].Length; j++)
+            var lookbackMethod = ReflectMethods(publicOnly: true)
+                                     .FirstOrDefault(mi => mi.Name.EndsWith(LookbackSuffix) && LookbackMethodSelector(mi))
+                                 ?? throw new MissingMethodException(null, LookbackMethodName);
+
+            var optInParameters = lookbackMethod.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
+            var paramsArray = new object[optInParameters.Count];
+            Array.Fill(paramsArray, Type.Missing);
+
+            var paramsArrayIndex = 0;
+            var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
+            for (var i = 0; i < defOptInParameters.Count; i++)
             {
-                outputs[i][j] = (T) Convert.ChangeType(((int[]) outputArray)[j], typeof(T));
-            }
-        }
-
-        return retCode;
-    }
-
-    public int Lookback(params int[] options)
-    {
-        var lookbackMethod = ReflectMethods(publicOnly: true)
-                                 .FirstOrDefault(mi => mi.Name.EndsWith(LookbackSuffix) && LookbackMethodSelector(mi))
-                             ?? throw new MissingMethodException(null, LookbackMethodName);
-
-        var optInParameters = lookbackMethod.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
-        var paramsArray = new object[optInParameters.Count];
-        Array.Fill(paramsArray, Type.Missing);
-
-        var paramsArrayIndex = 0;
-        var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
-        for (var i = 0; i < defOptInParameters.Count; i++)
-        {
-            var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
-            if (optInParameter is null || i >= options.Length)
-            {
-                continue;
-            }
-
-            if (optInParameter.ParameterType.IsEnum && optInParameter.ParameterType.IsEnumDefined(options[i]))
-            {
-                paramsArray[paramsArrayIndex++] = Enum.ToObject(optInParameter.ParameterType, options[i]);
-            }
-            else
-            {
-                paramsArray[paramsArrayIndex++] = options[i];
-            }
-        }
-
-        return (int) lookbackMethod.Invoke(null, paramsArray)!;
-    }
-
-    public void SetUnstablePeriod(int period)
-    {
-        if (Enum.TryParse(Name, out Core.UnstableFunc func))
-        {
-            Core.UnstablePeriodSettings.Set(func, period);
-        }
-        else
-        {
-            throw new NotSupportedException($"Function {Name} does not support unstable period settings.");
-        }
-    }
-
-    public override string ToString() => Name;
-
-    private static IEnumerable<MethodInfo> ReflectMethods(bool publicOnly) =>
-        typeof(Functions).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic))
-            .Concat(typeof(Candles).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic)));
-
-    private object[] PrepareFunctionMethodParams<T>(
-        T[][] inputs,
-        T[] options,
-        T[][] outputs,
-        MethodInfo method,
-        out bool isIntegerOutput) where T : IFloatingPointIeee754<T>
-    {
-        var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
-
-        var paramsArray = new object[Inputs.Length + 2 + Outputs.Length + Options.Length];
-        for (var i = 0; i < Inputs.Length; i++)
-        {
-            paramsArray[i] = inputs[i];
-        }
-
-        paramsArray[Inputs.Length] = 0;
-        paramsArray[Inputs.Length + 1] = inputs[0].Length - 1;
-
-        isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
-        for (var i = 0; i < Outputs.Length; i++)
-        {
-            paramsArray[Inputs.Length + 2 + i] = isIntegerOutput ? new int[outputs[i].Length] : outputs[i];
-        }
-
-        Array.Fill(paramsArray, Type.Missing, Inputs.Length + 2 + Outputs.Length, Options.Length);
-
-        var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
-        for (var i = 0; i < defOptInParameters.Count; i++)
-        {
-            var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
-            if (optInParameter is null || i >= Options.Length)
-            {
-                continue;
-            }
-
-            var paramsArrayIndex = Inputs.Length + 2 + Outputs.Length + i;
-            if (optInParameter.ParameterType == typeof(int) || optInParameter.ParameterType.IsEnum)
-            {
-                var intOption = Convert.ToInt32(options[i]);
-                if (optInParameter.ParameterType.IsEnum && optInParameter.ParameterType.IsEnumDefined(intOption))
+                var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
+                if (optInParameter is null || i >= options.Length)
                 {
-                    paramsArray[paramsArrayIndex] = Enum.ToObject(optInParameter.ParameterType, intOption);
+                    continue;
+                }
+
+                if (optInParameter.ParameterType.IsEnum && optInParameter.ParameterType.IsEnumDefined(options[i]))
+                {
+                    paramsArray[paramsArrayIndex++] = Enum.ToObject(optInParameter.ParameterType, options[i]);
                 }
                 else
                 {
-                    paramsArray[paramsArrayIndex] = intOption;
+                    paramsArray[paramsArrayIndex++] = options[i];
                 }
+            }
+
+            return (int) lookbackMethod.Invoke(null, paramsArray)!;
+        }
+
+        public void SetUnstablePeriod(int period)
+        {
+            if (Enum.TryParse(Name, out Core.UnstableFunc func))
+            {
+                Core.UnstablePeriodSettings.Set(func, period);
             }
             else
             {
-                paramsArray[paramsArrayIndex] = options[i];
+                throw new NotSupportedException($"Function {Name} does not support unstable period settings.");
             }
         }
 
-        return paramsArray;
+        public override string ToString() => Name;
+
+        private static IEnumerable<MethodInfo> ReflectMethods(bool publicOnly) =>
+            typeof(Functions).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic))
+                .Concat(typeof(Candles).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic)));
+
+        private object[] PrepareFunctionMethodParams<T>(
+            T[][] inputs,
+            T[] options,
+            T[][] outputs,
+            MethodInfo method,
+            out bool isIntegerOutput) where T : IFloatingPointIeee754<T>
+        {
+            var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
+
+            var paramsArray = new object[Inputs.Length + 2 + Outputs.Length + Options.Length];
+            for (var i = 0; i < Inputs.Length; i++)
+            {
+                paramsArray[i] = inputs[i];
+            }
+
+            paramsArray[Inputs.Length] = 0;
+            paramsArray[Inputs.Length + 1] = inputs[0].Length - 1;
+
+            isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
+            for (var i = 0; i < Outputs.Length; i++)
+            {
+                paramsArray[Inputs.Length + 2 + i] = isIntegerOutput ? new int[outputs[i].Length] : outputs[i];
+            }
+
+            Array.Fill(paramsArray, Type.Missing, Inputs.Length + 2 + Outputs.Length, Options.Length);
+
+            var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
+            for (var i = 0; i < defOptInParameters.Count; i++)
+            {
+                var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
+                if (optInParameter is null || i >= Options.Length)
+                {
+                    continue;
+                }
+
+                var paramsArrayIndex = Inputs.Length + 2 + Outputs.Length + i;
+                if (optInParameter.ParameterType == typeof(int) || optInParameter.ParameterType.IsEnum)
+                {
+                    var intOption = Convert.ToInt32(options[i]);
+                    if (optInParameter.ParameterType.IsEnum && optInParameter.ParameterType.IsEnumDefined(intOption))
+                    {
+                        paramsArray[paramsArrayIndex] = Enum.ToObject(optInParameter.ParameterType, intOption);
+                    }
+                    else
+                    {
+                        paramsArray[paramsArrayIndex] = intOption;
+                    }
+                }
+                else
+                {
+                    paramsArray[paramsArrayIndex] = options[i];
+                }
+            }
+
+            return paramsArray;
+        }
+
+        private bool LookbackMethodSelector(MethodBase methodInfo)
+        {
+            var optInParameters = methodInfo.GetParameters().Select(pi => pi.Name);
+            var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName));
+
+            return methodInfo.Name == LookbackMethodName && optInParameters.All(defOptInParameters.Contains);
+        }
+
+        private bool FunctionMethodSelector(MethodBase methodInfo)
+        {
+            var parameters = methodInfo.GetParameters()
+                .Where(pi => pi.Name != OutPrefix + BegIdxParam && pi.Name != OutPrefix + NbElementParam)
+                .ToList();
+
+            var inParameters = parameters.Where(pi => pi.Name!.StartsWith(InPrefix)).Select(pi => pi.Name);
+
+            var outParameters = parameters.Where(pi => pi.Name!.StartsWith(OutPrefix)).Select(pi => pi.Name);
+
+            var optInParameters = parameters.Where(pi => pi.Name!.StartsWith(OptInPrefix)).Select(pi => pi.Name);
+
+            var defInParameters = Inputs.Length > 1 && Array.TrueForAll(Inputs, p => p == GeneralRealParam)
+                ? Inputs.Select((p, i) => InPrefix + p + i)
+                : Inputs.Select(p => InPrefix + p);
+
+            var defOutParameters = Outputs.Select(o => NormalizeOutputParameter(o.displayName));
+
+            var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName));
+
+            return methodInfo.Name == Name &&
+                   inParameters.SequenceEqual(defInParameters) &&
+                   outParameters.SequenceEqual(defOutParameters) &&
+                   optInParameters.SequenceEqual(defOptInParameters);
+        }
+
+        private string LookbackMethodName => Name + LookbackSuffix;
+
+        private static string NormalizeOutputParameter(string parameter) => OutPrefix + parameter.Replace(" ", String.Empty);
+
+        private static string NormalizeOptionalParameter(string parameter) => OptInPrefix + parameter.Replace(" ", String.Empty);
     }
-
-    private bool LookbackMethodSelector(MethodBase methodInfo)
-    {
-        var optInParameters = methodInfo.GetParameters().Select(pi => pi.Name);
-        var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName));
-
-        return methodInfo.Name == LookbackMethodName && optInParameters.All(defOptInParameters.Contains);
-    }
-
-    private bool FunctionMethodSelector(MethodBase methodInfo)
-    {
-        var parameters = methodInfo.GetParameters()
-            .Where(pi => pi.Name != OutPrefix + BegIdxParam && pi.Name != OutPrefix + NbElementParam)
-            .ToList();
-
-        var inParameters = parameters.Where(pi => pi.Name!.StartsWith(InPrefix)).Select(pi => pi.Name);
-
-        var outParameters = parameters.Where(pi => pi.Name!.StartsWith(OutPrefix)).Select(pi => pi.Name);
-
-        var optInParameters = parameters.Where(pi => pi.Name!.StartsWith(OptInPrefix)).Select(pi => pi.Name);
-
-        var defInParameters = Inputs.Length > 1 && Array.TrueForAll(Inputs, p => p == GeneralRealParam)
-            ? Inputs.Select((p, i) => InPrefix + p + i)
-            : Inputs.Select(p => InPrefix + p);
-
-        var defOutParameters = Outputs.Select(o => NormalizeOutputParameter(o.displayName));
-
-        var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName));
-
-        return methodInfo.Name == Name &&
-               inParameters.SequenceEqual(defInParameters) &&
-               outParameters.SequenceEqual(defOutParameters) &&
-               optInParameters.SequenceEqual(defOptInParameters);
-    }
-
-    private string LookbackMethodName => Name + LookbackSuffix;
-
-    private static string NormalizeOutputParameter(string parameter) => OutPrefix + parameter.Replace(" ", String.Empty);
-
-    private static string NormalizeOptionalParameter(string parameter) => OptInPrefix + parameter.Replace(" ", String.Empty);
 }

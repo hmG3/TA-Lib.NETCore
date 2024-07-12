@@ -20,7 +20,7 @@
 
 using System.Collections;
 using System.Collections.ObjectModel;
-using F = TALib.IndicatorFunction;
+using F = TALib.Abstract.IndicatorFunction;
 using OH = TALib.Core.OutputDisplayHints;
 
 namespace TALib;
@@ -30,7 +30,7 @@ namespace TALib;
 /// Abstract API simplifies the usage of individual functions by offering a unified interface for setting and controlling input data,
 /// configuring function parameters, and retrieving results.
 /// </summary>
-public class Abstract : IEnumerable<F>
+public partial class Abstract : IEnumerable<F>
 {
     internal readonly ReadOnlyDictionary<string, F> FunctionsDefinition;
 
