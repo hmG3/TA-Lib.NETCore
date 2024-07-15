@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode MacdFix<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -31,7 +32,38 @@ public static partial class Functions
         Span<T> outMACDHist,
         out int outBegIdx,
         out int outNbElement,
-        int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T>
+        int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
+        MacdFixImpl(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInSignalPeriod);
+
+    [PublicAPI]
+    public static int MacdFixLookback(int optInSignalPeriod = 9) => EmaLookback(26) + EmaLookback(optInSignalPeriod);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode MacdFix<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outMACD,
+        T[] outMACDSignal,
+        T[] outMACDHist,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
+        MacdFixImpl<T>(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInSignalPeriod);
+
+    private static Core.RetCode MacdFixImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outMACD,
+        Span<T> outMACDSignal,
+        Span<T> outMACDHist,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInSignalPeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -58,20 +90,4 @@ public static partial class Functions
             0, /* 0 indicate fix 26 == 0.075 for optInSlowPeriod */
             optInSignalPeriod);
     }
-
-    public static int MacdFixLookback(int optInSignalPeriod = 9) => EmaLookback(26) + EmaLookback(optInSignalPeriod);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode MacdFix<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outMACD,
-        T[] outMACDSignal,
-        T[] outMACDHist,
-        int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
-        MacdFix<T>(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out _, out _, optInSignalPeriod);
 }

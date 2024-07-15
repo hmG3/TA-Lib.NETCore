@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Candles
 {
+    [PublicAPI]
     public static Core.RetCode MorningDojiStar<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
@@ -32,7 +33,45 @@ public static partial class Candles
         Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement,
-        double optInPenetration = 0.3) where T : IFloatingPointIeee754<T>
+        double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
+        MorningDojiStarImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement,
+            optInPenetration);
+
+    [PublicAPI]
+    public static int MorningDojiStarLookback() =>
+        Math.Max(
+            Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyDoji), CandleAveragePeriod(Core.CandleSettingType.BodyLong)),
+            CandleAveragePeriod(Core.CandleSettingType.BodyShort)
+        ) + 2;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode MorningDojiStar<T>(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        int[] outIntType,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
+        MorningDojiStarImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement, optInPenetration);
+
+    private static Core.RetCode MorningDojiStarImpl<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<int> outIntType,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInPenetration) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -136,12 +175,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int MorningDojiStarLookback() =>
-        Math.Max(
-            Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyDoji), CandleAveragePeriod(Core.CandleSettingType.BodyLong)),
-            CandleAveragePeriod(Core.CandleSettingType.BodyShort)
-        ) + 2;
-
     private static bool IsMorningDojiStarPattern<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
@@ -169,19 +202,4 @@ public static partial class Candles
         CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
         // closing well within 1st real body
         inClose[i] > inClose[i - 2] + RealBody(inClose, inOpen, i - 2) * T.CreateChecked(optInPenetration);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode MorningDojiStar<T>(
-        T[] inOpen,
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        int[] outIntType,
-        double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
-        MorningDojiStar<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _, optInPenetration);
 }

@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Tema<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -29,7 +30,34 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        TemaImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int TemaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : EmaLookback(optInTimePeriod) * 3;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Tema<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        TemaImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode TemaImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -117,18 +145,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int TemaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : EmaLookback(optInTimePeriod) * 3;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Tema<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        Tema<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

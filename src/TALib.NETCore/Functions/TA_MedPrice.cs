@@ -22,7 +22,35 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode MedPrice<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        MedPriceImpl(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int MedPriceLookback() => 0;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode MedPrice<T>(
+        T[] inHigh,
+        T[] inLow,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        MedPriceImpl<T>(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode MedPriceImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         int startIdx,
@@ -55,17 +83,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int MedPriceLookback() => 0;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode MedPrice<T>(
-        T[] inHigh,
-        T[] inLow,
-        int startIdx,
-        int endIdx,
-        T[] outReal) where T : IFloatingPointIeee754<T> => MedPrice<T>(inHigh, inLow, startIdx, endIdx, outReal, out _, out _);
 }

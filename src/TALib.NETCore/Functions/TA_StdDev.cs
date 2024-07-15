@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode StdDev<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -30,7 +31,36 @@ public static partial class Functions
         out int outBegIdx,
         out int outNbElement,
         int optInTimePeriod = 5,
-        double optInNbDev = 1.0) where T : IFloatingPointIeee754<T>
+        double optInNbDev = 1.0) where T : IFloatingPointIeee754<T> =>
+        StdDevImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod, optInNbDev);
+
+    [PublicAPI]
+    public static int StdDevLookback(int optInTimePeriod = 5) => optInTimePeriod < 2 ? -1 : VarLookback(optInTimePeriod);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode StdDev<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 5,
+        double optInNbDev = 1.0) where T : IFloatingPointIeee754<T> =>
+        StdDevImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod, optInNbDev);
+
+    private static Core.RetCode StdDevImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod,
+        double optInNbDev) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -71,19 +101,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int StdDevLookback(int optInTimePeriod = 5) => optInTimePeriod < 2 ? -1 : VarLookback(optInTimePeriod);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode StdDev<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 5,
-        double optInNbDev = 1.0) where T : IFloatingPointIeee754<T> =>
-        StdDev<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod, optInNbDev);
 }

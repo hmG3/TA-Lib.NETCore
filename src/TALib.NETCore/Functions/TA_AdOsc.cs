@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode AdOsc<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -33,7 +34,49 @@ public static partial class Functions
         out int outBegIdx,
         out int outNbElement,
         int optInFastPeriod = 3,
-        int optInSlowPeriod = 10) where T : IFloatingPointIeee754<T>
+        int optInSlowPeriod = 10) where T : IFloatingPointIeee754<T> =>
+        AdOscImpl(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod,
+            optInSlowPeriod);
+
+    [PublicAPI]
+    public static int AdOscLookback(int optInFastPeriod = 3, int optInSlowPeriod = 10)
+    {
+        var slowestPeriod = optInFastPeriod < optInSlowPeriod ? optInSlowPeriod : optInFastPeriod;
+
+        return optInFastPeriod < 2 || optInSlowPeriod < 2 ? -1 : EmaLookback(slowestPeriod);
+    }
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode AdOsc<T>(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        T[] inVolume,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastPeriod = 3,
+        int optInSlowPeriod = 10) where T : IFloatingPointIeee754<T> =>
+        AdOscImpl<T>(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod,
+            optInSlowPeriod);
+
+    private static Core.RetCode AdOscImpl<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        ReadOnlySpan<T> inVolume,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastPeriod,
+        int optInSlowPeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -112,27 +155,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int AdOscLookback(int optInFastPeriod = 3, int optInSlowPeriod = 10)
-    {
-        var slowestPeriod = optInFastPeriod < optInSlowPeriod ? optInSlowPeriod : optInFastPeriod;
-
-        return optInFastPeriod < 2 || optInSlowPeriod < 2 ? -1 : EmaLookback(slowestPeriod);
-    }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode AdOsc<T>(
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        T[] inVolume,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInFastPeriod = 3,
-        int optInSlowPeriod = 10) where T : IFloatingPointIeee754<T> =>
-        AdOsc<T>(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out _, out _, optInFastPeriod, optInSlowPeriod);
 }

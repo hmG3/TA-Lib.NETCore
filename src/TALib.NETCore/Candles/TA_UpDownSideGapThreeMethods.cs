@@ -22,7 +22,39 @@ namespace TALib;
 
 public static partial class Candles
 {
+    [PublicAPI]
     public static Core.RetCode UpDownSideGapThreeMethods<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<int> outIntType,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        UpDownSideGapThreeMethodsImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int UpDownSideGapThreeMethodsLookback() => 2;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode UpDownSideGapThreeMethods<T>(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        int[] outIntType,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        UpDownSideGapThreeMethodsImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode UpDownSideGapThreeMethodsImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -84,8 +116,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int UpDownSideGapThreeMethodsLookback() => 2;
-
     private static bool IsUpDownSideGapThreeMethodsPattern<T>(ReadOnlySpan<T> inOpen, ReadOnlySpan<T> inClose, int i)
         where T : IFloatingPointIeee754<T> =>
         // 1st and 2nd of same color
@@ -107,18 +137,4 @@ public static partial class Candles
             // downside gap
             RealBodyGapDown(inOpen, inClose, i - 1, i - 2)
         );
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode UpDownSideGapThreeMethods<T>(
-        T[] inOpen,
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        int[] outIntType) where T : IFloatingPointIeee754<T> =>
-        UpDownSideGapThreeMethods<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

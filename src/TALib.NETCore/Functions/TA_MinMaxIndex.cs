@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode MinMaxIndex<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -30,7 +31,36 @@ public static partial class Functions
         Span<T> outMaxIdx,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        MinMaxIndexImpl(inReal, startIdx, endIdx, outMinIdx, outMaxIdx, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int MinMaxIndexLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode MinMaxIndex<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outMinIdx,
+        T[] outMaxIdx,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        MinMaxIndexImpl<T>(inReal, startIdx, endIdx, outMinIdx, outMaxIdx, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode MinMaxIndexImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outMinIdx,
+        Span<T> outMaxIdx,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -80,19 +110,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int MinMaxIndexLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode MinMaxIndex<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outMinIdx,
-        T[] outMaxIdx,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        MinMaxIndex<T>(inReal, startIdx, endIdx, outMinIdx, outMaxIdx, out _, out _, optInTimePeriod);
 }

@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Dema<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -29,7 +30,34 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        DemaImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int DemaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : EmaLookback(optInTimePeriod) * 2;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Dema<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        DemaImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode DemaImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -121,18 +149,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int DemaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : EmaLookback(optInTimePeriod) * 2;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Dema<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        Dema<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

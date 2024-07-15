@@ -22,7 +22,45 @@ namespace TALib;
 
 public static partial class Candles
 {
+    [PublicAPI]
     public static Core.RetCode Hammer<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<int> outIntType,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HammerImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int HammerLookback() =>
+        Math.Max(
+            Math.Max(
+                Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyShort), CandleAveragePeriod(Core.CandleSettingType.ShadowLong)),
+                CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort)),
+            CandleAveragePeriod(Core.CandleSettingType.Near)
+        ) + 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Hammer<T>(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        int[] outIntType,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HammerImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode HammerImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -142,14 +180,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int HammerLookback() =>
-        Math.Max(
-            Math.Max(
-                Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyShort), CandleAveragePeriod(Core.CandleSettingType.ShadowLong)),
-                CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort)),
-            CandleAveragePeriod(Core.CandleSettingType.Near)
-        ) + 1;
-
     private static bool IsHammerPattern<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
@@ -172,18 +202,4 @@ public static partial class Candles
         // real body near the prior candle's lows
         T.Min(inClose[i], inOpen[i]) <= inLow[i - 1] +
         CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Hammer<T>(
-        T[] inOpen,
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        int[] outIntType) where T : IFloatingPointIeee754<T> =>
-        Hammer<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

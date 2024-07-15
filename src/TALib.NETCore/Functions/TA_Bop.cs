@@ -22,7 +22,39 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Bop<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        BopImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int BopLookback() => 0;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Bop<T>(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        BopImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode BopImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -53,20 +85,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int BopLookback() => 0;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Bop<T>(
-        T[] inOpen,
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        T[] outReal) where T : IFloatingPointIeee754<T> =>
-        Bop<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _);
 }

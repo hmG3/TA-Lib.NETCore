@@ -22,7 +22,37 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode HtDcPeriod<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HtDcPeriodImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int HtDcPeriodLookback()
+    {
+        // See MamaLookback for an explanation of the "32"
+        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtDcPeriod) + 32;
+    }
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode HtDcPeriod<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HtDcPeriodImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode HtDcPeriodImpl<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -129,20 +159,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int HtDcPeriodLookback()
-    {
-        // See MamaLookback for an explanation of the "32"
-        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtDcPeriod) + 32;
-    }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode HtDcPeriod<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal) where T : IFloatingPointIeee754<T> => HtDcPeriod<T>(inReal, startIdx, endIdx, outReal, out _, out _);
 }

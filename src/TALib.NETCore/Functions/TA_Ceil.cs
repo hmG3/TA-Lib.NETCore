@@ -22,7 +22,33 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Ceil<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        CeilImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int CeilLookback() => 0;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Ceil<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        CeilImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode CeilImpl<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -48,16 +74,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int CeilLookback() => 0;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Ceil<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal) where T : IFloatingPointIeee754<T> => Ceil<T>(inReal, startIdx, endIdx, outReal, out _, out _);
 }

@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Macd<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -33,24 +34,11 @@ public static partial class Functions
         out int outNbElement,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
-        int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T>
-    {
-        outBegIdx = outNbElement = 0;
-
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
-        {
-            return Core.RetCode.OutOfRangeStartIndex;
-        }
-
-        if (optInFastPeriod < 2 || optInSlowPeriod < 2 || optInSignalPeriod < 1)
-        {
-            return Core.RetCode.BadParam;
-        }
-
-        return CalcMACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInFastPeriod,
+        int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
+        MacdImpl(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInFastPeriod,
             optInSlowPeriod, optInSignalPeriod);
-    }
 
+    [PublicAPI]
     public static int MacdLookback(int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
     {
         if (optInFastPeriod < 2 || optInSlowPeriod < 2 || optInSignalPeriod < 1)
@@ -77,9 +65,40 @@ public static partial class Functions
         T[] outMACD,
         T[] outMACDSignal,
         T[] outMACDHist,
+        out int outBegIdx,
+        out int outNbElement,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
         int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
-        Macd<T>(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out _, out _, optInFastPeriod, optInSlowPeriod,
-            optInSignalPeriod);
+        MacdImpl<T>(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInFastPeriod,
+            optInSlowPeriod, optInSignalPeriod);
+
+    private static Core.RetCode MacdImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outMACD,
+        Span<T> outMACDSignal,
+        Span<T> outMACDHist,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastPeriod,
+        int optInSlowPeriod,
+        int optInSignalPeriod) where T : IFloatingPointIeee754<T>
+    {
+        outBegIdx = outNbElement = 0;
+
+        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        {
+            return Core.RetCode.OutOfRangeStartIndex;
+        }
+
+        if (optInFastPeriod < 2 || optInSlowPeriod < 2 || optInSignalPeriod < 1)
+        {
+            return Core.RetCode.BadParam;
+        }
+
+        return CalcMACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInFastPeriod,
+            optInSlowPeriod, optInSignalPeriod);
+    }
 }

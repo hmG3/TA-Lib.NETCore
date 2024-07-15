@@ -32,6 +32,37 @@ public static partial class Candles
         int endIdx,
         Span<int> outIntType,
         out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        ThreeLineStrikeImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int ThreeLineStrikeLookback() => CandleAveragePeriod(Core.CandleSettingType.Near) + 3;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode ThreeLineStrike<T>(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        int[] outIntType,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        ThreeLineStrikeImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode ThreeLineStrikeImpl<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<int> outIntType,
+        out int outBegIdx,
         out int outNbElement) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
@@ -105,8 +136,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int ThreeLineStrikeLookback() => CandleAveragePeriod(Core.CandleSettingType.Near) + 3;
-
     private static bool IsThreeLineStrikePattern<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
@@ -148,18 +177,4 @@ public static partial class Candles
             // 4th closes above 1st open
             inClose[i] > inOpen[i - 3]
         );
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode ThreeLineStrike<T>(
-        T[] inOpen,
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        int[] outIntType) where T : IFloatingPointIeee754<T> =>
-        ThreeLineStrike<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

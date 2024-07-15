@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Rsi<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -29,7 +30,48 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        RsiImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int RsiLookback(int optInTimePeriod = 14)
+    {
+        if (optInTimePeriod < 2)
+        {
+            return -1;
+        }
+
+        var retValue = optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Rsi);
+        if (Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
+        {
+            retValue--;
+        }
+
+        return retValue;
+    }
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Rsi<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        RsiImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode RsiImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -213,32 +255,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int RsiLookback(int optInTimePeriod = 14)
-    {
-        if (optInTimePeriod < 2)
-        {
-            return -1;
-        }
-
-        var retValue = optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Rsi);
-        if (Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
-        {
-            retValue--;
-        }
-
-        return retValue;
-    }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Rsi<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
-        Rsi<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

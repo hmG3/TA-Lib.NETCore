@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Candles
 {
+    [PublicAPI]
     public static Core.RetCode DarkCloudCover<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
@@ -32,7 +33,41 @@ public static partial class Candles
         Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement,
-        double optInPenetration = 0.5) where T : IFloatingPointIeee754<T>
+        double optInPenetration = 0.5) where T : IFloatingPointIeee754<T> =>
+        DarkCloudCoverImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement, optInPenetration);
+
+    [PublicAPI]
+    public static int DarkCloudCoverLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode DarkCloudCover<T>(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        int[] outIntType,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInPenetration = 0.5) where T : IFloatingPointIeee754<T> =>
+        DarkCloudCoverImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement,
+            optInPenetration);
+
+    private static Core.RetCode DarkCloudCoverImpl<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<int> outIntType,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInPenetration) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -105,8 +140,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int DarkCloudCoverLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 1;
-
     private static bool IsDarkCloudCoverPattern<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
@@ -127,19 +160,4 @@ public static partial class Candles
         // close within prior body
         inClose[i] > inOpen[i - 1] &&
         inClose[i] < inClose[i - 1] - RealBody(inClose, inOpen, i - 1) * T.CreateChecked(optInPenetration);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode DarkCloudCover<T>(
-        T[] inOpen,
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        int[] outIntType,
-        double optInPenetration = 0.5) where T : IFloatingPointIeee754<T> =>
-        DarkCloudCover<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _, optInPenetration);
 }

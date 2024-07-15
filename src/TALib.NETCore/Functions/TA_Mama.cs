@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Mama<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -31,7 +32,54 @@ public static partial class Functions
         out int outBegIdx,
         out int outNbElement,
         double optInFastLimit = 0.5,
-        double optInSlowLimit = 0.05) where T : IFloatingPointIeee754<T>
+        double optInSlowLimit = 0.05) where T : IFloatingPointIeee754<T> =>
+        MamaImpl(inReal, startIdx, endIdx, outMAMA, outFAMA, out outBegIdx, out outNbElement, optInFastLimit, optInSlowLimit);
+
+    [PublicAPI]
+    public static int MamaLookback()
+    {
+        /* The fix lookback is 32 and is established as follows:
+         *
+         * 12 price bar to be compatible with the implementation of TradeStation found in John Ehlers book.
+         * 6 price bars for the Detrender
+         * 6 price bars for Q1
+         * 3 price bars for jI
+         * 3 price bars for jQ
+         * 1 price bar for Re/Im
+         * 1 price bar for the Delta Phase
+         * ────────
+         * 32 Total
+         */
+
+        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mama) + 32;
+    }
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Mama<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outMAMA,
+        T[] outFAMA,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInFastLimit = 0.5,
+        double optInSlowLimit = 0.05) where T : IFloatingPointIeee754<T> =>
+        MamaImpl<T>(inReal, startIdx, endIdx, outMAMA, outFAMA, out outBegIdx, out outNbElement, optInFastLimit, optInSlowLimit);
+
+    private static Core.RetCode MamaImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outMAMA,
+        Span<T> outFAMA,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInFastLimit,
+        double optInSlowLimit) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -175,36 +223,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int MamaLookback()
-    {
-        /* The fix lookback is 32 and is established as follows:
-         *
-         * 12 price bar to be compatible with the implementation of TradeStation found in John Ehlers book.
-         * 6 price bars for the Detrender
-         * 6 price bars for Q1
-         * 3 price bars for jI
-         * 3 price bars for jQ
-         * 1 price bar for Re/Im
-         * 1 price bar for the Delta Phase
-         * ────────
-         * 32 Total
-         */
-
-        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mama) + 32;
-    }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Mama<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outMAMA,
-        T[] outFAMA,
-        double optInFastLimit = 0.5,
-        double optInSlowLimit = 0.05) where T : IFloatingPointIeee754<T> =>
-        Mama<T>(inReal, startIdx, endIdx, outMAMA, outFAMA, out _, out _, optInFastLimit, optInSlowLimit);
 }

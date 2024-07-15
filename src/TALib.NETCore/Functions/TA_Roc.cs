@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Roc<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -29,7 +30,34 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 10) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 10) where T : IFloatingPointIeee754<T> =>
+        RocImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int RocLookback(int optInTimePeriod = 10) => optInTimePeriod < 1 ? -1 : optInTimePeriod;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Roc<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 10) where T : IFloatingPointIeee754<T> =>
+        RocImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    public static Core.RetCode RocImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -77,18 +105,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int RocLookback(int optInTimePeriod = 10) => optInTimePeriod < 1 ? -1 : optInTimePeriod;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Roc<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 10) where T : IFloatingPointIeee754<T> =>
-        Roc<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

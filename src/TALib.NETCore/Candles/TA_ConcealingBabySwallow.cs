@@ -22,7 +22,39 @@ namespace TALib;
 
 public static partial class Candles
 {
+    [PublicAPI]
     public static Core.RetCode ConcealingBabySwallow<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<int> outIntType,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        ConcealingBabySwallowImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int ConcealingBabySwallowLookback() => CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 3;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode ConcealingBabySwallow<T>(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        int[] outIntType,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        ConcealingBabySwallowImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode ConcealingBabySwallowImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -104,8 +136,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int ConcealingBabySwallowLookback() => CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 3;
-
     private static bool IsConcealingBabySwallowPattern<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
@@ -140,18 +170,4 @@ public static partial class Candles
         inHigh[i - 1] > inClose[i - 2] &&
         // 4th: engulfs the 3rd including the shadows
         inHigh[i] > inHigh[i - 1] && inLow[i] < inLow[i - 1];
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode ConcealingBabySwallow<T>(
-        T[] inOpen,
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        int[] outIntType) where T : IFloatingPointIeee754<T> =>
-        ConcealingBabySwallow<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _);
 }

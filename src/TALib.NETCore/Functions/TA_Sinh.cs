@@ -22,7 +22,33 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Sinh<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        SinhImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int SinhLookback() => 0;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Sinh<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        SinhImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode SinhImpl<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -48,16 +74,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int SinhLookback() => 0;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Sinh<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal) where T : IFloatingPointIeee754<T> => Sinh<T>(inReal, startIdx, endIdx, outReal, out _, out _);
 }

@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Sma<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -29,7 +30,34 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        SmaImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int SmaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Sma<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        SmaImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode SmaImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -45,18 +73,4 @@ public static partial class Functions
 
         return CalcSimpleMA(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
     }
-
-    public static int SmaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Sma<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        Sma<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

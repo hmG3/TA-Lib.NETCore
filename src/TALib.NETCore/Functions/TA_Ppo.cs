@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Ppo<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -31,7 +32,39 @@ public static partial class Functions
         out int outNbElement,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
-        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        PpoImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod, optInMAType);
+
+    [PublicAPI]
+    public static int PpoLookback(int optInFastPeriod = 12, int optInSlowPeriod = 26, Core.MAType optInMAType = Core.MAType.Sma) =>
+        optInFastPeriod < 2 || optInSlowPeriod < 2 ? -1 : MaLookback(Math.Max(optInSlowPeriod, optInFastPeriod), optInMAType);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Ppo<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastPeriod = 12,
+        int optInSlowPeriod = 26,
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        PpoImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod, optInMAType);
+
+    private static Core.RetCode PpoImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastPeriod,
+        int optInSlowPeriod,
+        Core.MAType optInMAType) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -50,21 +83,4 @@ public static partial class Functions
         return CalcPriceOscillator(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod,
             optInMAType, tempBuffer, true);
     }
-
-    public static int PpoLookback(int optInFastPeriod = 12, int optInSlowPeriod = 26, Core.MAType optInMAType = Core.MAType.Sma) =>
-        optInFastPeriod < 2 || optInSlowPeriod < 2 ? -1 : MaLookback(Math.Max(optInSlowPeriod, optInFastPeriod), optInMAType);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Ppo<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInFastPeriod = 12,
-        int optInSlowPeriod = 26,
-        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        Ppo<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInFastPeriod, optInSlowPeriod, optInMAType);
 }

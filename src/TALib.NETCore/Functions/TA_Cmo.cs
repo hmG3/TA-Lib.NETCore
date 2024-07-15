@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Cmo<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -29,7 +30,48 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        CmoImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int CmoLookback(int optInTimePeriod = 14)
+    {
+        if (optInTimePeriod < 2)
+        {
+            return -1;
+        }
+
+        var retValue = optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Cmo);
+        if (Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
+        {
+            retValue--;
+        }
+
+        return retValue;
+    }
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Cmo<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        CmoImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode CmoImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -216,32 +258,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int CmoLookback(int optInTimePeriod = 14)
-    {
-        if (optInTimePeriod < 2)
-        {
-            return -1;
-        }
-
-        var retValue = optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Cmo);
-        if (Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
-        {
-            retValue--;
-        }
-
-        return retValue;
-    }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Cmo<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
-        Cmo<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

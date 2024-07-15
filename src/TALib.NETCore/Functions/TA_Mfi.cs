@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Mfi<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -32,7 +33,41 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        MfiImpl(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int MfiLookback(int optInTimePeriod = 14) =>
+        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mfi);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Mfi<T>(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        T[] inVolume,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        MfiImpl<T>(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode MfiImpl<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        ReadOnlySpan<T> inVolume,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -190,22 +225,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int MfiLookback(int optInTimePeriod = 14) =>
-        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mfi);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Mfi<T>(
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        T[] inVolume,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
-        Mfi<T>(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

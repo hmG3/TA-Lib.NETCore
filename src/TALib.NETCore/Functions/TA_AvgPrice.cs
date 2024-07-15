@@ -22,7 +22,42 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode AvgPrice<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        AvgPriceImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [PublicAPI]
+    public static int AvgPriceLookback() => 0;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode AvgPrice<T>(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        AvgPriceImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode AvgPriceImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -52,20 +87,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int AvgPriceLookback() => 0;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode AvgPrice<T>(
-        T[] inOpen,
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        T[] outReal) where T : IFloatingPointIeee754<T> =>
-        AvgPrice<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _);
 }

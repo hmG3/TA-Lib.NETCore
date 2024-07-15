@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Kama<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -29,7 +30,35 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        KamaImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int KamaLookback(int optInTimePeriod = 30) =>
+        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Kama);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Kama<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
+        KamaImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode KamaImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -113,9 +142,6 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int KamaLookback(int optInTimePeriod = 30) =>
-        optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Kama);
-
     private static void InitializeSumROC<T>(
         ReadOnlySpan<T> inReal,
         ref T sumROC1,
@@ -165,16 +191,4 @@ public static partial class Functions
         // Save the trailing value. Do this because input and output can point to the same buffer.
         trailingValue = tempReal2;
     }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Kama<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        Kama<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

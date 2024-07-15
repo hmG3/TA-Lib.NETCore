@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Ma<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -30,7 +31,54 @@ public static partial class Functions
         out int outBegIdx,
         out int outNbElement,
         int optInTimePeriod = 30,
-        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        MaImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
+
+    [PublicAPI]
+    public static int MaLookback(int optInTimePeriod = 30, Core.MAType optInMAType = Core.MAType.Sma) =>
+        optInTimePeriod switch
+        {
+            < 1 => -1,
+            1 => 0,
+            _ => optInMAType switch
+            {
+                Core.MAType.Sma => SmaLookback(optInTimePeriod),
+                Core.MAType.Ema => EmaLookback(optInTimePeriod),
+                Core.MAType.Wma => WmaLookback(optInTimePeriod),
+                Core.MAType.Dema => DemaLookback(optInTimePeriod),
+                Core.MAType.Tema => TemaLookback(optInTimePeriod),
+                Core.MAType.Trima => TrimaLookback(optInTimePeriod),
+                Core.MAType.Kama => KamaLookback(optInTimePeriod),
+                Core.MAType.Mama => MamaLookback(),
+                Core.MAType.T3 => T3Lookback(optInTimePeriod),
+                _ => 0
+            }
+        };
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Ma<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 30,
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        MaImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
+
+    private static Core.RetCode MaImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod,
+        Core.MAType optInMAType) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -84,37 +132,4 @@ public static partial class Functions
                 return Core.RetCode.BadParam;
         }
     }
-
-    public static int MaLookback(int optInTimePeriod = 30, Core.MAType optInMAType = Core.MAType.Sma) =>
-        optInTimePeriod switch
-        {
-            < 1 => -1,
-            1 => 0,
-            _ => optInMAType switch
-            {
-                Core.MAType.Sma => SmaLookback(optInTimePeriod),
-                Core.MAType.Ema => EmaLookback(optInTimePeriod),
-                Core.MAType.Wma => WmaLookback(optInTimePeriod),
-                Core.MAType.Dema => DemaLookback(optInTimePeriod),
-                Core.MAType.Tema => TemaLookback(optInTimePeriod),
-                Core.MAType.Trima => TrimaLookback(optInTimePeriod),
-                Core.MAType.Kama => KamaLookback(optInTimePeriod),
-                Core.MAType.Mama => MamaLookback(),
-                Core.MAType.T3 => T3Lookback(optInTimePeriod),
-                _ => 0
-            }
-        };
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Ma<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 30,
-        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        Ma<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod, optInMAType);
 }

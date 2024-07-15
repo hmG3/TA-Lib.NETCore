@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Sar<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -31,7 +32,38 @@ public static partial class Functions
         out int outBegIdx,
         out int outNbElement,
         double optInAcceleration = 0.02,
-        double optInMaximum = 0.2) where T : IFloatingPointIeee754<T>
+        double optInMaximum = 0.2) where T : IFloatingPointIeee754<T> =>
+        SarImpl(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInAcceleration, optInMaximum);
+
+    [PublicAPI]
+    public static int SarLookback() => 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Sar<T>(
+        T[] inHigh,
+        T[] inLow,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInAcceleration = 0.02,
+        double optInMaximum = 0.2) where T : IFloatingPointIeee754<T> =>
+        SarImpl<T>(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInAcceleration, optInMaximum);
+
+    private static Core.RetCode SarImpl<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInAcceleration,
+        double optInMaximum) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -163,8 +195,6 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int SarLookback() => 1;
 
     private static T InitializeSar<T>(
         ReadOnlySpan<T> inHigh,
@@ -321,18 +351,4 @@ public static partial class Functions
 
         return sar;
     }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Sar<T>(
-        T[] inHigh,
-        T[] inLow,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        double optInAcceleration = 0.02,
-        double optInMaximum = 0.2) where T : IFloatingPointIeee754<T> =>
-        Sar<T>(inHigh, inLow, startIdx, endIdx, outReal, out _, out _, optInAcceleration, optInMaximum);
 }

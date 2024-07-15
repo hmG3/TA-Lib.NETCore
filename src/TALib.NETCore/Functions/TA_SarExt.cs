@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode SarExt<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -37,7 +38,54 @@ public static partial class Functions
         double optInAccelerationMaxLong = 0.2,
         double optInAccelerationInitShort = 0.02,
         double optInAccelerationShort = 0.02,
-        double optInAccelerationMaxShort = 0.2) where T : IFloatingPointIeee754<T>
+        double optInAccelerationMaxShort = 0.2) where T : IFloatingPointIeee754<T> =>
+        SarExtImpl(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInStartValue, optInOffsetOnReverse,
+            optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort,
+            optInAccelerationMaxShort);
+
+    [PublicAPI]
+    public static int SarExtLookback() => 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode SarExt<T>(
+        T[] inHigh,
+        T[] inLow,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInStartValue = 0.0,
+        double optInOffsetOnReverse = 0.0,
+        double optInAccelerationInitLong = 0.02,
+        double optInAccelerationLong = 0.02,
+        double optInAccelerationMaxLong = 0.2,
+        double optInAccelerationInitShort = 0.02,
+        double optInAccelerationShort = 0.02,
+        double optInAccelerationMaxShort = 0.2) where T : IFloatingPointIeee754<T> =>
+        SarExtImpl<T>(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInStartValue, optInOffsetOnReverse,
+            optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort,
+            optInAccelerationMaxShort);
+
+    private static Core.RetCode SarExtImpl<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInStartValue,
+        double optInOffsetOnReverse,
+        double optInAccelerationInitLong,
+        double optInAccelerationLong,
+        double optInAccelerationMaxLong,
+        double optInAccelerationInitShort,
+        double optInAccelerationShort,
+        double optInAccelerationMaxShort) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -129,8 +177,6 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int SarExtLookback() => 1;
-
     private static double AdjustAcceleration(ref double optInAccelerationInit, ref double optInAcceleration, double optInAccelerationMax)
     {
         var af = optInAccelerationInit;
@@ -195,25 +241,4 @@ public static partial class Functions
 
         return sar;
     }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode SarExt<T>(
-        T[] inHigh,
-        T[] inLow,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        double optInStartValue = 0.0,
-        double optInOffsetOnReverse = 0.0,
-        double optInAccelerationInitLong = 0.02,
-        double optInAccelerationLong = 0.02,
-        double optInAccelerationMaxLong = 0.2,
-        double optInAccelerationInitShort = 0.02,
-        double optInAccelerationShort = 0.02,
-        double optInAccelerationMaxShort = 0.2) where T : IFloatingPointIeee754<T> =>
-        SarExt<T>(inHigh, inLow, startIdx, endIdx, outReal, out _, out _, optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong,
-            optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort);
 }

@@ -22,7 +22,39 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Ad<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        ReadOnlySpan<T> inVolume,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        AdImpl(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int AdLookback() => 0;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Ad<T>(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        T[] inVolume,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        AdImpl<T>(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode AdImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
@@ -64,20 +96,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int AdLookback() => 0;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Ad<T>(
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        T[] inVolume,
-        int startIdx,
-        int endIdx,
-        T[] outReal) where T : IFloatingPointIeee754<T> =>
-        Ad<T>(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out _, out _);
 }

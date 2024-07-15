@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode PlusDM<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -30,7 +31,41 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        PlusDMImpl(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int PlusDMLookback(int optInTimePeriod = 14) => optInTimePeriod switch
+    {
+        < 1 => -1,
+        > 1 => optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.PlusDM) - 1,
+        _ => 1
+    };
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode PlusDM<T>(
+        T[] inHigh,
+        T[] inLow,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
+        PlusDMImpl<T>(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode PlusDMImpl<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -202,24 +237,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int PlusDMLookback(int optInTimePeriod = 14) => optInTimePeriod switch
-    {
-        < 1 => -1,
-        > 1 => optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.PlusDM) - 1,
-        _ => 1
-    };
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode PlusDM<T>(
-        T[] inHigh,
-        T[] inLow,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
-        PlusDM<T>(inHigh, inLow, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

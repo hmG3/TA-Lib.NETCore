@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode T3<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -30,7 +31,37 @@ public static partial class Functions
         out int outBegIdx,
         out int outNbElement,
         int optInTimePeriod = 5,
-        double optInVFactor = 0.7) where T : IFloatingPointIeee754<T>
+        double optInVFactor = 0.7) where T : IFloatingPointIeee754<T> =>
+        T3Impl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod, optInVFactor);
+
+    [PublicAPI]
+    public static int T3Lookback(int optInTimePeriod = 5) =>
+        optInTimePeriod < 2 ? -1 : (optInTimePeriod - 1) * 6 + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.T3);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode T3<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 5,
+        double optInVFactor = 0.7) where T : IFloatingPointIeee754<T> =>
+        T3Impl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod, optInVFactor);
+
+    private static Core.RetCode T3Impl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod,
+        double optInVFactor) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -179,20 +210,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int T3Lookback(int optInTimePeriod = 5) =>
-        optInTimePeriod < 2 ? -1 : (optInTimePeriod - 1) * 6 + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.T3);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode T3<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 5,
-        double optInVFactor = 0.7) where T : IFloatingPointIeee754<T> =>
-        T3<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod, optInVFactor);
 }

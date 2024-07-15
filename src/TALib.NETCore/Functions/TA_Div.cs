@@ -22,7 +22,35 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Div<T>(
+        ReadOnlySpan<T> inReal0,
+        ReadOnlySpan<T> inReal1,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        DivImpl(inReal0, inReal1, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int DivLookback() => 0;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Div<T>(
+        T[] inReal0,
+        T[] inReal1,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        DivImpl<T>(inReal0, inReal1, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode DivImpl<T>(
         ReadOnlySpan<T> inReal0,
         ReadOnlySpan<T> inReal1,
         int startIdx,
@@ -49,17 +77,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int DivLookback() => 0;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Div<T>(
-        T[] inReal0,
-        T[] inReal1,
-        int startIdx,
-        int endIdx,
-        T[] outReal) where T : IFloatingPointIeee754<T> => Div<T>(inReal0, inReal1, startIdx, endIdx, outReal, out _, out _);
 }

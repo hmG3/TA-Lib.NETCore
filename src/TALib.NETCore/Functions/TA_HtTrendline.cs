@@ -22,7 +22,43 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode HtTrendline<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HtTrendlineImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int HtTrendlineLookback()
+    {
+        /*  31 input are skip
+         * +32 output are skip to account for misc lookback
+         * ──────────────────
+         *  63 Total Lookback
+         *
+         * See MamaLookback for an explanation of the "32"
+         */
+        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendline) + 63;
+    }
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode HtTrendline<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HtTrendlineImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode HtTrendlineImpl<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -166,26 +202,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int HtTrendlineLookback()
-    {
-        /*  31 input are skip
-         * +32 output are skip to account for misc lookback
-         * ──────────────────
-         *  63 Total Lookback
-         *
-         * See MamaLookback for an explanation of the "32"
-         */
-        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendline) + 63;
-    }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode HtTrendline<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal) where T : IFloatingPointIeee754<T> => HtTrendline<T>(inReal, startIdx, endIdx, outReal, out _, out _);
 }

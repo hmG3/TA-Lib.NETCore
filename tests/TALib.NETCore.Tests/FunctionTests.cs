@@ -45,7 +45,7 @@ public sealed class FunctionTests
             function.SetUnstablePeriod(model.Unstable.Value);
         }
 
-        var returnCode = function.Run(model.Inputs, model.Options, resultOutput);
+        var returnCode = function.Run(model.Inputs, model.Options, resultOutput, 0, model.Inputs[0].Length - 1, out _, out _);
         returnCode.ShouldBe(Core.RetCode.Success, "Function should complete with success status code RetCode.Success(0)");
 
         for (var i = 0; i < resultOutput.Length; i++)
@@ -100,7 +100,7 @@ public sealed class FunctionTests
             function.SetUnstablePeriod(model.Unstable.Value);
         }
 
-        var returnCode = function.Run(model.Inputs, model.Options, resultOutput);
+        var returnCode = function.Run(model.Inputs, model.Options, resultOutput, 0, model.Inputs[0].Length - 1, out _, out _);
         returnCode.ShouldBe(Core.RetCode.Success, "Function should complete with success status code RetCode.Success(0)");
 
         for (var i = 0; i < resultOutput.Length; i++)
@@ -174,7 +174,7 @@ public sealed class FunctionTests
             inputs = outputs = model.Inputs;
         }
 
-        var returnCode = function.Run(inputs, model.Options, outputs);
+        var returnCode = function.Run(inputs, model.Options, outputs, 0, model.Inputs[0].Length - 1, out _, out _);
         returnCode.ShouldBe(Core.RetCode.Success, "Function should complete with success status code RetCode.Success(0)");
 
         for (var i = 0; i < model.Outputs.Length; i++)
@@ -257,7 +257,7 @@ public sealed class FunctionTests
             inputs = outputs = model.Inputs;
         }
 
-        var returnCode = function.Run(inputs, model.Options, outputs);
+        var returnCode = function.Run(inputs, model.Options, outputs, 0, model.Inputs[0].Length - 1, out _, out _);
         returnCode.ShouldBe(Core.RetCode.Success, "Function should complete with success status code RetCode.Success(0)");
 
         for (var i = 0; i < model.Outputs.Length; i++)

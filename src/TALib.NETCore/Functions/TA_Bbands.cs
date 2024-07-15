@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Bbands<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -34,7 +35,47 @@ public static partial class Functions
         int optInTimePeriod = 5,
         double optInNbDevUp = 2.0,
         double optInNbDevDn = 2.0,
-        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        BbandsImpl(inReal, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outBegIdx, out outNbElement,
+            optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
+
+    [PublicAPI]
+    public static int BbandsLookback(int optInTimePeriod = 5, Core.MAType optInMAType = Core.MAType.Sma) =>
+        optInTimePeriod < 2 ? -1 : MaLookback(optInTimePeriod, optInMAType);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Bbands<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outRealUpperBand,
+        T[] outRealMiddleBand,
+        T[] outRealLowerBand,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 5,
+        double optInNbDevUp = 2.0,
+        double optInNbDevDn = 2.0,
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        BbandsImpl<T>(inReal, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outBegIdx, out outNbElement,
+            optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
+
+    private static Core.RetCode BbandsImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outRealUpperBand,
+        Span<T> outRealMiddleBand,
+        Span<T> outRealLowerBand,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod,
+        double optInNbDevUp,
+        double optInNbDevDn,
+        Core.MAType optInMAType) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -180,9 +221,6 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    public static int BbandsLookback(int optInTimePeriod = 5, Core.MAType optInMAType = Core.MAType.Sma) =>
-        optInTimePeriod < 2 ? -1 : MaLookback(optInTimePeriod, optInMAType);
-
     private static void CalcStandardDeviation<T>(
         ReadOnlySpan<T> inReal,
         ReadOnlySpan<T> inMovAvg,
@@ -220,22 +258,4 @@ public static partial class Functions
             outReal[outIdx] = meanValue2 > T.Zero ? T.Sqrt(meanValue2) : T.Zero;
         }
     }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Bbands<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outRealUpperBand,
-        T[] outRealMiddleBand,
-        T[] outRealLowerBand,
-        int optInTimePeriod = 5,
-        double optInNbDevUp = 2.0,
-        double optInNbDevDn = 2.0,
-        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        Bbands<T>(inReal, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out _, out _,
-            optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
 }

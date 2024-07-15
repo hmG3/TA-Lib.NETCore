@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode StochRsi<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -33,7 +34,51 @@ public static partial class Functions
         int optInTimePeriod = 14,
         int optInFastKPeriod = 5,
         int optInFastDPeriod = 3,
-        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
+        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        StochRsiImpl(inReal, startIdx, endIdx, outFastK, outFastD, out outBegIdx, out outNbElement, optInTimePeriod, optInFastKPeriod,
+            optInFastDPeriod, optInFastDMAType);
+
+    [PublicAPI]
+    public static int StochRsiLookback(
+        int optInTimePeriod = 14,
+        int optInFastKPeriod = 5,
+        int optInFastDPeriod = 3,
+        Core.MAType optInFastDMAType = Core.MAType.Sma) =>
+        optInTimePeriod < 2 || optInFastKPeriod < 1 || optInFastDPeriod < 1
+            ? -1
+            : RsiLookback(optInTimePeriod) + StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode StochRsi<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outFastK,
+        T[] outFastD,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 14,
+        int optInFastKPeriod = 5,
+        int optInFastDPeriod = 3,
+        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        StochRsiImpl<T>(inReal, startIdx, endIdx, outFastK, outFastD, out outBegIdx, out outNbElement, optInTimePeriod, optInFastKPeriod,
+            optInFastDPeriod, optInFastDMAType);
+
+    private static Core.RetCode StochRsiImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outFastK,
+        Span<T> outFastD,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod,
+        int optInFastKPeriod,
+        int optInFastDPeriod,
+        Core.MAType optInFastDMAType) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -97,30 +142,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int StochRsiLookback(
-        int optInTimePeriod = 14,
-        int optInFastKPeriod = 5,
-        int optInFastDPeriod = 3,
-        Core.MAType optInFastDMAType = Core.MAType.Sma) =>
-        optInTimePeriod < 2 || optInFastKPeriod < 1 || optInFastDPeriod < 1
-            ? -1
-            : RsiLookback(optInTimePeriod) + StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode StochRsi<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outFastK,
-        T[] outFastD,
-        int optInTimePeriod = 14,
-        int optInFastKPeriod = 5,
-        int optInFastDPeriod = 3,
-        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        StochRsi<T>(inReal, startIdx, endIdx, outFastK, outFastD, out _, out _, optInTimePeriod, optInFastKPeriod, optInFastDPeriod,
-            optInFastDMAType);
 }

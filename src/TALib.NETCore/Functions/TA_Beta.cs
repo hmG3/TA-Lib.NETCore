@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Beta<T>(
         ReadOnlySpan<T> inReal0,
         ReadOnlySpan<T> inReal1,
@@ -30,7 +31,36 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 5) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 5) where T : IFloatingPointIeee754<T> =>
+        BetaImpl(inReal0, inReal1, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int BetaLookback(int optInTimePeriod = 5) => optInTimePeriod < 1 ? -1 : optInTimePeriod;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Beta<T>(
+        T[] inReal0,
+        T[] inReal1,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 5) where T : IFloatingPointIeee754<T> =>
+        BetaImpl<T>(inReal0, inReal1, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode BetaImpl<T>(
+        ReadOnlySpan<T> inReal0,
+        ReadOnlySpan<T> inReal1,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -131,19 +161,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int BetaLookback(int optInTimePeriod = 5) => optInTimePeriod < 1 ? -1 : optInTimePeriod;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Beta<T>(
-        T[] inReal0,
-        T[] inReal1,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 5) where T : IFloatingPointIeee754<T> =>
-        Beta<T>(inReal0, inReal1, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

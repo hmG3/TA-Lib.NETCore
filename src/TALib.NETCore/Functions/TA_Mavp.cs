@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Mavp<T>(
         ReadOnlySpan<T> inReal,
         ReadOnlySpan<T> inPeriods,
@@ -32,7 +33,43 @@ public static partial class Functions
         out int outNbElement,
         int optInMinPeriod = 2,
         int optInMaxPeriod = 30,
-        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        MavpImpl(inReal, inPeriods, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInMinPeriod, optInMaxPeriod,
+            optInMAType);
+
+    [PublicAPI]
+    public static int MavpLookback(int optInMaxPeriod = 30, Core.MAType optInMAType = Core.MAType.Sma) =>
+        optInMaxPeriod < 2 ? -1 : MaLookback(optInMaxPeriod, optInMAType);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Mavp<T>(
+        T[] inReal,
+        T[] inPeriods,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInMinPeriod = 2,
+        int optInMaxPeriod = 30,
+        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        MavpImpl<T>(inReal, inPeriods, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInMinPeriod, optInMaxPeriod,
+            optInMAType);
+
+    private static Core.RetCode MavpImpl<T>(
+        ReadOnlySpan<T> inReal,
+        ReadOnlySpan<T> inPeriods,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInMinPeriod,
+        int optInMaxPeriod,
+        Core.MAType optInMAType) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -125,22 +162,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int MavpLookback(int optInMaxPeriod = 30, Core.MAType optInMAType = Core.MAType.Sma) =>
-        optInMaxPeriod < 2 ? -1 : MaLookback(optInMaxPeriod, optInMAType);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Mavp<T>(
-        T[] inReal,
-        T[] inPeriods,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInMinPeriod = 2,
-        int optInMaxPeriod = 30,
-        Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        Mavp<T>(inReal, inPeriods, startIdx, endIdx, outReal, out _, out _, optInMinPeriod, optInMaxPeriod, optInMAType);
 }

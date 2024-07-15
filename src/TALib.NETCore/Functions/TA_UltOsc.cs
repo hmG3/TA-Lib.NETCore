@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode UltOsc<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -33,7 +34,47 @@ public static partial class Functions
         out int outNbElement,
         int optInTimePeriod1 = 7,
         int optInTimePeriod2 = 14,
-        int optInTimePeriod3 = 28) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod3 = 28) where T : IFloatingPointIeee754<T> =>
+        UltOscImpl(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod1,
+            optInTimePeriod2, optInTimePeriod3);
+
+    [PublicAPI]
+    public static int UltOscLookback(int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28) =>
+        optInTimePeriod1 < 1 || optInTimePeriod2 < 1 || optInTimePeriod3 < 1
+            ? -1
+            : SmaLookback(Math.Max(Math.Max(optInTimePeriod1, optInTimePeriod2), optInTimePeriod3)) + 1;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode UltOsc<T>(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod1 = 7,
+        int optInTimePeriod2 = 14,
+        int optInTimePeriod3 = 28) where T : IFloatingPointIeee754<T> =>
+        UltOscImpl<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod1,
+            optInTimePeriod2, optInTimePeriod3);
+
+    private static Core.RetCode UltOscImpl<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod1,
+        int optInTimePeriod2,
+        int optInTimePeriod3) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -188,25 +229,4 @@ public static partial class Functions
             return (aTotal, bTotal);
         }
     }
-
-    public static int UltOscLookback(int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28) =>
-        optInTimePeriod1 < 1 || optInTimePeriod2 < 1 || optInTimePeriod3 < 1
-            ? -1
-            : SmaLookback(Math.Max(Math.Max(optInTimePeriod1, optInTimePeriod2), optInTimePeriod3)) + 1;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode UltOsc<T>(
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod1 = 7,
-        int optInTimePeriod2 = 14,
-        int optInTimePeriod3 = 28) where T : IFloatingPointIeee754<T> =>
-        UltOsc<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out _, out _, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
 }

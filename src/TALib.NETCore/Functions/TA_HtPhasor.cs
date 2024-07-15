@@ -22,7 +22,39 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode HtPhasor<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outInPhase,
+        Span<T> outQuadrature,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HtPhasorImpl(inReal, startIdx, endIdx, outInPhase, outQuadrature, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int HtPhasorLookback()
+    {
+        // See MamaLookback for an explanation of the "32"
+        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtPhasor) + 32;
+    }
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode HtPhasor<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outInPhase,
+        T[] outQuadrature,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HtPhasorImpl<T>(inReal, startIdx, endIdx, outInPhase, outQuadrature, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode HtPhasorImpl<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -134,22 +166,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int HtPhasorLookback()
-    {
-        // See MamaLookback for an explanation of the "32"
-        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtPhasor) + 32;
-    }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode HtPhasor<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outInPhase,
-        T[] outQuadrature) where T : IFloatingPointIeee754<T> =>
-        HtPhasor<T>(inReal, startIdx, endIdx, outInPhase, outQuadrature, out _, out _);
 }

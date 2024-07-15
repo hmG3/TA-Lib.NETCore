@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode StochF<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -34,7 +35,47 @@ public static partial class Functions
         out int outNbElement,
         int optInFastKPeriod = 5,
         int optInFastDPeriod = 3,
-        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
+        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        StochFImpl(inHigh, inLow, inClose, startIdx, endIdx, outFastK, outFastD, out outBegIdx, out outNbElement, optInFastKPeriod,
+            optInFastDPeriod, optInFastDMAType);
+
+    [PublicAPI]
+    public static int StochFLookback(int optInFastKPeriod = 5, int optInFastDPeriod = 3, Core.MAType optInFastDMAType = Core.MAType.Sma) =>
+        optInFastKPeriod < 1 || optInFastDPeriod < 1 ? -1 : optInFastKPeriod - 1 + MaLookback(optInFastDPeriod, optInFastDMAType);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode StochF<T>(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        T[] outFastK,
+        T[] outFastD,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastKPeriod = 5,
+        int optInFastDPeriod = 3,
+        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        StochFImpl<T>(inHigh, inLow, inClose, startIdx, endIdx, outFastK, outFastD, out outBegIdx, out outNbElement, optInFastKPeriod,
+            optInFastDPeriod, optInFastDMAType);
+
+    private static Core.RetCode StochFImpl<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<T> outFastK,
+        Span<T> outFastD,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastKPeriod,
+        int optInFastDPeriod,
+        Core.MAType optInFastDMAType) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -157,25 +198,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int StochFLookback(int optInFastKPeriod = 5, int optInFastDPeriod = 3, Core.MAType optInFastDMAType = Core.MAType.Sma) =>
-        optInFastKPeriod < 1 || optInFastDPeriod < 1 ? -1 : optInFastKPeriod - 1 + MaLookback(optInFastDPeriod, optInFastDMAType);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode StochF<T>(
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        T[] outFastK,
-        T[] outFastD,
-        int optInFastKPeriod = 5,
-        int optInFastDPeriod = 3,
-        Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        StochF<T>(inHigh, inLow, inClose, startIdx, endIdx, outFastK, outFastD, out _, out _, optInFastKPeriod, optInFastDPeriod,
-            optInFastDMAType);
 }

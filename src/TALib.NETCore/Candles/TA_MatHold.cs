@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Candles
 {
+    [PublicAPI]
     public static Core.RetCode MatHold<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
@@ -32,7 +33,41 @@ public static partial class Candles
         Span<int> outIntType,
         out int outBegIdx,
         out int outNbElement,
-        double optInPenetration = 0.5) where T : IFloatingPointIeee754<T>
+        double optInPenetration = 0.5) where T : IFloatingPointIeee754<T> =>
+        MatHoldImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement, optInPenetration);
+
+    [PublicAPI]
+    public static int MatHoldLookback() =>
+        Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyShort), CandleAveragePeriod(Core.CandleSettingType.ShadowLong)) + 4;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode MatHold<T>(
+        T[] inOpen,
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        int[] outIntType,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInPenetration = 0.5) where T : IFloatingPointIeee754<T> =>
+        MatHoldImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement, optInPenetration);
+
+    private static Core.RetCode MatHoldImpl<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<int> outIntType,
+        out int outBegIdx,
+        out int outNbElement,
+        double optInPenetration) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -126,9 +161,6 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    public static int MatHoldLookback() =>
-        Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyShort), CandleAveragePeriod(Core.CandleSettingType.ShadowLong)) + 4;
-
     private static bool IsMatHoldPattern<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
@@ -165,19 +197,4 @@ public static partial class Candles
         inOpen[i] > inClose[i - 1] &&
         // 5th closes above the highest high of the reaction days
         inClose[i] > T.Max(T.Max(inHigh[i - 3], inHigh[i - 2]), inHigh[i - 1]);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode MatHold<T>(
-        T[] inOpen,
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        int[] outIntType,
-        double optInPenetration = 0.5) where T : IFloatingPointIeee754<T> =>
-        MatHold<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out _, out _, optInPenetration);
 }

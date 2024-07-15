@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Stoch<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -36,7 +37,67 @@ public static partial class Functions
         int optInSlowKPeriod = 3,
         Core.MAType optInSlowKMAType = Core.MAType.Sma,
         int optInSlowDPeriod = 3,
-        Core.MAType optInSlowDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T>
+        Core.MAType optInSlowDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        StochImpl(inHigh, inLow, inClose, startIdx, endIdx, outSlowK, outSlowD, out outBegIdx, out outNbElement, optInFastKPeriod,
+            optInSlowKPeriod, optInSlowKMAType, optInSlowDPeriod, optInSlowDMAType);
+
+    [PublicAPI]
+    public static int StochLookback(
+        int optInFastKPeriod = 5,
+        int optInSlowKPeriod = 3,
+        Core.MAType optInSlowKMAType = Core.MAType.Sma,
+        int optInSlowDPeriod = 3,
+        Core.MAType optInSlowDMAType = Core.MAType.Sma)
+    {
+        if (optInFastKPeriod < 1 || optInSlowKPeriod < 1 || optInSlowDPeriod < 1)
+        {
+            return -1;
+        }
+
+        var retValue = optInFastKPeriod - 1;
+        retValue += MaLookback(optInSlowKPeriod, optInSlowKMAType);
+        retValue += MaLookback(optInSlowDPeriod, optInSlowDMAType);
+
+        return retValue;
+    }
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Stoch<T>(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        T[] outSlowK,
+        T[] outSlowD,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastKPeriod = 5,
+        int optInSlowKPeriod = 3,
+        Core.MAType optInSlowKMAType = Core.MAType.Sma,
+        int optInSlowDPeriod = 3,
+        Core.MAType optInSlowDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
+        StochImpl<T>(inHigh, inLow, inClose, startIdx, endIdx, outSlowK, outSlowD, out outBegIdx, out outNbElement, optInFastKPeriod,
+            optInSlowKPeriod, optInSlowKMAType, optInSlowDPeriod, optInSlowDMAType);
+
+    private static Core.RetCode StochImpl<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<T> outSlowK,
+        Span<T> outSlowD,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInFastKPeriod,
+        int optInSlowKPeriod,
+        Core.MAType optInSlowKMAType,
+        int optInSlowDPeriod,
+        Core.MAType optInSlowDMAType) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -172,43 +233,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int StochLookback(
-        int optInFastKPeriod = 5,
-        int optInSlowKPeriod = 3,
-        Core.MAType optInSlowKMAType = Core.MAType.Sma,
-        int optInSlowDPeriod = 3,
-        Core.MAType optInSlowDMAType = Core.MAType.Sma)
-    {
-        if (optInFastKPeriod < 1 || optInSlowKPeriod < 1 || optInSlowDPeriod < 1)
-        {
-            return -1;
-        }
-
-        var retValue = optInFastKPeriod - 1;
-        retValue += MaLookback(optInSlowKPeriod, optInSlowKMAType);
-        retValue += MaLookback(optInSlowDPeriod, optInSlowDMAType);
-
-        return retValue;
-    }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Stoch<T>(
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        T[] outSlowK,
-        T[] outSlowD,
-        int optInFastKPeriod = 5,
-        int optInSlowKPeriod = 3,
-        Core.MAType optInSlowKMAType = Core.MAType.Sma,
-        int optInSlowDPeriod = 3,
-        Core.MAType optInSlowDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        Stoch<T>(inHigh, inLow, inClose, startIdx, endIdx, outSlowK, outSlowD, out _, out _, optInFastKPeriod, optInSlowKPeriod,
-            optInSlowKMAType, optInSlowDPeriod, optInSlowDMAType);
 }

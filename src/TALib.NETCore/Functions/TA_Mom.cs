@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Mom<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
@@ -29,7 +30,34 @@ public static partial class Functions
         Span<T> outReal,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 10) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 10) where T : IFloatingPointIeee754<T> =>
+        MomImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int MomLookback(int optInTimePeriod = 10) => optInTimePeriod < 1 ? -1 : optInTimePeriod;
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Mom<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 10) where T : IFloatingPointIeee754<T> =>
+        MomImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode MomImpl<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -43,8 +71,8 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-         // The Mom function is the only one who is not normalized, and thus
-         // should be avoided for comparing different time series of prices.
+        // The Mom function is the only one who is not normalized, and thus
+        // should be avoided for comparing different time series of prices.
 
         var lookbackTotal = MomLookback(optInTimePeriod);
         if (startIdx < lookbackTotal)
@@ -71,18 +99,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int MomLookback(int optInTimePeriod = 10) => optInTimePeriod < 1 ? -1 : optInTimePeriod;
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Mom<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outReal,
-        int optInTimePeriod = 10) where T : IFloatingPointIeee754<T> =>
-        Mom<T>(inReal, startIdx, endIdx, outReal, out _, out _, optInTimePeriod);
 }

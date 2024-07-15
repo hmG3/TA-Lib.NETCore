@@ -22,6 +22,7 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode Accbands<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -33,7 +34,44 @@ public static partial class Functions
         Span<T> outRealLowerBand,
         out int outBegIdx,
         out int outNbElement,
-        int optInTimePeriod = 20) where T : IFloatingPointIeee754<T>
+        int optInTimePeriod = 20) where T : IFloatingPointIeee754<T> =>
+        AccbandsImpl(inHigh, inLow, inClose, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outBegIdx,
+            out outNbElement, optInTimePeriod);
+
+    [PublicAPI]
+    public static int AccbandsLookback(int optInTimePeriod = 20) => optInTimePeriod < 2 ? -1 : SmaLookback(optInTimePeriod);
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode Accbands<T>(
+        T[] inHigh,
+        T[] inLow,
+        T[] inClose,
+        int startIdx,
+        int endIdx,
+        T[] outRealUpperBand,
+        T[] outRealMiddleBand,
+        T[] outRealLowerBand,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod = 20) where T : IFloatingPointIeee754<T> =>
+        AccbandsImpl<T>(inHigh, inLow, inClose, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outBegIdx,
+            out outNbElement, optInTimePeriod);
+
+    private static Core.RetCode AccbandsImpl<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int startIdx,
+        int endIdx,
+        Span<T> outRealUpperBand,
+        Span<T> outRealMiddleBand,
+        Span<T> outRealLowerBand,
+        out int outBegIdx,
+        out int outNbElement,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
         outBegIdx = outNbElement = 0;
 
@@ -109,23 +147,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int AccbandsLookback(int optInTimePeriod = 20) => optInTimePeriod < 2 ? -1 : SmaLookback(optInTimePeriod);
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode Accbands<T>(
-        T[] inHigh,
-        T[] inLow,
-        T[] inClose,
-        int startIdx,
-        int endIdx,
-        T[] outRealUpperBand,
-        T[] outRealMiddleBand,
-        T[] outRealLowerBand,
-        int optInTimePeriod = 20) where T : IFloatingPointIeee754<T> =>
-        Accbands<T>(inHigh, inLow, inClose, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand,
-            out _, out _, optInTimePeriod);
 }

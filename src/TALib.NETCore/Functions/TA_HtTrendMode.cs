@@ -22,7 +22,43 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode HtTrendMode<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<int> outInteger,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HtTrendModeImpl(inReal, startIdx, endIdx, outInteger, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int HtTrendModeLookback()
+    {
+        /*  31 input are skip
+         * +32 output are skip to account for misc lookback
+         * ──────────────────
+         *  63 Total Lookback
+         *
+         * See MamaLookback for an explanation of the "32"
+         */
+        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendMode) + 63;
+    }
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode HtTrendMode<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        int[] outInteger,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HtTrendModeImpl<T>(inReal, startIdx, endIdx, outInteger, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode HtTrendModeImpl<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -257,26 +293,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int HtTrendModeLookback()
-    {
-        /*  31 input are skip
-         * +32 output are skip to account for misc lookback
-         * ──────────────────
-         *  63 Total Lookback
-         *
-         * See MamaLookback for an explanation of the "32"
-         */
-        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendMode) + 63;
-    }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode HtTrendMode<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        int[] outInteger) where T : IFloatingPointIeee754<T> => HtTrendMode<T>(inReal, startIdx, endIdx, outInteger, out _, out _);
 }

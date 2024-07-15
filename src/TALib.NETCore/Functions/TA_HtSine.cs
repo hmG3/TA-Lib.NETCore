@@ -22,7 +22,45 @@ namespace TALib;
 
 public static partial class Functions
 {
+    [PublicAPI]
     public static Core.RetCode HtSine<T>(
+        ReadOnlySpan<T> inReal,
+        int startIdx,
+        int endIdx,
+        Span<T> outSine,
+        Span<T> outLeadSine,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HtSineImpl(inReal, startIdx, endIdx, outSine, outLeadSine, out outBegIdx, out outNbElement);
+
+    [PublicAPI]
+    public static int HtSineLookback()
+    {
+        /*  31 input are skip
+         * +32 output are skip to account for misc lookback
+         * ──────────────────
+         *  63 Total Lookback
+         *
+         * See MamaLookback for an explanation of the "32"
+         */
+        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtSine) + 63;
+    }
+
+    /// <remarks>
+    /// For compatibility with abstract API
+    /// </remarks>
+    [UsedImplicitly]
+    private static Core.RetCode HtSine<T>(
+        T[] inReal,
+        int startIdx,
+        int endIdx,
+        T[] outSine,
+        T[] outLeadSine,
+        out int outBegIdx,
+        out int outNbElement) where T : IFloatingPointIeee754<T> =>
+        HtSineImpl<T>(inReal, startIdx, endIdx, outSine, outLeadSine, out outBegIdx, out outNbElement);
+
+    private static Core.RetCode HtSineImpl<T>(
         ReadOnlySpan<T> inReal,
         int startIdx,
         int endIdx,
@@ -197,27 +235,4 @@ public static partial class Functions
 
         return Core.RetCode.Success;
     }
-
-    public static int HtSineLookback()
-    {
-        /*  31 input are skip
-         * +32 output are skip to account for misc lookback
-         * ──────────────────
-         *  63 Total Lookback
-         *
-         * See MamaLookback for an explanation of the "32"
-         */
-        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtSine) + 63;
-    }
-
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
-    [UsedImplicitly]
-    private static Core.RetCode HtSine<T>(
-        T[] inReal,
-        int startIdx,
-        int endIdx,
-        T[] outSine,
-        T[] outLeadSine) where T : IFloatingPointIeee754<T> => HtSine<T>(inReal, startIdx, endIdx, outSine, outLeadSine, out _, out _);
 }
