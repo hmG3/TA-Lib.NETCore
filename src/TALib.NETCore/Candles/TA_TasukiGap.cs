@@ -28,12 +28,10 @@ public static partial class Candles
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<int> outIntType,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        TasukiGapImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        TasukiGapImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     [PublicAPI]
     public static int TasukiGapLookback() => CandleAveragePeriod(Core.CandleSettingType.Near) + 2;
@@ -47,36 +45,32 @@ public static partial class Candles
         T[] inHigh,
         T[] inLow,
         T[] inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         int[] outIntType,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        TasukiGapImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        TasukiGapImpl<T>(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     private static Core.RetCode TasukiGapImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<int> outIntType,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T>
+        out Range outRange) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
         var lookbackTotal = TasukiGapLookback();
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -126,8 +120,7 @@ public static partial class Candles
             nearTrailingIdx++;
         } while (i <= endIdx);
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

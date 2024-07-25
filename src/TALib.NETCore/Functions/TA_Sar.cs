@@ -26,14 +26,12 @@ public static partial class Functions
     public static Core.RetCode Sar<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInAcceleration = 0.02,
         double optInMaximum = 0.2) where T : IFloatingPointIeee754<T> =>
-        SarImpl(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInAcceleration, optInMaximum);
+        SarImpl(inHigh, inLow, inRange, outReal, out outRange, optInAcceleration, optInMaximum);
 
     [PublicAPI]
     public static int SarLookback() => 1;
@@ -45,29 +43,28 @@ public static partial class Functions
     private static Core.RetCode Sar<T>(
         T[] inHigh,
         T[] inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInAcceleration = 0.02,
         double optInMaximum = 0.2) where T : IFloatingPointIeee754<T> =>
-        SarImpl<T>(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInAcceleration, optInMaximum);
+        SarImpl<T>(inHigh, inLow, inRange, outReal, out outRange, optInAcceleration, optInMaximum);
 
     private static Core.RetCode SarImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInAcceleration,
         double optInMaximum) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -109,10 +106,7 @@ public static partial class Functions
          */
 
         var lookbackTotal = SarLookback();
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -126,13 +120,13 @@ public static partial class Functions
         // Identify if the initial direction is long or short.
         // (ep is just used as a temp buffer here, the name of the parameter is not significant).
         Span<T> epTemp = new T[1];
-        var retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
+        var retCode = MinusDMImpl(inHigh, inLow, new Range(startIdx, startIdx), epTemp, out _, 1);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
         int outIdx = default;
 
         var todayIdx = startIdx;
@@ -191,7 +185,7 @@ public static partial class Functions
             }
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

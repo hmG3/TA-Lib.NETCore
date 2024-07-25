@@ -27,16 +27,13 @@ public static partial class Functions
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod1 = 7,
         int optInTimePeriod2 = 14,
         int optInTimePeriod3 = 28) where T : IFloatingPointIeee754<T> =>
-        UltOscImpl(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod1,
-            optInTimePeriod2, optInTimePeriod3);
+        UltOscImpl(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
 
     [PublicAPI]
     public static int UltOscLookback(int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28) =>
@@ -52,34 +49,31 @@ public static partial class Functions
         T[] inHigh,
         T[] inLow,
         T[] inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod1 = 7,
         int optInTimePeriod2 = 14,
         int optInTimePeriod3 = 28) where T : IFloatingPointIeee754<T> =>
-        UltOscImpl<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod1,
-            optInTimePeriod2, optInTimePeriod3);
+        UltOscImpl<T>(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
 
     private static Core.RetCode UltOscImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod1,
         int optInTimePeriod2,
         int optInTimePeriod3) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
-            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -90,10 +84,7 @@ public static partial class Functions
         }
 
         var lookbackTotal = UltOscLookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -191,8 +182,7 @@ public static partial class Functions
             trailingIdx3++;
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
 

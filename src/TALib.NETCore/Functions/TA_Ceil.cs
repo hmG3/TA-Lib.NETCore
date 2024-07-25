@@ -25,12 +25,10 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Ceil<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        CeilImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        CeilImpl(inReal, inRange, outReal, out outRange);
 
     [PublicAPI]
     public static int CeilLookback() => 0;
@@ -41,24 +39,23 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Ceil<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        CeilImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        CeilImpl<T>(inReal, inRange, outReal, out outRange);
 
     private static Core.RetCode CeilImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T>
+        out Range outRange) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -69,8 +66,7 @@ public static partial class Functions
             outReal[outIdx++] = T.Ceiling(inReal[i]);
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

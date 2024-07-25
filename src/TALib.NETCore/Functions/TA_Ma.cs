@@ -25,14 +25,12 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Ma<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30,
         Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        MaImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
+        MaImpl(inReal, inRange, outReal, out outRange, optInTimePeriod, optInMAType);
 
     [PublicAPI]
     public static int MaLookback(int optInTimePeriod = 30, Core.MAType optInMAType = Core.MAType.Sma) =>
@@ -61,28 +59,27 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Ma<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30,
         Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        MaImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
+        MaImpl<T>(inReal, inRange, outReal, out outRange, optInTimePeriod, optInMAType);
 
     private static Core.RetCode MaImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod,
         Core.MAType optInMAType) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -95,13 +92,12 @@ public static partial class Functions
         if (optInTimePeriod == 1)
         {
             var nbElement = endIdx - startIdx + 1;
-            outNbElement = nbElement;
             for (int todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx++, todayIdx++)
             {
                 outReal[outIdx] = inReal[todayIdx];
             }
 
-            outBegIdx = startIdx;
+            outRange = new Range(startIdx, startIdx + nbElement);
 
             return Core.RetCode.Success;
         }
@@ -110,24 +106,24 @@ public static partial class Functions
         switch (optInMAType)
         {
             case Core.MAType.Sma:
-                return Sma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                return Sma(inReal, inRange, outReal, out outRange, optInTimePeriod);
             case Core.MAType.Ema:
-                return Ema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                return Ema(inReal, inRange, outReal, out outRange, optInTimePeriod);
             case Core.MAType.Wma:
-                return Wma(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                return Wma(inReal, inRange, outReal, out outRange, optInTimePeriod);
             case Core.MAType.Dema:
-                return Dema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                return Dema(inReal, inRange, outReal, out outRange, optInTimePeriod);
             case Core.MAType.Tema:
-                return Tema(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                return Tema(inReal, inRange, outReal, out outRange, optInTimePeriod);
             case Core.MAType.Trima:
-                return Trima(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                return Trima(inReal, inRange, outReal, out outRange, optInTimePeriod);
             case Core.MAType.Kama:
-                return Kama(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                return Kama(inReal, inRange, outReal, out outRange, optInTimePeriod);
             case Core.MAType.Mama:
                 Span<T> dummyBuffer = new T[endIdx - startIdx + 1];
-                return Mama(inReal, startIdx, endIdx, outReal, dummyBuffer, out outBegIdx, out outNbElement);
+                return Mama(inReal, inRange, outReal, dummyBuffer, out outRange);
             case Core.MAType.T3:
-                return T3(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+                return T3(inReal, inRange, outReal, out outRange, optInTimePeriod);
             default:
                 return Core.RetCode.BadParam;
         }

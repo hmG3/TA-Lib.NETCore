@@ -45,8 +45,7 @@ public sealed class FunctionTests
             function.SetUnstablePeriod(model.Unstable.Value);
         }
 
-        var returnCode = function.Run(model.Inputs, model.Options, resultOutput, 0, model.Inputs[0].Length - 1, out var begIdx,
-            out var nbElement);
+        var returnCode = function.Run(model.Inputs, model.Options, resultOutput, Range.EndAt(model.Inputs[0].Length - 1), out var outRange);
         returnCode.ShouldBe(Core.RetCode.Success, "Function should complete with success status code RetCode.Success(0)");
 
         for (var i = 0; i < resultOutput.Length; i++)
@@ -57,8 +56,7 @@ public sealed class FunctionTests
                 $"Calculated values should be within expected for output {i + 1}");
         }
 
-        begIdx.ShouldBe(model.Range.Start.Value);
-        nbElement.ShouldBe(model.Range.End.Value - model.Range.Start.Value);
+        outRange.ShouldBe(model.Range);
 
         if (model.Unstable.HasValue)
         {
@@ -104,8 +102,7 @@ public sealed class FunctionTests
             function.SetUnstablePeriod(model.Unstable.Value);
         }
 
-        var returnCode = function.Run(model.Inputs, model.Options, resultOutput, 0, model.Inputs[0].Length - 1, out var begIdx,
-            out var nbElement);
+        var returnCode = function.Run(model.Inputs, model.Options, resultOutput, Range.EndAt(model.Inputs[0].Length - 1), out var outRange);
         returnCode.ShouldBe(Core.RetCode.Success, "Function should complete with success status code RetCode.Success(0)");
 
         for (var i = 0; i < resultOutput.Length; i++)
@@ -116,8 +113,7 @@ public sealed class FunctionTests
                 $"Calculated values should be within expected for output {i + 1}");
         }
 
-        begIdx.ShouldBe(model.Range.Start.Value);
-        nbElement.ShouldBe(model.Range.End.Value - model.Range.Start.Value);
+        outRange.ShouldBe(model.Range);
 
         if (model.Unstable.HasValue)
         {
@@ -182,8 +178,7 @@ public sealed class FunctionTests
             inputs = outputs = model.Inputs;
         }
 
-        var returnCode = function.Run(inputs, model.Options, outputs, 0, model.Inputs[0].Length - 1, out var begIdx,
-            out var nbElement);
+        var returnCode = function.Run(inputs, model.Options, outputs, Range.EndAt(model.Inputs[0].Length - 1), out var outRange);
         returnCode.ShouldBe(Core.RetCode.Success, "Function should complete with success status code RetCode.Success(0)");
 
         for (var i = 0; i < model.Outputs.Length; i++)
@@ -201,8 +196,7 @@ public sealed class FunctionTests
             }
         }
 
-        begIdx.ShouldBe(model.Range.Start.Value);
-        nbElement.ShouldBe(model.Range.End.Value - model.Range.Start.Value);
+        outRange.ShouldBe(model.Range);
 
         if (model.Unstable.HasValue)
         {
@@ -269,8 +263,7 @@ public sealed class FunctionTests
             inputs = outputs = model.Inputs;
         }
 
-        var returnCode = function.Run(inputs, model.Options, outputs, 0, model.Inputs[0].Length - 1, out var begIdx,
-            out var nbElement);
+        var returnCode = function.Run(inputs, model.Options, outputs, Range.EndAt(model.Inputs[0].Length - 1), out var outRange);
         returnCode.ShouldBe(Core.RetCode.Success, "Function should complete with success status code RetCode.Success(0)");
 
         for (var i = 0; i < model.Outputs.Length; i++)
@@ -288,8 +281,7 @@ public sealed class FunctionTests
             }
         }
 
-        begIdx.ShouldBe(model.Range.Start.Value);
-        nbElement.ShouldBe(model.Range.End.Value - model.Range.Start.Value);
+        outRange.ShouldBe(model.Range);
 
         if (model.Unstable.HasValue)
         {

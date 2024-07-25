@@ -25,15 +25,13 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Apo<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
         Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        ApoImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod, optInMAType);
+        ApoImpl(inReal, inRange, outReal, out outRange, optInFastPeriod, optInSlowPeriod, optInMAType);
 
     [PublicAPI]
     public static int ApoLookback(int optInFastPeriod = 12, int optInSlowPeriod = 26, Core.MAType optInMAType = Core.MAType.Sma) =>
@@ -45,30 +43,29 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Apo<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
         Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        ApoImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod, optInMAType);
+        ApoImpl<T>(inReal, inRange, outReal, out outRange, optInFastPeriod, optInSlowPeriod, optInMAType);
 
     private static Core.RetCode ApoImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod,
         int optInSlowPeriod,
         Core.MAType optInMAType) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -80,7 +77,7 @@ public static partial class Functions
 
         Span<T> tempBuffer = new T[endIdx - startIdx + 1];
 
-        return CalcPriceOscillator(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod, optInSlowPeriod,
-            optInMAType, tempBuffer, false);
+        return CalcPriceOscillator(
+            inReal, inRange, outReal, out outRange, optInFastPeriod, optInSlowPeriod, optInMAType, tempBuffer, false);
     }
 }

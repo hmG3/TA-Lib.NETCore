@@ -27,19 +27,17 @@ public static partial class Functions
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outSlowK,
         Span<T> outSlowD,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastKPeriod = 5,
         int optInSlowKPeriod = 3,
         Core.MAType optInSlowKMAType = Core.MAType.Sma,
         int optInSlowDPeriod = 3,
         Core.MAType optInSlowDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        StochImpl(inHigh, inLow, inClose, startIdx, endIdx, outSlowK, outSlowD, out outBegIdx, out outNbElement, optInFastKPeriod,
-            optInSlowKPeriod, optInSlowKMAType, optInSlowDPeriod, optInSlowDMAType);
+        StochImpl(inHigh, inLow, inClose, inRange, outSlowK, outSlowD, out outRange, optInFastKPeriod, optInSlowKPeriod, optInSlowKMAType,
+            optInSlowDPeriod, optInSlowDMAType);
 
     [PublicAPI]
     public static int StochLookback(
@@ -69,40 +67,38 @@ public static partial class Functions
         T[] inHigh,
         T[] inLow,
         T[] inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outSlowK,
         T[] outSlowD,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastKPeriod = 5,
         int optInSlowKPeriod = 3,
         Core.MAType optInSlowKMAType = Core.MAType.Sma,
         int optInSlowDPeriod = 3,
         Core.MAType optInSlowDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        StochImpl<T>(inHigh, inLow, inClose, startIdx, endIdx, outSlowK, outSlowD, out outBegIdx, out outNbElement, optInFastKPeriod,
-            optInSlowKPeriod, optInSlowKMAType, optInSlowDPeriod, optInSlowDMAType);
+        StochImpl<T>(inHigh, inLow, inClose, inRange, outSlowK, outSlowD, out outRange, optInFastKPeriod, optInSlowKPeriod,
+            optInSlowKMAType, optInSlowDPeriod, optInSlowDMAType);
 
     private static Core.RetCode StochImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outSlowK,
         Span<T> outSlowD,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastKPeriod,
         int optInSlowKPeriod,
         Core.MAType optInSlowKMAType,
         int optInSlowDPeriod,
         Core.MAType optInSlowDMAType) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
-            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -142,10 +138,7 @@ public static partial class Functions
         var lookbackK = optInFastKPeriod - 1;
         var lookbackDSlow = MaLookback(optInSlowDPeriod, optInSlowDMAType);
         var lookbackTotal = StochLookback(optInFastKPeriod, optInSlowKPeriod, optInSlowKMAType, optInSlowDPeriod, optInSlowDMAType);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -208,28 +201,30 @@ public static partial class Functions
          * It is always smoothed and then return.
          * Some documentation will refer to the smoothed version as being "K-Slow", but often this end up to be shortened to "K".
          */
-        var retCode = Ma(tempBuffer, 0, outIdx - 1, tempBuffer, out _, out outNbElement, optInSlowKPeriod, optInSlowKMAType);
-        if (retCode != Core.RetCode.Success || outNbElement == 0)
+        var retCode = MaImpl(tempBuffer, Range.EndAt(outIdx - 1), tempBuffer, out outRange, optInSlowKPeriod, optInSlowKMAType);
+        if (retCode != Core.RetCode.Success || outRange.End.Value == 0)
         {
             return retCode;
         }
 
+        var nbElement = outRange.End.Value - outRange.Start.Value;
         // Calculate the %D which is simply a moving average of the already smoothed %K.
-        retCode = Ma(tempBuffer, 0, outNbElement - 1, outSlowD, out _, out outNbElement, optInSlowDPeriod, optInSlowDMAType);
+        retCode = MaImpl(tempBuffer, Range.EndAt(nbElement - 1), outSlowD, out outRange, optInSlowDPeriod, optInSlowDMAType);
+        nbElement = outRange.End.Value - outRange.Start.Value;
 
         /* Copy tempBuffer into the caller buffer.
          * (Calculation could not be done directly in the caller buffer because
          * more input data than the requested range was needed for doing %D).
          */
-        tempBuffer.Slice(lookbackDSlow, outNbElement).CopyTo(outSlowK);
+        tempBuffer.Slice(lookbackDSlow, nbElement).CopyTo(outSlowK);
         if (retCode != Core.RetCode.Success)
         {
-            outNbElement = 0;
+            outRange = Range.EndAt(0);
 
             return retCode;
         }
 
-        outBegIdx = startIdx;
+        outRange = new Range(startIdx, startIdx + nbElement);
 
         return Core.RetCode.Success;
     }

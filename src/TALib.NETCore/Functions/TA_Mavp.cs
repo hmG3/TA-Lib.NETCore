@@ -26,16 +26,13 @@ public static partial class Functions
     public static Core.RetCode Mavp<T>(
         ReadOnlySpan<T> inReal,
         ReadOnlySpan<T> inPeriods,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInMinPeriod = 2,
         int optInMaxPeriod = 30,
         Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        MavpImpl(inReal, inPeriods, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInMinPeriod, optInMaxPeriod,
-            optInMAType);
+        MavpImpl(inReal, inPeriods, inRange, outReal, out outRange, optInMinPeriod, optInMaxPeriod, optInMAType);
 
     [PublicAPI]
     public static int MavpLookback(int optInMaxPeriod = 30, Core.MAType optInMAType = Core.MAType.Sma) =>
@@ -48,32 +45,30 @@ public static partial class Functions
     private static Core.RetCode Mavp<T>(
         T[] inReal,
         T[] inPeriods,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInMinPeriod = 2,
         int optInMaxPeriod = 30,
         Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        MavpImpl<T>(inReal, inPeriods, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInMinPeriod, optInMaxPeriod,
-            optInMAType);
+        MavpImpl<T>(inReal, inPeriods, inRange, outReal, out outRange, optInMinPeriod, optInMaxPeriod, optInMAType);
 
     private static Core.RetCode MavpImpl<T>(
         ReadOnlySpan<T> inReal,
         ReadOnlySpan<T> inPeriods,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInMinPeriod,
         int optInMaxPeriod,
         Core.MAType optInMAType) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -89,10 +84,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -134,7 +126,7 @@ public static partial class Functions
             }
 
             // Calculation of the MA required.
-            var retCode = Ma(inReal, startIdx, endIdx, localOutputArray, out _, out _, curPeriod, optInMAType);
+            var retCode = MaImpl(inReal, new Range(startIdx, endIdx), localOutputArray, out _, curPeriod, optInMAType);
             if (retCode != Core.RetCode.Success)
             {
                 return retCode;
@@ -157,8 +149,7 @@ public static partial class Functions
             intermediateOutput[..outputSize].CopyTo(outReal);
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outputSize;
+        outRange = new Range(startIdx, startIdx + outputSize);
 
         return Core.RetCode.Success;
     }

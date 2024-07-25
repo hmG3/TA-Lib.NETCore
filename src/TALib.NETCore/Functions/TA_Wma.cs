@@ -25,13 +25,11 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Wma<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        WmaImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        WmaImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int WmaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
@@ -42,26 +40,25 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Wma<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        WmaImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        WmaImpl<T>(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
     private static Core.RetCode WmaImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -92,10 +89,7 @@ public static partial class Functions
          */
 
         var lookbackTotal = WmaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -143,8 +137,7 @@ public static partial class Functions
             periodSum -= periodSub;
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

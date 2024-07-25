@@ -28,14 +28,11 @@ public static partial class Candles
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<int> outIntType,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
-        MorningDojiStarImpl(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement,
-            optInPenetration);
+        MorningDojiStarImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange, optInPenetration);
 
     [PublicAPI]
     public static int MorningDojiStarLookback() =>
@@ -53,29 +50,28 @@ public static partial class Candles
         T[] inHigh,
         T[] inLow,
         T[] inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         int[] outIntType,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
-        MorningDojiStarImpl<T>(inOpen, inHigh, inLow, inClose, startIdx, endIdx, outIntType, out outBegIdx, out outNbElement, optInPenetration);
+        MorningDojiStarImpl<T>(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange, optInPenetration);
 
     private static Core.RetCode MorningDojiStarImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<int> outIntType,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInPenetration) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -86,10 +82,7 @@ public static partial class Candles
         }
 
         var lookbackTotal = MorningDojiStarLookback();
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -169,8 +162,7 @@ public static partial class Candles
             bodyShortTrailingIdx++;
         } while (i <= endIdx);
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

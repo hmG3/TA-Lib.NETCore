@@ -25,13 +25,11 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode MinIndex<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<int> outInteger,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        MinIndexImpl(inReal, startIdx, endIdx, outInteger, out outBegIdx, out outNbElement, optInTimePeriod);
+        MinIndexImpl(inReal, inRange, outInteger, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int MinIndexLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
@@ -42,26 +40,25 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode MinIndex<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         int[] outInteger,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        MinIndexImpl<T>(inReal, startIdx, endIdx, outInteger, out outBegIdx, out outNbElement, optInTimePeriod);
+        MinIndexImpl<T>(inReal, inRange, outInteger, out outRange, optInTimePeriod);
 
     private static Core.RetCode MinIndexImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<int> outInteger,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -72,10 +69,7 @@ public static partial class Functions
         }
 
         var lookbackTotal = MinIndexLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -100,8 +94,7 @@ public static partial class Functions
         }
 
         // Keep the outBegIdx relative to the caller input before returning.
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

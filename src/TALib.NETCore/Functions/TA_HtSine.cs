@@ -25,13 +25,11 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode HtSine<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outSine,
         Span<T> outLeadSine,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        HtSineImpl(inReal, startIdx, endIdx, outSine, outLeadSine, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        HtSineImpl(inReal, inRange, outSine, outLeadSine, out outRange);
 
     [PublicAPI]
     public static int HtSineLookback()
@@ -52,35 +50,31 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode HtSine<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outSine,
         T[] outLeadSine,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        HtSineImpl<T>(inReal, startIdx, endIdx, outSine, outLeadSine, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        HtSineImpl<T>(inReal, inRange, outSine, outLeadSine, out outRange);
 
     private static Core.RetCode HtSineImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outSine,
         Span<T> outLeadSine,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T>
+        out Range outRange) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
         var lookbackTotal = HtSineLookback();
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -90,7 +84,7 @@ public static partial class Functions
         const int smoothPriceSize = 50;
         Span<T> smoothPrice = new T[smoothPriceSize];
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
 
         // Initialize the price smoother, which is simply a weighted moving average of the price.
         var trailingWMAIdx = startIdx - lookbackTotal;
@@ -231,7 +225,7 @@ public static partial class Functions
             today++;
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

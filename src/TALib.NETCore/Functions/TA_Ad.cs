@@ -28,12 +28,10 @@ public static partial class Functions
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
         ReadOnlySpan<T> inVolume,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        AdImpl(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        AdImpl(inHigh, inLow, inClose, inVolume, inRange, outReal, out outRange);
 
     [PublicAPI]
     public static int AdLookback() => 0;
@@ -47,28 +45,26 @@ public static partial class Functions
         T[] inLow,
         T[] inClose,
         T[] inVolume,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        AdImpl<T>(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        AdImpl<T>(inHigh, inLow, inClose, inVolume, inRange, outReal, out outRange);
 
     private static Core.RetCode AdImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
         ReadOnlySpan<T> inVolume,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T>
+        out Range outRange) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
-            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length || endIdx >= inVolume.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length || endIdx >= inVolume.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -81,8 +77,7 @@ public static partial class Functions
          */
 
         var nbBar = endIdx - startIdx + 1;
-        outBegIdx = startIdx;
-        outNbElement = nbBar;
+        outRange = new Range(startIdx, startIdx + nbBar);
         var currentBar = startIdx;
         int outIdx = default;
         var ad = T.Zero;

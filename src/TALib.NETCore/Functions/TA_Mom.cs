@@ -25,13 +25,11 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Mom<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 10) where T : IFloatingPointIeee754<T> =>
-        MomImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        MomImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int MomLookback(int optInTimePeriod = 10) => optInTimePeriod < 1 ? -1 : optInTimePeriod;
@@ -42,26 +40,25 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Mom<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 10) where T : IFloatingPointIeee754<T> =>
-        MomImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        MomImpl<T>(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
     private static Core.RetCode MomImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -75,10 +72,7 @@ public static partial class Functions
         // should be avoided for comparing different time series of prices.
 
         var lookbackTotal = MomLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -94,8 +88,7 @@ public static partial class Functions
             outReal[outIdx++] = inReal[inIdx++] - inReal[trailingIdx++];
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

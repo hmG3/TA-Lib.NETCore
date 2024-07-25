@@ -25,13 +25,11 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Dema<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        DemaImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        DemaImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int DemaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : EmaLookback(optInTimePeriod) * 2;
@@ -42,26 +40,25 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Dema<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        DemaImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        DemaImpl<T>(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
     private static Core.RetCode DemaImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -94,10 +91,7 @@ public static partial class Functions
 
         var lookbackEMA = EmaLookback(optInTimePeriod);
         var lookbackTotal = DemaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -119,8 +113,9 @@ public static partial class Functions
 
         // Calculate the first EMA
         var k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
-        var retCode = CalcExponentialMA(inReal, startIdx - lookbackEMA, endIdx, firstEMA, out var firstEMABegIdx,
-            out var firstEMANbElement, optInTimePeriod, k);
+        var retCode = CalcExponentialMA(
+            inReal, new Range(startIdx - lookbackEMA, endIdx), firstEMA, out var firstEMARange, optInTimePeriod, k);
+        var firstEMANbElement = firstEMARange.End.Value - firstEMARange.Start.Value;
         if (retCode != Core.RetCode.Success || firstEMANbElement == 0)
         {
             return retCode;
@@ -128,8 +123,9 @@ public static partial class Functions
 
         // Allocate a temporary buffer for storing the EMA of the EMA.
         Span<T> secondEMA = new T[firstEMANbElement];
-        retCode = CalcExponentialMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
-            optInTimePeriod, k);
+        retCode = CalcExponentialMA(firstEMA, Range.EndAt(firstEMANbElement - 1), secondEMA, out var secondEMARange, optInTimePeriod, k);
+        var secondEMABegIdx = secondEMARange.Start.Value;
+        var secondEMANbElement = secondEMARange.End.Value - secondEMABegIdx;
         if (retCode != Core.RetCode.Success || secondEMANbElement == 0)
         {
             return retCode;
@@ -144,8 +140,7 @@ public static partial class Functions
             outIdx++;
         }
 
-        outBegIdx = firstEMABegIdx + secondEMABegIdx;
-        outNbElement = outIdx;
+        outRange = new Range(firstEMARange.Start.Value + secondEMABegIdx, firstEMARange.Start.Value + secondEMABegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

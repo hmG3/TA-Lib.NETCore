@@ -25,18 +25,15 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Macd<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outMACD,
         Span<T> outMACDSignal,
         Span<T> outMACDHist,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
         int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
-        MacdImpl(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInFastPeriod,
-            optInSlowPeriod, optInSignalPeriod);
+        MacdImpl(inReal, inRange, outMACD, outMACDSignal, outMACDHist, out outRange, optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
 
     [PublicAPI]
     public static int MacdLookback(int optInFastPeriod = 12, int optInSlowPeriod = 26, int optInSignalPeriod = 9)
@@ -60,35 +57,34 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Macd<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outMACD,
         T[] outMACDSignal,
         T[] outMACDHist,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod = 12,
         int optInSlowPeriod = 26,
         int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
-        MacdImpl<T>(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInFastPeriod,
-            optInSlowPeriod, optInSignalPeriod);
+        MacdImpl<T>(inReal, inRange, outMACD, outMACDSignal, outMACDHist, out outRange, optInFastPeriod, optInSlowPeriod,
+            optInSignalPeriod);
 
     private static Core.RetCode MacdImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outMACD,
         Span<T> outMACDSignal,
         Span<T> outMACDHist,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod,
         int optInSlowPeriod,
         int optInSignalPeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -98,7 +94,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return CalcMACD(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInFastPeriod,
-            optInSlowPeriod, optInSignalPeriod);
+        return CalcMACD(inReal, inRange, outMACD, outMACDSignal, outMACDHist, out outRange, optInFastPeriod, optInSlowPeriod,
+            optInSignalPeriod);
     }
 }

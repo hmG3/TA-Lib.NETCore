@@ -27,16 +27,13 @@ public static partial class Functions
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outRealUpperBand,
         Span<T> outRealMiddleBand,
         Span<T> outRealLowerBand,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 20) where T : IFloatingPointIeee754<T> =>
-        AccbandsImpl(inHigh, inLow, inClose, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outBegIdx,
-            out outNbElement, optInTimePeriod);
+        AccbandsImpl(inHigh, inLow, inClose, inRange, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int AccbandsLookback(int optInTimePeriod = 20) => optInTimePeriod < 2 ? -1 : SmaLookback(optInTimePeriod);
@@ -49,34 +46,32 @@ public static partial class Functions
         T[] inHigh,
         T[] inLow,
         T[] inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outRealUpperBand,
         T[] outRealMiddleBand,
         T[] outRealLowerBand,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 20) where T : IFloatingPointIeee754<T> =>
-        AccbandsImpl<T>(inHigh, inLow, inClose, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outBegIdx,
-            out outNbElement, optInTimePeriod);
+        AccbandsImpl<T>(inHigh, inLow, inClose, inRange, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outRange,
+            optInTimePeriod);
 
     private static Core.RetCode AccbandsImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outRealUpperBand,
         Span<T> outRealMiddleBand,
         Span<T> outRealLowerBand,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
-            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -87,10 +82,7 @@ public static partial class Functions
         }
 
         var lookbackTotal = AccbandsLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -122,28 +114,27 @@ public static partial class Functions
         }
 
         // Calculate the middle band, which is a moving average of the close.
-        var retCode = Sma(inClose, startIdx, endIdx, outRealMiddleBand, out _, out var outNbElementDummy, optInTimePeriod);
-        if (retCode != Core.RetCode.Success || outNbElementDummy != outputSize)
+        var retCode = SmaImpl(inClose, new Range(startIdx, endIdx), outRealMiddleBand, out var dummyRange, optInTimePeriod);
+        if (retCode != Core.RetCode.Success || dummyRange.End.Value - dummyRange.Start.Value != outputSize)
         {
             return retCode;
         }
 
         // Take the SMA for the upper band.
-        retCode = Sma(tempBuffer1, 0, bufferSize - 1, outRealUpperBand, out _, out outNbElementDummy, optInTimePeriod);
-        if (retCode != Core.RetCode.Success || outNbElementDummy != outputSize)
+        retCode = SmaImpl(tempBuffer1, Range.EndAt(bufferSize - 1), outRealUpperBand, out dummyRange, optInTimePeriod);
+        if (retCode != Core.RetCode.Success || dummyRange.End.Value - dummyRange.Start.Value != outputSize)
         {
             return retCode;
         }
 
         // Take the SMA for the lower band.
-        retCode = Sma(tempBuffer2, 0, bufferSize - 1, outRealLowerBand, out _, out outNbElementDummy, optInTimePeriod);
-        if (retCode != Core.RetCode.Success || outNbElementDummy != outputSize)
+        retCode = SmaImpl(tempBuffer2, Range.EndAt(bufferSize - 1), outRealLowerBand, out dummyRange, optInTimePeriod);
+        if (retCode != Core.RetCode.Success || dummyRange.End.Value - dummyRange.Start.Value != outputSize)
         {
             return retCode;
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outputSize;
+        outRange = new Range(startIdx, startIdx + outputSize);
 
         return Core.RetCode.Success;
     }

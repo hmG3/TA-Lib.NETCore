@@ -26,13 +26,11 @@ public static partial class Functions
     public static Core.RetCode Correl<T>(
         ReadOnlySpan<T> inReal0,
         ReadOnlySpan<T> inReal1,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        CorrelImpl(inReal0, inReal1, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        CorrelImpl(inReal0, inReal1, inRange, outReal, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int CorrelLookback(int optInTimePeriod = 30) => optInTimePeriod < 1 ? -1 : optInTimePeriod - 1;
@@ -44,27 +42,26 @@ public static partial class Functions
     private static Core.RetCode Correl<T>(
         T[] inReal0,
         T[] inReal1,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        CorrelImpl<T>(inReal0, inReal1, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        CorrelImpl<T>(inReal0, inReal1, inRange, outReal, out outRange, optInTimePeriod);
 
     private static Core.RetCode CorrelImpl<T>(
         ReadOnlySpan<T> inReal0,
         ReadOnlySpan<T> inReal1,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal0.Length || endIdx >= inReal1.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal0.Length || endIdx >= inReal1.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -75,17 +72,14 @@ public static partial class Functions
         }
 
         var lookbackTotal = CorrelLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
             return Core.RetCode.Success;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
 
         // Calculate the initial values.
@@ -143,7 +137,7 @@ public static partial class Functions
             outReal[outIdx++] = tempReal > T.Zero ? (sumXY - sumX * sumY / timePeriod) / T.Sqrt(tempReal) : T.Zero;
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

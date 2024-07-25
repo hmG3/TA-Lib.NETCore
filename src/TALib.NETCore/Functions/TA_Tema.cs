@@ -25,13 +25,11 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Tema<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        TemaImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        TemaImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int TemaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : EmaLookback(optInTimePeriod) * 3;
@@ -42,26 +40,25 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Tema<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        TemaImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        TemaImpl<T>(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
     private static Core.RetCode TemaImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -94,10 +91,7 @@ public static partial class Functions
 
         var lookbackEMA = EmaLookback(optInTimePeriod);
         var lookbackTotal = TemaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -108,32 +102,32 @@ public static partial class Functions
         var k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
 
         Span<T> firstEMA = new T[tempInt];
-        var retCode = CalcExponentialMA(inReal, startIdx - lookbackEMA * 2, endIdx, firstEMA, out var firstEMABegIdx,
-            out var firstEMANbElement, optInTimePeriod, k);
-        if (retCode != Core.RetCode.Success || firstEMANbElement == 0)
+        var retCode = CalcExponentialMA(inReal, new Range(startIdx - lookbackEMA * 2, endIdx), firstEMA, out var firstEMARange, optInTimePeriod, k);
+        if (retCode != Core.RetCode.Success || firstEMARange.End.Value == 0)
         {
             return retCode;
         }
 
+        var firstEMANbElement = firstEMARange.End.Value - firstEMARange.Start.Value;
         Span<T> secondEMA = new T[firstEMANbElement];
-        retCode = CalcExponentialMA(firstEMA, 0, firstEMANbElement - 1, secondEMA, out var secondEMABegIdx, out var secondEMANbElement,
-            optInTimePeriod, k);
-        if (retCode != Core.RetCode.Success || secondEMANbElement == 0)
+        retCode = CalcExponentialMA(firstEMA, Range.EndAt(firstEMANbElement - 1), secondEMA, out var secondEMARange, optInTimePeriod, k);
+        if (retCode != Core.RetCode.Success || secondEMARange.End.Value == 0)
         {
             return retCode;
         }
 
-        retCode = CalcExponentialMA(secondEMA, 0, secondEMANbElement - 1, outReal, out var thirdEMABegIdx, out var thirdEMANbElement,
-            optInTimePeriod, k);
-        if (retCode != Core.RetCode.Success || thirdEMANbElement == 0)
+        var secondEMANbElement = secondEMARange.End.Value - secondEMARange.Start.Value;
+        retCode = CalcExponentialMA(secondEMA, Range.EndAt(secondEMANbElement - 1), outReal, out var thirdEMARange, optInTimePeriod, k);
+        if (retCode != Core.RetCode.Success || thirdEMARange.End.Value == 0)
         {
             return retCode;
         }
 
-        var firstEMAIdx = thirdEMABegIdx + secondEMABegIdx;
-        var secondEMAIdx = thirdEMABegIdx;
-        outBegIdx = firstEMAIdx + firstEMABegIdx;
+        var firstEMAIdx = thirdEMARange.Start.Value + secondEMARange.Start.Value;
+        var secondEMAIdx = thirdEMARange.Start.Value;
+        var outBegIdx = firstEMAIdx + firstEMARange.Start.Value;
 
+        var thirdEMANbElement = thirdEMARange.End.Value - thirdEMARange.Start.Value;
         // Iterate through the EMA3 (output buffer) and adjust the value by using the EMA2 and EMA1.
         int outIdx = default;
         while (outIdx < thirdEMANbElement)
@@ -141,7 +135,7 @@ public static partial class Functions
             outReal[outIdx++] += Three<T>() * firstEMA[firstEMAIdx++] - Three<T>() * secondEMA[secondEMAIdx++];
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

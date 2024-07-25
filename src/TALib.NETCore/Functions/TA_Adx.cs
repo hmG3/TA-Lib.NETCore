@@ -27,13 +27,11 @@ public static partial class Functions
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
-        AdxImpl(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        AdxImpl(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int AdxLookback(int optInTimePeriod = 14) =>
@@ -47,29 +45,27 @@ public static partial class Functions
         T[] inHigh,
         T[] inLow,
         T[] inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
-        AdxImpl<T>(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        AdxImpl<T>(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod);
 
     private static Core.RetCode AdxImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
-            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -174,10 +170,7 @@ public static partial class Functions
          */
 
         var lookbackTotal = AdxLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -188,7 +181,7 @@ public static partial class Functions
         T prevMinusDM, prevPlusDM;
         var prevTR = prevMinusDM = prevPlusDM = T.Zero;
         var today = startIdx;
-        outBegIdx = today;
+        var outBegIdx = today;
         today = startIdx - lookbackTotal;
 
         InitDMAndTR(inHigh, inLow, inClose, out var prevHigh, ref today, out var prevLow, out var prevClose, timePeriod, ref prevPlusDM,
@@ -210,7 +203,7 @@ public static partial class Functions
         CalcAndOutputSubsequentADX(inHigh, inLow, inClose, outReal, ref today, endIdx, ref prevHigh, ref prevLow, ref prevClose,
             ref prevPlusDM, ref prevMinusDM, ref prevTR, timePeriod, ref prevADX, ref outIdx);
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

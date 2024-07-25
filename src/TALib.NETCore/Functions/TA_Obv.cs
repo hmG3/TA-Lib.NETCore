@@ -26,12 +26,10 @@ public static partial class Functions
     public static Core.RetCode Obv<T>(
         ReadOnlySpan<T> inReal,
         ReadOnlySpan<T> inVolume,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        ObvImpl(inReal, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        ObvImpl(inReal, inVolume, inRange, outReal, out outRange);
 
     [PublicAPI]
     public static int ObvLookback() => 0;
@@ -43,25 +41,24 @@ public static partial class Functions
     private static Core.RetCode Obv<T>(
         T[] inReal,
         T[] inVolume,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        ObvImpl<T>(inReal, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        ObvImpl<T>(inReal, inVolume, inRange, outReal, out outRange);
 
     private static Core.RetCode ObvImpl<T>(
         ReadOnlySpan<T> inReal,
         ReadOnlySpan<T> inVolume,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T>
+        out Range outRange) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length || endIdx >= inVolume.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length || endIdx >= inVolume.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -86,8 +83,7 @@ public static partial class Functions
             prevReal = tempReal;
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

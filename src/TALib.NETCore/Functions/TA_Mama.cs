@@ -25,15 +25,13 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Mama<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outMAMA,
         Span<T> outFAMA,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInFastLimit = 0.5,
         double optInSlowLimit = 0.05) where T : IFloatingPointIeee754<T> =>
-        MamaImpl(inReal, startIdx, endIdx, outMAMA, outFAMA, out outBegIdx, out outNbElement, optInFastLimit, optInSlowLimit);
+        MamaImpl(inReal, inRange, outMAMA, outFAMA, out outRange, optInFastLimit, optInSlowLimit);
 
     [PublicAPI]
     public static int MamaLookback()
@@ -60,30 +58,29 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Mama<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outMAMA,
         T[] outFAMA,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInFastLimit = 0.5,
         double optInSlowLimit = 0.05) where T : IFloatingPointIeee754<T> =>
-        MamaImpl<T>(inReal, startIdx, endIdx, outMAMA, outFAMA, out outBegIdx, out outNbElement, optInFastLimit, optInSlowLimit);
+        MamaImpl<T>(inReal, inRange, outMAMA, outFAMA, out outRange, optInFastLimit, optInSlowLimit);
 
     private static Core.RetCode MamaImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outMAMA,
         Span<T> outFAMA,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInFastLimit,
         double optInSlowLimit) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -94,17 +91,14 @@ public static partial class Functions
         }
 
         var lookbackTotal = MamaLookback();
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
             return Core.RetCode.Success;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
 
         // Initialize the price smoother, which is simply a weighted moving average of the price.
         var trailingWMAIdx = startIdx - lookbackTotal;
@@ -219,7 +213,7 @@ public static partial class Functions
             today++;
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

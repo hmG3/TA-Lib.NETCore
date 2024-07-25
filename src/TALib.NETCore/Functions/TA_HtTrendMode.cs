@@ -25,12 +25,10 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode HtTrendMode<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<int> outInteger,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        HtTrendModeImpl(inReal, startIdx, endIdx, outInteger, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        HtTrendModeImpl(inReal, inRange, outInteger, out outRange);
 
     [PublicAPI]
     public static int HtTrendModeLookback()
@@ -51,24 +49,23 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode HtTrendMode<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         int[] outInteger,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        HtTrendModeImpl<T>(inReal, startIdx, endIdx, outInteger, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        HtTrendModeImpl<T>(inReal, inRange, outInteger, out outRange);
 
     private static Core.RetCode HtTrendModeImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<int> outInteger,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T>
+        out Range outRange) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -84,17 +81,14 @@ public static partial class Functions
         var leadSine = T.Zero;
 
         var lookbackTotal = HtTrendModeLookback();
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
             return Core.RetCode.Success;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
 
         // Initialize the price smoother, which is simply a weighted moving average of the price.
         var trailingWMAIdx = startIdx - lookbackTotal;
@@ -289,7 +283,7 @@ public static partial class Functions
             today++;
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

@@ -26,12 +26,10 @@ public static partial class Functions
     public static Core.RetCode MedPrice<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        MedPriceImpl(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        MedPriceImpl(inHigh, inLow, inRange, outReal, out outRange);
 
     [PublicAPI]
     public static int MedPriceLookback() => 0;
@@ -43,25 +41,24 @@ public static partial class Functions
     private static Core.RetCode MedPrice<T>(
         T[] inHigh,
         T[] inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        MedPriceImpl<T>(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        MedPriceImpl<T>(inHigh, inLow, inRange, outReal, out outRange);
 
     private static Core.RetCode MedPriceImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T>
+        out Range outRange) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -78,8 +75,7 @@ public static partial class Functions
             outReal[outIdx++] = (inHigh[i] + inLow[i]) / Two<T>();
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

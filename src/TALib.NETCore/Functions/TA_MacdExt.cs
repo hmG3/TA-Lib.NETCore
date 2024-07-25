@@ -25,21 +25,19 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode MacdExt<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outMACD,
         Span<T> outMACDSignal,
         Span<T> outMACDHist,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod = 12,
         Core.MAType optInFastMAType = Core.MAType.Sma,
         int optInSlowPeriod = 26,
         Core.MAType optInSlowMAType = Core.MAType.Sma,
         int optInSignalPeriod = 9,
         Core.MAType optInSignalMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        MacdExtImpl(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInFastPeriod,
-            optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType);
+        MacdExtImpl(inReal, inRange, outMACD, outMACDSignal, outMACDHist, out outRange, optInFastPeriod, optInFastMAType, optInSlowPeriod,
+            optInSlowMAType, optInSignalPeriod, optInSignalMAType);
 
     [PublicAPI]
     public static int MacdExtLookback(
@@ -71,31 +69,27 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode MacdExt<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outMACD,
         T[] outMACDSignal,
         T[] outMACDHist,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod = 12,
         Core.MAType optInFastMAType = Core.MAType.Sma,
         int optInSlowPeriod = 26,
         Core.MAType optInSlowMAType = Core.MAType.Sma,
         int optInSignalPeriod = 9,
         Core.MAType optInSignalMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        MacdExtImpl<T>(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInFastPeriod,
-            optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType);
+        MacdExtImpl<T>(inReal, inRange, outMACD, outMACDSignal, outMACDHist, out outRange, optInFastPeriod, optInFastMAType,
+            optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType);
 
     private static Core.RetCode MacdExtImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outMACD,
         Span<T> outMACDSignal,
         Span<T> outMACDHist,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod,
         Core.MAType optInFastMAType,
         int optInSlowPeriod,
@@ -103,9 +97,12 @@ public static partial class Functions
         int optInSignalPeriod,
         Core.MAType optInSignalMAType) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -127,10 +124,7 @@ public static partial class Functions
         var lookbackTotal = MacdExtLookback(optInFastPeriod, optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod,
             optInSignalMAType);
 
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -148,21 +142,22 @@ public static partial class Functions
          * That way, once the signal calculation is done, all the output will start at the requested 'startIdx'.
          */
         tempInteger = startIdx - lookbackSignal;
-        var retCode = Ma(inReal, tempInteger, endIdx, slowMABuffer, out _, out var outNbElement1, optInSlowPeriod, optInSlowMAType);
+        var retCode = MaImpl(inReal, new Range(tempInteger, endIdx), slowMABuffer, out var outRange1, optInSlowPeriod, optInSlowMAType);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
         // Calculate the fast MA.
-        retCode = Ma(inReal, tempInteger, endIdx, fastMABuffer, out _, out var outNbElement2, optInFastPeriod, optInFastMAType);
+        retCode = MaImpl(inReal, new Range(tempInteger, endIdx), fastMABuffer, out _, optInFastPeriod, optInFastMAType);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
+        var nbElement1 = outRange1.End.Value - outRange1.Start.Value;
         // Calculate (fast MA) - (slow MA).
-        for (var i = 0; i < outNbElement1; i++)
+        for (var i = 0; i < nbElement1; i++)
         {
             fastMABuffer[i] -= slowMABuffer[i];
         }
@@ -171,20 +166,20 @@ public static partial class Functions
         fastMABuffer.Slice(lookbackSignal, endIdx - startIdx + 1).CopyTo(outMACD);
 
         // Calculate the signal/trigger line.
-        retCode = Ma(fastMABuffer, 0, outNbElement1 - 1, outMACDSignal, out _, out outNbElement2, optInSignalPeriod, optInSignalMAType);
+        retCode = MaImpl(fastMABuffer, Range.EndAt(nbElement1 - 1), outMACDSignal, out var outRange2, optInSignalPeriod, optInSignalMAType);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
+        var nbElement2 = outRange2.End.Value - outRange2.Start.Value;
         // Calculate the histogram.
-        for (var i = 0; i < outNbElement2; i++)
+        for (var i = 0; i < nbElement2; i++)
         {
             outMACDHist[i] = outMACD[i] - outMACDSignal[i];
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outNbElement2;
+        outRange = new Range(startIdx, startIdx + nbElement2);
 
         return Core.RetCode.Success;
     }

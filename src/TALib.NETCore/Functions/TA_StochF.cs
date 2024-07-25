@@ -27,17 +27,14 @@ public static partial class Functions
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outFastK,
         Span<T> outFastD,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastKPeriod = 5,
         int optInFastDPeriod = 3,
         Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        StochFImpl(inHigh, inLow, inClose, startIdx, endIdx, outFastK, outFastD, out outBegIdx, out outNbElement, optInFastKPeriod,
-            optInFastDPeriod, optInFastDMAType);
+        StochFImpl(inHigh, inLow, inClose, inRange, outFastK, outFastD, out outRange, optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
 
     [PublicAPI]
     public static int StochFLookback(int optInFastKPeriod = 5, int optInFastDPeriod = 3, Core.MAType optInFastDMAType = Core.MAType.Sma) =>
@@ -51,36 +48,34 @@ public static partial class Functions
         T[] inHigh,
         T[] inLow,
         T[] inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outFastK,
         T[] outFastD,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastKPeriod = 5,
         int optInFastDPeriod = 3,
         Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        StochFImpl<T>(inHigh, inLow, inClose, startIdx, endIdx, outFastK, outFastD, out outBegIdx, out outNbElement, optInFastKPeriod,
-            optInFastDPeriod, optInFastDMAType);
+        StochFImpl<T>(inHigh, inLow, inClose, inRange, outFastK, outFastD, out outRange, optInFastKPeriod, optInFastDPeriod,
+            optInFastDMAType);
 
     private static Core.RetCode StochFImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outFastK,
         Span<T> outFastD,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastKPeriod,
         int optInFastDPeriod,
         Core.MAType optInFastDMAType) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
-            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -120,10 +115,7 @@ public static partial class Functions
         var lookbackK = optInFastKPeriod - 1;
         var lookbackFastD = MaLookback(optInFastDPeriod, optInFastDMAType);
         var lookbackTotal = StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -183,18 +175,20 @@ public static partial class Functions
         }
 
         // Fast-K calculation completed. This K calculation is returned to the caller. It is smoothed to become Fast-D.
-        var retCode = Ma(tempBuffer, 0, outIdx - 1, outFastD, out _, out outNbElement, optInFastDPeriod, optInFastDMAType);
-        if (retCode != Core.RetCode.Success || outNbElement == 0)
+        var retCode = MaImpl(tempBuffer, Range.EndAt(outIdx - 1), outFastD, out outRange, optInFastDPeriod, optInFastDMAType);
+        if (retCode != Core.RetCode.Success || outRange.End.Value == 0)
         {
             return retCode;
         }
+
+        var nbElement = outRange.End.Value - outRange.Start.Value;
 
         /* Copy tempBuffer into the caller buffer.
          * (Calculation could not be done directly in the caller buffer because
          * more input data than the requested range was needed for doing %D).
          */
-        tempBuffer.Slice(lookbackFastD, outNbElement).CopyTo(outFastK);
-        outBegIdx = startIdx;
+        tempBuffer.Slice(lookbackFastD, nbElement).CopyTo(outFastK);
+        outRange = new Range(startIdx, startIdx + nbElement);
 
         return Core.RetCode.Success;
     }

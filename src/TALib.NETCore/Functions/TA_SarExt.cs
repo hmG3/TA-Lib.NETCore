@@ -26,11 +26,9 @@ public static partial class Functions
     public static Core.RetCode SarExt<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInStartValue = 0.0,
         double optInOffsetOnReverse = 0.0,
         double optInAccelerationInitLong = 0.02,
@@ -39,9 +37,8 @@ public static partial class Functions
         double optInAccelerationInitShort = 0.02,
         double optInAccelerationShort = 0.02,
         double optInAccelerationMaxShort = 0.2) where T : IFloatingPointIeee754<T> =>
-        SarExtImpl(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInStartValue, optInOffsetOnReverse,
-            optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort,
-            optInAccelerationMaxShort);
+        SarExtImpl(inHigh, inLow, inRange, outReal, out outRange, optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong,
+            optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort);
 
     [PublicAPI]
     public static int SarExtLookback() => 1;
@@ -53,11 +50,9 @@ public static partial class Functions
     private static Core.RetCode SarExt<T>(
         T[] inHigh,
         T[] inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInStartValue = 0.0,
         double optInOffsetOnReverse = 0.0,
         double optInAccelerationInitLong = 0.02,
@@ -66,18 +61,15 @@ public static partial class Functions
         double optInAccelerationInitShort = 0.02,
         double optInAccelerationShort = 0.02,
         double optInAccelerationMaxShort = 0.2) where T : IFloatingPointIeee754<T> =>
-        SarExtImpl<T>(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInStartValue, optInOffsetOnReverse,
-            optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort,
-            optInAccelerationMaxShort);
+        SarExtImpl<T>(inHigh, inLow, inRange, outReal, out outRange, optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong,
+            optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort);
 
     private static Core.RetCode SarExtImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         double optInStartValue,
         double optInOffsetOnReverse,
         double optInAccelerationInitLong,
@@ -87,9 +79,12 @@ public static partial class Functions
         double optInAccelerationShort,
         double optInAccelerationMaxShort) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -102,10 +97,7 @@ public static partial class Functions
         }
 
         var lookbackTotal = SarExtLookback();
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -123,7 +115,7 @@ public static partial class Functions
             return retCode;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
         int outIdx = default;
 
         var todayIdx = startIdx;
@@ -172,7 +164,7 @@ public static partial class Functions
             }
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }
@@ -203,7 +195,7 @@ public static partial class Functions
         }
 
         Span<T> epTemp = new T[1];
-        var retCode = MinusDM(inHigh, inLow, startIdx, startIdx, epTemp, out _, out _, 1);
+        var retCode = MinusDMImpl(inHigh, inLow, new Range(startIdx, startIdx), epTemp, out _, 1);
 
         return retCode == Core.RetCode.Success ? (epTemp[0] <= T.Zero, Core.RetCode.Success) : (default, retCode);
     }

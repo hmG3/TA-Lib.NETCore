@@ -28,15 +28,12 @@ public static partial class Functions
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
         ReadOnlySpan<T> inVolume,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod = 3,
         int optInSlowPeriod = 10) where T : IFloatingPointIeee754<T> =>
-        AdOscImpl(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod,
-            optInSlowPeriod);
+        AdOscImpl(inHigh, inLow, inClose, inVolume, inRange, outReal, out outRange, optInFastPeriod, optInSlowPeriod);
 
     [PublicAPI]
     public static int AdOscLookback(int optInFastPeriod = 3, int optInSlowPeriod = 10)
@@ -55,33 +52,30 @@ public static partial class Functions
         T[] inLow,
         T[] inClose,
         T[] inVolume,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod = 3,
         int optInSlowPeriod = 10) where T : IFloatingPointIeee754<T> =>
-        AdOscImpl<T>(inHigh, inLow, inClose, inVolume, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInFastPeriod,
-            optInSlowPeriod);
+        AdOscImpl<T>(inHigh, inLow, inClose, inVolume, inRange, outReal, out outRange, optInFastPeriod, optInSlowPeriod);
 
     private static Core.RetCode AdOscImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         ReadOnlySpan<T> inClose,
         ReadOnlySpan<T> inVolume,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod,
         int optInSlowPeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx ||
-            endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length || endIdx >= inVolume.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length || endIdx >= inClose.Length || endIdx >= inVolume.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -106,17 +100,14 @@ public static partial class Functions
          */
 
         var lookbackTotal = AdOscLookback(optInFastPeriod, optInSlowPeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
             return Core.RetCode.Success;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
         var today = startIdx - lookbackTotal;
 
         var fastK = Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
@@ -151,7 +142,7 @@ public static partial class Functions
             outReal[outIdx++] = fastEMA - slowEMA;
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

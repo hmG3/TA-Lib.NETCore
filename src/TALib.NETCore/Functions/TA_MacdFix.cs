@@ -25,15 +25,13 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode MacdFix<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outMACD,
         Span<T> outMACDSignal,
         Span<T> outMACDHist,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
-        MacdFixImpl(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInSignalPeriod);
+        MacdFixImpl(inReal, inRange, outMACD, outMACDSignal, outMACDHist, out outRange, optInSignalPeriod);
 
     [PublicAPI]
     public static int MacdFixLookback(int optInSignalPeriod = 9) => EmaLookback(26) + EmaLookback(optInSignalPeriod);
@@ -44,30 +42,29 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode MacdFix<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outMACD,
         T[] outMACDSignal,
         T[] outMACDHist,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInSignalPeriod = 9) where T : IFloatingPointIeee754<T> =>
-        MacdFixImpl<T>(inReal, startIdx, endIdx, outMACD, outMACDSignal, outMACDHist, out outBegIdx, out outNbElement, optInSignalPeriod);
+        MacdFixImpl<T>(inReal, inRange, outMACD, outMACDSignal, outMACDHist, out outRange, optInSignalPeriod);
 
     private static Core.RetCode MacdFixImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outMACD,
         Span<T> outMACDSignal,
         Span<T> outMACDHist,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInSignalPeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -79,13 +76,11 @@ public static partial class Functions
 
         return CalcMACD(
             inReal,
-            startIdx,
-            endIdx,
+            inRange,
             outMACD,
             outMACDSignal,
             outMACDHist,
-            out outBegIdx,
-            out outNbElement,
+            out outRange,
             0, /* 0 indicate fix 12 == 0.15  for optInFastPeriod */
             0, /* 0 indicate fix 26 == 0.075 for optInSlowPeriod */
             optInSignalPeriod);

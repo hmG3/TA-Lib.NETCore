@@ -25,12 +25,10 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode HtDcPeriod<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        HtDcPeriodImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        HtDcPeriodImpl(inReal, inRange, outReal, out outRange);
 
     [PublicAPI]
     public static int HtDcPeriodLookback()
@@ -45,40 +43,36 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode HtDcPeriod<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T> =>
-        HtDcPeriodImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement);
+        out Range outRange) where T : IFloatingPointIeee754<T> =>
+        HtDcPeriodImpl<T>(inReal, inRange, outReal, out outRange);
 
     private static Core.RetCode HtDcPeriodImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement) where T : IFloatingPointIeee754<T>
+        out Range outRange) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
 
         var lookbackTotal = HtDcPeriodLookback();
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
             return Core.RetCode.Success;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
 
         // Initialize the price smoother, which is simply a weighted moving average of the price.
         var trailingWMAIdx = startIdx - lookbackTotal;
@@ -155,7 +149,7 @@ public static partial class Functions
             today++;
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

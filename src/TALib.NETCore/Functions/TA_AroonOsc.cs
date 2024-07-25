@@ -26,13 +26,11 @@ public static partial class Functions
     public static Core.RetCode AroonOsc<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
-        AroonOscImpl(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        AroonOscImpl(inHigh, inLow, inRange, outReal, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int AroonOscLookback(int optInTimePeriod = 14) => optInTimePeriod < 2 ? -1 : optInTimePeriod;
@@ -44,27 +42,26 @@ public static partial class Functions
     private static Core.RetCode AroonOsc<T>(
         T[] inHigh,
         T[] inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
-        AroonOscImpl<T>(inHigh, inLow, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        AroonOscImpl<T>(inHigh, inLow, inRange, outReal, out outRange, optInTimePeriod);
 
     private static Core.RetCode AroonOscImpl<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inHigh.Length || endIdx >= inLow.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -85,10 +82,7 @@ public static partial class Functions
         //It might be needed to first look at how Min/Max works and this function will become easier to understand.
 
         var lookbackTotal = AroonOscLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -126,8 +120,7 @@ public static partial class Functions
             today++;
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

@@ -26,13 +26,11 @@ public static partial class Functions
     public static Core.RetCode Beta<T>(
         ReadOnlySpan<T> inReal0,
         ReadOnlySpan<T> inReal1,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 5) where T : IFloatingPointIeee754<T> =>
-        BetaImpl(inReal0, inReal1, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        BetaImpl(inReal0, inReal1, inRange, outReal, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int BetaLookback(int optInTimePeriod = 5) => optInTimePeriod < 1 ? -1 : optInTimePeriod;
@@ -44,27 +42,26 @@ public static partial class Functions
     private static Core.RetCode Beta<T>(
         T[] inReal0,
         T[] inReal1,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 5) where T : IFloatingPointIeee754<T> =>
-        BetaImpl<T>(inReal0, inReal1, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        BetaImpl<T>(inReal0, inReal1, inRange, outReal, out outRange, optInTimePeriod);
 
     private static Core.RetCode BetaImpl<T>(
         ReadOnlySpan<T> inReal0,
         ReadOnlySpan<T> inReal1,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal0.Length || endIdx >= inReal1.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal0.Length || endIdx >= inReal1.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -84,10 +81,7 @@ public static partial class Functions
          */
 
         var lookbackTotal = BetaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -156,8 +150,7 @@ public static partial class Functions
             sy -= y;
         } while (i <= endIdx);
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

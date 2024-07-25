@@ -25,19 +25,17 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Bbands<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outRealUpperBand,
         Span<T> outRealMiddleBand,
         Span<T> outRealLowerBand,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 5,
         double optInNbDevUp = 2.0,
         double optInNbDevDn = 2.0,
         Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        BbandsImpl(inReal, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outBegIdx, out outNbElement,
-            optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
+        BbandsImpl(inReal, inRange, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outRange, optInTimePeriod, optInNbDevUp,
+            optInNbDevDn, optInMAType);
 
     [PublicAPI]
     public static int BbandsLookback(int optInTimePeriod = 5, Core.MAType optInMAType = Core.MAType.Sma) =>
@@ -49,37 +47,36 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Bbands<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outRealUpperBand,
         T[] outRealMiddleBand,
         T[] outRealLowerBand,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 5,
         double optInNbDevUp = 2.0,
         double optInNbDevDn = 2.0,
         Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        BbandsImpl<T>(inReal, startIdx, endIdx, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outBegIdx, out outNbElement,
-            optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
+        BbandsImpl<T>(inReal, inRange, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outRange, optInTimePeriod, optInNbDevUp,
+            optInNbDevDn, optInMAType);
 
     private static Core.RetCode BbandsImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outRealUpperBand,
         Span<T> outRealMiddleBand,
         Span<T> outRealLowerBand,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod,
         double optInNbDevUp,
         double optInNbDevDn,
         Core.MAType optInMAType) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -119,24 +116,25 @@ public static partial class Functions
 
         // Calculate the middle band, which is a moving average.
         // The other two bands will simply add/subtract the standard deviation from this middle band.
-        var retCode = Ma(inReal, startIdx, endIdx, tempBuffer1, out outBegIdx, out outNbElement, optInTimePeriod, optInMAType);
-        if (retCode != Core.RetCode.Success || outNbElement == 0)
+        var retCode = MaImpl(inReal, inRange, tempBuffer1, out outRange, optInTimePeriod, optInMAType);
+        if (retCode != Core.RetCode.Success || outRange.End.Value == 0)
         {
             return retCode;
         }
 
+        var nbElement = outRange.End.Value - outRange.Start.Value;
         if (optInMAType == Core.MAType.Sma)
         {
             // A small speed optimization by re-using the already calculated SMA.
-            CalcStandardDeviation(inReal, tempBuffer1, outBegIdx, outNbElement, tempBuffer2, optInTimePeriod);
+            CalcStandardDeviation(inReal, tempBuffer1, outRange, tempBuffer2, optInTimePeriod);
         }
         else
         {
             // Calculate the Standard Deviation
-            retCode = StdDev(inReal, outBegIdx, endIdx, tempBuffer2, out outBegIdx, out outNbElement, optInTimePeriod);
+            retCode = StdDevImpl(inReal, new Range(outRange.Start.Value, endIdx), tempBuffer2, out outRange, optInTimePeriod, 1.0);
             if (retCode != Core.RetCode.Success)
             {
-                outNbElement = 0;
+                outRange = Range.EndAt(0);
 
                 return retCode;
             }
@@ -145,7 +143,7 @@ public static partial class Functions
         // Copy the MA calculation into the middle band output, unless the calculation was done into it already
         if (tempBuffer1 != outRealMiddleBand)
         {
-            tempBuffer1[..outNbElement].CopyTo(outRealMiddleBand);
+            tempBuffer1[..nbElement].CopyTo(outRealMiddleBand);
         }
 
         var nbDevUp = T.CreateChecked(optInNbDevUp);
@@ -164,7 +162,7 @@ public static partial class Functions
             if (nbDevUp.Equals(T.One))
             {
                 // No standard deviation multiplier needed.
-                for (var i = 0; i < outNbElement; i++)
+                for (var i = 0; i < nbElement; i++)
                 {
                     tempReal = tempBuffer2[i];
                     tempReal2 = outRealMiddleBand[i];
@@ -175,7 +173,7 @@ public static partial class Functions
             else
             {
                 // Upper/lower band use the same standard deviation multiplier.
-                for (var i = 0; i < outNbElement; i++)
+                for (var i = 0; i < nbElement; i++)
                 {
                     tempReal = tempBuffer2[i] * nbDevUp;
                     tempReal2 = outRealMiddleBand[i];
@@ -187,7 +185,7 @@ public static partial class Functions
         else if (nbDevUp.Equals(T.One))
         {
             // Only lower band has a standard deviation multiplier.
-            for (var i = 0; i < outNbElement; i++)
+            for (var i = 0; i < nbElement; i++)
             {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
@@ -198,7 +196,7 @@ public static partial class Functions
         else if (nbDevDn.Equals(T.One))
         {
             // Only upper band has a standard deviation multiplier.
-            for (var i = 0; i < outNbElement; i++)
+            for (var i = 0; i < nbElement; i++)
             {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
@@ -209,7 +207,7 @@ public static partial class Functions
         else
         {
             // Upper/lower band have distinctive standard deviation multiplier.
-            for (var i = 0; i < outNbElement; i++)
+            for (var i = 0; i < nbElement; i++)
             {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
@@ -224,13 +222,12 @@ public static partial class Functions
     private static void CalcStandardDeviation<T>(
         ReadOnlySpan<T> inReal,
         ReadOnlySpan<T> inMovAvg,
-        int inMovAvgBegIdx,
-        int inMovAvgNbElement,
+        Range inMovAvgRange,
         Span<T> outReal,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        var startSum = inMovAvgBegIdx + 1 - optInTimePeriod;
-        var endSum = inMovAvgBegIdx;
+        var startSum = inMovAvgRange.Start.Value + 1 - optInTimePeriod;
+        var endSum = inMovAvgRange.Start.Value;
         var periodTotal2 = T.Zero;
         for (var outIdx = startSum; outIdx < endSum; outIdx++)
         {
@@ -240,7 +237,7 @@ public static partial class Functions
         }
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
-        for (var outIdx = 0; outIdx < inMovAvgNbElement; outIdx++, startSum++, endSum++)
+        for (var outIdx = 0; outIdx < inMovAvgRange.End.Value - inMovAvgRange.Start.Value; outIdx++, startSum++, endSum++)
         {
             var tempReal = inReal[endSum];
             tempReal *= tempReal;

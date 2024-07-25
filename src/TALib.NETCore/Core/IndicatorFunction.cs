@@ -31,9 +31,8 @@ public partial class Abstract
         private const string InPrefix = "in";
         private const string OutPrefix = "out";
         private const string OptInPrefix = "optIn";
-        private const string GeneralRealParam = "Real";
-        private const string BegIdxParam = "BegIdx";
-        private const string NbElementParam = "NbElement";
+        private const string RealParam = "Real";
+        private const string RangeParam = "Range";
 
         internal IndicatorFunction(
             string name,
@@ -60,22 +59,18 @@ public partial class Abstract
             T[][] inputs,
             T[] options,
             T[][] outputs,
-            int startIdx,
-            int endIdx,
-            out int outBegIdx,
-            out int outNbElement) where T : IFloatingPointIeee754<T>
+            Range inRange,
+            out Range outRange) where T : IFloatingPointIeee754<T>
         {
             var functionMethod = ReflectMethods(publicOnly: false)
                                      .FirstOrDefault(mi => !mi.Name.EndsWith(LookbackSuffix) && FunctionMethodSelector(mi)) ??
                                  throw new MissingMethodException(null, $"{Name}<{typeof(T).Name}>");
 
-            var paramsArray =
-                PrepareFunctionMethodParams(inputs, options, outputs, startIdx, endIdx, functionMethod, out var isIntegerOutput);
+            var paramsArray = PrepareFunctionMethodParams(inputs, options, outputs, inRange, functionMethod, out var isIntegerOutput);
 
             var retCode = (Core.RetCode) functionMethod.MakeGenericMethod(typeof(T)).Invoke(null, paramsArray)!;
 
-            outBegIdx = (int) paramsArray[Inputs.Length + 2 + Outputs.Length];
-            outNbElement = (int) paramsArray[Inputs.Length + 2 + Outputs.Length + 1];
+            outRange = (Range) paramsArray[Inputs.Length + 1 + Outputs.Length];
 
             if (retCode != Core.RetCode.Success || !isIntegerOutput)
             {
@@ -84,7 +79,7 @@ public partial class Abstract
 
             for (var i = 0; i < Outputs.Length; i++)
             {
-                var outputArray = paramsArray[inputs.Length + 2 + i];
+                var outputArray = paramsArray[inputs.Length + 1 + i];
                 for (var j = 0; j < outputs[i].Length; j++)
                 {
                     outputs[i][j] = (T) Convert.ChangeType(((int[]) outputArray)[j], typeof(T));
@@ -149,29 +144,27 @@ public partial class Abstract
             T[][] inputs,
             T[] options,
             T[][] outputs,
-            int startIdx,
-            int endIdx,
+            Range inRange,
             MethodInfo method,
             out bool isIntegerOutput) where T : IFloatingPointIeee754<T>
         {
             var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
 
-            var paramsArray = new object[Inputs.Length + 2 + Outputs.Length + 2 + Options.Length];
+            var paramsArray = new object[Inputs.Length + 1 + Outputs.Length + 1 + Options.Length];
             for (var i = 0; i < Inputs.Length; i++)
             {
                 paramsArray[i] = inputs[i];
             }
 
-            paramsArray[Inputs.Length] = startIdx;
-            paramsArray[Inputs.Length + 1] = endIdx;
+            paramsArray[Inputs.Length] = inRange;
 
             isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
             for (var i = 0; i < Outputs.Length; i++)
             {
-                paramsArray[Inputs.Length + 2 + i] = isIntegerOutput ? new int[outputs[i].Length] : outputs[i];
+                paramsArray[Inputs.Length + 1 + i] = isIntegerOutput ? new int[outputs[i].Length] : outputs[i];
             }
 
-            Array.Fill(paramsArray, Type.Missing, Inputs.Length + 2 + Outputs.Length + 2, Options.Length);
+            Array.Fill(paramsArray, Type.Missing, Inputs.Length + 1 + Outputs.Length + 1, Options.Length);
 
             var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
             for (var i = 0; i < defOptInParameters.Count; i++)
@@ -182,7 +175,7 @@ public partial class Abstract
                     continue;
                 }
 
-                var paramsArrayIndex = Inputs.Length + 2 + Outputs.Length + i + 2;
+                var paramsArrayIndex = Inputs.Length + 1 + Outputs.Length + i + 1;
                 if (optInParameter.ParameterType == typeof(int) || optInParameter.ParameterType.IsEnum)
                 {
                     var intOption = Convert.ToInt32(options[i]);
@@ -215,7 +208,7 @@ public partial class Abstract
         private bool FunctionMethodSelector(MethodBase methodInfo)
         {
             var parameters = methodInfo.GetParameters()
-                .Where(pi => pi.Name != OutPrefix + BegIdxParam && pi.Name != OutPrefix + NbElementParam)
+                .Where(pi => pi.Name != InPrefix + RangeParam && pi.Name != OutPrefix + RangeParam)
                 .ToList();
 
             var inParameters = parameters.Where(pi => pi.Name!.StartsWith(InPrefix)).Select(pi => pi.Name);
@@ -224,7 +217,7 @@ public partial class Abstract
 
             var optInParameters = parameters.Where(pi => pi.Name!.StartsWith(OptInPrefix)).Select(pi => pi.Name);
 
-            var defInParameters = Inputs.Length > 1 && Array.TrueForAll(Inputs, p => p == GeneralRealParam)
+            var defInParameters = Inputs.Length > 1 && Array.TrueForAll(Inputs, p => p == RealParam)
                 ? Inputs.Select((p, i) => InPrefix + p + i)
                 : Inputs.Select(p => InPrefix + p);
 

@@ -25,18 +25,16 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode StochRsi<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outFastK,
         Span<T> outFastD,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 14,
         int optInFastKPeriod = 5,
         int optInFastDPeriod = 3,
         Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        StochRsiImpl(inReal, startIdx, endIdx, outFastK, outFastD, out outBegIdx, out outNbElement, optInTimePeriod, optInFastKPeriod,
-            optInFastDPeriod, optInFastDMAType);
+        StochRsiImpl(inReal, inRange, outFastK, outFastD, out outRange, optInTimePeriod, optInFastKPeriod, optInFastDPeriod,
+            optInFastDMAType);
 
     [PublicAPI]
     public static int StochRsiLookback(
@@ -54,35 +52,34 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode StochRsi<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outFastK,
         T[] outFastD,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 14,
         int optInFastKPeriod = 5,
         int optInFastDPeriod = 3,
         Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
-        StochRsiImpl<T>(inReal, startIdx, endIdx, outFastK, outFastD, out outBegIdx, out outNbElement, optInTimePeriod, optInFastKPeriod,
-            optInFastDPeriod, optInFastDMAType);
+        StochRsiImpl<T>(inReal, inRange, outFastK, outFastD, out outRange, optInTimePeriod, optInFastKPeriod, optInFastDPeriod,
+            optInFastDMAType);
 
     private static Core.RetCode StochRsiImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outFastK,
         Span<T> outFastD,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod,
         int optInFastKPeriod,
         int optInFastDPeriod,
         Core.MAType optInFastDMAType) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -114,31 +111,30 @@ public static partial class Functions
 
         var lookbackStochF = StochFLookback(optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
         var lookbackTotal = StochRsiLookback(optInTimePeriod, optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
             return Core.RetCode.Success;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
         var tempArraySize = endIdx - startIdx + 1 + lookbackStochF;
         Span<T> tempRsiBuffer = new T[tempArraySize];
-        var retCode = Rsi(inReal, startIdx - lookbackStochF, endIdx, tempRsiBuffer, out _, out var outNbElement1, optInTimePeriod);
-        if (retCode != Core.RetCode.Success || outNbElement1 == 0)
+        var retCode = RsiImpl(inReal, new Range(startIdx - lookbackStochF, endIdx), tempRsiBuffer, out var outRange1, optInTimePeriod);
+        if (retCode != Core.RetCode.Success || outRange1.End.Value == 0)
         {
             return retCode;
         }
 
-        retCode = StochF(tempRsiBuffer, tempRsiBuffer, tempRsiBuffer, 0, tempArraySize - 1, outFastK, outFastD, out _, out outNbElement,
+        retCode = StochFImpl(tempRsiBuffer, tempRsiBuffer, tempRsiBuffer, Range.EndAt(tempArraySize - 1), outFastK, outFastD, out outRange,
             optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
-        if (retCode != Core.RetCode.Success || outNbElement == 0)
+        if (retCode != Core.RetCode.Success || outRange.End.Value == 0)
         {
             return retCode;
         }
+
+        outRange = new Range(outBegIdx, outBegIdx + outRange.End.Value - outRange.Start.Value);
 
         return Core.RetCode.Success;
     }

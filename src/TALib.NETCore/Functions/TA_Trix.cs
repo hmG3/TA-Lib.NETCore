@@ -25,13 +25,11 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode Trix<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        TrixImpl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        TrixImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
     [PublicAPI]
     public static int TrixLookback(int optInTimePeriod = 30) =>
@@ -43,26 +41,25 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode Trix<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
-        TrixImpl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod);
+        TrixImpl<T>(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
     private static Core.RetCode TrixImpl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -74,24 +71,20 @@ public static partial class Functions
 
         var emaLookback = EmaLookback(optInTimePeriod);
         var lookbackTotal = TrixLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
             return Core.RetCode.Success;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
         var nbElementToOutput = endIdx - startIdx + 1 + lookbackTotal;
         Span<T> tempBuffer = new T[nbElementToOutput];
 
         var k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
-        var retCode =
-            CalcExponentialMA(inReal, startIdx - lookbackTotal, endIdx, tempBuffer, out _, out var nbElement, optInTimePeriod, k);
-        if (retCode != Core.RetCode.Success || nbElement == 0)
+        var retCode = CalcExponentialMA(inReal, new Range(startIdx - lookbackTotal, endIdx), tempBuffer, out var range, optInTimePeriod, k);
+        if (retCode != Core.RetCode.Success || range.End.Value == 0)
         {
             return retCode;
         }
@@ -99,26 +92,28 @@ public static partial class Functions
         nbElementToOutput--;
 
         nbElementToOutput -= emaLookback;
-        retCode = CalcExponentialMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
-        if (retCode != Core.RetCode.Success || nbElement == 0)
+        retCode = CalcExponentialMA(tempBuffer, Range.EndAt(nbElementToOutput), tempBuffer, out range, optInTimePeriod, k);
+        if (retCode != Core.RetCode.Success || range.End.Value == 0)
         {
             return retCode;
         }
 
         nbElementToOutput -= emaLookback;
-        retCode = CalcExponentialMA(tempBuffer, 0, nbElementToOutput, tempBuffer, out _, out nbElement, optInTimePeriod, k);
-        if (retCode != Core.RetCode.Success || nbElement == 0)
+        retCode = CalcExponentialMA(tempBuffer, Range.EndAt(nbElementToOutput), tempBuffer, out range, optInTimePeriod, k);
+        if (retCode != Core.RetCode.Success || range.End.Value == 0)
         {
             return retCode;
         }
 
         // Calculate the 1-day Rate-Of-Change
         nbElementToOutput -= emaLookback;
-        retCode = Roc(tempBuffer, 0, nbElementToOutput, outReal, out _, out outNbElement, 1);
-        if (retCode != Core.RetCode.Success || outNbElement == 0)
+        retCode = RocImpl(tempBuffer, Range.EndAt(nbElementToOutput), outReal, out range, 1);
+        if (retCode != Core.RetCode.Success || range.End.Value == 0)
         {
             return retCode;
         }
+
+        outRange = new Range(outBegIdx, outBegIdx + range.End.Value - range.Start.Value);
 
         return Core.RetCode.Success;
     }

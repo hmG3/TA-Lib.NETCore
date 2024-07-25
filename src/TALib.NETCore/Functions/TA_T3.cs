@@ -25,14 +25,12 @@ public static partial class Functions
     [PublicAPI]
     public static Core.RetCode T3<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 5,
         double optInVFactor = 0.7) where T : IFloatingPointIeee754<T> =>
-        T3Impl(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod, optInVFactor);
+        T3Impl(inReal, inRange, outReal, out outRange, optInTimePeriod, optInVFactor);
 
     [PublicAPI]
     public static int T3Lookback(int optInTimePeriod = 5) =>
@@ -44,28 +42,27 @@ public static partial class Functions
     [UsedImplicitly]
     private static Core.RetCode T3<T>(
         T[] inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         T[] outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod = 5,
         double optInVFactor = 0.7) where T : IFloatingPointIeee754<T> =>
-        T3Impl<T>(inReal, startIdx, endIdx, outReal, out outBegIdx, out outNbElement, optInTimePeriod, optInVFactor);
+        T3Impl<T>(inReal, inRange, outReal, out outRange, optInTimePeriod, optInVFactor);
 
     private static Core.RetCode T3Impl<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod,
         double optInVFactor) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
-        if (startIdx < 0 || endIdx < 0 || endIdx < startIdx || endIdx >= inReal.Length)
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
+
+        if (endIdx < startIdx || endIdx >= inReal.Length)
         {
             return Core.RetCode.OutOfRangeStartIndex;
         }
@@ -100,7 +97,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
         var today = startIdx - lookbackTotal;
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
@@ -206,7 +203,7 @@ public static partial class Functions
             outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }

@@ -24,28 +24,26 @@ public static partial class Functions
 {
     private static Core.RetCode CalcExponentialMA<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod,
         T optInK1) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
+
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
 
         var lookbackTotal = EmaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
             return Core.RetCode.Success;
         }
 
-        outBegIdx = startIdx;
+        var outBegIdx = startIdx;
 
         /* Do the EMA calculation using tight loops.
 
@@ -101,25 +99,26 @@ public static partial class Functions
             outReal[outIdx++] = prevMA;
         }
 
-        outNbElement = outIdx;
+        outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
     }
 
     private static Core.RetCode CalcMACD<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outMacd,
         Span<T> outMacdSignal,
         Span<T> outMacdHist,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod,
         int optInSlowPeriod,
         int optInSignalPeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
+
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
 
         // Make sure slow is really slower than the fast period. if not, swap.
         if (optInSlowPeriod < optInFastPeriod)
@@ -152,10 +151,7 @@ public static partial class Functions
 
         var lookbackSignal = EmaLookback(optInSignalPeriod);
         var lookbackTotal = MacdLookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -173,23 +169,22 @@ public static partial class Functions
          * That way, once the signal calculation is done, all the output will start at the requested 'startIdx'.
          */
         tempInteger = startIdx - lookbackSignal;
-        var retCode = CalcExponentialMA(inReal, tempInteger, endIdx, slowEMABuffer, out var outBegIdx1, out var outNbElement1,
-            optInSlowPeriod, k1);
+        var retCode = CalcExponentialMA(inReal, new Range(tempInteger, endIdx), slowEMABuffer, out var outRange1, optInSlowPeriod, k1);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
         // Calculate the fast EMA.
-        retCode = CalcExponentialMA(inReal, tempInteger, endIdx, fastEMABuffer, out var outBegIdx2, out var outNbElement2, optInFastPeriod,
-            k2);
+        retCode = CalcExponentialMA(inReal, new Range(tempInteger, endIdx), fastEMABuffer, out _, optInFastPeriod, k2);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
+        var nbElement1 = outRange1.End.Value - outRange1.Start.Value;
         // Calculate (fast EMA) - (slow EMA)
-        for (var i = 0; i < outNbElement1; i++)
+        for (var i = 0; i < nbElement1; i++)
         {
             fastEMABuffer[i] -= slowEMABuffer[i];
         }
@@ -198,39 +193,37 @@ public static partial class Functions
         fastEMABuffer.Slice(lookbackSignal, endIdx - startIdx + 1).CopyTo(outMacd);
 
         // Calculate the signal/trigger line.
-        retCode = CalcExponentialMA(fastEMABuffer, 0, outNbElement1 - 1, outMacdSignal, out _, out outNbElement2, optInSignalPeriod,
+        retCode = CalcExponentialMA(fastEMABuffer, Range.EndAt(nbElement1 - 1), outMacdSignal, out var outRange2, optInSignalPeriod,
             Two<T>() / (T.CreateChecked(optInSignalPeriod) + T.One));
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
+        var nbElement2 = outRange2.End.Value - outRange2.Start.Value;
         // Calculate the histogram.
-        for (var i = 0; i < outNbElement2; i++)
+        for (var i = 0; i < nbElement2; i++)
         {
             outMacdHist[i] = outMacd[i] - outMacdSignal[i];
         }
 
-        outBegIdx = startIdx;
-        outNbElement = outNbElement2;
+        outRange = new Range(startIdx, startIdx + nbElement2);
 
         return Core.RetCode.Success;
     }
 
     private static Core.RetCode CalcPriceOscillator<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInFastPeriod,
         int optInSlowPeriod,
         Core.MAType optInMethod,
         Span<T> tempBuffer,
         bool doPercentageOutput) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
 
         // Make sure slow is really slower than the fast period! if not, swap...
         if (optInSlowPeriod < optInFastPeriod)
@@ -239,20 +232,20 @@ public static partial class Functions
         }
 
         // Calculate the fast MA into the tempBuffer.
-        var retCode = Ma(inReal, startIdx, endIdx, tempBuffer, out var outBegIdx2, out _, optInFastPeriod, optInMethod);
+        var retCode = MaImpl(inReal, inRange, tempBuffer, out var outRange2, optInFastPeriod, optInMethod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
         // Calculate the slow MA into the output.
-        retCode = Ma(inReal, startIdx, endIdx, outReal, out var outBegIdx1, out var outNbElement1, optInSlowPeriod, optInMethod);
+        retCode = MaImpl(inReal, inRange, outReal, out var outRange1, optInSlowPeriod, optInMethod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
-        for (int i = 0, j = outBegIdx1 - outBegIdx2; i < outNbElement1; i++, j++)
+        for (int i = 0, j = outRange1.Start.Value - outRange2.Start.Value; i < outRange1.End.Value - outRange1.Start.Value; i++, j++)
         {
             if (doPercentageOutput)
             {
@@ -267,28 +260,25 @@ public static partial class Functions
             }
         }
 
-        outBegIdx = outBegIdx1;
-        outNbElement = outNbElement1;
+        outRange = new Range(outRange1.Start.Value, outRange1.End.Value);
 
         return retCode;
     }
 
     private static Core.RetCode CalcSimpleMA<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
+
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
 
         var lookbackTotal = SmaLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -316,28 +306,25 @@ public static partial class Functions
             outReal[outIdx++] = tempReal / timePeriod;
         } while (i <= endIdx);
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }
 
     private static Core.RetCode CalcVariance<T>(
         ReadOnlySpan<T> inReal,
-        int startIdx,
-        int endIdx,
+        Range inRange,
         Span<T> outReal,
-        out int outBegIdx,
-        out int outNbElement,
+        out Range outRange,
         int optInTimePeriod) where T : IFloatingPointIeee754<T>
     {
-        outBegIdx = outNbElement = 0;
+        outRange = Range.EndAt(0);
+
+        var startIdx = inRange.Start.Value;
+        var endIdx = inRange.End.Value;
 
         var lookbackTotal = VarLookback(optInTimePeriod);
-        if (startIdx < lookbackTotal)
-        {
-            startIdx = lookbackTotal;
-        }
+        startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
         {
@@ -384,8 +371,7 @@ public static partial class Functions
             outReal[outIdx++] = meanValue2 - meanValue1 * meanValue1;
         } while (i <= endIdx);
 
-        outBegIdx = startIdx;
-        outNbElement = outIdx;
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }
