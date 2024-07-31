@@ -17,7 +17,7 @@ public sealed class FunctionTests
     [JsonFileData("DataSets/unst.json", typeof(double), "_")]
     [JsonFileData("DataSets/cdl.json", typeof(double), "_")]
 #pragma warning disable xUnit1026
-    public void ShouldCalculateSuccessfullyForDoubleInputAndSeparateOutput(TestDataModel<double> model, string fileName)
+    public void ShouldSucceedWhenDoubleInputAndSeparateOutput(TestDataModel<double> model, string fileName)
 #pragma warning restore xUnit1026
     {
         Skip.If(model.Skip, "Test marked as skipped in the dataset.");
@@ -72,7 +72,7 @@ public sealed class FunctionTests
     [JsonFileData("DataSets/unst.json", typeof(float), "_")]
     [JsonFileData("DataSets/cdl.json", typeof(float), "_")]
 #pragma warning disable xUnit1026
-    public void ShouldCalculateSuccessfullyForFloatInputAndSeparateOutput(TestDataModel<float> model, string fileName)
+    public void ShouldSucceedWhenFloatInputAndSeparateOutput(TestDataModel<float> model, string fileName)
 #pragma warning restore xUnit1026
     {
         Skip.If(model.Skip, "Test marked as skipped in the dataset.");
@@ -132,7 +132,7 @@ public sealed class FunctionTests
     [JsonFileData("DataSets/same.json", typeof(double), "___")]
     [JsonFileData("DataSets/cdl.json", typeof(double), "_")]
 #pragma warning disable xUnit1026
-    public void ShouldCalculateSuccessfullyForDoubleInputSameOutput(TestDataModel<double> model, string fileName)
+    public void ShouldSucceedWhenDoubleInputSameOutput(TestDataModel<double> model, string fileName)
 #pragma warning restore xUnit1026
     {
         Skip.If(model.Skip, "Test marked as skipped in the dataset.");
@@ -215,7 +215,7 @@ public sealed class FunctionTests
     [JsonFileData("DataSets/same.json", typeof(float), "___")]
     [JsonFileData("DataSets/cdl.json", typeof(float), "_")]
 #pragma warning disable xUnit1026
-    public void ShouldCalculateSuccessfullyForFloatInputSameOutput(TestDataModel<float> model, string fileName)
+    public void ShouldSucceedWhenFloatInputSameOutput(TestDataModel<float> model, string fileName)
 #pragma warning restore xUnit1026
     {
         Skip.If(model.Skip, "Test marked as skipped in the dataset.");
@@ -288,6 +288,38 @@ public sealed class FunctionTests
             Core.UnstablePeriodSettings.Set(Core.UnstableFunc.All, 0);
         }
     }
+
+    [Theory]
+    [MemberData(nameof(FunctionData), MemberType = typeof(FunctionTests))]
+    public void ShouldFailWhenInvalidInputRange(Abstract.IndicatorFunction function)
+    {
+        var random = new Random();
+
+        const int itemsCount = 100;
+        var inputs = Enumerable.Range(0, function.Inputs.Length)
+            .Select(__ => Enumerable.Repeat(0, itemsCount).Select(_ => random.NextDouble()).ToArray())
+            .ToArray();
+
+        var options = Enumerable.Repeat(0, function.Options.Length).Select(_ => (double) random.Next(1, itemsCount)).ToArray();
+
+        var outputs = Enumerable.Range(0, function.Outputs.Length)
+            .Select(__ => new double[itemsCount])
+            .ToArray();
+
+        function.Run(inputs, options, outputs, new Index(itemsCount)..new Index(itemsCount - 1), out _)
+            .ShouldBe(Core.RetCode.OutOfRangeParam, "The input range end index must be greater than or equal to the start index.");
+
+        function.Run(inputs, options, outputs, new Index(itemsCount, true)..new Index(itemsCount - 1, true), out _)
+            .ShouldBe(Core.RetCode.OutOfRangeParam, "The input range start index must not be negative.");
+
+        function.Run(inputs, options, outputs, ..0, out _)
+            .ShouldBe(Core.RetCode.OutOfRangeParam, "The input range end index must be greater than zero.");
+
+        function.Run(inputs, options, outputs, ..itemsCount, out _)
+            .ShouldBe(Core.RetCode.OutOfRangeParam, "The input range end index must not exceed the input length.");
+    }
+
+    public static TheoryData<Abstract.IndicatorFunction> FunctionData => new(Abstract.All.FunctionsDefinition.Values);
 
     private static T[][] ReorderArray<T>(T[][] inputArray, int indexToMoveToTop) where T : IFloatingPointIeee754<T>
     {
