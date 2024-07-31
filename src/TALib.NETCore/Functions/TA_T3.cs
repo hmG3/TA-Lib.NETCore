@@ -59,13 +59,12 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        var startIdx = inRange.Start.Value;
-        var endIdx = inRange.End.Value;
-
-        if (endIdx < startIdx || endIdx >= inReal.Length)
+        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
-            return Core.RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeParam;
         }
+
+        var (startIdx, endIdx) = rangeIndices;
 
         if (optInTimePeriod < 2 || optInVFactor < 0.0 || optInVFactor > 1.0)
         {

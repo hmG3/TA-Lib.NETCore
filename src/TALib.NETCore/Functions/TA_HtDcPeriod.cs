@@ -31,11 +31,9 @@ public static partial class Functions
         HtDcPeriodImpl(inReal, inRange, outReal, out outRange);
 
     [PublicAPI]
-    public static int HtDcPeriodLookback()
-    {
+    public static int HtDcPeriodLookback() =>
         // See MamaLookback for an explanation of the "32"
-        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtDcPeriod) + 32;
-    }
+        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtDcPeriod) + 32;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -56,13 +54,12 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        var startIdx = inRange.Start.Value;
-        var endIdx = inRange.End.Value;
-
-        if (endIdx < startIdx || endIdx >= inReal.Length)
+        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
-            return Core.RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeParam;
         }
+
+        var (startIdx, endIdx) = rangeIndices;
 
         var lookbackTotal = HtDcPeriodLookback();
         startIdx = Math.Max(startIdx, lookbackTotal);

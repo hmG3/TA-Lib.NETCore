@@ -34,8 +34,7 @@ public static partial class Functions
         MamaImpl(inReal, inRange, outMAMA, outFAMA, out outRange, optInFastLimit, optInSlowLimit);
 
     [PublicAPI]
-    public static int MamaLookback()
-    {
+    public static int MamaLookback() =>
         /* The fix lookback is 32 and is established as follows:
          *
          * 12 price bar to be compatible with the implementation of TradeStation found in John Ehlers book.
@@ -48,9 +47,7 @@ public static partial class Functions
          * ────────
          * 32 Total
          */
-
-        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mama) + 32;
-    }
+        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mama) + 32;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -77,13 +74,12 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        var startIdx = inRange.Start.Value;
-        var endIdx = inRange.End.Value;
-
-        if (endIdx < startIdx || endIdx >= inReal.Length)
+        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
-            return Core.RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeParam;
         }
+
+        var (startIdx, endIdx) = rangeIndices;
 
         if (optInFastLimit < 0.01 || optInFastLimit > 0.99 || optInSlowLimit < 0.01 || optInSlowLimit > 0.99)
         {

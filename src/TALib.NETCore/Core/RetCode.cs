@@ -29,7 +29,6 @@ public static partial class Core
     {
         Success,
         BadParam,
-        OutOfRangeStartIndex,
-        UnknownErr = UInt16.MaxValue
+        OutOfRangeParam
     }
 }

@@ -61,13 +61,12 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        var startIdx = inRange.Start.Value;
-        var endIdx = inRange.End.Value;
-
-        if (endIdx < startIdx)
+        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
-            return Core.RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeParam;
         }
+
+        var (startIdx, endIdx) = rangeIndices;
 
         var lookbackTotal = TwoCrowsLookback();
         startIdx = Math.Max(startIdx, lookbackTotal);

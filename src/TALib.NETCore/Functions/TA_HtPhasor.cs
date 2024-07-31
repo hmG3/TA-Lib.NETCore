@@ -32,11 +32,9 @@ public static partial class Functions
         HtPhasorImpl(inReal, inRange, outInPhase, outQuadrature, out outRange);
 
     [PublicAPI]
-    public static int HtPhasorLookback()
-    {
+    public static int HtPhasorLookback() =>
         // See MamaLookback for an explanation of the "32"
-        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtPhasor) + 32;
-    }
+        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtPhasor) + 32;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -59,13 +57,12 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        var startIdx = inRange.Start.Value;
-        var endIdx = inRange.End.Value;
-
-        if (endIdx < startIdx || endIdx >= inReal.Length)
+        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
-            return Core.RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeParam;
         }
+
+        var (startIdx, endIdx) = rangeIndices;
 
         var lookbackTotal = HtPhasorLookback();
         startIdx = Math.Max(startIdx, lookbackTotal);

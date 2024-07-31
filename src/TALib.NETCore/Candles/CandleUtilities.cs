@@ -18,6 +18,8 @@
  * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
  */
 
+using System.Linq;
+
 namespace TALib;
 
 public static partial class Candles
@@ -103,4 +105,14 @@ public static partial class Candles
         ReadOnlySpan<T> high,
         int idx2,
         int idx1) where T : IFloatingPointIeee754<T> => high[idx2] < low[idx1];
+
+    private static (int startIndex, int endIndex)? ValidateInputRange(Range inRange, params int[] inputLengths)
+    {
+        var inputLength = inputLengths.Min();
+
+        var startIdx = !inRange.Start.IsFromEnd ? inRange.Start.Value : inputLength - 1 - inRange.Start.Value;
+        var endIdx = !inRange.End.IsFromEnd ? inRange.End.Value : inputLength - 1 - inRange.End.Value;
+
+        return startIdx >= 0 && endIdx > 0 && endIdx >= startIdx && endIdx < inputLength ? (startIdx, endIdx) : null;
+    }
 }

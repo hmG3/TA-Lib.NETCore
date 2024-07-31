@@ -32,8 +32,7 @@ public static partial class Functions
         HtSineImpl(inReal, inRange, outSine, outLeadSine, out outRange);
 
     [PublicAPI]
-    public static int HtSineLookback()
-    {
+    public static int HtSineLookback() =>
         /*  31 input are skip
          * +32 output are skip to account for misc lookback
          * ──────────────────
@@ -41,8 +40,7 @@ public static partial class Functions
          *
          * See MamaLookback for an explanation of the "32"
          */
-        return Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtSine) + 63;
-    }
+        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtSine) + 63;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -65,13 +63,12 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        var startIdx = inRange.Start.Value;
-        var endIdx = inRange.End.Value;
-
-        if (endIdx < startIdx || endIdx >= inReal.Length)
+        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
-            return Core.RetCode.OutOfRangeStartIndex;
+            return Core.RetCode.OutOfRangeParam;
         }
+
+        var (startIdx, endIdx) = rangeIndices;
 
         var lookbackTotal = HtSineLookback();
         startIdx = Math.Max(startIdx, lookbackTotal);
