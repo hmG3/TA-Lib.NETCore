@@ -234,34 +234,17 @@ public static partial class Functions
         while (today < endIdx)
         {
             today++;
-            T tempReal = inHigh[today];
-            T diffP = tempReal - prevHigh;
-            prevHigh = tempReal;
 
-            tempReal = inLow[today];
-            T diffM = prevLow - tempReal;
-            prevLow = tempReal;
+            UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
+                ref prevTR, timePeriod);
 
-            prevMinusDM -= prevMinusDM / timePeriod;
-            prevPlusDM -= prevPlusDM / timePeriod;
-
-            if (diffM > T.Zero && diffP < diffM)
-            {
-                prevMinusDM += diffM;
-            }
-            else if (diffP > T.Zero && diffP > diffM)
-            {
-                prevPlusDM += diffP;
-            }
-
-            tempReal = TrueRange(prevHigh, prevLow, prevClose);
+            var tempReal = TrueRange(prevHigh, prevLow, prevClose);
             prevTR = prevTR - prevTR / timePeriod + tempReal;
             prevClose = inClose[today];
 
             if (!T.IsZero(prevTR))
             {
-                T minusDI = Hundred<T>() * (prevMinusDM / prevTR);
-                T plusDI = Hundred<T>() * (prevPlusDM / prevTR);
+                var (minusDI, plusDI) = CalcDI(prevMinusDM, prevPlusDM, prevTR);
                 tempReal = minusDI + plusDI;
                 outReal[outIdx] = !T.IsZero(tempReal) ? Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal) : outReal[outIdx - 1];
             }

@@ -90,26 +90,8 @@ public static partial class Candles
         int patternIdx = default;
         int patternResult = default;
         i = startIdx - 3;
-        while (i < startIdx)
-        {
-            if (IsHikkakeModifiedPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal))
-            {
-                patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
-                patternIdx = i;
-            }
-            // search for confirmation if modified hikkake was no more than 3 bars ago
-            else if (IsHikkakeModifiedPatternConfirmation(inHigh, inLow, inClose, i, patternIdx, patternResult))
-            {
-                patternIdx = 0;
-            }
-
-            nearPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
-
-            nearTrailingIdx++;
-            i++;
-        }
+        InitializeHikkakeModified(inOpen, inHigh, inLow, inClose, i, startIdx, ref nearPeriodTotal, ref patternResult, ref patternIdx,
+            ref nearTrailingIdx);
 
         i = startIdx;
 
@@ -131,6 +113,62 @@ public static partial class Candles
          */
 
         int outIdx = default;
+        CalcHikkakeModified(inOpen, inHigh, inLow, inClose, outIntType, i, nearPeriodTotal, patternResult, patternIdx, ref outIdx,
+            nearTrailingIdx, endIdx);
+
+        outRange = new Range(startIdx, startIdx + outIdx);
+
+        return Core.RetCode.Success;
+    }
+
+    private static void InitializeHikkakeModified<T>(
+        ReadOnlySpan<T> open,
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        int i,
+        int startIdx,
+        ref T nearPeriodTotal,
+        ref int patternResult,
+        ref int patternIdx,
+        ref int nearTrailingIdx) where T : IFloatingPointIeee754<T>
+    {
+        while (i < startIdx)
+        {
+            if (IsHikkakeModifiedPattern(open, high, low, close, i, nearPeriodTotal))
+            {
+                patternResult = 100 * (high[i] < high[i - 1] ? 1 : -1);
+                patternIdx = i;
+            }
+            // search for confirmation if modified hikkake was no more than 3 bars ago
+            else if (IsHikkakeModifiedPatternConfirmation(high, low, close, i, patternIdx, patternResult))
+            {
+                patternIdx = 0;
+            }
+
+            nearPeriodTotal +=
+                CandleRange(open, high, low, close, Core.CandleSettingType.Near, i - 2) -
+                CandleRange(open, high, low, close, Core.CandleSettingType.Near, nearTrailingIdx - 2);
+
+            nearTrailingIdx++;
+            i++;
+        }
+    }
+
+    private static void CalcHikkakeModified<T>(
+        ReadOnlySpan<T> inOpen,
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        Span<int> outIntType,
+        int i,
+        T nearPeriodTotal,
+        int patternResult,
+        int patternIdx,
+        ref int outIdx,
+        int nearTrailingIdx,
+        int endIdx) where T : IFloatingPointIeee754<T>
+    {
         do
         {
             if (IsHikkakeModifiedPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal))
@@ -157,10 +195,6 @@ public static partial class Candles
             nearTrailingIdx++;
             i++;
         } while (i <= endIdx);
-
-        outRange = new Range(startIdx, startIdx + outIdx);
-
-        return Core.RetCode.Success;
     }
 
     private static bool IsHikkakeModifiedPattern<T>(

@@ -511,10 +511,7 @@ public static partial class Functions
         bool applySmoothing = true)
         where T : IFloatingPointIeee754<T>
     {
-        var diffP = high[today] - prevHigh;
-        var diffM = prevLow - low[today];
-        prevHigh = high[today];
-        prevLow = low[today];
+        var (diffP, diffM) = CalcDeltas(high, low, today, ref prevHigh, ref prevLow);
 
         if (applySmoothing)
         {
@@ -541,6 +538,21 @@ public static partial class Functions
         var trueRange = TrueRange(prevHigh, prevLow, prevClose);
         prevTR = applySmoothing ? prevTR - prevTR / timePeriod + trueRange : prevTR + trueRange;
         prevClose = close[today];
+    }
+
+    private static (T diffP, T diffM) CalcDeltas<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        int today,
+        ref T prevHigh,
+        ref T prevLow) where T : IFloatingPointIeee754<T>
+    {
+        var diffP = inHigh[today] - prevHigh; // Plus Delta
+        var diffM = prevLow - inLow[today]; // Minus Delta
+        prevHigh = inHigh[today];
+        prevLow = inLow[today];
+
+        return (diffP, diffM);
     }
 
     private static (T minusDI, T plusDI) CalcDI<T>(T prevMinusDM, T prevPlusDM, T prevTR) where T : IFloatingPointIeee754<T>

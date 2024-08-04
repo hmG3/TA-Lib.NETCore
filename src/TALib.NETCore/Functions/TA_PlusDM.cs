@@ -156,54 +156,20 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        int today;
-        T prevLow;
-        T prevHigh;
-
-        // Indicate where the next output should be put in the outReal.
-        int outIdx = default;
-
         // Trap the case where no smoothing is needed.
-        int outBegIdx;
         if (optInTimePeriod == 1)
         {
             // No smoothing needed. Just do a simple DM1 for each price bar.
-            outBegIdx = startIdx;
-            today = startIdx - 1;
-            prevHigh = inHigh[today];
-            prevLow = inLow[today];
-            while (today < endIdx)
-            {
-                today++;
-                var tempReal = inHigh[today];
-                var diffP = tempReal - prevHigh; // Plus Delta
-                prevHigh = tempReal;
-                tempReal = inLow[today];
-                var diffM = prevLow - tempReal; // Minus Delta
-                prevLow = tempReal;
-                if (diffP > T.Zero && diffP > diffM)
-                {
-                    // Case 1 and 3: +DM = diffP, -DM = 0
-                    outReal[outIdx++] = diffP;
-                }
-                else
-                {
-                    outReal[outIdx++] = T.Zero;
-                }
-            }
-
-            outRange = new Range(outBegIdx, outBegIdx + outIdx);
-
-            return Core.RetCode.Success;
+            return CalculatePlusDMForPeriodOne(inHigh, inLow, startIdx, endIdx, outReal, out outRange);
         }
 
-        outBegIdx = startIdx;
-        today = startIdx - lookbackTotal;
+        var outBegIdx = startIdx;
+        var today = startIdx - lookbackTotal;
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
         T prevPlusDM = T.Zero, _ = T.Zero;
 
-        InitDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, out prevHigh, ref today, out prevLow, out var _, timePeriod, ref prevPlusDM,
+        InitDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, out var prevHigh, ref today, out var prevLow, out var _, timePeriod, ref prevPlusDM,
             ref _, ref _);
 
         // Process subsequent DM
@@ -217,7 +183,7 @@ public static partial class Functions
         }
 
         outReal[0] = prevPlusDM;
-        outIdx = 1;
+        var outIdx = 1;
 
         while (today < endIdx)
         {
@@ -228,6 +194,31 @@ public static partial class Functions
         }
 
         outRange = new Range(outBegIdx, outBegIdx + outIdx);
+
+        return Core.RetCode.Success;
+    }
+
+    private static Core.RetCode CalculatePlusDMForPeriodOne<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out Range outRange) where T : IFloatingPointIeee754<T>
+    {
+        var today = startIdx - 1;
+        var prevHigh = high[today];
+        var prevLow = low[today];
+        var outIdx = 0;
+
+        while (today < endIdx)
+        {
+            today++;
+            var (diffP, diffM) = CalcDeltas(high, low, today, ref prevHigh, ref prevLow);
+            outReal[outIdx++] = diffP > T.Zero && diffP > diffM ? diffP : T.Zero;
+        }
+
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

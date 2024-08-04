@@ -113,32 +113,9 @@ public static partial class Functions
         {
             // Preserve prevValue because it may get overwritten by the output.
             var savePrevValue = prevValue;
-            T tempValue1;
-            T tempValue2;
 
-            // No unstable period, so must calculate first output particular to Metastock.
-            prevGain = T.Zero;
-            prevLoss = T.Zero;
-            for (var i = optInTimePeriod; i > 0; i--)
-            {
-                tempValue1 = inReal[today++];
-                tempValue2 = tempValue1 - prevValue;
-                prevValue = tempValue1;
-                if (tempValue2 < T.Zero)
-                {
-                    prevLoss -= tempValue2;
-                }
-                else
-                {
-                    prevGain += tempValue2;
-                }
-            }
-
-            tempValue1 = prevLoss / timePeriod;
-            tempValue2 = prevGain / timePeriod;
-
-            tempValue1 = tempValue2 + tempValue1;
-            outReal[outIdx++] = !T.IsZero(tempValue1) ? Hundred<T>() * (tempValue2 / tempValue1) : T.Zero;
+            InitializeGainsAndLosses(inReal, ref today, ref prevValue, optInTimePeriod, out prevGain, out prevLoss);
+            WriteInitialRsiValue(prevGain, prevLoss, optInTimePeriod, outReal, ref outIdx);
 
             if (today > endIdx)
             {
@@ -146,29 +123,12 @@ public static partial class Functions
                 return Core.RetCode.Success;
             }
 
-            // Start over for the next price bar.
             today -= optInTimePeriod;
             prevValue = savePrevValue;
         }
 
         // Remaining of the processing is identical.
-        prevGain = T.Zero;
-        prevLoss = T.Zero;
-        today++;
-        for (var i = optInTimePeriod; i > 0; i--)
-        {
-            var tempValue1 = inReal[today++];
-            var tempValue2 = tempValue1 - prevValue;
-            prevValue = tempValue1;
-            if (tempValue2 < T.Zero)
-            {
-                prevLoss -= tempValue2;
-            }
-            else
-            {
-                prevGain += tempValue2;
-            }
-        }
+        InitializeGainsAndLosses(inReal, ref today, ref prevValue, optInTimePeriod, out prevGain, out prevLoss);
 
         /* Subsequent prevLoss and prevGain are smoothed using the previous values (Wilder's approach).
          *   1) Multiply the previous by 'period - 1'.
@@ -196,37 +156,40 @@ public static partial class Functions
             // Skip the unstable period. Do the processing but do not write it in the output.
             while (today < startIdx)
             {
-                var tempValue1 = inReal[today];
-                var tempValue2 = tempValue1 - prevValue;
-                prevValue = tempValue1;
-
-                prevLoss *= timePeriod - T.One;
-                prevGain *= timePeriod - T.One;
-                if (tempValue2 < T.Zero)
-                {
-                    prevLoss -= tempValue2;
-                }
-                else
-                {
-                    prevGain += tempValue2;
-                }
-
-                prevLoss /= timePeriod;
-                prevGain /= timePeriod;
-
-                today++;
+                ProcessToday(inReal, ref today, ref prevValue, ref prevGain, ref prevLoss, timePeriod);
             }
         }
 
         // Unstable period skipped... now continue processing if needed.
         while (today <= endIdx)
         {
-            var tempValue1 = inReal[today++];
+            ProcessToday(inReal, ref today, ref prevValue, ref prevGain, ref prevLoss, timePeriod);
+            var tempValue1 = prevGain + prevLoss;
+            outReal[outIdx++] = !T.IsZero(tempValue1) ? Hundred<T>() * (prevGain / tempValue1) : T.Zero;
+        }
+
+        outRange = new Range(startIdx, startIdx + outIdx);
+
+        return Core.RetCode.Success;
+    }
+
+    private static void InitializeGainsAndLosses<T>(
+        ReadOnlySpan<T> real,
+        ref int today,
+        ref T prevValue,
+        int optInTimePeriod,
+        out T prevGain,
+        out T prevLoss) where T : IFloatingPointIeee754<T>
+    {
+        prevGain = T.Zero;
+        prevLoss = T.Zero;
+        today++;
+        for (var i = optInTimePeriod; i > 0; i--)
+        {
+            var tempValue1 = real[today++];
             var tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
 
-            prevLoss *= timePeriod - T.One;
-            prevGain *= timePeriod - T.One;
             if (tempValue2 < T.Zero)
             {
                 prevLoss -= tempValue2;
@@ -235,15 +198,50 @@ public static partial class Functions
             {
                 prevGain += tempValue2;
             }
+        }
+    }
 
-            prevLoss /= timePeriod;
-            prevGain /= timePeriod;
-            tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !T.IsZero(tempValue1) ? Hundred<T>() * (prevGain / tempValue1) : T.Zero;
+    private static void WriteInitialRsiValue<T>(
+        T prevGain,
+        T prevLoss,
+        int optInTimePeriod,
+        Span<T> outReal,
+        ref int outIdx) where T : IFloatingPointIeee754<T>
+    {
+        var timePeriod = T.CreateChecked(optInTimePeriod);
+
+        var tempValue1 = prevLoss / timePeriod;
+        var tempValue2 = prevGain / timePeriod;
+
+        tempValue1 = tempValue2 + tempValue1;
+        outReal[outIdx++] = !T.IsZero(tempValue1) ? Hundred<T>() * (tempValue2 / tempValue1) : T.Zero;
+    }
+
+    private static void ProcessToday<T>(
+        ReadOnlySpan<T> real,
+        ref int today,
+        ref T prevValue,
+        ref T prevGain,
+        ref T prevLoss,
+        T timePeriod) where T : IFloatingPointIeee754<T>
+    {
+        var tempValue1 = real[today++];
+        var tempValue2 = tempValue1 - prevValue;
+        prevValue = tempValue1;
+
+        prevLoss *= timePeriod - T.One;
+        prevGain *= timePeriod - T.One;
+
+        if (tempValue2 < T.Zero)
+        {
+            prevLoss -= tempValue2;
+        }
+        else
+        {
+            prevGain += tempValue2;
         }
 
-        outRange = new Range(startIdx, startIdx + outIdx);
-
-        return Core.RetCode.Success;
+        prevLoss /= timePeriod;
+        prevGain /= timePeriod;
     }
 }

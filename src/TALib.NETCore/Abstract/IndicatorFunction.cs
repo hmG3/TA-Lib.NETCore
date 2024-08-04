@@ -137,8 +137,10 @@ public partial class Abstract
         public override string ToString() => Name;
 
         private static IEnumerable<MethodInfo> ReflectMethods(bool publicOnly) =>
+#pragma warning disable S3011
             typeof(Functions).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic))
                 .Concat(typeof(Candles).GetMethods(BindingFlags.Static | (publicOnly ? BindingFlags.Public : BindingFlags.NonPublic)));
+#pragma warning restore S3011
 
         private object[] PrepareFunctionMethodParams<T>(
             T[][] inputs,
@@ -148,8 +150,18 @@ public partial class Abstract
             MethodInfo method,
             out bool isIntegerOutput) where T : IFloatingPointIeee754<T>
         {
-            var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
+            var paramsArray = InitializeParamsArray(inputs, inRange);
 
+            isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
+            FillOutputs(paramsArray, outputs, isIntegerOutput);
+
+            FillOptionalParameters(method, paramsArray, options);
+
+            return paramsArray;
+        }
+
+        private object[] InitializeParamsArray<T>(T[][] inputs, Range inRange)
+        {
             var paramsArray = new object[Inputs.Length + 1 + Outputs.Length + 1 + Options.Length];
             for (var i = 0; i < Inputs.Length; i++)
             {
@@ -158,15 +170,24 @@ public partial class Abstract
 
             paramsArray[Inputs.Length] = inRange;
 
-            isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
+            return paramsArray;
+        }
+
+        private void FillOutputs<T>(object[] paramsArray, T[][] outputs, bool isIntegerOutput)
+        {
             for (var i = 0; i < Outputs.Length; i++)
             {
                 paramsArray[Inputs.Length + 1 + i] = isIntegerOutput ? new int[outputs[i].Length] : outputs[i];
             }
 
             Array.Fill(paramsArray, Type.Missing, Inputs.Length + 1 + Outputs.Length + 1, Options.Length);
+        }
 
+        private void FillOptionalParameters<T>(MethodInfo method, object[] paramsArray, T[] options)
+        {
+            var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
             var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
+
             for (var i = 0; i < defOptInParameters.Count; i++)
             {
                 var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
@@ -190,11 +211,9 @@ public partial class Abstract
                 }
                 else
                 {
-                    paramsArray[paramsArrayIndex] = options[i];
+                    paramsArray[paramsArrayIndex] = options[i]!;
                 }
             }
-
-            return paramsArray;
         }
 
         private bool LookbackMethodSelector(MethodBase methodInfo)

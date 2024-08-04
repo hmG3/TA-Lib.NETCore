@@ -81,21 +81,8 @@ public static partial class Candles
         int patternIdx = default;
         int patternResult = default;
         var i = startIdx - 3;
-        while (i < startIdx)
-        {
-            if (IsHikkakePattern(inHigh, inLow, i))
-            {
-                patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
-                patternIdx = i;
-            }
-            // search for confirmation if hikkake was no more than 3 bars ago
-            else if (IsHikkakePatternConfirmation(inHigh, inLow, inClose, i, patternIdx, patternResult))
-            {
-                patternIdx = 0;
-            }
 
-            i++;
-        }
+        InitializeHikkake(inHigh, inLow, inClose, ref patternIdx, ref patternResult, ref i, startIdx);
 
         i = startIdx;
 
@@ -112,6 +99,50 @@ public static partial class Candles
          */
 
         int outIdx = default;
+        CalcHikkake(inHigh, inLow, inClose, endIdx, ref i, ref outIdx, outIntType, ref patternIdx, ref patternResult);
+
+        outRange = new Range(startIdx, startIdx + outIdx);
+
+        return Core.RetCode.Success;
+    }
+
+    private static void InitializeHikkake<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        ref int patternIdx,
+        ref int patternResult,
+        ref int i,
+        int startIdx) where T : IFloatingPointIeee754<T>
+    {
+        while (i < startIdx)
+        {
+            if (IsHikkakePattern(high, low, i))
+            {
+                patternResult = 100 * (high[i] < high[i - 1] ? 1 : -1);
+                patternIdx = i;
+            }
+            // search for confirmation if hikkake was no more than 3 bars ago
+            else if (IsHikkakePatternConfirmation(high, low, close, i, patternIdx, patternResult))
+            {
+                patternIdx = 0;
+            }
+
+            i++;
+        }
+    }
+
+    private static void CalcHikkake<T>(
+        ReadOnlySpan<T> inHigh,
+        ReadOnlySpan<T> inLow,
+        ReadOnlySpan<T> inClose,
+        int endIdx,
+        ref int i,
+        ref int outIdx,
+        Span<int> outIntType,
+        ref int patternIdx,
+        ref int patternResult) where T : IFloatingPointIeee754<T>
+    {
         do
         {
             if (IsHikkakePattern(inHigh, inLow, i))
@@ -133,10 +164,6 @@ public static partial class Candles
 
             i++;
         } while (i <= endIdx);
-
-        outRange = new Range(startIdx, startIdx + outIdx);
-
-        return Core.RetCode.Success;
     }
 
     private static bool IsHikkakePattern<T>(ReadOnlySpan<T> inHigh, ReadOnlySpan<T> inLow, int i) where T : IFloatingPointIeee754<T> =>

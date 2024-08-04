@@ -112,20 +112,10 @@ public static partial class Functions
             circBuffer[circBufferIdx++] = lastValue;
 
             // Calculate the average for the whole period.
-            var theAverage = T.Zero;
-            for (var j = 0; j < optInTimePeriod; j++)
-            {
-                theAverage += circBuffer[j];
-            }
-
-            theAverage /= timePeriod;
+            var theAverage = CalcAverage(circBuffer, timePeriod);
 
             // Do the summation of the Abs(TypePrice - average) for the whole period.
-            var tempReal2 = T.Zero;
-            for (var j = 0; j < optInTimePeriod; j++)
-            {
-                tempReal2 += T.Abs(circBuffer[j] - theAverage);
-            }
+            var tempReal2 = CalcSummation(circBuffer, theAverage);
 
             var tempReal = lastValue - theAverage;
             outReal[outIdx++] = !T.IsZero(tempReal) && !T.IsZero(tempReal2)
@@ -144,5 +134,28 @@ public static partial class Functions
         outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
+    }
+
+    private static T CalcAverage<T>(Span<T> circBuffer, T timePeriod) where T : IFloatingPointIeee754<T>
+    {
+        var theAverage = T.Zero;
+        foreach (var t in circBuffer)
+        {
+            theAverage += t;
+        }
+
+        theAverage /= timePeriod;
+        return theAverage;
+    }
+
+    private static T CalcSummation<T>(Span<T> circBuffer, T theAverage) where T : IFloatingPointIeee754<T>
+    {
+        var tempReal2 = T.Zero;
+        foreach (var t in circBuffer)
+        {
+            tempReal2 += T.Abs(t - theAverage);
+        }
+
+        return tempReal2;
     }
 }

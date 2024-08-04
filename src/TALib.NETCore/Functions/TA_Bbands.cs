@@ -148,9 +148,6 @@ public static partial class Functions
         var nbDevUp = T.CreateChecked(optInNbDevUp);
         var nbDevDn = T.CreateChecked(optInNbDevDn);
 
-        T tempReal;
-        T tempReal2;
-
         /* Do a tight loop to calculate the upper/lower band at the same time.
          *
          * All the following 5 loops are doing the same,
@@ -158,38 +155,103 @@ public static partial class Functions
          */
         if (optInNbDevUp.Equals(optInNbDevDn))
         {
-            if (nbDevUp.Equals(T.One))
+            CalcEqualBands(tempBuffer2, outRealMiddleBand, outRealUpperBand, outRealLowerBand, nbElement, nbDevUp);
+        }
+        else
+        {
+            CalcDistinctBands(tempBuffer2, outRealMiddleBand, outRealUpperBand, outRealLowerBand, nbElement, nbDevUp, nbDevDn);
+        }
+
+        return Core.RetCode.Success;
+    }
+
+    private static void CalcStandardDeviation<T>(
+        ReadOnlySpan<T> real,
+        ReadOnlySpan<T> movAvg,
+        Range movAvgRange,
+        Span<T> outReal,
+        int optInTimePeriod) where T : IFloatingPointIeee754<T>
+    {
+        var startSum = movAvgRange.Start.Value + 1 - optInTimePeriod;
+        var endSum = movAvgRange.Start.Value;
+        var periodTotal2 = T.Zero;
+        for (var outIdx = startSum; outIdx < endSum; outIdx++)
+        {
+            var tempReal = real[outIdx];
+            tempReal *= tempReal;
+            periodTotal2 += tempReal;
+        }
+
+        var timePeriod = T.CreateChecked(optInTimePeriod);
+        for (var outIdx = 0; outIdx < movAvgRange.End.Value - movAvgRange.Start.Value; outIdx++, startSum++, endSum++)
+        {
+            var tempReal = real[endSum];
+            tempReal *= tempReal;
+            periodTotal2 += tempReal;
+            var meanValue2 = periodTotal2 / timePeriod;
+
+            tempReal = real[startSum];
+            tempReal *= tempReal;
+            periodTotal2 -= tempReal;
+
+            tempReal = movAvg[outIdx];
+            tempReal *= tempReal;
+            meanValue2 -= tempReal;
+
+            outReal[outIdx] = meanValue2 > T.Zero ? T.Sqrt(meanValue2) : T.Zero;
+        }
+    }
+
+    private static void CalcEqualBands<T>(
+        ReadOnlySpan<T> tempBuffer,
+        ReadOnlySpan<T> realMiddleBand,
+        Span<T> realUpperBand,
+        Span<T> realLowerBand,
+        int nbElement,
+        T nbDevUp) where T : IFloatingPointIeee754<T>
+    {
+        if (nbDevUp.Equals(T.One))
+        {
+            // No standard deviation multiplier needed.
+            for (var i = 0; i < nbElement; i++)
             {
-                // No standard deviation multiplier needed.
-                for (var i = 0; i < nbElement; i++)
-                {
-                    tempReal = tempBuffer2[i];
-                    tempReal2 = outRealMiddleBand[i];
-                    outRealUpperBand[i] = tempReal2 + tempReal;
-                    outRealLowerBand[i] = tempReal2 - tempReal;
-                }
-            }
-            else
-            {
-                // Upper/lower band use the same standard deviation multiplier.
-                for (var i = 0; i < nbElement; i++)
-                {
-                    tempReal = tempBuffer2[i] * nbDevUp;
-                    tempReal2 = outRealMiddleBand[i];
-                    outRealUpperBand[i] = tempReal2 + tempReal;
-                    outRealLowerBand[i] = tempReal2 - tempReal;
-                }
+                var tempReal = tempBuffer[i];
+                var tempReal2 = realMiddleBand[i];
+                realUpperBand[i] = tempReal2 + tempReal;
+                realLowerBand[i] = tempReal2 - tempReal;
             }
         }
-        else if (nbDevUp.Equals(T.One))
+        else
+        {
+            // Upper/lower band use the same standard deviation multiplier.
+            for (var i = 0; i < nbElement; i++)
+            {
+                var tempReal = tempBuffer[i] * nbDevUp;
+                var tempReal2 = realMiddleBand[i];
+                realUpperBand[i] = tempReal2 + tempReal;
+                realLowerBand[i] = tempReal2 - tempReal;
+            }
+        }
+    }
+
+    private static void CalcDistinctBands<T>(
+        ReadOnlySpan<T> tempBuffer,
+        ReadOnlySpan<T> realMiddleBand,
+        Span<T> realUpperBand,
+        Span<T> realLowerBand,
+        int nbElement,
+        T nbDevUp,
+        T nbDevDn) where T : IFloatingPointIeee754<T>
+    {
+        if (nbDevUp.Equals(T.One))
         {
             // Only lower band has a standard deviation multiplier.
             for (var i = 0; i < nbElement; i++)
             {
-                tempReal = tempBuffer2[i];
-                tempReal2 = outRealMiddleBand[i];
-                outRealUpperBand[i] = tempReal2 + tempReal;
-                outRealLowerBand[i] = tempReal2 - tempReal * nbDevDn;
+                var tempReal = tempBuffer[i];
+                var tempReal2 = realMiddleBand[i];
+                realUpperBand[i] = tempReal2 + tempReal;
+                realLowerBand[i] = tempReal2 - tempReal * nbDevDn;
             }
         }
         else if (nbDevDn.Equals(T.One))
@@ -197,10 +259,10 @@ public static partial class Functions
             // Only upper band has a standard deviation multiplier.
             for (var i = 0; i < nbElement; i++)
             {
-                tempReal = tempBuffer2[i];
-                tempReal2 = outRealMiddleBand[i];
-                outRealLowerBand[i] = tempReal2 - tempReal;
-                outRealUpperBand[i] = tempReal2 + tempReal * nbDevUp;
+                var tempReal = tempBuffer[i];
+                var tempReal2 = realMiddleBand[i];
+                realLowerBand[i] = tempReal2 - tempReal;
+                realUpperBand[i] = tempReal2 + tempReal * nbDevUp;
             }
         }
         else
@@ -208,50 +270,11 @@ public static partial class Functions
             // Upper/lower band have distinctive standard deviation multiplier.
             for (var i = 0; i < nbElement; i++)
             {
-                tempReal = tempBuffer2[i];
-                tempReal2 = outRealMiddleBand[i];
-                outRealUpperBand[i] = tempReal2 + tempReal * nbDevUp;
-                outRealLowerBand[i] = tempReal2 - tempReal * nbDevDn;
+                var tempReal = tempBuffer[i];
+                var tempReal2 = realMiddleBand[i];
+                realUpperBand[i] = tempReal2 + tempReal * nbDevUp;
+                realLowerBand[i] = tempReal2 - tempReal * nbDevDn;
             }
-        }
-
-        return Core.RetCode.Success;
-    }
-
-    private static void CalcStandardDeviation<T>(
-        ReadOnlySpan<T> inReal,
-        ReadOnlySpan<T> inMovAvg,
-        Range inMovAvgRange,
-        Span<T> outReal,
-        int optInTimePeriod) where T : IFloatingPointIeee754<T>
-    {
-        var startSum = inMovAvgRange.Start.Value + 1 - optInTimePeriod;
-        var endSum = inMovAvgRange.Start.Value;
-        var periodTotal2 = T.Zero;
-        for (var outIdx = startSum; outIdx < endSum; outIdx++)
-        {
-            var tempReal = inReal[outIdx];
-            tempReal *= tempReal;
-            periodTotal2 += tempReal;
-        }
-
-        var timePeriod = T.CreateChecked(optInTimePeriod);
-        for (var outIdx = 0; outIdx < inMovAvgRange.End.Value - inMovAvgRange.Start.Value; outIdx++, startSum++, endSum++)
-        {
-            var tempReal = inReal[endSum];
-            tempReal *= tempReal;
-            periodTotal2 += tempReal;
-            var meanValue2 = periodTotal2 / timePeriod;
-
-            tempReal = inReal[startSum];
-            tempReal *= tempReal;
-            periodTotal2 -= tempReal;
-
-            tempReal = inMovAvg[outIdx];
-            tempReal *= tempReal;
-            meanValue2 -= tempReal;
-
-            outReal[outIdx] = meanValue2 > T.Zero ? T.Sqrt(meanValue2) : T.Zero;
         }
     }
 }

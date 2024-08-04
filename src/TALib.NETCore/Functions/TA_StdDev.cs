@@ -58,12 +58,10 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (ValidateInputRange(inRange, inReal.Length) is null)
         {
             return Core.RetCode.OutOfRangeParam;
         }
-
-        var (startIdx, endIdx) = rangeIndices;
 
         if (optInTimePeriod < 2)
         {

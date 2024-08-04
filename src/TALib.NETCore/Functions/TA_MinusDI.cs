@@ -159,16 +159,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        int today;
-        T prevLow;
-        T prevHigh;
-        T prevClose;
-
-        // Indicate where the next output should be put in the outReal.
-        int outIdx = default;
-
         // Trap the case where no smoothing is needed.
-        int outBegIdx;
         if (optInTimePeriod == 1)
         {
             /* No smoothing needed. Just do the following for each price bar:
@@ -176,48 +167,18 @@ public static partial class Functions
              *   -DI1 = ────
              *           TR1
              */
-            outBegIdx = startIdx;
-            today = startIdx - 1;
-            prevHigh = inHigh[today];
-            prevLow = inLow[today];
-            prevClose = inClose[today];
-            while (today < endIdx)
-            {
-                today++;
-                var tempReal = inHigh[today];
-                var diffP = tempReal - prevHigh; // Plus Delta
-                prevHigh = tempReal;
-                tempReal = inLow[today];
-                var diffM = prevLow - tempReal; // Minus Delta
-                prevLow = tempReal;
-                if (diffM > T.Zero && diffP < diffM)
-                {
-                    // Case 2 and 4: +DM = 0, -DM = diffM
-                    tempReal = TrueRange(prevHigh, prevLow, prevClose);
-                    outReal[outIdx++] = !T.IsZero(tempReal) ? diffM / tempReal : T.Zero;
-                }
-                else
-                {
-                    outReal[outIdx++] = T.Zero;
-                }
-
-                prevClose = inClose[today];
-            }
-
-            outRange = new Range(outBegIdx, outBegIdx + outIdx);
-
-            return Core.RetCode.Success;
+            return CalculateMinusDIForPeriodOne(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outRange);
         }
 
-        today = startIdx;
-        outBegIdx = today;
+        var today = startIdx;
+        var outBegIdx = today;
         today = startIdx - lookbackTotal;
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
         T prevMinusDM = T.Zero, prevTR = T.Zero, _ = T.Zero;
 
-        InitDMAndTR(inHigh, inLow, inClose, out prevHigh, ref today, out prevLow, out prevClose, timePeriod, ref _, ref prevMinusDM,
-            ref prevTR);
+        InitDMAndTR(inHigh, inLow, inClose, out var prevHigh, ref today, out var prevLow, out var prevClose, timePeriod, ref _,
+            ref prevMinusDM, ref prevTR);
 
         // Process subsequent DI
 
@@ -239,7 +200,7 @@ public static partial class Functions
             outReal[0] = T.Zero;
         }
 
-        outIdx = 1;
+        var outIdx = 1;
 
         while (today < endIdx)
         {
@@ -259,6 +220,36 @@ public static partial class Functions
         }
 
         outRange = new Range(outBegIdx, outBegIdx + outIdx);
+
+        return Core.RetCode.Success;
+    }
+
+    private static Core.RetCode CalculateMinusDIForPeriodOne<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        int startIdx,
+        int endIdx,
+        Span<T> outReal,
+        out Range outRange) where T : IFloatingPointIeee754<T>
+    {
+        var today = startIdx - 1;
+        var prevHigh = high[today];
+        var prevLow = low[today];
+        var prevClose = close[today];
+        var outIdx = 0;
+
+        while (today < endIdx)
+        {
+            today++;
+            var (diffP, diffM) = CalcDeltas(high, low, today, ref prevHigh, ref prevLow);
+            var tr = TrueRange(prevHigh, prevLow, prevClose);
+
+            outReal[outIdx++] = diffM > T.Zero && diffP < diffM && !T.IsZero(tr) ? diffM / tr : T.Zero;
+            prevClose = close[today];
+        }
+
+        outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
     }

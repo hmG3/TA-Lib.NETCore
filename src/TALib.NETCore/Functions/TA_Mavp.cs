@@ -116,30 +116,11 @@ public static partial class Functions
          * The outReal is then fill up for all element with the same period.
          * A local flag (value 0) is set in localPeriodArray to avoid doing a second time the same calculation.
          */
-        for (var i = 0; i < outputSize; i++)
+        var retCode = CalculateMovingAverages(inReal, localPeriodArray, localOutputArray, new Range(startIdx, endIdx), outputSize, optInMAType,
+            intermediateOutput);
+        if (retCode != Core.RetCode.Success)
         {
-            var curPeriod = localPeriodArray[i];
-            if (curPeriod == 0)
-            {
-                continue;
-            }
-
-            // Calculation of the MA required.
-            var retCode = MaImpl(inReal, new Range(startIdx, endIdx), localOutputArray, out _, curPeriod, optInMAType);
-            if (retCode != Core.RetCode.Success)
-            {
-                return retCode;
-            }
-
-            intermediateOutput[i] = localOutputArray[i];
-            for (var j = i + 1; j < outputSize; j++)
-            {
-                if (localPeriodArray[j] == curPeriod)
-                {
-                    localPeriodArray[j] = 0; // Flag to avoid recalculation
-                    intermediateOutput[j] = localOutputArray[j];
-                }
-            }
+            return retCode;
         }
 
         // Copy intermediate buffer to output buffer if necessary.
@@ -149,6 +130,44 @@ public static partial class Functions
         }
 
         outRange = new Range(startIdx, startIdx + outputSize);
+
+        return Core.RetCode.Success;
+    }
+
+    private static Core.RetCode CalculateMovingAverages<T>(
+        ReadOnlySpan<T> real,
+        Span<int> periodArray,
+        Span<T> outputArray,
+        Range range,
+        int outputSize,
+        Core.MAType maType,
+        Span<T> intermediateOutput) where T : IFloatingPointIeee754<T>
+    {
+        for (var i = 0; i < outputSize; i++)
+        {
+            var curPeriod = periodArray[i];
+            if (curPeriod == 0)
+            {
+                continue;
+            }
+
+            // Calculation of the MA required.
+            var retCode = MaImpl(real, range, outputArray, out _, curPeriod, maType);
+            if (retCode != Core.RetCode.Success)
+            {
+                return retCode;
+            }
+
+            intermediateOutput[i] = outputArray[i];
+            for (var j = i + 1; j < outputSize; j++)
+            {
+                if (periodArray[j] == curPeriod)
+                {
+                    periodArray[j] = 0; // Flag to avoid recalculation
+                    intermediateOutput[j] = outputArray[j];
+                }
+            }
+        }
 
         return Core.RetCode.Success;
     }

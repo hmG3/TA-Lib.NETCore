@@ -116,9 +116,9 @@ public static partial class Functions
         optInTimePeriod2 = sortedPeriods[1];
         optInTimePeriod3 = sortedPeriods[0];
 
-        var totals1 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod1);
-        var totals2 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod2);
-        var totals3 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod3);
+        var totals1 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod1, startIdx);
+        var totals2 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod2, startIdx);
+        var totals3 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod3, startIdx);
 
         var TSeven = T.CreateChecked(7);
 
@@ -158,17 +158,9 @@ public static partial class Functions
             }
 
             // Remove the trailing terms to prepare for next day
-            terms = CalcTerms(inLow, inHigh, inClose, trailingIdx1);
-            totals1.aTotal -= terms.closeMinusTrueLow;
-            totals1.bTotal -= terms.trueRange;
-
-            terms = CalcTerms(inLow, inHigh, inClose, trailingIdx2);
-            totals2.aTotal -= terms.closeMinusTrueLow;
-            totals2.bTotal -= terms.trueRange;
-
-            terms = CalcTerms(inLow, inHigh, inClose, trailingIdx3);
-            totals3.aTotal -= terms.closeMinusTrueLow;
-            totals3.bTotal -= terms.trueRange;
+            UpdateTrailingTotals(inLow, inHigh, inClose, trailingIdx1, ref totals1);
+            UpdateTrailingTotals(inLow, inHigh, inClose, trailingIdx2, ref totals2);
+            UpdateTrailingTotals(inLow, inHigh, inClose, trailingIdx3, ref totals3);
 
             /* Last operation is to write the output.
              * Must be done after the trailing index have all been taken care of because
@@ -184,38 +176,57 @@ public static partial class Functions
         outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
+    }
 
-        (T trueRange, T closeMinusTrueLow) CalcTerms(
-            ReadOnlySpan<T> low,
-            ReadOnlySpan<T> high,
-            ReadOnlySpan<T> close,
-            int day)
+    private static void UpdateTrailingTotals<T>(
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> close,
+        int trailingIdx,
+        ref (T aTotal, T bTotal) totals) where T : IFloatingPointIeee754<T>
+    {
+        var terms = CalcTerms(low, high, close, trailingIdx);
+        totals.aTotal -= terms.closeMinusTrueLow;
+        totals.bTotal -= terms.trueRange;
+    }
+
+    private static (T trueRange, T closeMinusTrueLow) CalcTerms<T>(
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> close,
+        int day) where T : IFloatingPointIeee754<T>
+    {
+        var tempLT = low[day];
+        var tempHT = high[day];
+        var tempCY = close[day - 1];
+        var trueLow = T.Min(tempLT, tempCY);
+        var closeMinusTrueLow = close[day] - trueLow;
+        var trueRange = TrueRange(tempHT, tempLT, tempCY);
+
+        return (trueRange, closeMinusTrueLow);
+    }
+
+    private static (T aTotal, T bTotal) CalcPrimeTotals<T>(
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> close,
+        int period,
+        int startIdx) where T : IFloatingPointIeee754<T>
+    {
+        T aTotal = T.Zero, bTotal = T.Zero;
+        for (var i = startIdx - period + 1; i < startIdx; ++i)
         {
-            var tempLT = low[day];
-            var tempHT = high[day];
-            var tempCY = close[day - 1];
+            var tempLT = low[i];
+            var tempHT = high[i];
+            var tempCY = close[i - 1];
             var trueLow = T.Min(tempLT, tempCY);
-            var closeMinusTrueLow = close[day] - trueLow;
+            var closeMinusTrueLow = close[i] - trueLow;
             var trueRange = TrueRange(tempHT, tempLT, tempCY);
-
-            return (trueRange, closeMinusTrueLow);
+            var terms = (trueRange, closeMinusTrueLow);
+            aTotal += terms.closeMinusTrueLow;
+            bTotal += terms.trueRange;
         }
 
-        (T aTotal, T bTotal) CalcPrimeTotals(
-            ReadOnlySpan<T> low,
-            ReadOnlySpan<T> high,
-            ReadOnlySpan<T> close,
-            int period)
-        {
-            T aTotal = T.Zero, bTotal = T.Zero;
-            for (var i = startIdx - period + 1; i < startIdx; ++i)
-            {
-                var terms = CalcTerms(low, high, close, i);
-                aTotal += terms.closeMinusTrueLow;
-                bTotal += terms.trueRange;
-            }
-
-            return (aTotal, bTotal);
-        }
+        return (aTotal, bTotal);
     }
 }

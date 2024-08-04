@@ -101,27 +101,8 @@ public static partial class Functions
         today++;
         for (var i = optInTimePeriod; i > 0; i--)
         {
-            var tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
-            var tempValue2 = tempValue1 - prevValue;
-            prevValue = tempValue1;
-            tempValue1 *= inVolume[today++];
-            if (tempValue2 < T.Zero)
-            {
-                moneyFlow[mflowIdx].negative = tempValue1;
-                negSumMF += tempValue1;
-                moneyFlow[mflowIdx].positive = T.Zero;
-            }
-            else if (tempValue2 > T.Zero)
-            {
-                moneyFlow[mflowIdx].positive = tempValue1;
-                posSumMF += tempValue1;
-                moneyFlow[mflowIdx].negative = T.Zero;
-            }
-            else
-            {
-                moneyFlow[mflowIdx].positive = T.Zero;
-                moneyFlow[mflowIdx].negative = T.Zero;
-            }
+            UpdateMoneyFlow(inHigh, inLow, inClose, inVolume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow,
+                ref mflowIdx);
 
             if (++mflowIdx > maxIdxMflow)
             {
@@ -147,27 +128,8 @@ public static partial class Functions
                 posSumMF -= moneyFlow[mflowIdx].positive;
                 negSumMF -= moneyFlow[mflowIdx].negative;
 
-                var tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
-                var tempValue2 = tempValue1 - prevValue;
-                prevValue = tempValue1;
-                tempValue1 *= inVolume[today++];
-                if (tempValue2 < T.Zero)
-                {
-                    moneyFlow[mflowIdx].negative = tempValue1;
-                    negSumMF += tempValue1;
-                    moneyFlow[mflowIdx].positive = T.Zero;
-                }
-                else if (tempValue2 > T.Zero)
-                {
-                    moneyFlow[mflowIdx].positive = tempValue1;
-                    posSumMF += tempValue1;
-                    moneyFlow[mflowIdx].negative = T.Zero;
-                }
-                else
-                {
-                    moneyFlow[mflowIdx].positive = T.Zero;
-                    moneyFlow[mflowIdx].negative = T.Zero;
-                }
+                UpdateMoneyFlow(inHigh, inLow, inClose, inVolume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow,
+                    ref mflowIdx);
 
                 if (++mflowIdx > maxIdxMflow)
                 {
@@ -181,29 +143,10 @@ public static partial class Functions
             posSumMF -= moneyFlow[mflowIdx].positive;
             negSumMF -= moneyFlow[mflowIdx].negative;
 
-            var tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
-            var tempValue2 = tempValue1 - prevValue;
-            prevValue = tempValue1;
-            tempValue1 *= inVolume[today++];
-            if (tempValue2 < T.Zero)
-            {
-                moneyFlow[mflowIdx].negative = tempValue1;
-                negSumMF += tempValue1;
-                moneyFlow[mflowIdx].positive = T.Zero;
-            }
-            else if (tempValue2 > T.Zero)
-            {
-                moneyFlow[mflowIdx].positive = tempValue1;
-                posSumMF += tempValue1;
-                moneyFlow[mflowIdx].negative = T.Zero;
-            }
-            else
-            {
-                moneyFlow[mflowIdx].positive = T.Zero;
-                moneyFlow[mflowIdx].negative = T.Zero;
-            }
+            UpdateMoneyFlow(inHigh, inLow, inClose, inVolume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow,
+                ref mflowIdx);
 
-            tempValue1 = posSumMF + negSumMF;
+            var tempValue1 = posSumMF + negSumMF;
             outReal[outIdx++] = tempValue1 >= T.One ? Hundred<T>() * (posSumMF / tempValue1) : T.Zero;
 
             if (++mflowIdx > maxIdxMflow)
@@ -215,5 +158,40 @@ public static partial class Functions
         outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
+    }
+
+    private static void UpdateMoneyFlow<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        ReadOnlySpan<T> volume,
+        ref int today,
+        ref T prevValue,
+        ref T posSumMF,
+        ref T negSumMF,
+        (T negative, T positive)[] moneyFlow,
+        ref int mflowIdx) where T : IFloatingPointIeee754<T>
+    {
+        var tempValue1 = (high[today] + low[today] + close[today]) / Three<T>();
+        var tempValue2 = tempValue1 - prevValue;
+        prevValue = tempValue1;
+        tempValue1 *= volume[today++];
+        if (tempValue2 < T.Zero)
+        {
+            moneyFlow[mflowIdx].negative = tempValue1;
+            negSumMF += tempValue1;
+            moneyFlow[mflowIdx].positive = T.Zero;
+        }
+        else if (tempValue2 > T.Zero)
+        {
+            moneyFlow[mflowIdx].positive = tempValue1;
+            posSumMF += tempValue1;
+            moneyFlow[mflowIdx].negative = T.Zero;
+        }
+        else
+        {
+            moneyFlow[mflowIdx].positive = T.Zero;
+            moneyFlow[mflowIdx].negative = T.Zero;
+        }
     }
 }
