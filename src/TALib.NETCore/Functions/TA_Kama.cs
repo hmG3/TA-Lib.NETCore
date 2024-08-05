@@ -79,7 +79,7 @@ public static partial class Functions
         var sumROC1 = T.Zero;
         var today = startIdx - lookbackTotal;
         var trailingIdx = today;
-        InitializeSumROC(inReal, ref sumROC1, ref today, optInTimePeriod);
+        InitSumROC(inReal, ref sumROC1, ref today, optInTimePeriod);
 
         // At this point sumROC1 represent the summation of the 1-day price difference over the (optInTimePeriod - 1)
 
@@ -93,22 +93,22 @@ public static partial class Functions
         // Save the trailing value. Do this because input and output can point to the same buffer.
         var trailingValue = tempReal;
 
-        var efficiencyRatio = CalculateEfficiencyRatio(sumROC1, periodROC);
-        var smoothingConstant = CalculateSmoothingConstant(efficiencyRatio);
+        var efficiencyRatio = CalcEfficiencyRatio(sumROC1, periodROC);
+        var smoothingConstant = CalcSmoothingConstant(efficiencyRatio);
 
         // Calculate the KAMA like an EMA, using the smoothing constant as the adaptive factor.
-        prevKAMA = CalculateKAMA(inReal[today++], prevKAMA, smoothingConstant);
+        prevKAMA = CalcKAMA(inReal[today++], prevKAMA, smoothingConstant);
 
         // 'today' keep track of where the processing is within the input.
         while (today <= startIdx)
         {
             UpdateSumROC(inReal, ref sumROC1, ref today, ref trailingIdx, ref trailingValue);
             periodROC = inReal[today] - inReal[trailingIdx - 1];
-            efficiencyRatio = CalculateEfficiencyRatio(sumROC1, periodROC);
-            smoothingConstant = CalculateSmoothingConstant(efficiencyRatio);
+            efficiencyRatio = CalcEfficiencyRatio(sumROC1, periodROC);
+            smoothingConstant = CalcSmoothingConstant(efficiencyRatio);
 
             // Calculate the KAMA like an EMA, using the smoothing constant as the adaptive factor.
-            prevKAMA = CalculateKAMA(inReal[today++], prevKAMA, smoothingConstant);
+            prevKAMA = CalcKAMA(inReal[today++], prevKAMA, smoothingConstant);
         }
 
         // Write the first value.
@@ -121,11 +121,11 @@ public static partial class Functions
         {
             UpdateSumROC(inReal, ref sumROC1, ref today, ref trailingIdx, ref trailingValue);
             periodROC = inReal[today] - inReal[trailingIdx - 1];
-            efficiencyRatio = CalculateEfficiencyRatio(sumROC1, periodROC);
-            smoothingConstant = CalculateSmoothingConstant(efficiencyRatio);
+            efficiencyRatio = CalcEfficiencyRatio(sumROC1, periodROC);
+            smoothingConstant = CalcSmoothingConstant(efficiencyRatio);
 
             // Calculate the KAMA like an EMA, using the smoothing constant as the adaptive factor.
-            prevKAMA = CalculateKAMA(inReal[today++], prevKAMA, smoothingConstant);
+            prevKAMA = CalcKAMA(inReal[today++], prevKAMA, smoothingConstant);
 
             outReal[outIdx++] = prevKAMA;
         }
@@ -135,7 +135,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static void InitializeSumROC<T>(
+    private static void InitSumROC<T>(
         ReadOnlySpan<T> inReal,
         ref T sumROC1,
         ref int today,
@@ -149,10 +149,10 @@ public static partial class Functions
         }
     }
 
-    private static T CalculateEfficiencyRatio<T>(T sumROC1, T periodROC) where T : IFloatingPointIeee754<T> =>
+    private static T CalcEfficiencyRatio<T>(T sumROC1, T periodROC) where T : IFloatingPointIeee754<T> =>
         sumROC1 <= periodROC || T.IsZero(sumROC1) ? T.One : T.Abs(periodROC / sumROC1);
 
-    private static T CalculateSmoothingConstant<T>(T efficiencyRatio) where T : IFloatingPointIeee754<T>
+    private static T CalcSmoothingConstant<T>(T efficiencyRatio) where T : IFloatingPointIeee754<T>
     {
         var constMax = Two<T>() / (T.CreateChecked(30) + T.One);
         var constDiff = Two<T>() / (Two<T>() + T.One) - constMax;
@@ -161,7 +161,7 @@ public static partial class Functions
         return tempReal * tempReal;
     }
 
-    private static T CalculateKAMA<T>(T todayValue, T prevKAMA, T smoothingConstant) where T : IFloatingPointIeee754<T> =>
+    private static T CalcKAMA<T>(T todayValue, T prevKAMA, T smoothingConstant) where T : IFloatingPointIeee754<T> =>
         (todayValue - prevKAMA) * smoothingConstant + prevKAMA;
 
     private static void UpdateSumROC<T>(

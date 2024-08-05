@@ -55,12 +55,14 @@ public partial class Abstract
 
         public (string displayName, Core.OutputDisplayHints displayHint)[] Outputs { get; }
 
+#pragma warning disable S2368
         public Core.RetCode Run<T>(
             T[][] inputs,
             T[] options,
             T[][] outputs,
             Range inRange,
             out Range outRange) where T : IFloatingPointIeee754<T>
+#pragma warning restore S2368
         {
             var functionMethod = ReflectMethods(publicOnly: false)
                                      .FirstOrDefault(mi => !mi.Name.EndsWith(LookbackSuffix) && FunctionMethodSelector(mi)) ??

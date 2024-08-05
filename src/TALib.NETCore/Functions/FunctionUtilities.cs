@@ -629,6 +629,41 @@ public static partial class Functions
 
         public static T[] BufferFactory<T>() where T : IFloatingPointIeee754<T> => new T[4 * 11];
 
+        public static void InitWma<T>(
+            ReadOnlySpan<T> real,
+            int startIdx,
+            int lookbackTotal,
+            out T periodWMASub,
+            out T periodWMASum,
+            out T trailingWMAValue,
+            out int trailingWMAIdx,
+            int period,
+            out int today) where T : IFloatingPointIeee754<T>
+        {
+            // Initialize the price smoother, which is simply a weighted moving average of the price.
+            trailingWMAIdx = startIdx - lookbackTotal;
+            today = trailingWMAIdx;
+
+            // Initialization is same as WMA, except loop is unrolled for speed optimization.
+            var tempReal = real[today++];
+            periodWMASub = tempReal;
+            periodWMASum = tempReal;
+            tempReal = real[today++];
+            periodWMASub += tempReal;
+            periodWMASum += tempReal * Two<T>();
+            tempReal = real[today++];
+            periodWMASub += tempReal;
+            periodWMASum += tempReal * Three<T>();
+
+            trailingWMAValue = T.Zero;
+
+            for (var i = period; i != 0; i--)
+            {
+                tempReal = real[today++];
+                DoPriceWma(real, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, tempReal, out _);
+            }
+        }
+
         public static void CalcHilbertOdd<T>(
             Span<T> hilbertBuffer,
             T smoothedValue,

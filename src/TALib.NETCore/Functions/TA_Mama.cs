@@ -96,30 +96,8 @@ public static partial class Functions
 
         var outBegIdx = startIdx;
 
-        // Initialize the price smoother, which is simply a weighted moving average of the price.
-        var trailingWMAIdx = startIdx - lookbackTotal;
-        var today = trailingWMAIdx;
-
-        // Initialization is same as WMA, except loop is unrolled for speed optimization.
-        var tempReal = inReal[today++];
-        var periodWMASub = tempReal;
-        var periodWMASum = tempReal;
-        tempReal = inReal[today++];
-        periodWMASub += tempReal;
-        periodWMASum += tempReal * Two<T>();
-        tempReal = inReal[today++];
-        periodWMASub += tempReal;
-        periodWMASum += tempReal * Three<T>();
-
-        var trailingWMAValue = T.Zero;
-
-        var i = 9;
-        do
-        {
-            tempReal = inReal[today++];
-            // Evaluate subsequent WMA value
-            DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, tempReal, out _);
-        } while (--i != 0);
+        HTHelper.InitWma(inReal, startIdx, lookbackTotal, out var periodWMASub, out var periodWMASum, out var trailingWMAValue,
+            out var trailingWMAIdx, 9, out var today);
 
         int hilbertIdx = default;
 
@@ -139,40 +117,17 @@ public static partial class Functions
         // The code is speed optimized and is most likely very hard to follow if you do not already know well the original algorithm.
         while (today <= endIdx)
         {
-            T tempReal2;
-            T i2;
-            T q2;
-
             var adjustedPrevPeriod = T.CreateChecked(0.075) * period + T.CreateChecked(0.54);
 
             var todayValue = inReal[today];
             DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, todayValue,
                 out var smoothedValue);
-            if (today % 2 == 0)
-            {
-                // Do the Hilbert Transforms for even price bar
-                HTHelper.CalcHilbertEven(circBuffer, smoothedValue, ref hilbertIdx, adjustedPrevPeriod, i1ForEvenPrev3, prevQ2, prevI2,
-                    out i1ForOddPrev3, ref i1ForOddPrev2, out q2, out i2);
 
-                // Put Alpha in tempReal2
-                tempReal2 = !T.IsZero(i1ForEvenPrev3)
-                    ? T.RadiansToDegrees(T.Atan(circBuffer[(int) HTHelper.HilbertKeys.Q1] / i1ForEvenPrev3))
-                    : T.Zero;
-            }
-            else
-            {
-                // Do the Hilbert Transforms for odd price bar
-                HTHelper.CalcHilbertOdd(circBuffer, smoothedValue, hilbertIdx, adjustedPrevPeriod, out i1ForEvenPrev3, prevQ2, prevI2,
-                    i1ForOddPrev3, ref i1ForEvenPrev2, out q2, out i2);
-
-                // Put Alpha in tempReal2
-                tempReal2 = !T.IsZero(i1ForOddPrev3)
-                    ? T.RadiansToDegrees(T.Atan(circBuffer[(int) HTHelper.HilbertKeys.Q1] / i1ForOddPrev3))
-                    : T.Zero;
-            }
+            var tempReal2 = PerformMAMAHilbertTransform(today, circBuffer, smoothedValue, ref hilbertIdx, adjustedPrevPeriod,
+                ref i1ForOddPrev3, ref i1ForEvenPrev3, ref i1ForOddPrev2, ref i1ForEvenPrev2, prevQ2, prevI2, out var i2, out var q2);
 
             // Put Delta Phase into tempReal
-            tempReal = prevPhase - tempReal2;
+            var tempReal = prevPhase - tempReal2;
             prevPhase = tempReal2;
             if (tempReal < T.One)
             {
@@ -212,5 +167,43 @@ public static partial class Functions
         outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
+    }
+
+    private static T PerformMAMAHilbertTransform<T>(
+        int today,
+        Span<T> circBuffer,
+        T smoothedValue,
+        ref int hilbertIdx,
+        T adjustedPrevPeriod,
+        ref T i1ForOddPrev3,
+        ref T i1ForEvenPrev3,
+        ref T i1ForOddPrev2,
+        ref T i1ForEvenPrev2,
+        T prevQ2,
+        T prevI2,
+        out T i2,
+        out T q2) where T : IFloatingPointIeee754<T>
+    {
+        T tempReal2;
+        if (today % 2 == 0)
+        {
+            HTHelper.CalcHilbertEven(circBuffer, smoothedValue, ref hilbertIdx, adjustedPrevPeriod, i1ForEvenPrev3, prevQ2, prevI2,
+                out i1ForOddPrev3, ref i1ForOddPrev2, out q2, out i2);
+
+            tempReal2 = !T.IsZero(i1ForEvenPrev3)
+                ? T.RadiansToDegrees(T.Atan(circBuffer[(int) HTHelper.HilbertKeys.Q1] / i1ForEvenPrev3))
+                : T.Zero;
+        }
+        else
+        {
+            HTHelper.CalcHilbertOdd(circBuffer, smoothedValue, hilbertIdx, adjustedPrevPeriod, out i1ForEvenPrev3, prevQ2, prevI2,
+                i1ForOddPrev3, ref i1ForEvenPrev2, out q2, out i2);
+
+            tempReal2 = !T.IsZero(i1ForOddPrev3)
+                ? T.RadiansToDegrees(T.Atan(circBuffer[(int) HTHelper.HilbertKeys.Q1] / i1ForOddPrev3))
+                : T.Zero;
+        }
+
+        return tempReal2;
     }
 }

@@ -99,16 +99,8 @@ public static partial class Functions
         var posSumMF = T.Zero;
         var negSumMF = T.Zero;
         today++;
-        for (var i = optInTimePeriod; i > 0; i--)
-        {
-            UpdateMoneyFlow(inHigh, inLow, inClose, inVolume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow,
-                ref mflowIdx);
-
-            if (++mflowIdx > maxIdxMflow)
-            {
-                mflowIdx = 0;
-            }
-        }
+        AccumulateInitialMoneyFlow(inHigh, inLow, inClose, inVolume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow,
+            ref mflowIdx, maxIdxMflow, optInTimePeriod);
 
         /* The following two equations are equivalent:
          *   MFI = 100 - (100 / 1 + (posSumMF / negSumMF))
@@ -123,19 +115,8 @@ public static partial class Functions
         else
         {
             // Skip the unstable period. Do the processing but do not write it in the output.
-            while (today < startIdx)
-            {
-                posSumMF -= moneyFlow[mflowIdx].positive;
-                negSumMF -= moneyFlow[mflowIdx].negative;
-
-                UpdateMoneyFlow(inHigh, inLow, inClose, inVolume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow,
-                    ref mflowIdx);
-
-                if (++mflowIdx > maxIdxMflow)
-                {
-                    mflowIdx = 0;
-                }
-            }
+            today = SkipMfiUnstablePeriod(inHigh, inLow, inClose, inVolume, today, startIdx, moneyFlow, maxIdxMflow, ref posSumMF,
+                ref mflowIdx, ref negSumMF, ref prevValue);
         }
 
         while (today <= endIdx)
@@ -158,6 +139,63 @@ public static partial class Functions
         outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
+    }
+
+    private static void AccumulateInitialMoneyFlow<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        ReadOnlySpan<T> volume,
+        ref int today,
+        ref T prevValue,
+        ref T posSumMF,
+        ref T negSumMF,
+        (T negative, T positive)[] moneyFlow,
+        ref int mflowIdx,
+        int maxIdxMflow,
+        int timePeriod) where T : IFloatingPointIeee754<T>
+    {
+        for (var i = timePeriod; i > 0; i--)
+        {
+            UpdateMoneyFlow(high, low, close, volume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow,
+                ref mflowIdx);
+
+            if (++mflowIdx > maxIdxMflow)
+            {
+                mflowIdx = 0;
+            }
+        }
+    }
+
+    private static int SkipMfiUnstablePeriod<T>(
+        ReadOnlySpan<T> high,
+        ReadOnlySpan<T> low,
+        ReadOnlySpan<T> close,
+        ReadOnlySpan<T> volume,
+        int today,
+        int startIdx,
+        (T negative, T positive)[] moneyFlow,
+        int maxIdxMflow,
+        ref T posSumMF,
+        ref int mflowIdx,
+        ref T negSumMF,
+        ref T prevValue) where T : IFloatingPointIeee754<T>
+    {
+        while (today < startIdx)
+        {
+            posSumMF -= moneyFlow[mflowIdx].positive;
+            negSumMF -= moneyFlow[mflowIdx].negative;
+
+            UpdateMoneyFlow(high, low, close, volume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow,
+                ref mflowIdx);
+
+            if (++mflowIdx > maxIdxMflow)
+            {
+                mflowIdx = 0;
+            }
+        }
+
+        return today;
     }
 
     private static void UpdateMoneyFlow<T>(

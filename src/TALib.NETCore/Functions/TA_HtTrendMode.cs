@@ -87,30 +87,8 @@ public static partial class Functions
 
         var outBegIdx = startIdx;
 
-        // Initialize the price smoother, which is simply a weighted moving average of the price.
-        var trailingWMAIdx = startIdx - lookbackTotal;
-        var today = trailingWMAIdx;
-
-        // Initialization is same as WMA, except loop is unrolled for speed optimization.
-        var tempReal = inReal[today++];
-        var periodWMASub = tempReal;
-        var periodWMASum = tempReal;
-        tempReal = inReal[today++];
-        periodWMASub += tempReal;
-        periodWMASum += tempReal * Two<T>();
-        tempReal = inReal[today++];
-        periodWMASub += tempReal;
-        periodWMASum += tempReal * Three<T>();
-
-        var trailingWMAValue = T.Zero;
-
-        var i = 34;
-        do
-        {
-            tempReal = inReal[today++];
-            // Evaluate subsequent WMA value
-            DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, tempReal, out _);
-        } while (--i != 0);
+        HTHelper.InitWma(inReal, startIdx, lookbackTotal, out var periodWMASub, out var periodWMASum, out var trailingWMAValue,
+            out var trailingWMAIdx, 34, out var today);
 
         int hilbertIdx = default;
         int smoothPriceIdx = default;
@@ -139,20 +117,8 @@ public static partial class Functions
             // Remember the smoothedValue into the smoothPrice circular buffer.
             smoothPrice[smoothPriceIdx] = smoothedValue;
 
-            T q2;
-            T i2;
-            if (today % 2 == 0)
-            {
-                // Do the Hilbert Transforms for even price bar
-                HTHelper.CalcHilbertEven(circBuffer, smoothedValue, ref hilbertIdx, adjustedPrevPeriod, i1ForEvenPrev3, prevQ2, prevI2,
-                    out i1ForOddPrev3, ref i1ForOddPrev2, out q2, out i2);
-            }
-            else
-            {
-                // Do the Hilbert Transforms for odd price bar
-                HTHelper.CalcHilbertOdd(circBuffer, smoothedValue, hilbertIdx, adjustedPrevPeriod, out i1ForEvenPrev3, prevQ2, prevI2,
-                    i1ForOddPrev3, ref i1ForEvenPrev2, out q2, out i2);
-            }
+            PerformHilbertTransform(today, circBuffer, smoothedValue, adjustedPrevPeriod, prevQ2, prevI2, ref hilbertIdx,
+                ref i1ForEvenPrev3, ref i1ForOddPrev3, ref i1ForOddPrev2, out var q2, out var i2, ref i1ForEvenPrev2);
 
             // Adjust the period for next price bar
             HTHelper.CalcSmoothedPeriod(ref re, i2, q2, ref prevI2, ref prevQ2, ref im, ref period);
@@ -162,110 +128,19 @@ public static partial class Functions
             var prevDCPhase = dcPhase;
 
             /* Compute Dominant Cycle Phase */
-            var dcPeriod = smoothPeriod + T.CreateChecked(0.5);
-            var dcPeriodInt = Int32.CreateTruncating(dcPeriod);
-            var realPart = T.Zero;
-            var imagPart = T.Zero;
-
-            // idx is used to iterate for up to 50 of the last value of smoothPrice.
-            var idx = smoothPriceIdx;
-            for (i = 0; i < dcPeriodInt; i++)
-            {
-                tempReal = T.CreateChecked(i) * Two<T>() * T.Pi / T.CreateChecked(dcPeriodInt);
-                var tempReal2 = smoothPrice[idx];
-                realPart += T.Sin(tempReal) * tempReal2;
-                imagPart += T.Cos(tempReal) * tempReal2;
-                if (idx == 0)
-                {
-                    idx = smoothPriceSize - 1;
-                }
-                else
-                {
-                    idx--;
-                }
-            }
-
-            tempReal = T.Abs(imagPart);
-            if (tempReal > T.Zero)
-            {
-                dcPhase = T.RadiansToDegrees(T.Atan(realPart / imagPart));
-            }
-            else if (tempReal <= T.CreateChecked(0.01))
-            {
-                if (realPart < T.Zero)
-                {
-                    dcPhase -= Ninety<T>();
-                }
-                else if (realPart > T.Zero)
-                {
-                    dcPhase += Ninety<T>();
-                }
-            }
-            dcPhase += Ninety<T>();
-
-            // Compensate for one bar lag of the weighted moving average
-            dcPhase += Ninety<T>() * Four<T>() / smoothPeriod;
-            if (imagPart < T.Zero)
-            {
-                dcPhase += Ninety<T>() * Two<T>();
-            }
-
-            if (dcPhase > Ninety<T>() * T.CreateChecked(3.5))
-            {
-                dcPhase -= Ninety<T>() * Four<T>();
-            }
+            dcPhase = ComputeDcPhase(smoothPrice, smoothPeriod, smoothPriceIdx, dcPhase);
 
             var prevSine = sine;
             var prevLeadSine = leadSine;
+
             sine = T.Sin(T.DegreesToRadians(dcPhase));
             leadSine = T.Sin(T.DegreesToRadians(dcPhase + Ninety<T>() / Two<T>()));
 
             // idx is used to iterate for up to 50 of the last value of smoothPrice.
-            idx = today;
-            tempReal = T.Zero;
-            for (i = 0; i < dcPeriodInt; i++)
-            {
-                tempReal += inReal[idx--];
-            }
+            var trendLineValue = ComputeTrendLine(inReal, ref today, smoothPeriod, ref iTrend1, ref iTrend2, ref iTrend3);
 
-            if (dcPeriodInt > 0)
-            {
-                tempReal /= T.CreateChecked(dcPeriodInt);
-            }
-
-            // Compute Trendline
-            var trendLine = (Four<T>() * tempReal + Three<T>() * iTrend1 + Two<T>() * iTrend2 + iTrend3) / T.CreateChecked(10);
-            iTrend3 = iTrend2;
-            iTrend2 = iTrend1;
-            iTrend1 = tempReal;
-
-            // Compute the Trend Mode and assume trend by default
-            var trend = 1;
-
-            // Measure days in trend from last crossing of the SineWave Indicator lines
-            if (sine > leadSine && prevSine <= prevLeadSine || sine < leadSine && prevSine >= prevLeadSine)
-            {
-                daysInTrend = 0;
-                trend = 0;
-            }
-
-            if (T.CreateChecked(++daysInTrend) < T.CreateChecked(0.5) * smoothPeriod)
-            {
-                trend = 0;
-            }
-
-            tempReal = dcPhase - prevDCPhase;
-            if (!T.IsZero(smoothPeriod) && tempReal > T.CreateChecked(0.67) * Ninety<T>() * Four<T>() / smoothPeriod &&
-                tempReal < T.CreateChecked(1.5) * Ninety<T>() * Four<T>() / smoothPeriod)
-            {
-                trend = 0;
-            }
-
-            tempReal = smoothPrice[smoothPriceIdx];
-            if (!T.IsZero(trendLine) && T.Abs((tempReal - trendLine) / trendLine) >= T.CreateChecked(0.015))
-            {
-                trend = 1;
-            }
+            var trend = DetermineTrend(sine, leadSine, prevSine, prevLeadSine, smoothPeriod, dcPhase, prevDCPhase, smoothPrice,
+                smoothPriceIdx, trendLineValue, ref daysInTrend);
 
             if (today >= startIdx)
             {
@@ -283,5 +158,50 @@ public static partial class Functions
         outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
+    }
+
+    private static int DetermineTrend<T>(
+        T sine,
+        T leadSine,
+        T prevSine,
+        T prevLeadSine,
+        T smoothPeriod,
+        T dcPhase,
+        T prevDCPhase,
+        Span<T> smoothPrice,
+        int smoothPriceIdx,
+        T trendLineValue,
+        ref int daysInTrend)
+        where T : IFloatingPointIeee754<T>
+    {
+        // Compute the Trend Mode and assume trend by default
+        var trend = 1;
+
+        // Measure days in trend from last crossing of the SineWave Indicator lines
+        if (sine > leadSine && prevSine <= prevLeadSine || sine < leadSine && prevSine >= prevLeadSine)
+        {
+            daysInTrend = 0;
+            trend = 0;
+        }
+
+        if (T.CreateChecked(++daysInTrend) < T.CreateChecked(0.5) * smoothPeriod)
+        {
+            trend = 0;
+        }
+
+        var tempReal = dcPhase - prevDCPhase;
+        if (!T.IsZero(smoothPeriod) && tempReal > T.CreateChecked(0.67) * Ninety<T>() * Four<T>() / smoothPeriod &&
+            tempReal < T.CreateChecked(1.5) * Ninety<T>() * Four<T>() / smoothPeriod)
+        {
+            trend = 0;
+        }
+
+        tempReal = smoothPrice[smoothPriceIdx];
+        if (!T.IsZero(trendLineValue) && T.Abs((tempReal - trendLineValue) / trendLineValue) >= T.CreateChecked(0.015))
+        {
+            trend = 1;
+        }
+
+        return trend;
     }
 }

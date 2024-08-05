@@ -167,7 +167,7 @@ public static partial class Functions
              *   -DI1 = ────
              *           TR1
              */
-            return CalculateMinusDIForPeriodOne(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outRange);
+            return CalcMinusDIForPeriodOne(inHigh, inLow, inClose, startIdx, endIdx, outReal, out outRange);
         }
 
         var today = startIdx;
@@ -224,7 +224,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode CalculateMinusDIForPeriodOne<T>(
+    private static Core.RetCode CalcMinusDIForPeriodOne<T>(
         ReadOnlySpan<T> high,
         ReadOnlySpan<T> low,
         ReadOnlySpan<T> close,

@@ -83,30 +83,8 @@ public static partial class Functions
 
         var outBegIdx = startIdx;
 
-        // Initialize the price smoother, which is simply a weighted moving average of the price.
-        var trailingWMAIdx = startIdx - lookbackTotal;
-        var today = trailingWMAIdx;
-
-        // Initialization is same as WMA, except loop is unrolled for speed optimization.
-        var tempReal = inReal[today++];
-        var periodWMASub = tempReal;
-        var periodWMASum = tempReal;
-        tempReal = inReal[today++];
-        periodWMASub += tempReal;
-        periodWMASum += tempReal * Two<T>();
-        tempReal = inReal[today++];
-        periodWMASub += tempReal;
-        periodWMASum += tempReal * Three<T>();
-
-        var trailingWMAValue = T.Zero;
-
-        var i = 34;
-        do
-        {
-            tempReal = inReal[today++];
-            // Evaluate subsequent WMA value
-            DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, tempReal, out _);
-        } while (--i != 0);
+        HTHelper.InitWma(inReal, startIdx, lookbackTotal, out var periodWMASub, out var periodWMASum, out var trailingWMAValue,
+            out var trailingWMAIdx, 34, out var today);
 
         int hilbertIdx = default;
         int smoothPriceIdx = default;
@@ -134,51 +112,19 @@ public static partial class Functions
             // Remember the smoothedValue into the smoothPrice circular buffer.
             smoothPrice[smoothPriceIdx] = smoothedValue;
 
-            T q2;
-            T i2;
-            if (today % 2 == 0)
-            {
-                // Do the Hilbert Transforms for even price bar
-                HTHelper.CalcHilbertEven(circBuffer, smoothedValue, ref hilbertIdx, adjustedPrevPeriod, i1ForEvenPrev3, prevQ2, prevI2,
-                    out i1ForOddPrev3, ref i1ForOddPrev2, out q2, out i2);
-            }
-            else
-            {
-                // Do the Hilbert Transforms for odd price bar
-                HTHelper.CalcHilbertOdd(circBuffer, smoothedValue, hilbertIdx, adjustedPrevPeriod, out i1ForEvenPrev3, prevQ2, prevI2,
-                    i1ForOddPrev3, ref i1ForEvenPrev2, out q2, out i2);
-            }
+            PerformHilbertTransform(today, circBuffer, smoothedValue, adjustedPrevPeriod, prevQ2, prevI2, ref hilbertIdx,
+                ref i1ForEvenPrev3, ref i1ForOddPrev3, ref i1ForOddPrev2, out var q2, out var i2, ref i1ForEvenPrev2);
 
             // Adjust the period for next price bar
             HTHelper.CalcSmoothedPeriod(ref re, i2, q2, ref prevI2, ref prevQ2, ref im, ref period);
 
             smoothPeriod = T.CreateChecked(0.33) * period + T.CreateChecked(0.67) * smoothPeriod;
 
-            // Compute Trendline
-            var dcPeriod = smoothPeriod + T.CreateChecked(0.5);
-            var dcPeriodInt = Int32.CreateTruncating(dcPeriod);
-
-            // idx is used to iterate for up to 50 of the last value of smoothPrice.
-            var idx = today;
-            tempReal = T.Zero;
-            for (i = 0; i < dcPeriodInt; i++)
-            {
-                tempReal += inReal[idx--];
-            }
-
-            if (dcPeriodInt > 0)
-            {
-                tempReal /= T.CreateChecked(dcPeriodInt);
-            }
-
-            var tempReal2 = (Four<T>() * tempReal + Three<T>() * iTrend1 + Two<T>() * iTrend2 + iTrend3) / T.CreateChecked(10);
-            iTrend3 = iTrend2;
-            iTrend2 = iTrend1;
-            iTrend1 = tempReal;
+            var trendLineValue = ComputeTrendLine(inReal, ref today, smoothPeriod, ref iTrend1, ref iTrend2, ref iTrend3);
 
             if (today >= startIdx)
             {
-                outReal[outIdx++] = tempReal2;
+                outReal[outIdx++] = trendLineValue;
             }
 
             if (++smoothPriceIdx > smoothPriceSize - 1)
@@ -192,5 +138,34 @@ public static partial class Functions
         outRange = new Range(outBegIdx, outBegIdx + outIdx);
 
         return Core.RetCode.Success;
+    }
+
+    private static T ComputeTrendLine<T>(
+        ReadOnlySpan<T> real,
+        ref int today,
+        T smoothPeriod,
+        ref T iTrend1,
+        ref T iTrend2,
+        ref T iTrend3) where T : IFloatingPointIeee754<T>
+    {
+        var idx = today;
+        var tempReal = T.Zero;
+        var dcPeriod = Int32.CreateTruncating(smoothPeriod + T.CreateChecked(0.5));
+        for (var i = 0; i < dcPeriod; i++)
+        {
+            tempReal += real[idx--];
+        }
+
+        if (dcPeriod > 0)
+        {
+            tempReal /= T.CreateChecked(dcPeriod);
+        }
+
+        var trendLine = (Four<T>() * tempReal + Three<T>() * iTrend1 + Two<T>() * iTrend2 + iTrend3) / T.CreateChecked(10);
+        iTrend3 = iTrend2;
+        iTrend2 = iTrend1;
+        iTrend1 = tempReal;
+
+        return trendLine;
     }
 }

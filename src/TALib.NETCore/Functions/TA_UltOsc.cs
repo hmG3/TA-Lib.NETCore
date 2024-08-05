@@ -90,31 +90,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        Span<bool> usedFlag = new bool[3];
-        // Sort to ensure that the time periods are ordered from shortest to longest.
-        Span<int> periods = new[] { optInTimePeriod1, optInTimePeriod2, optInTimePeriod3 };
-        Span<int> sortedPeriods = new int[3];
-
-        for (var i = 0; i < 3; ++i)
-        {
-            int longestPeriod = default;
-            int longestIndex = default;
-            for (var j = 0; j < 3; j++)
-            {
-                if (!usedFlag[j] && periods[j] > longestPeriod)
-                {
-                    longestPeriod = periods[j];
-                    longestIndex = j;
-                }
-            }
-
-            usedFlag[longestIndex] = true;
-            sortedPeriods[i] = longestPeriod;
-        }
-
-        optInTimePeriod1 = sortedPeriods[2];
-        optInTimePeriod2 = sortedPeriods[1];
-        optInTimePeriod3 = sortedPeriods[0];
+        SortTimePeriods(ref optInTimePeriod1, ref optInTimePeriod2, ref optInTimePeriod3);
 
         var totals1 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod1, startIdx);
         var totals2 = CalcPrimeTotals(inLow, inHigh, inClose, optInTimePeriod2, startIdx);
@@ -176,6 +152,34 @@ public static partial class Functions
         outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
+    }
+
+    private static void SortTimePeriods(ref int optInTimePeriod1, ref int optInTimePeriod2, ref int optInTimePeriod3)
+    {
+        Span<bool> usedFlag = stackalloc bool[3];
+        Span<int> periods = [optInTimePeriod1, optInTimePeriod2, optInTimePeriod3];
+        Span<int> sortedPeriods = stackalloc int[3];
+
+        for (var i = 0; i < 3; ++i)
+        {
+            int longestPeriod = default;
+            int longestIndex = default;
+            for (var j = 0; j < 3; j++)
+            {
+                if (!usedFlag[j] && periods[j] > longestPeriod)
+                {
+                    longestPeriod = periods[j];
+                    longestIndex = j;
+                }
+            }
+
+            usedFlag[longestIndex] = true;
+            sortedPeriods[i] = longestPeriod;
+        }
+
+        optInTimePeriod1 = sortedPeriods[2];
+        optInTimePeriod2 = sortedPeriods[1];
+        optInTimePeriod3 = sortedPeriods[0];
     }
 
     private static void UpdateTrailingTotals<T>(

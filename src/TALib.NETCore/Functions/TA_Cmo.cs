@@ -101,7 +101,6 @@ public static partial class Functions
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
 
-        T prevGain, prevLoss;
         int outIdx = default;
 
         // Accumulate Wilder's "Average Gain" and "Average Loss" among the initial period.
@@ -110,27 +109,14 @@ public static partial class Functions
 
         // If there is an unstable period, no need to calculate since this first value will be surely skip.
         if (Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Cmo) == 0 &&
-            Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock)
+            Core.CompatibilitySettings.Get() == Core.CompatibilityMode.Metastock &&
+            ProcessCmoMetastockCompatibility(inReal, outReal, ref outRange, optInTimePeriod, endIdx, startIdx, ref prevValue, ref today,
+                ref outIdx, out var retCode))
         {
-            // Preserve prevValue because it may get overwritten by the output.
-            // (because output ptr could be the same as input ptr).
-            var savePrevValue = prevValue;
-
-            InitializeGainsAndLosses(inReal, ref today, ref prevValue, optInTimePeriod, out prevGain, out prevLoss);
-            WriteInitialCmoValue(prevGain, prevLoss, optInTimePeriod, outReal, ref outIdx);
-
-            if (today > endIdx)
-            {
-                outRange = new Range(startIdx, startIdx + outIdx);
-                return Core.RetCode.Success;
-            }
-
-            // Start over for the next price bar.
-            today -= optInTimePeriod;
-            prevValue = savePrevValue;
+            return retCode;
         }
 
-        InitializeGainsAndLosses(inReal, ref today, ref prevValue, optInTimePeriod, out prevGain, out prevLoss);
+        InitGainsAndLosses(inReal, ref today, ref prevValue, optInTimePeriod, out T prevGain, out T prevLoss);
 
         /* Subsequent prevLoss and prevGain are smoothed using the previous values (Wilder's approach).
          * 1) Multiply the previous by 'period - 1'.
@@ -173,6 +159,42 @@ public static partial class Functions
         outRange = new Range(startIdx, startIdx + outIdx);
 
         return Core.RetCode.Success;
+    }
+
+    private static bool ProcessCmoMetastockCompatibility<T>(
+        ReadOnlySpan<T> inReal,
+        Span<T> outReal,
+        ref Range outRange,
+        int optInTimePeriod,
+        int endIdx,
+        int startIdx,
+        ref T prevValue,
+        ref int today,
+        ref int outIdx,
+        out Core.RetCode retCode)
+        where T : IFloatingPointIeee754<T>
+    {
+        // Preserve prevValue because it may get overwritten by the output.
+        // (because output ptr could be the same as input ptr).
+        var savePrevValue = prevValue;
+
+        InitGainsAndLosses(inReal, ref today, ref prevValue, optInTimePeriod, out T prevGain, out T prevLoss);
+        WriteInitialCmoValue(prevGain, prevLoss, optInTimePeriod, outReal, ref outIdx);
+
+        if (today > endIdx)
+        {
+            outRange = new Range(startIdx, startIdx + outIdx);
+            retCode = Core.RetCode.Success;
+
+            return true;
+        }
+
+        // Start over for the next price bar.
+        today -= optInTimePeriod;
+        prevValue = savePrevValue;
+        retCode = Core.RetCode.Success;
+
+        return false;
     }
 
     private static void WriteInitialCmoValue<T>(

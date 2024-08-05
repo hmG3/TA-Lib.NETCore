@@ -116,7 +116,7 @@ public static partial class Functions
          * The outReal is then fill up for all element with the same period.
          * A local flag (value 0) is set in localPeriodArray to avoid doing a second time the same calculation.
          */
-        var retCode = CalculateMovingAverages(inReal, localPeriodArray, localOutputArray, new Range(startIdx, endIdx), outputSize, optInMAType,
+        var retCode = CalcMovingAverages(inReal, localPeriodArray, localOutputArray, new Range(startIdx, endIdx), outputSize, optInMAType,
             intermediateOutput);
         if (retCode != Core.RetCode.Success)
         {
@@ -134,7 +134,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode CalculateMovingAverages<T>(
+    private static Core.RetCode CalcMovingAverages<T>(
         ReadOnlySpan<T> real,
         Span<int> periodArray,
         Span<T> outputArray,

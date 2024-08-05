@@ -145,7 +145,7 @@ public static partial class Functions
         if (optInTimePeriod == 1)
         {
             // No smoothing needed. Just do a simple DM1 for each price bar.
-            return CalculateMinusDMForPeriodOne(inHigh, inLow, startIdx, endIdx, outReal, out outRange);
+            return CalcMinusDMForPeriodOne(inHigh, inLow, startIdx, endIdx, outReal, out outRange);
         }
 
         var outBegIdx = startIdx;
@@ -183,7 +183,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode CalculateMinusDMForPeriodOne<T>(
+    private static Core.RetCode CalcMinusDMForPeriodOne<T>(
         ReadOnlySpan<T> high,
         ReadOnlySpan<T> low,
         int startIdx,
