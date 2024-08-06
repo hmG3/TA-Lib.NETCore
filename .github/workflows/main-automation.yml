@@ -59,7 +59,7 @@ jobs:
         fail_ci_if_error: true
 
     - name: Upload test results to Codecov
-      if: ${{ !cancelled() }}
+      if: ${{ matrix.operating-system == 'ubuntu-latest' }}
       uses: codecov/test-results-action@v1
       with:
         file: ./tests/TALib.NETCore.Tests/TestResults/TestResults.xml
