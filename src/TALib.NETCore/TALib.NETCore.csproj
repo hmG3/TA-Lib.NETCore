@@ -4,8 +4,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>TALib</RootNamespace>
     <Nullable>enable</Nullable>
+    <Company>hmG3</Company>
     <Product>TALib.NETCore</Product>
-    <Description>A pure port to .NET (C#) of Technical Analysis Library</Description>
+    <Description>A modern port to .NET (C#) of Technical Analysis Library</Description>
     <Authors>Anatoliy Siryi</Authors>
     <Copyright>Anatoliy Siryi</Copyright>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
@@ -24,7 +25,7 @@
       <PackagePath>
       </PackagePath>
     </None>
-    
+
     <None Include="..\..\talib.png">
       <Pack>True</Pack>
       <Visible>False</Visible>
@@ -33,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
   </ItemGroup>
 
 </Project>

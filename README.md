@@ -1,17 +1,18 @@
 # Technical Analysis Library for .NET
 
-TALib.NETCore is an **unofficial** .NET port of the Technical Analysis Library (TA-Lib) - open-source ANSI C library of functions for technical analysis of financial time series data. It is written entirely in C# for the .NET platform. This repository contains the source code of the latest version of the library released under The 3-Clause BSD License. This makes it free to use, even in commercial projects, with some restrictions.
+TALib.NETCore is an independent .NET adaptation of the renowned Technical Analysis Library (TA-Lib) originally developed by Mario Fortier - an open-source ANSI C library, which offers a comprehensive suite of functions for technical analysis of financial time series data. \
+It is written entirely in C# for the .NET platform. This repository contains the source code of the library's latest version, licensed under The GNU Lesser General Public License. This license allows the library to be freely used, including in commercial projects, subject to certain conditions. \
 
 [![License](https://img.shields.io/github/license/hmG3/TA-Lib.NETCore?logo=open-source-initiative)](https://opensource.org/licenses/LGPL-3.0)
+[![.NET8.0](https://img.shields.io/badge/.NET-8.0-blue?style=flat-square)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 [![NuGet](https://img.shields.io/nuget/v/TALib.NETCore.svg?logo=nuget)](https://nuget.org/packages/TALib.NETCore)
-[![NuGet](https://img.shields.io/nuget/dt/TALib.NETCore.svg)](https://nuget.org/packages/TALib.NETCore)
-[![Build Status](https://github.com/hmG3/TA-Lib.NETCore/actions/workflows/dotnet.yml/badge.svg)](https://github.com/hmG3/TA-Lib.NETCore/actions/workflows/dotnet.yml)
+[![NuGet](https://img.shields.io/nuget/dt/TALib.NETCore.svg)](https://nuget.org/packages/TALib.NETCore)\
+[![Build status](https://github.com/hmG3/TA-Lib.NETCore/actions/workflows/main-automation.yml/badge.svg)](https://github.com/hmG3/TA-Lib.NETCore/actions/workflows/main-automation.yml)
 [![Coverage status](https://codecov.io/gh/hmG3/TA-Lib.NETCore/graph/badge.svg?token=5UZLT4JBHQ)](https://codecov.io/gh/hmG3/TA-Lib.NETCore)
+[![Maintainability rating](https://sonarcloud.io/api/project_badges/measure?project=hmG3_TA-Lib.NETCore&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=hmG3_TA-Lib.NETCore)
 [![Code quality](https://app.codacy.com/project/badge/Grade/6fcd7ac9e7d94c0d896638418318e2d0)](https://app.codacy.com/gh/hmG3/TA-Lib.NETCore/dashboard)
-
-## Supported frameworks
-
-- .NET 8
+[![CodeFactor](https://www.codefactor.io/repository/github/hmg3/ta-lib.netcore/badge)](https://www.codefactor.io/repository/github/hmg3/ta-lib.netcore)
+[![Security rating](https://sonarcloud.io/api/project_badges/measure?project=hmG3_TA-Lib.NETCore&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=hmG3_TA-Lib.NETCore)
 
 ## Installation
 
@@ -27,9 +28,7 @@ or in .NET Core CLI:
     dotnet add package TALib.NETCore
 ```
 
-## Updates and bug fixes
-
-For more recent versions please refer to:
+## References
 
 - [Homepage of TA-Lib](https://ta-lib.org/)
 - [Official GIT repository](https://github.com/TA-Lib/ta-lib)
