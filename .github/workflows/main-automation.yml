@@ -43,7 +43,7 @@ jobs:
         /d:sonar.cs.opencover.reportsPaths=tests/TALib.NETCore.Tests/coverage/opencover-coverage.xml
 
     - name: Run tests & report coverage
-      run: dotnet test --logger "console;verbosity=normal"
+      run: dotnet test --logger "console;verbosity=normal" --logger "junit"
         /p:CollectCoverage=true
         /p:CoverletOutputFormat=opencover
         /p:CoverletOutput=coverage/opencover-coverage.xml
@@ -57,6 +57,13 @@ jobs:
         file: ./tests/TALib.NETCore.Tests/coverage/opencover-coverage.xml
         flags: unittests
         fail_ci_if_error: true
+
+    - name: Upload test results to Codecov
+      if: ${{ !cancelled() }}
+      uses: codecov/test-results-action@v1
+      with:
+        file: ./tests/TALib.NETCore.Tests/TestResults/TestResults.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Upload coverage to Codacy
       if: ${{ matrix.operating-system == 'ubuntu-latest' }}
