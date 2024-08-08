@@ -54,13 +54,13 @@ public sealed class JsonFileDataAttribute : DataAttribute
                     throw new JsonException($"Could not find property {_propertyName}");
                 }
 
-                dataModels = (IEnumerable<object>) dataProperty.ToObject(_targetCollectionType,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                dataModels = (dataProperty.ToObject(_targetCollectionType,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) as IEnumerable<object>)!;
             }
             else
             {
-                dataModels = (IEnumerable<object>) dataDocument.ToObject(_targetCollectionType,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                dataModels = (dataDocument.ToObject(_targetCollectionType,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) as IEnumerable<object>)!;
             }
         }
 

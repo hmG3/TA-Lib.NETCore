@@ -165,16 +165,17 @@ public static partial class Functions
         T smoothPeriod) where T : IFloatingPointIeee754<T>
     {
         var tempReal = T.Abs(imagPart);
+        T dcPhaseValue = T.Zero;
         if (tempReal > T.Zero)
         {
-            dcPhase = T.RadiansToDegrees(T.Atan(realPart / imagPart));
+            dcPhaseValue = T.RadiansToDegrees(T.Atan(realPart / imagPart));
         }
         else if (tempReal <= T.CreateChecked(0.01))
         {
-            dcPhase = AdjustPhaseForSmallImaginaryPart(realPart, dcPhase);
+            dcPhaseValue = AdjustPhaseForSmallImaginaryPart(realPart, dcPhase);
         }
 
-        dcPhase = FinalPhaseAdjustments(imagPart, dcPhase, smoothPeriod);
+        dcPhase = FinalPhaseAdjustments(imagPart, dcPhaseValue, smoothPeriod);
 
         return dcPhase;
     }

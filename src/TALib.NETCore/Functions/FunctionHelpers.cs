@@ -407,30 +407,33 @@ internal static class FunctionHelpers
         where T : IFloatingPointIeee754<T>
     {
         var tmp = input[today];
-        if (lowestIdx < trailingIdx)
+        var lIdx = lowestIdx;
+        var l = lowest;
+
+        if (lIdx < trailingIdx)
         {
-            lowestIdx = trailingIdx;
-            lowest = input[lowestIdx];
-            var i = lowestIdx;
+            lIdx = trailingIdx;
+            l = input[lIdx];
+            var i = lIdx;
             while (++i <= today)
             {
                 tmp = input[i];
-                if (tmp > lowest)
+                if (tmp > l)
                 {
                     continue;
                 }
 
-                lowestIdx = i;
-                lowest = tmp;
+                lIdx = i;
+                l = tmp;
             }
         }
-        else if (tmp <= lowest)
+        else if (tmp <= l)
         {
-            lowestIdx = today;
-            lowest = tmp;
+            lIdx = today;
+            l = tmp;
         }
 
-        return (lowestIdx, lowest);
+        return (lIdx, l);
     }
 
     public static (int, T) CalcHighest<T>(
@@ -442,30 +445,33 @@ internal static class FunctionHelpers
         where T : IFloatingPointIeee754<T>
     {
         var tmp = input[today];
-        if (highestIdx < trailingIdx)
+        var hIdx = highestIdx;
+        var h = highest;
+
+        if (hIdx < trailingIdx)
         {
-            highestIdx = trailingIdx;
-            highest = input[highestIdx];
-            var i = highestIdx;
+            hIdx = trailingIdx;
+            h = input[hIdx];
+            var i = hIdx;
             while (++i <= today)
             {
                 tmp = input[i];
-                if (tmp < highest)
+                if (tmp < h)
                 {
                     continue;
                 }
 
-                highestIdx = i;
-                highest = tmp;
+                hIdx = i;
+                h = tmp;
             }
         }
-        else if (tmp >= highest)
+        else if (tmp >= h)
         {
-            highestIdx = today;
-            highest = tmp;
+            hIdx = today;
+            h = tmp;
         }
 
-        return (highestIdx, highest);
+        return (hIdx, h);
     }
 
     public static void InitDMAndTR<T>(

@@ -134,7 +134,7 @@ public static partial class Functions
         }
 
         int outIdx;
-        if (optInTimePeriod % 2 == 1)
+        if (optInTimePeriod % 2 != 0)
         {
             ProcessOdd(inReal, startIdx, endIdx, optInTimePeriod, lookbackTotal, outReal, out outIdx);
         }

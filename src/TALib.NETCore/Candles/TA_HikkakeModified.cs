@@ -169,19 +169,21 @@ public static partial class Candles
         int nearTrailingIdx,
         int endIdx) where T : IFloatingPointIeee754<T>
     {
+        var pResult = patternResult;
+        var pIdx = patternIdx;
         do
         {
             if (IsHikkakeModifiedPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal))
             {
-                patternResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
-                patternIdx = i;
-                outIntType[outIdx++] = patternResult;
+                pResult = 100 * (inHigh[i] < inHigh[i - 1] ? 1 : -1);
+                pIdx = i;
+                outIntType[outIdx++] = pResult;
             }
             // search for confirmation if modified hikkake was no more than 3 bars ago
-            else if (IsHikkakeModifiedPatternConfirmation(inHigh, inLow, inClose, i, patternIdx, patternResult))
+            else if (IsHikkakeModifiedPatternConfirmation(inHigh, inLow, inClose, i, pIdx, pResult))
             {
-                outIntType[outIdx++] = patternResult + 100 * (patternResult > 0 ? 1 : -1);
-                patternIdx = 0;
+                outIntType[outIdx++] = pResult + 100 * (pResult > 0 ? 1 : -1);
+                pIdx = 0;
             }
             else
             {
