@@ -34,7 +34,7 @@ public static partial class Candles
         PiercingImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     [PublicAPI]
-    public static int PiercingLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 1;
+    public static int PiercingLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 1;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -79,12 +79,12 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         Span<T> bodyLongPeriodTotal = new T[2];
-        var bodyLongTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
+        var bodyLongTrailingIdx = startIdx - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var i = bodyLongTrailingIdx;
         while (i < startIdx)
         {
-            bodyLongPeriodTotal[1] += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 1);
-            bodyLongPeriodTotal[0] += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
+            bodyLongPeriodTotal[1] += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 1);
+            bodyLongPeriodTotal[0] += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
             i++;
         }
 
@@ -110,8 +110,9 @@ public static partial class Candles
             for (var totIdx = 1; totIdx >= 0; --totIdx)
             {
                 bodyLongPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - totIdx) -
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx - totIdx);
+                    CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - totIdx) -
+                    CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong,
+                        bodyLongTrailingIdx - totIdx);
             }
 
             i++;
@@ -131,19 +132,19 @@ public static partial class Candles
         int i,
         Span<T> bodyLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // 1st: black
-        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
         // long body
-        RealBody(inClose, inOpen, i - 1) >
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal[1], i - 1) &&
+        CandleHelpers.RealBody(inClose, inOpen, i - 1) >
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal[1], i - 1) &&
         // 2nd: white
-        CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+        CandleHelpers.CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
         // long body
-        RealBody(inClose, inOpen, i) >
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal[0], i) &&
+        CandleHelpers.RealBody(inClose, inOpen, i) >
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal[0], i) &&
         // open below prior low
         inOpen[i] < inLow[i - 1] &&
         // close within prior body
         inClose[i] < inOpen[i - 1] &&
         // above midpoint
-        inClose[i] > inClose[i - 1] + RealBody(inClose, inOpen, i - 1) * T.CreateChecked(0.5);
+        inClose[i] > inClose[i - 1] + CandleHelpers.RealBody(inClose, inOpen, i - 1) * T.CreateChecked(0.5);
 }

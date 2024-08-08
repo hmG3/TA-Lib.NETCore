@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -95,7 +95,7 @@ public static partial class Candles
         do
         {
             outIntType[outIdx++] = IsUpDownSideGapThreeMethodsPattern(inOpen, inClose, i)
-                ? (int) CandleColor(inClose, inOpen, i - 2) * 100
+                ? (int) CandleHelpers.CandleColor(inClose, inOpen, i - 2) * 100
                 : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
@@ -111,22 +111,22 @@ public static partial class Candles
     private static bool IsUpDownSideGapThreeMethodsPattern<T>(ReadOnlySpan<T> inOpen, ReadOnlySpan<T> inClose, int i)
         where T : IFloatingPointIeee754<T> =>
         // 1st and 2nd of same color
-        CandleColor(inClose, inOpen, i - 2) == CandleColor(inClose, inOpen, i - 1) &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 2) == CandleHelpers.CandleColor(inClose, inOpen, i - 1) &&
         // 3rd opposite color
-        (int) CandleColor(inClose, inOpen, i - 1) == -(int) CandleColor(inClose, inOpen, i) &&
+        (int) CandleHelpers.CandleColor(inClose, inOpen, i - 1) == -(int) CandleHelpers.CandleColor(inClose, inOpen, i) &&
         // 3rd opens within 2nd rb
         inOpen[i] < T.Max(inClose[i - 1], inOpen[i - 1]) && inOpen[i] > T.Min(inClose[i - 1], inOpen[i - 1]) &&
         // 3rd closes within 1st rb
         inClose[i] < T.Max(inClose[i - 2], inOpen[i - 2]) && inClose[i] > T.Min(inClose[i - 2], inOpen[i - 2]) &&
         (
             // when 1st is white
-            CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+            CandleHelpers.CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
             // upside gap
-            RealBodyGapUp(inOpen, inClose, i - 1, i - 2)
+            CandleHelpers.RealBodyGapUp(inOpen, inClose, i - 1, i - 2)
             ||
             // when 1st is black
-            CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+            CandleHelpers.CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
             // downside gap
-            RealBodyGapDown(inOpen, inClose, i - 1, i - 2)
+            CandleHelpers.RealBodyGapDown(inOpen, inClose, i - 1, i - 2)
         );
 }

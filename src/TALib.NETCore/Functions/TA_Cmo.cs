@@ -69,7 +69,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -137,7 +137,7 @@ public static partial class Functions
         if (today > startIdx)
         {
             var tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !T.IsZero(tempValue1) ? Hundred<T>() * ((prevGain - prevLoss) / tempValue1) : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tempValue1) ? FunctionHelpers.Hundred<T>() * ((prevGain - prevLoss) / tempValue1) : T.Zero;
         }
         else
         {
@@ -153,7 +153,7 @@ public static partial class Functions
         {
             ProcessToday(inReal, ref today, ref prevValue, ref prevGain, ref prevLoss, timePeriod);
             var tempValue1 = prevGain + prevLoss;
-            outReal[outIdx++] = !T.IsZero(tempValue1) ? Hundred<T>() * ((prevGain - prevLoss) / tempValue1) : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tempValue1) ? FunctionHelpers.Hundred<T>() * ((prevGain - prevLoss) / tempValue1) : T.Zero;
         }
 
         outRange = new Range(startIdx, startIdx + outIdx);
@@ -211,6 +211,6 @@ public static partial class Functions
         var tempValue3 = tempValue2 - tempValue1;
         var tempValue4 = tempValue1 + tempValue2;
 
-        outReal[outIdx++] = !T.IsZero(tempValue4) ? Hundred<T>() * (tempValue3 / tempValue4) : T.Zero;
+        outReal[outIdx++] = !T.IsZero(tempValue4) ? FunctionHelpers.Hundred<T>() * (tempValue3 / tempValue4) : T.Zero;
     }
 }

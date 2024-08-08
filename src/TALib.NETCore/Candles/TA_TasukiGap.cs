@@ -34,7 +34,7 @@ public static partial class Candles
         TasukiGapImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     [PublicAPI]
-    public static int TasukiGapLookback() => CandleAveragePeriod(Core.CandleSettingType.Near) + 2;
+    public static int TasukiGapLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near) + 2;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -79,11 +79,11 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         var nearPeriodTotal = T.Zero;
-        var nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
+        var nearTrailingIdx = startIdx - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near);
         var i = nearTrailingIdx;
         while (i < startIdx)
         {
-            nearPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1);
+            nearPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1);
             i++;
         }
 
@@ -106,14 +106,14 @@ public static partial class Candles
         do
         {
             outIntType[outIdx++] = IsTasukiGapPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal)
-                ? (int) CandleColor(inClose, inOpen, i - 1) * 100
+                ? (int) CandleHelpers.CandleColor(inClose, inOpen, i - 1) * 100
                 : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             nearPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
 
             i++;
             nearTrailingIdx++;
@@ -133,11 +133,11 @@ public static partial class Candles
         T nearPeriodTotal) where T : IFloatingPointIeee754<T> =>
         (
             // upside gap
-            RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
+            CandleHelpers.RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
             // 1st: white
-            CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+            CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
             // 2nd: black
-            CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+            CandleHelpers.CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
             // that opens within the white real body
             inOpen[i] < inClose[i - 1] && inOpen[i] > inOpen[i - 1] &&
             // and closes under the white real body
@@ -145,17 +145,17 @@ public static partial class Candles
             // inside the gap
             inClose[i] > T.Max(inClose[i - 2], inOpen[i - 2]) &&
             // size of 2 real body near the same
-            T.Abs(RealBody(inClose, inOpen, i - 1) - RealBody(inClose, inOpen, i)) <
-            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
+            T.Abs(CandleHelpers.RealBody(inClose, inOpen, i - 1) - CandleHelpers.RealBody(inClose, inOpen, i)) <
+            CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
         )
         ||
         (
             // downside gap
-            RealBodyGapDown(inOpen, inClose, i - 1, i - 2) &&
+            CandleHelpers.RealBodyGapDown(inOpen, inClose, i - 1, i - 2) &&
             // 1st: black
-            CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+            CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
             // 2nd: white
-            CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+            CandleHelpers.CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
             // that opens within the black rb
             inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] &&
             // and closes above the black rb
@@ -163,7 +163,7 @@ public static partial class Candles
             // inside the gap
             inClose[i] < T.Min(inClose[i - 2], inOpen[i - 2]) &&
             // size of 2 real body near the same
-            T.Abs(RealBody(inClose, inOpen, i - 1) - RealBody(inClose, inOpen, i)) <
-            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
+            T.Abs(CandleHelpers.RealBody(inClose, inOpen, i - 1) - CandleHelpers.RealBody(inClose, inOpen, i)) <
+            CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1)
         );
 }

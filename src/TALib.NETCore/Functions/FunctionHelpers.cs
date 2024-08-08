@@ -18,13 +18,11 @@
  * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
  */
 
-using System.Linq;
-
 namespace TALib;
 
-public static partial class Functions
+internal static class FunctionHelpers
 {
-    private static Core.RetCode CalcExponentialMA<T>(
+    public static Core.RetCode CalcExponentialMA<T>(
         ReadOnlySpan<T> inReal,
         Range inRange,
         Span<T> outReal,
@@ -37,7 +35,7 @@ public static partial class Functions
         var startIdx = inRange.Start.Value;
         var endIdx = inRange.End.Value;
 
-        var lookbackTotal = EmaLookback(optInTimePeriod);
+        var lookbackTotal = Functions.EmaLookback(optInTimePeriod);
         startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
@@ -106,7 +104,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode CalcMACD<T>(
+    public static Core.RetCode CalcMACD<T>(
         ReadOnlySpan<T> inReal,
         Range inRange,
         Span<T> outMacd,
@@ -133,7 +131,7 @@ public static partial class Functions
         // Catch special case for fix 26/12 MACD.
         if (optInSlowPeriod != 0)
         {
-            k1 = Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
+            k1 = FunctionHelpers.Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
         }
         else
         {
@@ -143,7 +141,7 @@ public static partial class Functions
 
         if (optInFastPeriod != 0)
         {
-            k2 = Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
+            k2 = FunctionHelpers.Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
         }
         else
         {
@@ -151,8 +149,8 @@ public static partial class Functions
             k2 = T.CreateChecked(0.15); // Fix 12
         }
 
-        var lookbackSignal = EmaLookback(optInSignalPeriod);
-        var lookbackTotal = MacdLookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
+        var lookbackSignal = Functions.EmaLookback(optInSignalPeriod);
+        var lookbackTotal = Functions.MacdLookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
         startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
@@ -196,7 +194,7 @@ public static partial class Functions
 
         // Calculate the signal/trigger line.
         retCode = CalcExponentialMA(fastEMABuffer, Range.EndAt(nbElement1 - 1), outMacdSignal, out var outRange2, optInSignalPeriod,
-            Two<T>() / (T.CreateChecked(optInSignalPeriod) + T.One));
+            FunctionHelpers.Two<T>() / (T.CreateChecked(optInSignalPeriod) + T.One));
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -214,7 +212,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode CalcPriceOscillator<T>(
+    public static Core.RetCode CalcPriceOscillator<T>(
         ReadOnlySpan<T> inReal,
         Range inRange,
         Span<T> outReal,
@@ -234,14 +232,14 @@ public static partial class Functions
         }
 
         // Calculate the fast MA into the tempBuffer.
-        var retCode = MaImpl(inReal, inRange, tempBuffer, out var outRange2, optInFastPeriod, optInMethod);
+        var retCode = Functions.Ma(inReal, inRange, tempBuffer, out var outRange2, optInFastPeriod, optInMethod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
         }
 
         // Calculate the slow MA into the output.
-        retCode = MaImpl(inReal, inRange, outReal, out var outRange1, optInSlowPeriod, optInMethod);
+        retCode = Functions.Ma(inReal, inRange, outReal, out var outRange1, optInSlowPeriod, optInMethod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -267,7 +265,7 @@ public static partial class Functions
         return retCode;
     }
 
-    private static Core.RetCode CalcSimpleMA<T>(
+    public static Core.RetCode CalcSimpleMA<T>(
         ReadOnlySpan<T> inReal,
         Range inRange,
         Span<T> outReal,
@@ -279,7 +277,7 @@ public static partial class Functions
         var startIdx = inRange.Start.Value;
         var endIdx = inRange.End.Value;
 
-        var lookbackTotal = SmaLookback(optInTimePeriod);
+        var lookbackTotal = Functions.SmaLookback(optInTimePeriod);
         startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
@@ -313,7 +311,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static Core.RetCode CalcVariance<T>(
+    public static Core.RetCode CalcVariance<T>(
         ReadOnlySpan<T> inReal,
         Range inRange,
         Span<T> outReal,
@@ -325,7 +323,7 @@ public static partial class Functions
         var startIdx = inRange.Start.Value;
         var endIdx = inRange.End.Value;
 
-        var lookbackTotal = VarLookback(optInTimePeriod);
+        var lookbackTotal = Functions.VarLookback(optInTimePeriod);
         startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
@@ -378,7 +376,7 @@ public static partial class Functions
         return Core.RetCode.Success;
     }
 
-    private static T CalcAccumulationDistribution<T>(
+    public static T CalcAccumulationDistribution<T>(
         ReadOnlySpan<T> high,
         ReadOnlySpan<T> low,
         ReadOnlySpan<T> close,
@@ -400,7 +398,7 @@ public static partial class Functions
         return ad;
     }
 
-    private static (int, T) CalcLowest<T>(
+    public static (int, T) CalcLowest<T>(
         ReadOnlySpan<T> input,
         int trailingIdx,
         int today,
@@ -435,7 +433,7 @@ public static partial class Functions
         return (lowestIdx, lowest);
     }
 
-    private static (int, T) CalcHighest<T>(
+    public static (int, T) CalcHighest<T>(
         ReadOnlySpan<T> input,
         int trailingIdx,
         int today,
@@ -470,7 +468,7 @@ public static partial class Functions
         return (highestIdx, highest);
     }
 
-    private static void InitDMAndTR<T>(
+    public static void InitDMAndTR<T>(
         ReadOnlySpan<T> high,
         ReadOnlySpan<T> low,
         ReadOnlySpan<T> close,
@@ -496,7 +494,7 @@ public static partial class Functions
         }
     }
 
-    private static void UpdateDMAndTR<T>(
+    public static void UpdateDMAndTR<T>(
         ReadOnlySpan<T> high,
         ReadOnlySpan<T> low,
         ReadOnlySpan<T> close,
@@ -540,7 +538,7 @@ public static partial class Functions
         prevClose = close[today];
     }
 
-    private static (T diffP, T diffM) CalcDeltas<T>(
+    public static (T diffP, T diffM) CalcDeltas<T>(
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
         int today,
@@ -555,7 +553,7 @@ public static partial class Functions
         return (diffP, diffM);
     }
 
-    private static (T minusDI, T plusDI) CalcDI<T>(T prevMinusDM, T prevPlusDM, T prevTR) where T : IFloatingPointIeee754<T>
+    public static (T minusDI, T plusDI) CalcDI<T>(T prevMinusDM, T prevPlusDM, T prevTR) where T : IFloatingPointIeee754<T>
     {
         var minusDI = Hundred<T>() * (prevMinusDM / prevTR);
         var plusDI = Hundred<T>() * (prevPlusDM / prevTR);
@@ -563,7 +561,7 @@ public static partial class Functions
         return (minusDI, plusDI);
     }
 
-    private static T TrueRange<T>(T th, T tl, T yc) where T : IFloatingPointIeee754<T>
+    public static T TrueRange<T>(T th, T tl, T yc) where T : IFloatingPointIeee754<T>
     {
         // Find the greatest of the 3 values.
         var range = th - tl;
@@ -573,7 +571,7 @@ public static partial class Functions
         return range;
     }
 
-    private static void DoPriceWma<T>(
+    public static void DoPriceWma<T>(
         ReadOnlySpan<T> real,
         ref int idx,
         ref T periodWMASub,
@@ -584,13 +582,13 @@ public static partial class Functions
     {
         periodWMASub += varNewPrice;
         periodWMASub -= trailingWMAValue;
-        periodWMASum += varNewPrice * Four<T>();
+        periodWMASum += varNewPrice * FunctionHelpers.Four<T>();
         trailingWMAValue = real[idx++];
         varToStoreSmoothedValue = periodWMASum * T.CreateChecked(0.1);
         periodWMASum -= periodWMASub;
     }
 
-    private static class HTHelper
+    public static class HTHelper
     {
         public enum HilbertKeys
         {
@@ -650,10 +648,10 @@ public static partial class Functions
             periodWMASum = tempReal;
             tempReal = real[today++];
             periodWMASub += tempReal;
-            periodWMASum += tempReal * Two<T>();
+            periodWMASum += tempReal * FunctionHelpers.Two<T>();
             tempReal = real[today++];
             periodWMASub += tempReal;
-            periodWMASum += tempReal * Three<T>();
+            periodWMASum += tempReal * FunctionHelpers.Three<T>();
 
             trailingWMAValue = T.Zero;
 
@@ -752,7 +750,7 @@ public static partial class Functions
             var tempReal1 = period;
             if (!T.IsZero(im) && !T.IsZero(re))
             {
-                period = Ninety<T>() * Four<T>() / T.RadiansToDegrees(T.Atan(im / re));
+                period = Ninety<T>() * FunctionHelpers.Four<T>() / T.RadiansToDegrees(T.Atan(im / re));
             }
 
             var tempReal2 = T.CreateChecked(1.5) * tempReal1;
@@ -793,19 +791,27 @@ public static partial class Functions
         }
     }
 
-    private static T Two<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(2);
+    public static T Two<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(2);
 
-    private static T Three<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(3);
+    public static T Three<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(3);
 
-    private static T Four<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(4);
+    public static T Four<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(4);
 
-    private static T Ninety<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(90);
+    public static T Ninety<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(90);
 
-    private static T Hundred<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(100);
+    public static T Hundred<T>() where T : IFloatingPointIeee754<T> => T.CreateChecked(100);
 
-    private static (int startIndex, int endIndex)? ValidateInputRange(Range inRange, params int[] inputLengths)
+    public static (int startIndex, int endIndex)? ValidateInputRange(Range inRange, params int[] inputLengths)
     {
-        var inputLength = inputLengths.Min();
+        var inputLength = Int32.MaxValue;
+
+        foreach (var length in inputLengths)
+        {
+            if (length < inputLength)
+            {
+                inputLength = length;
+            }
+        }
 
         var startIdx = !inRange.Start.IsFromEnd ? inRange.Start.Value : inputLength - 1 - inRange.Start.Value;
         var endIdx = !inRange.End.IsFromEnd ? inRange.End.Value : inputLength - 1 - inRange.End.Value;

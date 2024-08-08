@@ -55,7 +55,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -111,8 +111,8 @@ public static partial class Functions
         }
 
         // Calculate the first EMA
-        var k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
-        var retCode = CalcExponentialMA(
+        var k = FunctionHelpers.Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
+        var retCode = FunctionHelpers.CalcExponentialMA(
             inReal, new Range(startIdx - lookbackEMA, endIdx), firstEMA, out var firstEMARange, optInTimePeriod, k);
         var firstEMANbElement = firstEMARange.End.Value - firstEMARange.Start.Value;
         if (retCode != Core.RetCode.Success || firstEMANbElement == 0)
@@ -122,7 +122,8 @@ public static partial class Functions
 
         // Allocate a temporary buffer for storing the EMA of the EMA.
         Span<T> secondEMA = new T[firstEMANbElement];
-        retCode = CalcExponentialMA(firstEMA, Range.EndAt(firstEMANbElement - 1), secondEMA, out var secondEMARange, optInTimePeriod, k);
+        retCode = FunctionHelpers.CalcExponentialMA(firstEMA, Range.EndAt(firstEMANbElement - 1), secondEMA, out var secondEMARange,
+            optInTimePeriod, k);
         var secondEMABegIdx = secondEMARange.Start.Value;
         var secondEMANbElement = secondEMARange.End.Value - secondEMABegIdx;
         if (retCode != Core.RetCode.Success || secondEMANbElement == 0)
@@ -135,7 +136,7 @@ public static partial class Functions
         int outIdx = default;
         while (outIdx < secondEMANbElement)
         {
-            outReal[outIdx] = Two<T>() * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
+            outReal[outIdx] = FunctionHelpers.Two<T>() * firstEMA[firstEMAIdx++] - secondEMA[outIdx];
             outIdx++;
         }
 

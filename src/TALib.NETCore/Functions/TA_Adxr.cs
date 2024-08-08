@@ -62,7 +62,8 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length, inClose.Length) is not
+            { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -97,7 +98,7 @@ public static partial class Functions
         var nbElement = endIdx - startIdx + 2;
         while (--nbElement != 0)
         {
-            outReal[outIdx++] = (adx[i++] + adx[j++]) / Two<T>();
+            outReal[outIdx++] = (adx[i++] + adx[j++]) / FunctionHelpers.Two<T>();
         }
 
         outRange = new Range(startIdx, startIdx + outIdx);

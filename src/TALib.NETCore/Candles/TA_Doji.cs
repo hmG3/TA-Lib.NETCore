@@ -34,7 +34,7 @@ public static partial class Candles
         DojiImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     [PublicAPI]
-    public static int DojiLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
+    public static int DojiLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -79,11 +79,11 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         var bodyDojiPeriodTotal = T.Zero;
-        var bodyDojiTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
+        var bodyDojiTrailingIdx = startIdx - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
         var i = bodyDojiTrailingIdx;
         while (i < startIdx)
         {
-            bodyDojiPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
+            bodyDojiPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
 
@@ -104,8 +104,8 @@ public static partial class Candles
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             bodyDojiPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i) -
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiTrailingIdx);
 
             i++;
             bodyDojiTrailingIdx++;
@@ -124,6 +124,6 @@ public static partial class Candles
         int i,
         T bodyDojiPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // doji body
-        RealBody(inClose, inOpen, i) <=
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i);
+        CandleHelpers.RealBody(inClose, inOpen, i) <=
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, bodyDojiPeriodTotal, i);
 }

@@ -68,7 +68,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -101,7 +101,7 @@ public static partial class Functions
             var tempReal = inHigh[i] + inLow[i];
             if (!T.IsZero(tempReal))
             {
-                tempReal = Four<T>() * (inHigh[i] - inLow[i]) / tempReal;
+                tempReal = FunctionHelpers.Four<T>() * (inHigh[i] - inLow[i]) / tempReal;
                 tempBuffer1[j] = inHigh[i] * (T.One + tempReal);
                 tempBuffer2[j] = inLow[i] * (T.One - tempReal);
             }

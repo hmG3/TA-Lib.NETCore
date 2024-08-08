@@ -62,7 +62,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -107,7 +107,8 @@ public static partial class Functions
 
         // First value of the ATR is a simple Average of the TRange output for the specified period.
         Span<T> prevATRTemp = new T[1];
-        retCode = CalcSimpleMA(tempBuffer, new Range(optInTimePeriod - 1, optInTimePeriod - 1), prevATRTemp, out _, optInTimePeriod);
+        retCode = FunctionHelpers.CalcSimpleMA(tempBuffer, new Range(optInTimePeriod - 1, optInTimePeriod - 1), prevATRTemp, out _,
+            optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;

@@ -18,40 +18,38 @@
  * along with Technical Analysis Library for .NET. If not, see <https://www.gnu.org/licenses/>.
  */
 
-using System.Linq;
-
 namespace TALib;
 
-public static partial class Candles
+internal static class CandleHelpers
 {
-    private static T RealBody<T>(ReadOnlySpan<T> close, ReadOnlySpan<T> open, int idx) where T : IFloatingPointIeee754<T> =>
+    public static T RealBody<T>(ReadOnlySpan<T> close, ReadOnlySpan<T> open, int idx) where T : IFloatingPointIeee754<T> =>
         T.Abs(close[idx] - open[idx]);
 
-    private static T UpperShadow<T>(
+    public static T UpperShadow<T>(
         ReadOnlySpan<T> high,
         ReadOnlySpan<T> close,
         ReadOnlySpan<T> open,
         int idx) where T : IFloatingPointIeee754<T> => high[idx] - (close[idx] >= open[idx] ? close[idx] : open[idx]);
 
-    private static T LowerShadow<T>(
+    public static T LowerShadow<T>(
         ReadOnlySpan<T> close,
         ReadOnlySpan<T> open,
         ReadOnlySpan<T> low,
         int idx) where T : IFloatingPointIeee754<T> => (close[idx] >= open[idx] ? open[idx] : close[idx]) - low[idx];
 
-    private static T HighLowRange<T>(ReadOnlySpan<T> high, ReadOnlySpan<T> low, int idx) where T : IFloatingPointIeee754<T> =>
+    public static T HighLowRange<T>(ReadOnlySpan<T> high, ReadOnlySpan<T> low, int idx) where T : IFloatingPointIeee754<T> =>
         high[idx] - low[idx];
 
-    private static Core.CandleColor CandleColor<T>(ReadOnlySpan<T> close, ReadOnlySpan<T> open, int idx)
+    public static Core.CandleColor CandleColor<T>(ReadOnlySpan<T> close, ReadOnlySpan<T> open, int idx)
         where T : IFloatingPointIeee754<T> => close[idx] >= open[idx] ? Core.CandleColor.White : Core.CandleColor.Black;
 
-    private static Core.CandleRangeType CandleRangeType(Core.CandleSettingType set) => Core.CandleSettings.Get(set).RangeType;
+    public static Core.CandleRangeType CandleRangeType(Core.CandleSettingType set) => Core.CandleSettings.Get(set).RangeType;
 
-    private static int CandleAveragePeriod(Core.CandleSettingType set) => Core.CandleSettings.Get(set).AveragePeriod;
+    public static int CandleAveragePeriod(Core.CandleSettingType set) => Core.CandleSettings.Get(set).AveragePeriod;
 
-    private static double CandleFactor(Core.CandleSettingType set) => Core.CandleSettings.Get(set).Factor;
+    public static double CandleFactor(Core.CandleSettingType set) => Core.CandleSettings.Get(set).Factor;
 
-    private static T CandleRange<T>(
+    public static T CandleRange<T>(
         ReadOnlySpan<T> open,
         ReadOnlySpan<T> high,
         ReadOnlySpan<T> low,
@@ -59,13 +57,14 @@ public static partial class Candles
         Core.CandleSettingType set,
         int idx) where T : IFloatingPointIeee754<T> => CandleRangeType(set) switch
     {
-        Core.CandleRangeType.RealBody => RealBody(close, open, idx),
+        Core.CandleRangeType.RealBody => CandleHelpers.RealBody(close, open, idx),
         Core.CandleRangeType.HighLow => HighLowRange(high, low, idx),
-        Core.CandleRangeType.Shadows => UpperShadow(high, close, open, idx) + LowerShadow(close, open, low, idx),
+        Core.CandleRangeType.Shadows => CandleHelpers.UpperShadow(high, close, open, idx) +
+                                        CandleHelpers.LowerShadow(close, open, low, idx),
         _ => T.Zero
     };
 
-    private static T CandleAverage<T>(
+    public static T CandleAverage<T>(
         ReadOnlySpan<T> open,
         ReadOnlySpan<T> high,
         ReadOnlySpan<T> low,
@@ -74,45 +73,35 @@ public static partial class Candles
         T sum,
         int idx) where T : IFloatingPointIeee754<T>
     {
-        var candleAveragePeriod = T.CreateChecked(CandleAveragePeriod(set));
+        var candleAveragePeriod = T.CreateChecked(CandleHelpers.CandleAveragePeriod(set));
         var candleFactor = T.CreateChecked(CandleFactor(set));
         return candleFactor * (!T.IsZero(candleAveragePeriod)
                    ? sum / candleAveragePeriod
-                   : CandleRange(open, high, low, close, set, idx)) /
+                   : CandleHelpers.CandleRange(open, high, low, close, set, idx)) /
                (CandleRangeType(set) == Core.CandleRangeType.Shadows ? T.CreateChecked(2) : T.One);
     }
 
-    private static bool RealBodyGapUp<T>(
+    public static bool RealBodyGapUp<T>(
         ReadOnlySpan<T> open,
         ReadOnlySpan<T> close,
         int idx2,
         int idx1) where T : IFloatingPointIeee754<T> => T.Min(open[idx2], close[idx2]) > T.Max(open[idx1], close[idx1]);
 
-    private static bool RealBodyGapDown<T>(
+    public static bool RealBodyGapDown<T>(
         ReadOnlySpan<T> open,
         ReadOnlySpan<T> close,
         int idx2,
         int idx1) where T : IFloatingPointIeee754<T> => T.Max(open[idx2], close[idx2]) < T.Min(open[idx1], close[idx1]);
 
-    private static bool CandleGapUp<T>(
+    public static bool CandleGapUp<T>(
         ReadOnlySpan<T> low,
         ReadOnlySpan<T> high,
         int idx2,
         int idx1) where T : IFloatingPointIeee754<T> => low[idx2] > high[idx1];
 
-    private static bool CandleGapDown<T>(
+    public static bool CandleGapDown<T>(
         ReadOnlySpan<T> low,
         ReadOnlySpan<T> high,
         int idx2,
         int idx1) where T : IFloatingPointIeee754<T> => high[idx2] < low[idx1];
-
-    private static (int startIndex, int endIndex)? ValidateInputRange(Range inRange, params int[] inputLengths)
-    {
-        var inputLength = inputLengths.Min();
-
-        var startIdx = !inRange.Start.IsFromEnd ? inRange.Start.Value : inputLength - 1 - inRange.Start.Value;
-        var endIdx = !inRange.End.IsFromEnd ? inRange.End.Value : inputLength - 1 - inRange.End.Value;
-
-        return startIdx >= 0 && endIdx > 0 && endIdx >= startIdx && endIdx < inputLength ? (startIdx, endIdx) : null;
-    }
 }

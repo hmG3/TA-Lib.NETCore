@@ -61,7 +61,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -92,7 +92,7 @@ public static partial class Functions
         var i = startIdx - lookbackTotal;
         while (i < startIdx)
         {
-            circBuffer[circBufferIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / Three<T>();
+            circBuffer[circBufferIdx++] = (inHigh[i] + inLow[i] + inClose[i]) / FunctionHelpers.Three<T>();
             i++;
             if (circBufferIdx > maxIdxCircBuffer)
             {
@@ -108,7 +108,7 @@ public static partial class Functions
         int outIdx = default;
         do
         {
-            var lastValue = (inHigh[i] + inLow[i] + inClose[i]) / Three<T>();
+            var lastValue = (inHigh[i] + inLow[i] + inClose[i]) / FunctionHelpers.Three<T>();
             circBuffer[circBufferIdx++] = lastValue;
 
             // Calculate the average for the whole period.

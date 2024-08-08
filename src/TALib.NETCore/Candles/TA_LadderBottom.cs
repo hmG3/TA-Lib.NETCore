@@ -34,7 +34,7 @@ public static partial class Candles
         LadderBottomImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     [PublicAPI]
-    public static int LadderBottomLookback() => CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 4;
+    public static int LadderBottomLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 4;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -79,11 +79,12 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         var shadowVeryShortPeriodTotal = T.Zero;
-        var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
+        var shadowVeryShortTrailingIdx = startIdx - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
         var i = shadowVeryShortTrailingIdx;
         while (i < startIdx)
         {
-            shadowVeryShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - 1);
+            shadowVeryShortPeriodTotal +=
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - 1);
             i++;
         }
 
@@ -108,8 +109,9 @@ public static partial class Candles
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             shadowVeryShortPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - 1) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx - 1);
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i - 1) -
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort,
+                    shadowVeryShortTrailingIdx - 1);
 
             i++;
             shadowVeryShortTrailingIdx++;
@@ -128,19 +130,20 @@ public static partial class Candles
         int i,
         T shadowVeryShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // 3 black candlesticks
-        CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.Black &&
-        CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black &&
-        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 4) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
         // with consecutively lower opens
         inOpen[i - 4] > inOpen[i - 3] && inOpen[i - 3] > inOpen[i - 2] &&
         // and closes
         inClose[i - 4] > inClose[i - 3] && inClose[i - 3] > inClose[i - 2] &&
         // 4th: black with an upper shadow
-        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
-        UpperShadow(inHigh, inClose, inOpen, i - 1) >
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal, i - 1) &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        CandleHelpers.UpperShadow(inHigh, inClose, inOpen, i - 1) >
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal,
+            i - 1) &&
         // 5th: white
-        CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+        CandleHelpers.CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
         // that opens above prior candle's body
         inOpen[i] > inOpen[i - 1] &&
         // and closes above prior candle's high

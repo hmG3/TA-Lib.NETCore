@@ -65,7 +65,8 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length, inVolume.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length, inVolume.Length) is not
+            { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -94,7 +95,7 @@ public static partial class Functions
 
         // Accumulate the positive and negative money flow among the initial period.
         var today = startIdx - lookbackTotal;
-        var prevValue = (inHigh[today] + inLow[today] + inClose[today]) / Three<T>();
+        var prevValue = (inHigh[today] + inLow[today] + inClose[today]) / FunctionHelpers.Three<T>();
 
         var posSumMF = T.Zero;
         var negSumMF = T.Zero;
@@ -110,7 +111,7 @@ public static partial class Functions
         if (today > startIdx)
         {
             var tempValue1 = posSumMF + negSumMF;
-            outReal[outIdx++] = tempValue1 >= T.One ? Hundred<T>() * (posSumMF / tempValue1) : T.Zero;
+            outReal[outIdx++] = tempValue1 >= T.One ? FunctionHelpers.Hundred<T>() * (posSumMF / tempValue1) : T.Zero;
         }
         else
         {
@@ -128,7 +129,7 @@ public static partial class Functions
                 ref mflowIdx);
 
             var tempValue1 = posSumMF + negSumMF;
-            outReal[outIdx++] = tempValue1 >= T.One ? Hundred<T>() * (posSumMF / tempValue1) : T.Zero;
+            outReal[outIdx++] = tempValue1 >= T.One ? FunctionHelpers.Hundred<T>() * (posSumMF / tempValue1) : T.Zero;
 
             if (++mflowIdx > maxIdxMflow)
             {
@@ -210,7 +211,7 @@ public static partial class Functions
         (T negative, T positive)[] moneyFlow,
         ref int mflowIdx) where T : IFloatingPointIeee754<T>
     {
-        var tempValue1 = (high[today] + low[today] + close[today]) / Three<T>();
+        var tempValue1 = (high[today] + low[today] + close[today]) / FunctionHelpers.Three<T>();
         var tempValue2 = tempValue1 - prevValue;
         prevValue = tempValue1;
         tempValue1 *= volume[today++];

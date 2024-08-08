@@ -56,7 +56,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is null)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is null)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -66,7 +66,7 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return CalcExponentialMA(
-            inReal, inRange, outReal, out outRange, optInTimePeriod, Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One));
+        return FunctionHelpers.CalcExponentialMA(inReal, inRange, outReal, out outRange, optInTimePeriod,
+            FunctionHelpers.Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One));
     }
 }

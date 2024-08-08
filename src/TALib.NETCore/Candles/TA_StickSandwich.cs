@@ -34,7 +34,7 @@ public static partial class Candles
         StickSandwichImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     [PublicAPI]
-    public static int StickSandwichLookback() => CandleAveragePeriod(Core.CandleSettingType.Equal) + 2;
+    public static int StickSandwichLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Equal) + 2;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -79,11 +79,11 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         var equalPeriodTotal = T.Zero;
-        var equalTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Equal);
+        var equalTrailingIdx = startIdx - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Equal);
         var i = equalTrailingIdx;
         while (i < startIdx)
         {
-            equalPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 2);
+            equalPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 2);
             i++;
         }
 
@@ -108,8 +108,8 @@ public static partial class Candles
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             equalPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 2) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 2);
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 2) -
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 2);
 
             i++;
             equalTrailingIdx++;
@@ -128,16 +128,16 @@ public static partial class Candles
         int i,
         T equalPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // 1st: black
-        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
         // 2nd: white
-        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
         // 3rd: black
-        CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
         // 2nd low > prior close
         inLow[i - 1] > inClose[i - 2] &&
         // 1st and 3rd same close
         inClose[i] <= inClose[i - 2] +
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 2) &&
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 2) &&
         inClose[i] >= inClose[i - 2] -
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 2);
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 2);
 }

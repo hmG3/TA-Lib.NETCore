@@ -34,7 +34,7 @@ public static partial class Candles
         TwoCrowsImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     [PublicAPI]
-    public static int TwoCrowsLookback() => CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 2;
+    public static int TwoCrowsLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 2;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -79,11 +79,11 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         var bodyLongPeriodTotal = T.Zero;
-        var bodyLongTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
+        var bodyLongTrailingIdx = startIdx - 2 - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong);
         var i = bodyLongTrailingIdx;
         while (i < startIdx - 2)
         {
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
+            bodyLongPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
             i++;
         }
 
@@ -109,8 +109,8 @@ public static partial class Candles
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             bodyLongPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
 
             i++;
             bodyLongTrailingIdx++;
@@ -129,16 +129,16 @@ public static partial class Candles
         int i,
         T bodyLongPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // 1st: white
-        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
         // long body
-        RealBody(inClose, inOpen, i - 2) >
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
+        CandleHelpers.RealBody(inClose, inOpen, i - 2) >
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
         // 2nd: black
-        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
         // gapping up
-        RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
+        CandleHelpers.RealBodyGapUp(inOpen, inClose, i - 1, i - 2) &&
         // 3rd: black
-        CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
         // opening within 2nd real body
         inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] &&
         // opening within 1st real body

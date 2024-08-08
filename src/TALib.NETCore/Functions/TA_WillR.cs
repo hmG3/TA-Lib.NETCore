@@ -61,7 +61,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -91,10 +91,10 @@ public static partial class Functions
         T highest = T.Zero, lowest = T.Zero;
         while (today <= endIdx)
         {
-            (lowestIdx, lowest) = CalcLowest(inLow, trailingIdx, today, lowestIdx, lowest);
-            (highestIdx, highest) = CalcHighest(inHigh, trailingIdx, today, highestIdx, highest);
+            (lowestIdx, lowest) = FunctionHelpers.CalcLowest(inLow, trailingIdx, today, lowestIdx, lowest);
+            (highestIdx, highest) = FunctionHelpers.CalcHighest(inHigh, trailingIdx, today, highestIdx, highest);
 
-            var diff = (highest - lowest) / (T.NegativeOne * Hundred<T>());
+            var diff = (highest - lowest) / (T.NegativeOne * FunctionHelpers.Hundred<T>());
 
             outReal[outIdx++] = !T.IsZero(diff) ? (highest - inClose[today]) / diff : T.Zero;
 

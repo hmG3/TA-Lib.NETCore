@@ -34,7 +34,7 @@ public static partial class Candles
         ConcealingBabySwallowImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     [PublicAPI]
-    public static int ConcealingBabySwallowLookback() => CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 3;
+    public static int ConcealingBabySwallowLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 3;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -79,13 +79,16 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         Span<T> shadowVeryShortPeriodTotal = new T[4];
-        var shadowVeryShortTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
+        var shadowVeryShortTrailingIdx = startIdx - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort);
         var i = shadowVeryShortTrailingIdx;
         while (i < startIdx)
         {
-            shadowVeryShortPeriodTotal[3] += CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, i - 3);
-            shadowVeryShortPeriodTotal[2] += CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, i - 2);
-            shadowVeryShortPeriodTotal[1] += CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, i - 1);
+            shadowVeryShortPeriodTotal[3] +=
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, i - 3);
+            shadowVeryShortPeriodTotal[2] +=
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, i - 2);
+            shadowVeryShortPeriodTotal[1] +=
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, i - 1);
             i++;
         }
 
@@ -115,8 +118,9 @@ public static partial class Candles
             for (var totIdx = 3; totIdx >= 1; --totIdx)
             {
                 shadowVeryShortPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, i - totIdx) -
-                    CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortTrailingIdx - totIdx);
+                    CandleHelpers.CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, i - totIdx) -
+                    CandleHelpers.CandleRange(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort,
+                        shadowVeryShortTrailingIdx - totIdx);
             }
 
             i++;
@@ -136,28 +140,33 @@ public static partial class Candles
         int i,
         Span<T> shadowVeryShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // 1st black
-        CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 3) == Core.CandleColor.Black &&
         // 2nd black
-        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
         // 3rd black
-        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
         // 4th black
-        CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
         // 1st: marubozu
-        LowerShadow(inClose, inOpen, inLow, i - 3) <
-        CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[3], i - 3) &&
-        UpperShadow(inHigh, inClose, inOpen, i - 3) <
-        CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[3], i - 3) &&
+        CandleHelpers.LowerShadow(inClose, inOpen, inLow, i - 3) <
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[3],
+            i - 3) &&
+        CandleHelpers.UpperShadow(inHigh, inClose, inOpen, i - 3) <
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[3],
+            i - 3) &&
         // 2nd: marubozu
-        LowerShadow(inClose, inOpen, inLow, i - 2) <
-        CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
-        UpperShadow(inHigh, inClose, inOpen, i - 2) <
-        CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2], i - 2) &&
+        CandleHelpers.LowerShadow(inClose, inOpen, inLow, i - 2) <
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2],
+            i - 2) &&
+        CandleHelpers.UpperShadow(inHigh, inClose, inOpen, i - 2) <
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[2],
+            i - 2) &&
         // 3rd: opens gapping down
-        RealBodyGapDown(inOpen, inClose, i - 1, i - 2) &&
+        CandleHelpers.RealBodyGapDown(inOpen, inClose, i - 1, i - 2) &&
         // and has an upper shadow
-        UpperShadow(inHigh, inClose, inOpen, i - 1) >
-        CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1], i - 1) &&
+        CandleHelpers.UpperShadow(inHigh, inClose, inOpen, i - 1) >
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inOpen, Core.CandleSettingType.ShadowVeryShort, shadowVeryShortPeriodTotal[1],
+            i - 1) &&
         // that extends into the prior body
         inHigh[i - 1] > inClose[i - 2] &&
         // 4th: engulfs the 3rd including the shadows

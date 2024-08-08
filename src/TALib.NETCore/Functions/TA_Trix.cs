@@ -56,7 +56,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -81,8 +81,9 @@ public static partial class Functions
         var nbElementToOutput = endIdx - startIdx + 1 + lookbackTotal;
         Span<T> tempBuffer = new T[nbElementToOutput];
 
-        var k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
-        var retCode = CalcExponentialMA(inReal, new Range(startIdx - lookbackTotal, endIdx), tempBuffer, out var range, optInTimePeriod, k);
+        var k = FunctionHelpers.Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
+        var retCode = FunctionHelpers.CalcExponentialMA(inReal, new Range(startIdx - lookbackTotal, endIdx), tempBuffer, out var range,
+            optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || range.End.Value == 0)
         {
             return retCode;
@@ -91,14 +92,14 @@ public static partial class Functions
         nbElementToOutput--;
 
         nbElementToOutput -= emaLookback;
-        retCode = CalcExponentialMA(tempBuffer, Range.EndAt(nbElementToOutput), tempBuffer, out range, optInTimePeriod, k);
+        retCode = FunctionHelpers.CalcExponentialMA(tempBuffer, Range.EndAt(nbElementToOutput), tempBuffer, out range, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || range.End.Value == 0)
         {
             return retCode;
         }
 
         nbElementToOutput -= emaLookback;
-        retCode = CalcExponentialMA(tempBuffer, Range.EndAt(nbElementToOutput), tempBuffer, out range, optInTimePeriod, k);
+        retCode = FunctionHelpers.CalcExponentialMA(tempBuffer, Range.EndAt(nbElementToOutput), tempBuffer, out range, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || range.End.Value == 0)
         {
             return retCode;

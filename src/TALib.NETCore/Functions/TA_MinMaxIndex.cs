@@ -58,7 +58,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -88,8 +88,8 @@ public static partial class Functions
         T highest = T.Zero, lowest = T.Zero;
         while (today <= endIdx)
         {
-            (highestIdx, highest) = CalcHighest(inReal, trailingIdx, today, highestIdx, highest);
-            (lowestIdx, lowest) = CalcLowest(inReal, trailingIdx, today, lowestIdx, lowest);
+            (highestIdx, highest) = FunctionHelpers.CalcHighest(inReal, trailingIdx, today, highestIdx, highest);
+            (lowestIdx, lowest) = FunctionHelpers.CalcLowest(inReal, trailingIdx, today, lowestIdx, lowest);
 
             outMaxIdx[outIdx] = T.CreateChecked(highestIdx);
             outMinIdx[outIdx++] = T.CreateChecked(lowestIdx);

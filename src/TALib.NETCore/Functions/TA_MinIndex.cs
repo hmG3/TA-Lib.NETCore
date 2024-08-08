@@ -55,7 +55,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -85,7 +85,7 @@ public static partial class Functions
         var lowest = T.Zero;
         while (today <= endIdx)
         {
-            (lowestIdx, lowest) = CalcLowest(inReal, trailingIdx, today, lowestIdx, lowest);
+            (lowestIdx, lowest) = FunctionHelpers.CalcLowest(inReal, trailingIdx, today, lowestIdx, lowest);
 
             outInteger[outIdx++] = lowestIdx;
             trailingIdx++;

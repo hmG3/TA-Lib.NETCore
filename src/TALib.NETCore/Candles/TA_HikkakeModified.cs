@@ -34,7 +34,7 @@ public static partial class Candles
         HikkakeModifiedImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     [PublicAPI]
-    public static int HikkakeModifiedLookback() => Math.Max(1, CandleAveragePeriod(Core.CandleSettingType.Near)) + 5;
+    public static int HikkakeModifiedLookback() => Math.Max(1, CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near)) + 5;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -79,11 +79,11 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         var nearPeriodTotal = T.Zero;
-        var nearTrailingIdx = startIdx - 3 - CandleAveragePeriod(Core.CandleSettingType.Near);
+        var nearTrailingIdx = startIdx - 3 - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near);
         var i = nearTrailingIdx;
         while (i < startIdx - 3)
         {
-            nearPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2);
+            nearPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2);
             i++;
         }
 
@@ -147,8 +147,8 @@ public static partial class Candles
             }
 
             nearPeriodTotal +=
-                CandleRange(open, high, low, close, Core.CandleSettingType.Near, i - 2) -
-                CandleRange(open, high, low, close, Core.CandleSettingType.Near, nearTrailingIdx - 2);
+                CandleHelpers.CandleRange(open, high, low, close, Core.CandleSettingType.Near, i - 2) -
+                CandleHelpers.CandleRange(open, high, low, close, Core.CandleSettingType.Near, nearTrailingIdx - 2);
 
             nearTrailingIdx++;
             i++;
@@ -189,8 +189,8 @@ public static partial class Candles
             }
 
             nearPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2) -
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 2);
 
             nearTrailingIdx++;
             i++;
@@ -212,12 +212,12 @@ public static partial class Candles
             // (bull) 4th: lower high and lower low
             inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] &&
             inClose[i - 2] <= inLow[i - 2] +
-            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
+            CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
             ||
             // (bear) 4th: higher high and higher low
             inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] &&
             inClose[i - 2] >= inHigh[i - 2] -
-            CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
+            CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 2)
         );
 
     private static bool IsHikkakeModifiedPatternConfirmation<T>(

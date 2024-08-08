@@ -63,7 +63,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -169,8 +169,8 @@ public static partial class Functions
         var timePeriod = T.CreateChecked(optInTimePeriod);
         T prevPlusDM = T.Zero, _ = T.Zero;
 
-        InitDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, out var prevHigh, ref today, out var prevLow, out var _, timePeriod, ref prevPlusDM,
-            ref _, ref _);
+        FunctionHelpers.InitDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, out var prevHigh, ref today, out var prevLow, out var _,
+            timePeriod, ref prevPlusDM, ref _, ref _);
 
         // Process subsequent DM
 
@@ -178,8 +178,8 @@ public static partial class Functions
         for (var i = 0; i < Core.UnstablePeriodSettings.Get(Core.UnstableFunc.PlusDM); i++)
         {
             today++;
-            UpdateDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, ref today, ref prevHigh, ref prevLow, ref _, ref prevPlusDM, ref _, ref _,
-                timePeriod);
+            FunctionHelpers.UpdateDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, ref today, ref prevHigh, ref prevLow, ref _, ref prevPlusDM,
+                ref _, ref _, timePeriod);
         }
 
         outReal[0] = prevPlusDM;
@@ -188,8 +188,8 @@ public static partial class Functions
         while (today < endIdx)
         {
             today++;
-            UpdateDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, ref today, ref prevHigh, ref prevLow, ref _, ref prevPlusDM, ref _, ref _,
-                timePeriod);
+            FunctionHelpers.UpdateDMAndTR(inHigh, inLow, ReadOnlySpan<T>.Empty, ref today, ref prevHigh, ref prevLow, ref _, ref prevPlusDM,
+                ref _, ref _, timePeriod);
             outReal[outIdx++] = prevPlusDM;
         }
 
@@ -214,7 +214,7 @@ public static partial class Functions
         while (today < endIdx)
         {
             today++;
-            var (diffP, diffM) = CalcDeltas(high, low, today, ref prevHigh, ref prevLow);
+            var (diffP, diffM) = FunctionHelpers.CalcDeltas(high, low, today, ref prevHigh, ref prevLow);
             outReal[outIdx++] = diffP > T.Zero && diffP > diffM ? diffP : T.Zero;
         }
 

@@ -55,7 +55,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -90,7 +90,7 @@ public static partial class Functions
         var timePeriod = T.CreateChecked(optInTimePeriod);
 
         var sumX = timePeriod * (timePeriod - T.One) * T.CreateChecked(0.5);
-        var sumXSqr = timePeriod * (timePeriod - T.One) * (timePeriod * Two<T>() - T.One) / T.CreateChecked(6);
+        var sumXSqr = timePeriod * (timePeriod - T.One) * (timePeriod * FunctionHelpers.Two<T>() - T.One) / T.CreateChecked(6);
         var divisor = sumX * sumX - timePeriod * sumXSqr;
         while (today <= endIdx)
         {

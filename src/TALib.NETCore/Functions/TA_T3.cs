@@ -59,7 +59,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -101,7 +101,7 @@ public static partial class Functions
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
 
-        var k = Two<T>() / (timePeriod + T.One);
+        var k = FunctionHelpers.Two<T>() / (timePeriod + T.One);
         var oneMinusK = T.One - k;
 
         var tempReal = inReal[today++];
@@ -182,9 +182,9 @@ public static partial class Functions
         var vFactor = T.CreateChecked(optInVFactor);
         tempReal = vFactor * vFactor;
         var c1 = T.NegativeOne * tempReal * vFactor;
-        var c2 = Three<T>() * (tempReal - c1);
-        var c3 = T.NegativeOne * Two<T>() * Three<T>() * tempReal - Three<T>() * (vFactor - c1);
-        var c4 = T.One + Three<T>() * vFactor - c1 + Three<T>() * tempReal;
+        var c2 = FunctionHelpers.Three<T>() * (tempReal - c1);
+        var c3 = T.NegativeOne * FunctionHelpers.Two<T>() * FunctionHelpers.Three<T>() * tempReal - FunctionHelpers.Three<T>() * (vFactor - c1);
+        var c4 = T.One + FunctionHelpers.Three<T>() * vFactor - c1 + FunctionHelpers.Three<T>() * tempReal;
 
         // Write the first output
         int outIdx = default;

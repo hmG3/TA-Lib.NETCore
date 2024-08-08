@@ -62,7 +62,8 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length, inClose.Length) is not
+            { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -183,8 +184,8 @@ public static partial class Functions
         var outBegIdx = today;
         today = startIdx - lookbackTotal;
 
-        InitDMAndTR(inHigh, inLow, inClose, out var prevHigh, ref today, out var prevLow, out var prevClose, timePeriod, ref prevPlusDM,
-            ref prevMinusDM, ref prevTR);
+        FunctionHelpers.InitDMAndTR(inHigh, inLow, inClose, out var prevHigh, ref today, out var prevLow, out var prevClose, timePeriod,
+            ref prevPlusDM, ref prevMinusDM, ref prevTR);
 
         var sumDX = AddAllInitialDX(inHigh, inLow, inClose, timePeriod, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM,
             ref prevMinusDM, ref prevTR);
@@ -224,19 +225,19 @@ public static partial class Functions
         for (var i = Int32.CreateTruncating(timePeriod); i > 0; i--)
         {
             today++;
-            UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
-                ref prevTR, timePeriod);
+            FunctionHelpers.UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM,
+                ref prevMinusDM, ref prevTR, timePeriod);
 
             if (T.IsZero(prevTR))
             {
                 continue;
             }
 
-            var (minusDI, plusDI) = CalcDI(prevMinusDM, prevPlusDM, prevTR);
+            var (minusDI, plusDI) = FunctionHelpers.CalcDI(prevMinusDM, prevPlusDM, prevTR);
             var tempReal = minusDI + plusDI;
             if (!T.IsZero(tempReal))
             {
-                sumDX += Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
+                sumDX += FunctionHelpers.Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
             }
         }
 
@@ -260,22 +261,22 @@ public static partial class Functions
         for (var i = Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx); i > 0; i--)
         {
             today++;
-            UpdateDMAndTR(inHigh, inLow, icClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
-                ref prevTR, timePeriod);
+            FunctionHelpers.UpdateDMAndTR(inHigh, inLow, icClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM,
+                ref prevMinusDM, ref prevTR, timePeriod);
 
             if (T.IsZero(prevTR))
             {
                 continue;
             }
 
-            var (minusDI, plusDI) = CalcDI(prevMinusDM, prevPlusDM, prevTR);
+            var (minusDI, plusDI) = FunctionHelpers.CalcDI(prevMinusDM, prevPlusDM, prevTR);
             var tempReal = minusDI + plusDI;
             if (T.IsZero(tempReal))
             {
                 continue;
             }
 
-            tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
+            tempReal = FunctionHelpers.Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
             prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
         }
     }
@@ -300,16 +301,16 @@ public static partial class Functions
         while (today < endIdx)
         {
             today++;
-            UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM, ref prevMinusDM,
-                ref prevTR, timePeriod);
+            FunctionHelpers.UpdateDMAndTR(inHigh, inLow, inClose, ref today, ref prevHigh, ref prevLow, ref prevClose, ref prevPlusDM,
+                ref prevMinusDM, ref prevTR, timePeriod);
 
             if (!T.IsZero(prevTR))
             {
-                var (minusDI, plusDI) = CalcDI(prevMinusDM, prevPlusDM, prevTR);
+                var (minusDI, plusDI) = FunctionHelpers.CalcDI(prevMinusDM, prevPlusDM, prevTR);
                 var tempReal = minusDI + plusDI;
                 if (!T.IsZero(tempReal))
                 {
-                    tempReal = Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
+                    tempReal = FunctionHelpers.Hundred<T>() * (T.Abs(minusDI - plusDI) / tempReal);
                     prevADX = (prevADX * (timePeriod - T.One) + tempReal) / timePeriod;
                 }
             }

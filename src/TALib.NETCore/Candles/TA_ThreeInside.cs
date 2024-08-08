@@ -35,7 +35,8 @@ public static partial class Candles
 
     [PublicAPI]
     public static int ThreeInsideLookback() =>
-        Math.Max(CandleAveragePeriod(Core.CandleSettingType.BodyShort), CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 2;
+        Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyShort),
+            CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 2;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -62,7 +63,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -81,20 +82,20 @@ public static partial class Candles
         // Add-up the initial period, except for the last value.
         var bodyLongPeriodTotal = T.Zero;
         var bodyShortPeriodTotal = T.Zero;
-        var bodyLongTrailingIdx = startIdx - 2 - CandleAveragePeriod(Core.CandleSettingType.BodyLong);
-        var bodyShortTrailingIdx = startIdx - 1 - CandleAveragePeriod(Core.CandleSettingType.BodyShort);
+        var bodyLongTrailingIdx = startIdx - 2 - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong);
+        var bodyShortTrailingIdx = startIdx - 1 - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyShort);
 
         var i = bodyLongTrailingIdx;
         while (i < startIdx - 2)
         {
-            bodyLongPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
+            bodyLongPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i);
             i++;
         }
 
         i = bodyShortTrailingIdx;
         while (i < startIdx - 1)
         {
-            bodyShortPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i);
+            bodyShortPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i);
             i++;
         }
 
@@ -116,17 +117,17 @@ public static partial class Candles
         do
         {
             outIntType[outIdx++] = IsThreeInsidePattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyShortPeriodTotal)
-                ? -(int) CandleColor(inClose, inOpen, i - 2) * 100
+                ? -(int) CandleHelpers.CandleColor(inClose, inOpen, i - 2) * 100
                 : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             bodyLongPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, i - 2) -
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongTrailingIdx);
             bodyShortPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i - 1) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, i - 1) -
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortTrailingIdx);
 
             i++;
             bodyLongTrailingIdx++;
@@ -147,22 +148,22 @@ public static partial class Candles
         T bodyLongPeriodTotal,
         T bodyShortPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // 1st: long
-        RealBody(inClose, inOpen, i - 2) >
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
+        CandleHelpers.RealBody(inClose, inOpen, i - 2) >
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyLong, bodyLongPeriodTotal, i - 2) &&
         // 2nd: short
-        RealBody(inClose, inOpen, i - 1) <=
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortPeriodTotal, i - 1) &&
+        CandleHelpers.RealBody(inClose, inOpen, i - 1) <=
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyShort, bodyShortPeriodTotal, i - 1) &&
         // engulfed by 1st
         T.Max(inClose[i - 1], inOpen[i - 1]) < T.Max(inClose[i - 2], inOpen[i - 2]) &&
         T.Min(inClose[i - 1], inOpen[i - 1]) > T.Min(inClose[i - 2], inOpen[i - 2]) &&
         (
             // 3rd: opposite to 1st
-            CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
-            CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
+            CandleHelpers.CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+            CandleHelpers.CandleColor(inClose, inOpen, i) == Core.CandleColor.Black &&
             inClose[i] < inOpen[i - 2]
             ||
             // and closing out
-            CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
-            CandleColor(inClose, inOpen, i) == Core.CandleColor.White && inClose[i] > inOpen[i - 2]
+            CandleHelpers.CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+            CandleHelpers.CandleColor(inClose, inOpen, i) == Core.CandleColor.White && inClose[i] > inOpen[i - 2]
         );
 }

@@ -61,7 +61,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length, inVolume.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length, inVolume.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -83,7 +83,7 @@ public static partial class Functions
 
         while (nbBar != 0)
         {
-            ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref currentBar, ad);
+            ad = FunctionHelpers.CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref currentBar, ad);
             outReal[outIdx++] = ad;
             nbBar--;
         }

@@ -62,7 +62,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -76,7 +76,7 @@ public static partial class Functions
 
         Span<T> tempBuffer = new T[endIdx - startIdx + 1];
 
-        return CalcPriceOscillator(
-            inReal, inRange, outReal, out outRange, optInFastPeriod, optInSlowPeriod, optInMAType, tempBuffer, false);
+        return FunctionHelpers.CalcPriceOscillator(inReal, inRange, outReal, out outRange, optInFastPeriod, optInSlowPeriod, optInMAType,
+            tempBuffer, false);
     }
 }

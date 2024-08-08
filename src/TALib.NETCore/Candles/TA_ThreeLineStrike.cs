@@ -34,7 +34,7 @@ public static partial class Candles
         ThreeLineStrikeImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     [PublicAPI]
-    public static int ThreeLineStrikeLookback() => CandleAveragePeriod(Core.CandleSettingType.Near) + 3;
+    public static int ThreeLineStrikeLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near) + 3;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -79,12 +79,12 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         Span<T> nearPeriodTotal = new T[4];
-        var nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
+        var nearTrailingIdx = startIdx - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near);
         var i = nearTrailingIdx;
         while (i < startIdx)
         {
-            nearPeriodTotal[3] += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 3);
-            nearPeriodTotal[2] += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2);
+            nearPeriodTotal[3] += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 3);
+            nearPeriodTotal[2] += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 2);
             i++;
         }
 
@@ -107,7 +107,7 @@ public static partial class Candles
         do
         {
             outIntType[outIdx++] = IsThreeLineStrikePattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal)
-                ? (int) CandleColor(inClose, inOpen, i - 1) * 100
+                ? (int) CandleHelpers.CandleColor(inClose, inOpen, i - 1) * 100
                 : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
@@ -115,8 +115,8 @@ public static partial class Candles
             for (var totIdx = 3; totIdx >= 2; --totIdx)
             {
                 nearPeriodTotal[totIdx] +=
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - totIdx) -
-                    CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - totIdx);
+                    CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - totIdx) -
+                    CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - totIdx);
             }
 
             i++;
@@ -136,23 +136,23 @@ public static partial class Candles
         int i,
         Span<T> nearPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // three with same color
-        CandleColor(inClose, inOpen, i - 3) == CandleColor(inClose, inOpen, i - 2) &&
-        CandleColor(inClose, inOpen, i - 2) == CandleColor(inClose, inOpen, i - 1) &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 3) == CandleHelpers.CandleColor(inClose, inOpen, i - 2) &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 2) == CandleHelpers.CandleColor(inClose, inOpen, i - 1) &&
         // 4th: opposite color
-        (int) CandleColor(inClose, inOpen, i) == -(int) CandleColor(inClose, inOpen, i - 1) &&
+        (int) CandleHelpers.CandleColor(inClose, inOpen, i) == -(int) CandleHelpers.CandleColor(inClose, inOpen, i - 1) &&
         // 2nd opens within/near 1st real body
         inOpen[i - 2] >= T.Min(inOpen[i - 3], inClose[i - 3]) -
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[3], i - 3) &&
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[3], i - 3) &&
         inOpen[i - 2] <= T.Max(inOpen[i - 3], inClose[i - 3]) +
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[3], i - 3) &&
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[3], i - 3) &&
         // 3rd opens within/near 2nd real body
         inOpen[i - 1] >= T.Min(inOpen[i - 2], inClose[i - 2]) -
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[2], i - 2) &&
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[2], i - 2) &&
         inOpen[i - 1] <= T.Max(inOpen[i - 2], inClose[i - 2]) +
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[2], i - 2) &&
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal[2], i - 2) &&
         (
             // if three white
-            CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+            CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
             // consecutive higher closes
             inClose[i - 1] > inClose[i - 2] && inClose[i - 2] > inClose[i - 3] &&
             // 4th opens above prior close
@@ -161,7 +161,7 @@ public static partial class Candles
             inClose[i] < inOpen[i - 3]
             ||
             // if three black
-            CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+            CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
             // consecutive lower closes
             inClose[i - 1] < inClose[i - 2] && inClose[i - 2] < inClose[i - 3] &&
             // 4th opens below prior close

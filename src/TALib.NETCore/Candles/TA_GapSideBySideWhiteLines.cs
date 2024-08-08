@@ -35,7 +35,8 @@ public static partial class Candles
 
     [PublicAPI]
     public static int GapSideBySideWhiteLinesLookback() =>
-        Math.Max(CandleAveragePeriod(Core.CandleSettingType.Near), CandleAveragePeriod(Core.CandleSettingType.Equal)) + 2;
+        Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near),
+            CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Equal)) + 2;
 
     /// <remarks>
     /// For compatibility with abstract API
@@ -62,7 +63,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -81,19 +82,19 @@ public static partial class Candles
         // Add-up the initial period, except for the last value.
         var nearPeriodTotal = T.Zero;
         var equalPeriodTotal = T.Zero;
-        var nearTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Near);
-        var equalTrailingIdx = startIdx - CandleAveragePeriod(Core.CandleSettingType.Equal);
+        var nearTrailingIdx = startIdx - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near);
+        var equalTrailingIdx = startIdx - CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Equal);
         var i = nearTrailingIdx;
         while (i < startIdx)
         {
-            nearPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1);
+            nearPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1);
             i++;
         }
 
         i = equalTrailingIdx;
         while (i < startIdx)
         {
-            equalPeriodTotal += CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1);
+            equalPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1);
             i++;
         }
 
@@ -117,7 +118,7 @@ public static partial class Candles
         {
             if (IsGapSideBySideWhiteLinesPattern(inOpen, inHigh, inLow, inClose, i, nearPeriodTotal, equalPeriodTotal))
             {
-                outIntType[outIdx++] = RealBodyGapUp(inOpen, inClose, i - 1, i - 2) ? 100 : -100;
+                outIntType[outIdx++] = CandleHelpers.RealBodyGapUp(inOpen, inClose, i - 1, i - 2) ? 100 : -100;
             }
             else
             {
@@ -127,12 +128,12 @@ public static partial class Candles
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
             nearPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i - 1) -
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearTrailingIdx - 1);
 
             equalPeriodTotal +=
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
-                CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, i - 1) -
+                CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalTrailingIdx - 1);
 
             i++;
             nearTrailingIdx++;
@@ -154,23 +155,23 @@ public static partial class Candles
         T equalPeriodTotal) where T : IFloatingPointIeee754<T> =>
         // upside or downside gap between the 1st candle and both the next 2 candles
         (
-            RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && RealBodyGapUp(inOpen, inClose, i, i - 2)
+            CandleHelpers.RealBodyGapUp(inOpen, inClose, i - 1, i - 2) && CandleHelpers.RealBodyGapUp(inOpen, inClose, i, i - 2)
             ||
-            RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && RealBodyGapDown(inOpen, inClose, i, i - 2)
+            CandleHelpers.RealBodyGapDown(inOpen, inClose, i - 1, i - 2) && CandleHelpers.RealBodyGapDown(inOpen, inClose, i, i - 2)
         )
         &&
         // 2nd: white
-        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
         // 3rd: white
-        CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
+        CandleHelpers.CandleColor(inClose, inOpen, i) == Core.CandleColor.White &&
         // same size 2 and 3
-        RealBody(inClose, inOpen, i) >= RealBody(inClose, inOpen, i - 1) -
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1) &&
-        RealBody(inClose, inOpen, i) <= RealBody(inClose, inOpen, i - 1) +
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1) &&
+        CandleHelpers.RealBody(inClose, inOpen, i) >= CandleHelpers.RealBody(inClose, inOpen, i - 1) -
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1) &&
+        CandleHelpers.RealBody(inClose, inOpen, i) <= CandleHelpers.RealBody(inClose, inOpen, i - 1) +
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, nearPeriodTotal, i - 1) &&
         // same open 2 and 3
         inOpen[i] >= inOpen[i - 1] -
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) &&
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1) &&
         inOpen[i] <= inOpen[i - 1] +
-        CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1);
+        CandleHelpers.CandleAverage(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Equal, equalPeriodTotal, i - 1);
 }

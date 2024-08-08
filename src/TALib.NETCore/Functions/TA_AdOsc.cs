@@ -72,7 +72,8 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length, inVolume.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length, inVolume.Length) is not
+            { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -109,15 +110,15 @@ public static partial class Functions
         var outBegIdx = startIdx;
         var today = startIdx - lookbackTotal;
 
-        var fastK = Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
+        var fastK = FunctionHelpers.Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
         var oneMinusFastK = T.One - fastK;
 
-        var slowK = Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
+        var slowK = FunctionHelpers.Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
         var oneMinusSlowK = T.One - slowK;
 
         // Use the same range of initialization inputs for both EMA and simply seed with the first A/D value.
         var ad = T.Zero;
-        ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
+        ad = FunctionHelpers.CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
 
         var fastEMA = ad;
         var slowEMA = ad;
@@ -125,7 +126,7 @@ public static partial class Functions
         // Initialize the EMA and skip the unstable period.
         while (today < startIdx)
         {
-            ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
+            ad = FunctionHelpers.CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
             fastEMA = fastK * ad + oneMinusFastK * fastEMA;
             slowEMA = slowK * ad + oneMinusSlowK * slowEMA;
         }
@@ -134,7 +135,7 @@ public static partial class Functions
         int outIdx = default;
         while (today <= endIdx)
         {
-            ad = CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
+            ad = FunctionHelpers.CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);
             fastEMA = fastK * ad + oneMinusFastK * fastEMA;
             slowEMA = slowK * ad + oneMinusSlowK * slowEMA;
 

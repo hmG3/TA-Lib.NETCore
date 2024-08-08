@@ -62,7 +62,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -124,7 +124,8 @@ public static partial class Functions
         Span<T> prevATRTemp = new T[1];
 
         // First value of the ATR is a simple Average of the TRange output for the specified period.
-        retCode = CalcSimpleMA(tempBuffer, new Range(optInTimePeriod - 1, optInTimePeriod - 1), prevATRTemp, out _, optInTimePeriod);
+        retCode = FunctionHelpers.CalcSimpleMA(tempBuffer, new Range(optInTimePeriod - 1, optInTimePeriod - 1), prevATRTemp, out _,
+            optInTimePeriod);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -152,7 +153,7 @@ public static partial class Functions
 
         outIdx = 1;
         var tempValue = inClose[today];
-        outReal[0] = !T.IsZero(tempValue) ? prevATR / tempValue * Hundred<T>() : T.Zero;
+        outReal[0] = !T.IsZero(tempValue) ? prevATR / tempValue * FunctionHelpers.Hundred<T>() : T.Zero;
 
         // Do the number of requested ATR.
         var nbATR = endIdx - startIdx + 1;
@@ -165,7 +166,7 @@ public static partial class Functions
             tempValue = inClose[today];
             if (!T.IsZero(tempValue))
             {
-                outReal[outIdx] = prevATR / tempValue * Hundred<T>();
+                outReal[outIdx] = prevATR / tempValue * FunctionHelpers.Hundred<T>();
             }
             else
             {

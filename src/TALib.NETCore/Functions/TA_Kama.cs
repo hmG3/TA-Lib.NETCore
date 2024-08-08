@@ -56,7 +56,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -154,8 +154,8 @@ public static partial class Functions
 
     private static T CalcSmoothingConstant<T>(T efficiencyRatio) where T : IFloatingPointIeee754<T>
     {
-        var constMax = Two<T>() / (T.CreateChecked(30) + T.One);
-        var constDiff = Two<T>() / (Two<T>() + T.One) - constMax;
+        var constMax = FunctionHelpers.Two<T>() / (T.CreateChecked(30) + T.One);
+        var constDiff = FunctionHelpers.Two<T>() / (FunctionHelpers.Two<T>() + T.One) - constMax;
         var tempReal = efficiencyRatio * constDiff + constMax;
 
         return tempReal * tempReal;

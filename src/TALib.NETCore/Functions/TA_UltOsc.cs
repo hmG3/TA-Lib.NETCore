@@ -70,7 +70,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -120,12 +120,12 @@ public static partial class Functions
 
             if (!T.IsZero(totals1.bTotal))
             {
-                output += Four<T>() * (totals1.aTotal / totals1.bTotal);
+                output += FunctionHelpers.Four<T>() * (totals1.aTotal / totals1.bTotal);
             }
 
             if (!T.IsZero(totals2.bTotal))
             {
-                output += Two<T>() * (totals2.aTotal / totals2.bTotal);
+                output += FunctionHelpers.Two<T>() * (totals2.aTotal / totals2.bTotal);
             }
 
             if (!T.IsZero(totals3.bTotal))
@@ -142,7 +142,7 @@ public static partial class Functions
              * Must be done after the trailing index have all been taken care of because
              * the caller is allowed to have the input array to be also the output array.
              */
-            outReal[outIdx++] = Hundred<T>() * (output / TSeven);
+            outReal[outIdx++] = FunctionHelpers.Hundred<T>() * (output / TSeven);
             today++;
             trailingIdx1++;
             trailingIdx2++;
@@ -205,7 +205,7 @@ public static partial class Functions
         var tempCY = close[day - 1];
         var trueLow = T.Min(tempLT, tempCY);
         var closeMinusTrueLow = close[day] - trueLow;
-        var trueRange = TrueRange(tempHT, tempLT, tempCY);
+        var trueRange = FunctionHelpers.TrueRange(tempHT, tempLT, tempCY);
 
         return (trueRange, closeMinusTrueLow);
     }
@@ -225,7 +225,7 @@ public static partial class Functions
             var tempCY = close[i - 1];
             var trueLow = T.Min(tempLT, tempCY);
             var closeMinusTrueLow = close[i] - trueLow;
-            var trueRange = TrueRange(tempHT, tempLT, tempCY);
+            var trueRange = FunctionHelpers.TrueRange(tempHT, tempLT, tempCY);
             var terms = (trueRange, closeMinusTrueLow);
             aTotal += terms.closeMinusTrueLow;
             bTotal += terms.trueRange;

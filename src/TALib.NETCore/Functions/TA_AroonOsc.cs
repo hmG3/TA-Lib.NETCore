@@ -58,7 +58,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -96,11 +96,11 @@ public static partial class Functions
 
         int highestIdx = -1, lowestIdx = -1;
         T highest = T.Zero, lowest = T.Zero;
-        var factor = Hundred<T>() / T.CreateChecked(optInTimePeriod);
+        var factor = FunctionHelpers.Hundred<T>() / T.CreateChecked(optInTimePeriod);
         while (today <= endIdx)
         {
-            (lowestIdx, lowest) = CalcLowest(inLow, trailingIdx, today, lowestIdx, lowest);
-            (highestIdx, highest) = CalcHighest(inHigh, trailingIdx, today, highestIdx, highest);
+            (lowestIdx, lowest) = FunctionHelpers.CalcLowest(inLow, trailingIdx, today, lowestIdx, lowest);
+            (highestIdx, highest) = FunctionHelpers.CalcHighest(inHigh, trailingIdx, today, highestIdx, highest);
 
             /* The oscillator is the following:
              *   AroonUp   = factor * (optInTimePeriod - (today - highestIdx))

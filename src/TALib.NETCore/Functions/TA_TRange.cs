@@ -58,7 +58,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -92,7 +92,7 @@ public static partial class Functions
             var tempLT = inLow[today];
             var tempCY = inClose[today - 1];
 
-            outReal[outIdx++] = TrueRange(tempHT, tempLT, tempCY);
+            outReal[outIdx++] = FunctionHelpers.TrueRange(tempHT, tempLT, tempCY);
             today++;
         }
 

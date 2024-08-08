@@ -55,7 +55,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -89,7 +89,7 @@ public static partial class Functions
         while (inIdx <= endIdx)
         {
             var tempReal = inReal[trailingIdx++];
-            outReal[outIdx++] = !T.IsZero(tempReal) ? (inReal[inIdx] / tempReal - T.One) * Hundred<T>() : T.Zero;
+            outReal[outIdx++] = !T.IsZero(tempReal) ? (inReal[inIdx] / tempReal - T.One) * FunctionHelpers.Hundred<T>() : T.Zero;
             inIdx++;
         }
 

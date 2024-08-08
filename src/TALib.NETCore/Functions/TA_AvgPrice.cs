@@ -64,7 +64,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -74,7 +74,7 @@ public static partial class Functions
         int outIdx = default;
         for (var i = startIdx; i <= endIdx; i++)
         {
-            outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / Four<T>();
+            outReal[outIdx++] = (inHigh[i] + inLow[i] + inClose[i] + inOpen[i]) / FunctionHelpers.Four<T>();
         }
 
         outRange = new Range(startIdx, startIdx + outIdx);

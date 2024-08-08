@@ -55,7 +55,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -98,10 +98,11 @@ public static partial class Functions
         }
 
         var tempInt = lookbackTotal + (endIdx - startIdx) + 1;
-        var k = Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
+        var k = FunctionHelpers.Two<T>() / (T.CreateChecked(optInTimePeriod) + T.One);
 
         Span<T> firstEMA = new T[tempInt];
-        var retCode = CalcExponentialMA(inReal, new Range(startIdx - lookbackEMA * 2, endIdx), firstEMA, out var firstEMARange, optInTimePeriod, k);
+        var retCode = FunctionHelpers.CalcExponentialMA(inReal, new Range(startIdx - lookbackEMA * 2, endIdx), firstEMA,
+            out var firstEMARange, optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || firstEMARange.End.Value == 0)
         {
             return retCode;
@@ -109,14 +110,16 @@ public static partial class Functions
 
         var firstEMANbElement = firstEMARange.End.Value - firstEMARange.Start.Value;
         Span<T> secondEMA = new T[firstEMANbElement];
-        retCode = CalcExponentialMA(firstEMA, Range.EndAt(firstEMANbElement - 1), secondEMA, out var secondEMARange, optInTimePeriod, k);
+        retCode = FunctionHelpers.CalcExponentialMA(firstEMA, Range.EndAt(firstEMANbElement - 1), secondEMA, out var secondEMARange,
+            optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || secondEMARange.End.Value == 0)
         {
             return retCode;
         }
 
         var secondEMANbElement = secondEMARange.End.Value - secondEMARange.Start.Value;
-        retCode = CalcExponentialMA(secondEMA, Range.EndAt(secondEMANbElement - 1), outReal, out var thirdEMARange, optInTimePeriod, k);
+        retCode = FunctionHelpers.CalcExponentialMA(secondEMA, Range.EndAt(secondEMANbElement - 1), outReal, out var thirdEMARange,
+            optInTimePeriod, k);
         if (retCode != Core.RetCode.Success || thirdEMARange.End.Value == 0)
         {
             return retCode;
@@ -131,7 +134,8 @@ public static partial class Functions
         int outIdx = default;
         while (outIdx < thirdEMANbElement)
         {
-            outReal[outIdx++] += Three<T>() * firstEMA[firstEMAIdx++] - Three<T>() * secondEMA[secondEMAIdx++];
+            outReal[outIdx++] += FunctionHelpers.Three<T>() * firstEMA[firstEMAIdx++] -
+                                 FunctionHelpers.Three<T>() * secondEMA[secondEMAIdx++];
         }
 
         outRange = new Range(outBegIdx, outBegIdx + outIdx);

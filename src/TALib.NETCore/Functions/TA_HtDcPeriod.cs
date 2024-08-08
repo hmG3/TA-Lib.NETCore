@@ -54,7 +54,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -71,8 +71,8 @@ public static partial class Functions
 
         var outBegIdx = startIdx;
 
-        HTHelper.InitWma(inReal, startIdx, lookbackTotal, out var periodWMASub, out var periodWMASum, out var trailingWMAValue,
-            out var trailingWMAIdx, 9, out var today);
+        FunctionHelpers.HTHelper.InitWma(inReal, startIdx, lookbackTotal, out var periodWMASub, out var periodWMASum,
+            out var trailingWMAValue, out var trailingWMAIdx, 9, out var today);
 
         int hilbertIdx = default;
 
@@ -81,7 +81,7 @@ public static partial class Functions
          * This minimizes the number of memory access and floating point operations needed
          * By using static circular buffer, no large dynamic memory allocation is needed for storing intermediate calculation.
          */
-        Span<T> circBuffer = HTHelper.BufferFactory<T>();
+        Span<T> circBuffer = FunctionHelpers.HTHelper.BufferFactory<T>();
 
         int outIdx = default;
 
@@ -93,14 +93,14 @@ public static partial class Functions
         {
             var adjustedPrevPeriod = T.CreateChecked(0.075) * period + T.CreateChecked(0.54);
 
-            DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
+            FunctionHelpers.DoPriceWma(inReal, ref trailingWMAIdx, ref periodWMASub, ref periodWMASum, ref trailingWMAValue, inReal[today],
                 out var smoothedValue);
 
             PerformHilbertTransform(today, circBuffer, smoothedValue, adjustedPrevPeriod, prevQ2, prevI2, ref hilbertIdx,
                 ref i1ForEvenPrev3, ref i1ForOddPrev3, ref i1ForOddPrev2, out var q2, out var i2, ref i1ForEvenPrev2);
 
             // Adjust the period for next price bar
-            HTHelper.CalcSmoothedPeriod(ref re, i2, q2, ref prevI2, ref prevQ2, ref im, ref period);
+            FunctionHelpers.HTHelper.CalcSmoothedPeriod(ref re, i2, q2, ref prevI2, ref prevQ2, ref im, ref period);
 
             smoothPeriod = T.CreateChecked(0.33) * period + T.CreateChecked(0.67) * smoothPeriod;
 
@@ -135,13 +135,15 @@ public static partial class Functions
         if (today % 2 == 0)
         {
             // Do the Hilbert Transforms for even price bar
-            HTHelper.CalcHilbertEven(circBuffer, smoothedValue, ref hilbertIdx, adjustedPrevPeriod, i1ForEvenPrev3, prevQ2, prevI2,
+            FunctionHelpers.HTHelper.CalcHilbertEven(circBuffer, smoothedValue, ref hilbertIdx, adjustedPrevPeriod, i1ForEvenPrev3, prevQ2,
+                prevI2,
                 out i1ForOddPrev3, ref i1ForOddPrev2, out q2, out i2);
         }
         else
         {
             // Do the Hilbert Transforms for odd price bar
-            HTHelper.CalcHilbertOdd(circBuffer, smoothedValue, hilbertIdx, adjustedPrevPeriod, out i1ForEvenPrev3, prevQ2, prevI2,
+            FunctionHelpers.HTHelper.CalcHilbertOdd(circBuffer, smoothedValue, hilbertIdx, adjustedPrevPeriod, out i1ForEvenPrev3, prevQ2,
+                prevI2,
                 i1ForOddPrev3, ref i1ForEvenPrev2, out q2, out i2);
         }
     }

@@ -55,7 +55,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inReal.Length) is null)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is null)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -65,6 +65,6 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return CalcVariance(inReal, inRange, outReal, out outRange, optInTimePeriod);
+        return FunctionHelpers.CalcVariance(inReal, inRange, outReal, out outRange, optInTimePeriod);
     }
 }

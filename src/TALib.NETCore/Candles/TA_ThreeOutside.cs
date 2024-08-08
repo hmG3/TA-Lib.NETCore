@@ -61,7 +61,7 @@ public static partial class Candles
     {
         outRange = Range.EndAt(0);
 
-        if (ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
+        if (FunctionHelpers.ValidateInputRange(inRange, inOpen.Length, inHigh.Length, inLow.Length, inClose.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -93,7 +93,9 @@ public static partial class Candles
         int outIdx = default;
         do
         {
-            outIntType[outIdx++] = IsThreeOutsidePattern(inOpen, inClose, i) ? (int) CandleColor(inClose, inOpen, i - 1) * 100 : 0;
+            outIntType[outIdx++] = IsThreeOutsidePattern(inOpen, inClose, i)
+                ? (int) CandleHelpers.CandleColor(inClose, inOpen, i - 1) * 100
+                : 0;
 
             i++;
         } while (i <= endIdx);
@@ -106,15 +108,15 @@ public static partial class Candles
     private static bool IsThreeOutsidePattern<T>(ReadOnlySpan<T> inOpen, ReadOnlySpan<T> inClose, int i)
         where T : IFloatingPointIeee754<T> =>
         // white engulfs black
-        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
-        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.White &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.Black &&
         inClose[i - 1] > inOpen[i - 2] && inOpen[i - 1] < inClose[i - 2] &&
         // third candle higher
         inClose[i] > inClose[i - 1]
         ||
         // black engulfs white
-        CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
-        CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 1) == Core.CandleColor.Black &&
+        CandleHelpers.CandleColor(inClose, inOpen, i - 2) == Core.CandleColor.White &&
         inOpen[i - 1] > inClose[i - 2] && inClose[i - 1] < inOpen[i - 2] &&
         // third candle lower
         inClose[i] < inClose[i - 1];
