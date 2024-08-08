@@ -32,7 +32,8 @@ public partial class Abstract
         private const string OutPrefix = "out";
         private const string OptInPrefix = "optIn";
         private const string RealParam = "Real";
-        private const string RangeParam = "Range";
+        private const string InRangeParam = "inRange";
+        private const string OutRangeParam = "outRange";
 
         internal IndicatorFunction(
             string name,
@@ -65,7 +66,8 @@ public partial class Abstract
 #pragma warning restore S2368
         {
             var functionMethod = ReflectMethods(publicOnly: false)
-                                     .FirstOrDefault(mi => !mi.Name.EndsWith(LookbackSuffix) && FunctionMethodSelector(mi)) ??
+                                     .FirstOrDefault(mi =>
+                                         !mi.Name.EndsWith(LookbackSuffix, StringComparison.Ordinal) && FunctionMethodSelector(mi)) ??
                                  throw new MissingMethodException(null, $"{Name}<{typeof(T).Name}>");
 
             var paramsArray = PrepareFunctionMethodParams(inputs, options, outputs, inRange, functionMethod, out var isIntegerOutput);
@@ -94,10 +96,12 @@ public partial class Abstract
         public int Lookback(params int[] options)
         {
             var lookbackMethod = ReflectMethods(publicOnly: true)
-                                     .FirstOrDefault(mi => mi.Name.EndsWith(LookbackSuffix) && LookbackMethodSelector(mi))
+                                     .FirstOrDefault(mi =>
+                                         mi.Name.EndsWith(LookbackSuffix, StringComparison.Ordinal) && LookbackMethodSelector(mi))
                                  ?? throw new MissingMethodException(null, LookbackMethodName);
 
-            var optInParameters = lookbackMethod.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
+            var optInParameters = lookbackMethod.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix, StringComparison.Ordinal))
+                .ToList();
             var paramsArray = new object[optInParameters.Count];
             Array.Fill(paramsArray, Type.Missing);
 
@@ -105,7 +109,7 @@ public partial class Abstract
             var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
             for (var i = 0; i < defOptInParameters.Count; i++)
             {
-                var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
+                var optInParameter = optInParameters.SingleOrDefault(p => p.Name!.Equals(defOptInParameters[i], StringComparison.Ordinal));
                 if (optInParameter is null || i >= options.Length)
                 {
                     continue;
@@ -154,7 +158,8 @@ public partial class Abstract
         {
             var paramsArray = InitializeParamsArray(inputs, inRange);
 
-            isIntegerOutput = method.GetParameters().Count(pi => pi.Name!.StartsWith(OutPrefix) && pi.ParameterType == typeof(int[])) == 1;
+            isIntegerOutput = method.GetParameters().Count(pi =>
+                pi.Name!.StartsWith(OutPrefix, StringComparison.Ordinal) && pi.ParameterType == typeof(int[])) == 1;
             FillOutputs(paramsArray, outputs, isIntegerOutput);
 
             FillOptionalParameters(method, paramsArray, options);
@@ -187,12 +192,12 @@ public partial class Abstract
 
         private void FillOptionalParameters<T>(MethodInfo method, object[] paramsArray, T[] options)
         {
-            var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix)).ToList();
+            var optInParameters = method.GetParameters().Where(pi => pi.Name!.StartsWith(OptInPrefix, StringComparison.Ordinal)).ToList();
             var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName)).ToList();
 
             for (var i = 0; i < defOptInParameters.Count; i++)
             {
-                var optInParameter = optInParameters.SingleOrDefault(p => p.Name == defOptInParameters[i]);
+                var optInParameter = optInParameters.SingleOrDefault(p => p.Name!.Equals(defOptInParameters[i], StringComparison.Ordinal));
                 if (optInParameter is null || i >= Options.Length)
                 {
                     continue;
@@ -223,20 +228,22 @@ public partial class Abstract
             var optInParameters = methodInfo.GetParameters().Select(pi => pi.Name);
             var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName));
 
-            return methodInfo.Name == LookbackMethodName && optInParameters.All(defOptInParameters.Contains);
+            return methodInfo.Name.Equals(LookbackMethodName, StringComparison.Ordinal) &&
+                   optInParameters.All(p => defOptInParameters.Contains(p, StringComparer.Ordinal));
         }
 
         private bool FunctionMethodSelector(MethodBase methodInfo)
         {
             var parameters = methodInfo.GetParameters()
-                .Where(pi => pi.Name != InPrefix + RangeParam && pi.Name != OutPrefix + RangeParam)
+                .Where(pi => !pi.Name!.Equals(InRangeParam, StringComparison.Ordinal) &&
+                             !pi.Name.Equals(OutRangeParam, StringComparison.Ordinal))
                 .ToList();
 
-            var inParameters = parameters.Where(pi => pi.Name!.StartsWith(InPrefix)).Select(pi => pi.Name);
+            var inParameters = parameters.Where(pi => pi.Name!.StartsWith(InPrefix, StringComparison.Ordinal)).Select(pi => pi.Name);
 
-            var outParameters = parameters.Where(pi => pi.Name!.StartsWith(OutPrefix)).Select(pi => pi.Name);
+            var outParameters = parameters.Where(pi => pi.Name!.StartsWith(OutPrefix, StringComparison.Ordinal)).Select(pi => pi.Name);
 
-            var optInParameters = parameters.Where(pi => pi.Name!.StartsWith(OptInPrefix)).Select(pi => pi.Name);
+            var optInParameters = parameters.Where(pi => pi.Name!.StartsWith(OptInPrefix, StringComparison.Ordinal)).Select(pi => pi.Name);
 
             var defInParameters = Inputs.Length > 1 && Array.TrueForAll(Inputs, p => p == RealParam)
                 ? Inputs.Select((p, i) => InPrefix + p + i)
@@ -246,7 +253,7 @@ public partial class Abstract
 
             var defOptInParameters = Options.Select(o => NormalizeOptionalParameter(o.displayName));
 
-            return methodInfo.Name == Name &&
+            return methodInfo.Name.Equals(Name, StringComparison.Ordinal) &&
                    inParameters.SequenceEqual(defInParameters) &&
                    outParameters.SequenceEqual(defOutParameters) &&
                    optInParameters.SequenceEqual(defOptInParameters);
