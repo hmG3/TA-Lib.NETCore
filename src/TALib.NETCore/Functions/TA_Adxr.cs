@@ -22,6 +22,42 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Average Directional Movement Index Rating (Momentum Indicators)
+    /// </summary>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see cref="float"/> or <see cref="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">A range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">The span in which to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid values within the output span.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// The function computes the Average Directional Movement Rating,
+    /// which is essentially the average of the current ADX value and the ADX value from the previous time period.
+    /// This indicator is designed to smooth out the ADX and make it less sensitive to small fluctuations,
+    /// providing a more stable measure of trend strength.
+    /// <para>
+    /// The calculation steps are as follows:
+    /// <list type="number">
+    /// <item>
+    /// <description>First, the ADX values are computed for the required period.</description>
+    /// </item>
+    /// <item>
+    /// <description>The ADXR is then calculated by averaging the current ADX value with the ADX value from a previous period
+    /// (typically one period earlier).</description>
+    /// </item>
+    /// </list>
+    /// </para>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Adxr<T>(
         ReadOnlySpan<T> inHigh,
@@ -33,6 +69,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         AdxrImpl(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Adxr{T}"/>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int AdxrLookback(int optInTimePeriod = 14) =>
         optInTimePeriod < 2 ? -1 : optInTimePeriod + AdxLookback(optInTimePeriod) - 1;

@@ -84,7 +84,7 @@ public static partial class Core
 
         /// <summary>
         /// When measuring distance between parts of candles or width of gaps.
-        /// "equal" means "<=5% of the average of the 5 previous candles' high-low range"
+        /// "equal" means "≤5% of the average of the 5 previous candles' high-low range"
         /// </summary>
         Equal
     }

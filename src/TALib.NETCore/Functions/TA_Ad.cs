@@ -22,6 +22,34 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Chaikin A/D Line (Volume Indicators)
+    /// </summary>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see cref="float"/> or <see cref="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inVolume">A span of input volume data.</param>
+    /// <param name="inRange">A range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">The span in which to store the calculated values.</param>
+    /// <param name="outRange">The range of indices that represent the valid portion of data within the output span.</param>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// The function computes the Accumulation/Distribution line by calculating the cumulative flow of money into and out of the security.
+    /// The formula takes into account the high, low, and close prices, as well as the volume, to assess the buying and selling pressure.
+    /// This indicator can help in identifying divergences between price and volume,
+    /// which may indicate potential changes in the market trend.
+    /// <para>
+    /// Due to the nature of cumulative calculations, using double precision is recommended for better accuracy,
+    /// especially when dealing with large datasets.
+    /// </para>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Ad<T>(
         ReadOnlySpan<T> inHigh,
@@ -33,6 +61,10 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         AdImpl(inHigh, inLow, inClose, inVolume, inRange, outReal, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Ad{T}"/>.
+    /// </summary>
+    /// <returns>Always 0 since no historical data is required for this calculation.</returns>
     [PublicAPI]
     public static int AdLookback() => 0;
 

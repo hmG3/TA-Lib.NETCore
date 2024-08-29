@@ -22,6 +22,46 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Average Directional Movement Index (Momentum Indicators)
+    /// </summary>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see cref="float"/> or <see cref="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">A range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">The span in which to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid values within the output span.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// The function calculates the Average Directional Index, which is a measure of trend strength.
+    /// It does not indicate trend direction, only the strength of the trend.
+    /// The ADX is derived from the smoothed averages of the difference between +DI and -DI.
+    /// <para>
+    /// The ADX calculation involves several steps:
+    /// <list type="number">
+    /// <item>
+    /// <description>Calculate the True Range (TR), +DM (Directional Movement), and -DM for the specified time period.</description>
+    /// </item>
+    /// <item>
+    /// <description>Compute the smoothed averages of +DM and -DM, and then calculate the +DI and -DI.</description>
+    /// </item>
+    /// <item>
+    /// <description>Calculate the DX (Directional Index) from the difference between +DI and -DI.</description>
+    /// </item>
+    /// <item>
+    /// <description>Finally, compute the ADX as the smoothed average of the DX values.</description>
+    /// </item>
+    /// </list>
+    /// </para>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Adx<T>(
         ReadOnlySpan<T> inHigh,
@@ -33,6 +73,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         AdxImpl(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Adx{T}"/>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int AdxLookback(int optInTimePeriod = 14) =>
         optInTimePeriod < 2 ? -1 : optInTimePeriod * 2 + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Adx) - 1;

@@ -22,6 +22,44 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Acceleration Bands (Volume Indicators)
+    /// </summary>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see cref="float"/> or <see cref="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">A range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outRealUpperBand">The span in which to store the calculated upper band values.</param>
+    /// <param name="outRealMiddleBand">The span in which to store the calculated middle band values.</param>
+    /// <param name="outRealLowerBand">The span in which to store the calculated lower band values.</param>
+    /// <param name="outRange">The range of indices that represent the valid portion of values within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Acceleration Bands are a type of volatility indicator that expands and contracts based on the price movement.
+    /// They are used to determine potential breakout points and to measure the strength of the trend.
+    /// <para>
+    /// The calculation involves the following steps:
+    /// <list type="number">
+    /// <item>
+    /// <description>Calculate the upper and lower bands based on the high and low prices adjusted by a factor.</description>
+    /// </item>
+    /// <item>
+    /// <description>Compute the simple moving average (SMA) of the close prices to form the middle band.</description>
+    /// </item>
+    /// <item>
+    /// <description>Apply the SMA to the upper and lower bands to smooth them out.</description>
+    /// </item>
+    /// </list>
+    /// </para>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Accbands<T>(
         ReadOnlySpan<T> inHigh,
@@ -35,6 +73,11 @@ public static partial class Functions
         int optInTimePeriod = 20) where T : IFloatingPointIeee754<T> =>
         AccbandsImpl(inHigh, inLow, inClose, inRange, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Accbands{T}"/>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int AccbandsLookback(int optInTimePeriod = 20) => optInTimePeriod < 2 ? -1 : SmaLookback(optInTimePeriod);
 

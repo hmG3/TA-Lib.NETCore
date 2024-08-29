@@ -22,6 +22,35 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Chaikin A/D Oscillator (Volume Indicators)
+    /// </summary>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see cref="float"/> or <see cref="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inVolume">A span of input volume data.</param>
+    /// <param name="inRange">A range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">The span in which to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid values within the output span.</param>
+    /// <param name="optInFastPeriod">The time period for the fast moving average.</param>
+    /// <param name="optInSlowPeriod">The time period for the slow moving average.</param>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// The function computes the Chaikin Accumulation/Distribution Oscillator,
+    /// which is the difference between two EMAs of the Accumulation/Distribution line.
+    /// The oscillator is used to identify momentum in the market by comparing short-term and long-term buying and selling pressure.
+    /// <para>
+    /// Note that depending on the specified periods, the "fastEMA" may not always be faster than the "slowEMA" in practice,
+    /// but the calculation logic remains consistent.
+    /// </para>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode AdOsc<T>(
         ReadOnlySpan<T> inHigh,
@@ -35,6 +64,12 @@ public static partial class Functions
         int optInSlowPeriod = 10) where T : IFloatingPointIeee754<T> =>
         AdOscImpl(inHigh, inLow, inClose, inVolume, inRange, outReal, out outRange, optInFastPeriod, optInSlowPeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="AdOsc{T}"/>.
+    /// </summary>
+    /// <param name="optInFastPeriod">The time period for the fast moving average.</param>
+    /// <param name="optInSlowPeriod">The time period for the slow moving average.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int AdOscLookback(int optInFastPeriod = 3, int optInSlowPeriod = 10)
     {
