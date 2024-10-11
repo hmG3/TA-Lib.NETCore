@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Documentation metadata and static site
+docs/_site
+docs/api
+docs/Tools
+tools

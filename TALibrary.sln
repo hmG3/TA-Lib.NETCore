@@ -7,6 +7,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TALib.NETCore", "src\TALib.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TALib.NETCore.Tests", "tests\TALib.NETCore.Tests\TALib.NETCore.Tests.csproj", "{023BB709-67A2-440E-898D-886999DB7601}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{A6C0868A-270C-4B0F-9AB9-36C2E5369AEE}"
+	ProjectSection(SolutionItems) = preProject
+		docs\build.cake = docs\build.cake
+		docs\docfx.json = docs\docfx.json
+		docs\index.md = docs\index.md
+		docs\toc.yml = docs\toc.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

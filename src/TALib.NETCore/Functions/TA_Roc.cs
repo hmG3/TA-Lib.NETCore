@@ -46,7 +46,7 @@ public static partial class Functions
         int optInTimePeriod = 10) where T : IFloatingPointIeee754<T> =>
         RocImpl<T>(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
-    public static Core.RetCode RocImpl<T>(
+    private static Core.RetCode RocImpl<T>(
         ReadOnlySpan<T> inReal,
         Range inRange,
         Span<T> outReal,
