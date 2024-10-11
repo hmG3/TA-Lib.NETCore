@@ -2,9 +2,11 @@ name: test-analyse-automation
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   analyze:
@@ -25,7 +27,7 @@ jobs:
 
     - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 8.x
 
     - name: Install SonarCloud scanner
       if: ${{ matrix.operating-system == 'ubuntu-latest' }}

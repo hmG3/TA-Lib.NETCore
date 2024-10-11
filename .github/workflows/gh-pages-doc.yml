@@ -1,0 +1,41 @@
+name: deploy-documentation-gh-pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  publish-docs:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+
+      - name: Install Cake
+        run: dotnet tool restore
+      - name: Build docs
+        run: |
+          dotnet tool install -g docfx
+          dotnet tool run dotnet-cake docs/build.cake
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/_site'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
