@@ -61,7 +61,7 @@ public static partial class Functions
     {
         outRange = Range.EndAt(0);
 
-        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is null)
+        if (FunctionHelpers.ValidateInputRange(inRange, inReal.Length) is not { } rangeIndices)
         {
             return Core.RetCode.OutOfRangeParam;
         }
@@ -71,13 +71,8 @@ public static partial class Functions
             return Core.RetCode.BadParam;
         }
 
-        return FunctionHelpers.CalcMACD(
-            inReal,
-            inRange,
-            outMACD,
-            outMACDSignal,
-            outMACDHist,
-            out outRange,
+        return FunctionHelpers.CalcMACD(inReal, new Range(rangeIndices.startIndex, rangeIndices.endIndex), outMACD, outMACDSignal,
+            outMACDHist, out outRange,
             0, /* 0 indicate fix 12 == 0.15  for optInFastPeriod */
             0, /* 0 indicate fix 26 == 0.075 for optInSlowPeriod */
             optInSignalPeriod);

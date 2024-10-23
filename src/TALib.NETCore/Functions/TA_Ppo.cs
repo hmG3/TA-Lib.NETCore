@@ -76,7 +76,7 @@ public static partial class Functions
 
         Span<T> tempBuffer = new T[endIdx - startIdx + 1];
 
-        return FunctionHelpers.CalcPriceOscillator(inReal, inRange, outReal, out outRange, optInFastPeriod, optInSlowPeriod, optInMAType,
-            tempBuffer, true);
+        return FunctionHelpers.CalcPriceOscillator(inReal, new Range(startIdx, endIdx), outReal, out outRange, optInFastPeriod,
+            optInSlowPeriod, optInMAType, tempBuffer, true);
     }
 }
