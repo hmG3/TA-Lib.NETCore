@@ -1,5 +1,6 @@
-- name: 📖 Docs
-  href: index.md
-- name: 📚 API
+- name: 📚 Manual
+  href: manual/
+  homepage: manual/functions-api.md
+- name: 📖 API
   href: api/
   homepage: api/TALib.yml

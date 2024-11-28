@@ -12,7 +12,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{A6C0868A-2
 		docs\build.cake = docs\build.cake
 		docs\docfx.json = docs\docfx.json
 		docs\index.md = docs\index.md
-		docs\toc.yml = docs\toc.yml
+		docs\manual\functions-api.md = docs\manual\functions-api.md
+		docs\manual\abstract-api.md = docs\manual\abstract-api.md
+		docs\manual\unstable-period.md = docs\manual\unstable-period.md
+		docs\manual\functions-list.md = docs\manual\functions-list.md
+		docs\template\public\main.css = docs\template\public\main.css
+		docs\template\public\main.js = docs\template\public\main.js
 	EndProjectSection
 EndProject
 Global
