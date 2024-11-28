@@ -198,7 +198,7 @@ public partial class Abstract
             for (var i = 0; i < defOptInParameters.Count; i++)
             {
                 var optInParameter = optInParameters.SingleOrDefault(p => p.Name!.Equals(defOptInParameters[i], StringComparison.Ordinal));
-                if (optInParameter is null || i >= Options.Length)
+                if (optInParameter is null || i >= options.Length)
                 {
                     continue;
                 }
