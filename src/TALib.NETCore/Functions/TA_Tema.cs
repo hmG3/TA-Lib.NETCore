@@ -22,6 +22,65 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Triple Exponential Moving Average (Overlap Studies)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Triple Exponential Moving Average is a smoothing technique designed to reduce lag compared to traditional moving averages.
+    /// TEMA is calculated using three layers of exponential moving averages (EMAs) to achieve greater responsiveness
+    /// to price changes while minimizing noise.
+    /// <para>
+    /// TEMA offers a smoother representation of the price trend compared to a single EMA, reducing lag while maintaining
+    /// sensitivity to price changes.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the first EMA (EMA1) over the input data (<paramref name="inReal"/>) using the specified
+    ///       <paramref name="optInTimePeriod"/>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the second EMA (EMA2) on top of EMA1:
+    ///       <code>
+    ///         EMA2 = EMA(EMA1, optInTimePeriod)
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the third EMA (EMA3) on top of EMA2:
+    ///       <code>
+    ///         EMA3 = EMA(EMA2, optInTimePeriod)
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Combine the results of the three EMAs to calculate the TEMA:
+    ///       <code>
+    ///         TEMA = 3 * EMA1 - 3 * EMA2 + EMA3
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Tema<T>(
         ReadOnlySpan<T> inReal,
@@ -31,6 +90,11 @@ public static partial class Functions
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
         TemaImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Tema{T}">Tema</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int TemaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : EmaLookback(optInTimePeriod) * 3;
 

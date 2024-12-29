@@ -22,6 +22,79 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// T3 Moving Average (Overlap Studies)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <param name="optInVFactor">
+    /// The volume factor controls the degree of smoothing and responsiveness:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values (closer to 1) result in smoother outputs with more lag.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values (closer to 0) produce outputs that are more responsive to recent price changes.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// T3 Moving Average is a smoothing technique that improves upon traditional exponential moving averages (EMAs)
+    /// by reducing lag while maintaining responsiveness to price changes. It achieves this by applying multiple EMAs to the same
+    /// input data and using a volume factor (<paramref name="optInVFactor"/>) to adjust the weighting of each EMA layer.
+    /// <para>
+    /// T3 values represent a smoother moving average with less lag compared to conventional EMAs.
+    /// This indicator is especially useful in identifying trends and reducing the impact of short-term volatility.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the first EMA (E1) over the input data (<paramref name="inReal"/>) using the specified
+    ///       <paramref name="optInTimePeriod"/>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Apply subsequent EMAs on top of the previous result, up to six layers:
+    /// <code>
+    /// E2 = EMA(E1, optInTimePeriod)
+    /// E3 = EMA(E2, optInTimePeriod)
+    /// ...
+    /// E6 = EMA(E5, optInTimePeriod)
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Use the volume factor (<paramref name="optInVFactor"/>) to combine the weighted contributions of the six EMAs:
+    ///       <code>
+    ///         T3 = C1 * E6 + C2 * E5 + C3 * E4 + C4 * E3
+    ///       </code>
+    ///       where:
+    ///       <list type="bullet">
+    ///         <item><b>C1</b>, <b>C2</b>, <b>C3</b>, and <b>C4</b> are constants derived from the volume factor.</item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode T3<T>(
         ReadOnlySpan<T> inReal,
@@ -32,6 +105,11 @@ public static partial class Functions
         double optInVFactor = 0.7) where T : IFloatingPointIeee754<T> =>
         T3Impl(inReal, inRange, outReal, out outRange, optInTimePeriod, optInVFactor);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="T3{T}">T3</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int T3Lookback(int optInTimePeriod = 5) =>
         optInTimePeriod < 2 ? -1 : (optInTimePeriod - 1) * 6 + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.T3);

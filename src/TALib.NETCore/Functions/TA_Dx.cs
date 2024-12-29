@@ -22,6 +22,82 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Directional Movement Index (Momentum Indicators)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Directional Movement Index is a technical indicator used to measure trend strength in a market.
+    /// <para>
+    /// It is part of the Average Directional Index (<see cref="Adx{T}">ADX</see>) calculation and provides the foundation for understanding
+    /// positive (<see cref="PlusDI{T}">PlusDI</see>) and negative (<see cref="MinusDI{T}">MinusDI</see>) directional movements.
+    /// Using it alongside trend or volume indicators can improve the identification of strong directional movements.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the True Range (TR), Positive Directional Movement (+DM), and Negative Directional Movement (-DM).
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate smoothed averages for +DM, -DM, and TR over the specified time period using Wilder's smoothing technique.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Derive +DI and -DI using the smoothed values:
+    /// <code>
+    /// +DI = (+DM / TR) * 100
+    /// -DI = (-DM / TR) * 100
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the DX:
+    ///       <code>
+    ///         DX = ((|+DI - -DI|) / (+DI + -DI)) * 100
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A high value (e.g., above 25) typically signals a strong trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A low value (e.g., below 20) indicates a weak or no trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The DX alone does not indicate trend direction; instead, the +DI and -DI provide direction insights.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Dx<T>(
         ReadOnlySpan<T> inHigh,
@@ -33,6 +109,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         DxImpl(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Dx{T}">Dx</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int DxLookback(int optInTimePeriod = 14) =>
         optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Dx);

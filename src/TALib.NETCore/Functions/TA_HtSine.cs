@@ -22,6 +22,90 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Hilbert Transform - SineWave (Cycle Indicators)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outSine">A span to store the sine wave values.</param>
+    /// <param name="outLeadSine">A span to store the leading sine wave values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Hilbert Transform - SineWave identifies and visualizes the cyclic behavior of time series data by calculating
+    /// the sine and leading sine components of the dominant cycle. These components are particularly useful for analyzing market trends
+    /// and detecting potential reversals.
+    /// <para>
+    /// This function can assist in timing entries or exits in cyclic conditions. Confirming identified turning points with trend analysis,
+    /// oscillators like <see cref="Rsi{T}">RSI</see>, or cycle-based tools such as <see cref="HtDcPeriod{T}">HT DC Period</see> can improve reliability.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Smooth the input prices using a weighted moving average (WMA) to reduce noise and ensure smoother transitions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Apply the Hilbert Transform to extract in-phase (I) and quadrature (Q) components for even and odd bars, capturing cycle properties.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the dominant cycle phase (DCPhase) using the I and Q components. This provides the current position in the cycle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the sine of the DCPhase (outSine) and the leading sine (outLeadSine), which is the phase shifted by 45 degrees.
+    ///       These values provide insights into the cyclic movements and potential turning points.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation*</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The <i>sine wave</i> represents the current phase of the dominant cycle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The <i>leading sine wave</i> is the sine wave shifted forward by 45 degrees, helping identify early phase transitions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       When the sine wave and leading sine wave intersect, it may indicate a potential cycle peak or trough,
+    ///       signaling possible market reversals.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Limitations</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The function is most effective in cyclic markets and may produce unreliable signals in trending or highly volatile markets.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       It is sensitive to noise in the input data; therefore, appropriate smoothing is critical for accurate results.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode HtSine<T>(
         ReadOnlySpan<T> inReal,
@@ -31,16 +115,16 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         HtSineImpl(inReal, inRange, outSine, outLeadSine, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="HtSine{T}">HtSine</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
+    /// <remarks>
+    /// 31 inputs are skipped, for compatibility with Tradestation.
+    /// See <see cref="MamaLookback">MamaLookback</see> for an explanation of the "32"
+    /// </remarks>
     [PublicAPI]
-    public static int HtSineLookback() =>
-        /*  31 input are skip
-         * +32 output are skip to account for misc lookback
-         * ──────────────────
-         *  63 Total Lookback
-         *
-         * See MamaLookback for an explanation of the "32"
-         */
-        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtSine) + 63;
+    public static int HtSineLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtSine) + 31 + 32;
 
     /// <remarks>
     /// For compatibility with abstract API

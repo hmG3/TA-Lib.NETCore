@@ -23,23 +23,28 @@ namespace TALib;
 public static partial class Functions
 {
     /// <summary>
-    /// Vector Arithmetic Add (Math Operators)
+    /// Vector Arithmetic Addition (Math Operators)
     /// </summary>
-    /// <typeparam name="T">
-    /// The numeric data type, typically <see cref="float"/> or <see cref="double"/>,
-    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
-    /// </typeparam>
     /// <param name="inReal0">The first span of input values.</param>
     /// <param name="inReal1">The second span of input values.</param>
-    /// <param name="inRange">A range of indices that determines the portion of data to be calculated within the input spans.</param>
-    /// <param name="outReal">The span in which to store the calculated values.</param>
-    /// <param name="outRange">The range of indices that represent the valid portion of data within the output span.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
     /// <returns>
     /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
     /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
     /// </returns>
     /// <remarks>
-    /// The function computes the element-wise addition of two input spans, storing the results in the output span.
+    /// The function adds two data series together element-by-element and is often used to create composite indicators or
+    /// modify existing signals.
+    /// <para>
+    /// The function does not produce direct trading signals on its own.
+    /// It can be valuable for custom indicator development and refined strategy construction.
+    /// </para>
     /// </remarks>
     [PublicAPI]
     public static Core.RetCode Add<T>(
@@ -51,7 +56,7 @@ public static partial class Functions
         AddImpl(inReal0, inReal1, inRange, outReal, out outRange);
 
     /// <summary>
-    /// Returns the lookback period for <see cref="Add{T}"/>.
+    /// Returns the lookback period for <see cref="Add{T}">Add</see>.
     /// </summary>
     /// <returns>Always 0 since no historical data is required for this calculation.</returns>
     [PublicAPI]

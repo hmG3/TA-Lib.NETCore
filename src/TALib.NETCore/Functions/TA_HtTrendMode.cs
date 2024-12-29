@@ -22,6 +22,89 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Hilbert Transform - Trend vs Cycle Mode (Cycle Indicators)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outInteger">A span to store the calculated mode values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Hilbert Transform - Trend vs Cycle Mode is a cycle indicator that determines whether the market is in a trending state or
+    /// a cyclic state. It achieves this by analyzing dominant cycles in the data and
+    /// comparing their properties against predefined thresholds.
+    /// <para>
+    /// The function can help select appropriate indicators for the current market mode.
+    /// In trend mode, trend-following tools may be favored; in cycle mode, oscillators may yield better results.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Smooth the input prices using a weighted moving average (WMA) to reduce noise and emphasize key trends.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Apply the Hilbert Transform to extract in-phase (I) and quadrature (Q) components, which are used to calculate the dominant cycle properties.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the dominant cycle phase (DC Phase) and smooth the phase over successive iterations.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Generate sine and leading sine values using the smoothed DC phase for cycle mode detection.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Analyze crossings and deviations of the sine wave components to determine whether the series is in a trend or cycle mode.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A <i>trend mode (1)</i> is indicated when the market shows sustained directional movement,
+    ///       with cycles playing a secondary role.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A <i>cycle mode (0)</i> is indicated when the market oscillates within a well-defined range,
+    ///       and dominant cycles can be observed.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Limitations</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       This function is less effective in noisy or volatile markets where dominant cycles are hard to detect.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///        False positives may occur in markets transitioning between trending and cyclic behavior.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode HtTrendMode<T>(
         ReadOnlySpan<T> inReal,
@@ -30,16 +113,16 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         HtTrendModeImpl(inReal, inRange, outInteger, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="HtTrendMode{T}">HtTrendMode</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
+    /// <remarks>
+    /// 31 inputs are skipped, for compatibility with Tradestation.
+    /// See <see cref="MamaLookback">MamaLookback</see> for an explanation of the "32"
+    /// </remarks>
     [PublicAPI]
-    public static int HtTrendModeLookback() =>
-        /*  31 input are skip
-         * +32 output are skip to account for misc lookback
-         * ──────────────────
-         *  63 Total Lookback
-         *
-         * See MamaLookback for an explanation of the "32"
-         */
-        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendMode) + 63;
+    public static int HtTrendModeLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendMode) + 31 + 32;
 
     /// <remarks>
     /// For compatibility with abstract API

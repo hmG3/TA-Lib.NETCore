@@ -22,6 +22,111 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Bollinger Bands (Overlap Studies)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outRealUpperBand">A span to store the calculated upper band values.</param>
+    /// <param name="outRealMiddleBand">A span to store the calculated middle band values.</param>
+    /// <param name="outRealLowerBand">A span to store the calculated lower band values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <param name="optInNbDevUp">
+    /// Multiplier for the standard deviation to calculate the upper band:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values increase the distance from the middle band, reducing sensitivity to minor price fluctuations.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values reduce the distance, increasing responsiveness to price changes.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Values above 5 are rarely used as they lose practical significance.
+    /// </para>
+    /// </param>
+    /// <param name="optInNbDevDn">
+    /// Multiplier for the standard deviation to calculate the lower band:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values increase the distance from the middle band, reducing the likelihood of oversold signals.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values reduce the distance, increasing sensitivity to price declines.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Values above 5 are rarely used as they lose practical significance.
+    /// </para>
+    /// </param>
+    /// <param name="optInMAType">The moving average type.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Bollinger Bands are a volatility-based indicator that uses a moving average and standard deviations
+    /// to form upper and lower "bands" around the price. These bands expand and contract with market volatility,
+    /// providing insights into potential overbought or oversold conditions, as well as periods of consolidation and breakout.
+    /// <para>
+    /// The function is often used in trading strategies for identifying breakout opportunities, trend continuation, or reversals.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Calculate the middle band as a moving average of the input values over the specified time period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the standard deviation of the input values over the same time period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Determine the upper and lower bands by adding/subtracting a multiple of the standard deviation to/from the middle band:
+    /// <code>
+    /// Upper Band = Middle Band + (Standard Deviation * NbDevUp)
+    /// Lower Band = Middle Band - (Standard Deviation * NbDevDn)
+    /// </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value Interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       When prices move close to the upper band, the market may be approaching overbought levels, potentially signaling a retracement.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       When prices move close to the lower band, the market may be approaching oversold levels, potentially signaling a rally.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       During periods of low volatility, the bands contract, indicating potential breakouts. During high volatility, the bands expand.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Bbands<T>(
         ReadOnlySpan<T> inReal,
@@ -37,6 +142,12 @@ public static partial class Functions
         BbandsImpl(inReal, inRange, outRealUpperBand, outRealMiddleBand, outRealLowerBand, out outRange, optInTimePeriod, optInNbDevUp,
             optInNbDevDn, optInMAType);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Bbands{T}">Bbands</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <param name="optInMAType">The moving average type.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int BbandsLookback(int optInTimePeriod = 5, Core.MAType optInMAType = Core.MAType.Sma) =>
         optInTimePeriod < 2 ? -1 : MaLookback(optInTimePeriod, optInMAType);

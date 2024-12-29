@@ -22,6 +22,203 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Parabolic SAR - Extended (Overlap Studies)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInStartValue">
+    /// The starting SAR value used to initialize the calculation:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Positive values indicate a starting long position.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Negative values indicate a starting short position.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Typical range: <c>-100.0..100.0</c>, which determines the direction based on the first two price bars.
+    /// </para>
+    /// </param>
+    /// <param name="optInOffsetOnReverse">
+    /// An offset applied to the SAR value upon position reversal:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Positive values increase the distance between the SAR and the current price after reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Negative values decrease the distance.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Typical range: <c>-0.5..0.5</c>.
+    /// </para>
+    /// </param>
+    /// <param name="optInAccelerationInitLong">
+    /// Initial acceleration factor for long positions:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values make the SAR more responsive at the start of a trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values smooth the initial SAR.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Typical range: <c>0.01..0.1</c>.
+    /// </para>
+    /// </param>
+    /// <param name="optInAccelerationLong">
+    /// Incremental acceleration factor for long positions:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values increase SAR sensitivity with each new extreme point.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values limit the rate of acceleration.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Typical range: <c>0.01..0.05</c>.
+    /// </para>
+    /// </param>
+    /// <param name="optInAccelerationMaxLong">
+    /// Maximum acceleration factor for long positions:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values allow faster SAR movement during trends.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values limit SAR movement, increasing stability.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Typical range: <c>0.1..0.5</c>.
+    /// </para>
+    /// </param>
+    /// <param name="optInAccelerationInitShort">
+    /// Initial acceleration factor for short positions, with behavior similar to <paramref name="optInAccelerationInitLong"/>.
+    /// Typical range: <c>0.01..0.1</c>.
+    /// </param>
+    /// <param name="optInAccelerationShort">
+    /// Incremental acceleration factor for short positions, with behavior similar to <paramref name="optInAccelerationLong"/>.
+    /// Typical range: <c>0.01..0.05</c>.
+    /// </param>
+    /// <param name="optInAccelerationMaxShort">
+    /// Maximum acceleration factor for short positions, with behavior similar to <paramref name="optInAccelerationMaxLong"/>.
+    /// Typical range: <c>0.1..0.5</c>.
+    /// </param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Extended Parabolic Stop and Reverse indicator is an enhanced version of the traditional <see cref="Sar{T}">SAR</see>.
+    /// It allows for more granular control over the SAR calculation by providing separate parameters for long and short positions,
+    /// as well as an optional offset applied during position reversals. SAR-Ext is particularly useful for adaptive trading strategies
+    /// in volatile or trending markets.
+    /// <para>
+    /// By customizing acceleration factors, offsets, and initial values, the indicator's responsiveness to price changes can be fine-tuned.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///        Determine the initial trend direction based on the directional movement (DM) of the first two bars,
+    ///       or explicitly set it via the <paramref name="optInStartValue"/> parameter:
+    ///       <code>
+    ///         Direction = Long if +DM > -DM; otherwise, Short.
+    ///       </code>
+    ///       If <paramref name="optInStartValue"/> is positive, the direction is Long. If negative, the direction is Short.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Set the initial SAR and Extreme Point (EP) based on the starting trend:
+    /// <code>
+    /// SAR = Lowest Low (for Long) or Highest High (for Short) of the first price bar.
+    /// EP = Highest High (for Long) or Lowest Low (for Short) of the second price bar.
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       For each subsequent price bar:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>
+    ///             Calculate the SAR using separate acceleration factors for Long and Short positions:
+    ///             <code>
+    ///               SAR = Previous SAR + Acceleration Factor * (EP - Previous SAR)
+    ///             </code>
+    ///             The Acceleration Factor (AF) starts at the initial value and increases incrementally with new highs/lows up to the maximum limit.
+    ///             The EP is updated to the new highest high (for Long) or lowest low (for Short).
+    ///             </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             Ensure the SAR does not penetrate the range of the previous two price bars.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             If the SAR crosses the current price, reverse the position, reset the SAR to the EP,
+    ///             and apply the specified <paramref name="optInOffsetOnReverse"/> offset if provided.
+    ///           </description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       SAR dots below the price indicate an uptrend, providing potential stop-loss levels for long positions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       SAR dots above the price indicate a downtrend, providing potential stop-loss levels for short positions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       When the SAR switches from below to above (or vice versa), it signals a potential trend reversal.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode SarExt<T>(
         ReadOnlySpan<T> inHigh,
@@ -40,6 +237,10 @@ public static partial class Functions
         SarExtImpl(inHigh, inLow, inRange, outReal, out outRange, optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong,
             optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="SarExt{T}">SarExt</see>.
+    /// </summary>
+    /// <returns>Always 1 since there is only one price bar required for this calculation.</returns>
     [PublicAPI]
     public static int SarExtLookback() => 1;
 

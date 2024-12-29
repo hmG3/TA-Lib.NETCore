@@ -22,6 +22,93 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Relative Strength Index (Momentum Indicators)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Relative Strength Index is a momentum oscillator that measures the speed and change of price movements.
+    /// It ranges from 0 to 100 and is used to identify overbought or oversold conditions, potential reversal points,
+    /// and the strength of a trend.
+    /// <para>
+    /// The function is widely used in technical analysis as an indicator to assess market conditions and timing entry/exit points.
+    /// It is calculated using Wilder's smoothing method for average gains and losses over the specified time period.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Calculate the difference between consecutive values to determine daily gains and losses:
+    /// <code>
+    /// Gain = Max(CurrentValue - PreviousValue, 0)
+    /// Loss = Max(PreviousValue - CurrentValue, 0)
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Smooth the gains and losses using Wilder's smoothing method:
+    /// <code>
+    /// AvgGain = ((PreviousAvgGain * (TimePeriod - 1)) + CurrentGain) / TimePeriod
+    /// AvgLoss = ((PreviousAvgLoss * (TimePeriod - 1)) + CurrentLoss) / TimePeriod
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the Relative Strength (RS) as the ratio of average gain to average loss:
+    ///       <code>
+    ///         RS = AvgGain / AvgLoss
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the RSI using the RS value:
+    ///       <code>
+    ///         RSI = 100 - (100 / (1 + RS))
+    ///       </code>
+    ///       Alternatively:
+    ///       <code>
+    ///         RSI = 100 * (AvgGain / (AvgGain + AvgLoss))
+    ///       </code>
+    ///       The latter formula is optimized for computational efficiency.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value above 70 suggests overbought conditions, potentially signaling a price reversal or pullback.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value below 30 indicates oversold conditions, potentially signaling a price rebound or recovery.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Values near 50 suggest neutral momentum with no strong trend direction.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Rsi<T>(
         ReadOnlySpan<T> inReal,
@@ -31,6 +118,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         RsiImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Rsi{T}">Rsi</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int RsiLookback(int optInTimePeriod = 14)
     {

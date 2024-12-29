@@ -22,6 +22,76 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Kaufman Adaptive Moving Average (Overlap Studies)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Kaufman Adaptive Moving Average is a moving average designed to adapt to market volatility.
+    /// It adjusts its smoothing factor based on the efficiency ratio, which is calculated as the ratio of price direction
+    /// to price volatility over a specified period. This allows KAMA to be more responsive during trends and less sensitive
+    /// during consolidations.
+    /// <para>
+    /// The function can reduce noise and whipsaws. Due to its adaptive nature, KAMA can reduce lag compared to traditional moving averages,
+    /// making it useful for identifying trends and avoiding false signals.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the Efficiency Ratio (ER):
+    ///       <code>
+    ///         ER = Abs(PriceChange) / Sum(Abs(PriceChange over TimePeriod))
+    ///       </code>
+    ///       where PriceChange is the difference between the current price and the price `TimePeriod` ago.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the Smoothing Constant (SC):
+    ///       <code>
+    ///         SC = [ER * (FastestSC - SlowestSC) + SlowestSC]^2
+    ///       </code>
+    ///       where FastestSC and SlowestSC are constants typically derived from a short and long smoothing period, respectively.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Apply the SC to calculate the KAMA:
+    ///       <code>
+    ///         KAMA = PreviousKAMA + SC * (Price - PreviousKAMA)
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A rising KAMA indicates an uptrend, particularly when it reacts swiftly to price increases.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A flat or declining KAMA suggests a consolidation or downtrend.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Kama<T>(
         ReadOnlySpan<T> inReal,
@@ -31,6 +101,11 @@ public static partial class Functions
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
         KamaImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Kama{T}">Kama</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int KamaLookback(int optInTimePeriod = 30) =>
         optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Kama);

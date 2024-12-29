@@ -22,6 +22,65 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Minus Directional Movement (Momentum Indicators)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Minus Directional Movement function calculates the negative directional movement over a specified time period.
+    /// It is a component of the directional movement system and is used to assess the strength of downward price movement.
+    /// <para>
+    /// Used in conjunction with <see cref="PlusDM{T}">+DM</see> to calculate the Directional Indicators
+    /// (<see cref="PlusDI{T}">+DI</see>, <see cref="MinusDI{T}">-DI</see>) or the Average Directional Index (<see cref="Adx{T}">ADX</see>).
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Calculate the negative directional movement for each period as <c>-DM = Previous Low - Current Low</c> if this value is
+    ///       greater than the corresponding positive movement (<c>Current High - Previous High</c>) and is positive;
+    ///       otherwise, <c>-DM = 0</c>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       If the time period is greater than 1, sum the <c>-DM</c> values for the specified period,
+    ///       and smooth the results using Wilder's smoothing method:
+    ///       <code>
+    ///         -DM(n) = (Previous -DM(n-1) * (Period - 1) + Current -DM) / Period
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A high output value indicates strong downward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///        A low or zero output value suggests weak or no downward momentum.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode MinusDM<T>(
         ReadOnlySpan<T> inHigh,
@@ -32,6 +91,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         MinusDMImpl(inHigh, inLow, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="MinusDM{T}">MinusDM</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int MinusDMLookback(int optInTimePeriod = 14) => optInTimePeriod switch
     {

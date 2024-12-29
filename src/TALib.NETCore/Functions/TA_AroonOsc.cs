@@ -22,6 +22,82 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Aroon Oscillator (Momentum Indicators)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Aroon Oscillator is a momentum indicator that measures the difference between the Aroon Up and Aroon Down indicators
+    /// to assess the strength and direction of a trend.
+    /// <para>
+    /// The function is useful for identifying trend strength and direction and can also signal potential reversals
+    /// when crossing above or below the zero line. It is commonly used in conjunction with other technical indicators
+    /// to improve the reliability of trading signals.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Identify the highest high and lowest low within the specified time period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate Aroon Up and Aroon Down:
+    /// <code>
+    /// Aroon Up = 100 * (Time Period - Days Since Highest High) / Time Period
+    /// Aroon Down = 100 * (Time Period - Days Since Lowest Low) / Time Period
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the Aroon Oscillator as the difference between Aroon Up and Aroon Down:
+    ///       <code>
+    ///         Aroon Oscillator = Aroon Up - Aroon Down
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Positive values indicate that the Aroon Up is stronger than the Aroon Down, suggesting an upward trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Negative values indicate that the Aroon Down is stronger than the Aroon Up, suggesting a downward trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The closer the value is to +100 or -100, the stronger the respective trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Values around 0 suggest a lack of clear trend or a sideways market.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode AroonOsc<T>(
         ReadOnlySpan<T> inHigh,
@@ -32,6 +108,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         AroonOscImpl(inHigh, inLow, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="AroonOsc{T}">AroonOsc</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int AroonOscLookback(int optInTimePeriod = 14) => optInTimePeriod < 2 ? -1 : optInTimePeriod;
 

@@ -22,6 +22,82 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Linear Regression Angle (Statistic Functions)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Linear Regression Angle calculates the angle of the slope of the best-fit line for a series of data points
+    /// over a specified period. It provides a perspective on the direction and magnitude of the trend in degrees,
+    /// helping to identify trend strength and direction.
+    /// <para>
+    /// The function can suggest the strength of a trend. Confirming with ADX or volume indicators may reduce misinterpretation of
+    /// minor price changes as significant moves.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Calculate the sums of X values (index positions), squared X values, and the product of X and Y values (input values)
+    ///       over the specified period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the slope (m) of the regression line using the formula:
+    ///       <code>
+    ///         m = (n * Sum(XY) - Sum(X) * Sum(Y)) / (n * Sum(X^2) - (Sum(X))^2)
+    ///       </code>
+    ///       where n is the time period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Convert the slope (m) into an angle in degrees using the arctangent function:
+    ///       <code>
+    ///         Angle = RadiansToDegrees(Atan(m))
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A positive angle indicates an uptrend, where prices are increasing.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A negative angle indicates a downtrend, where prices are decreasing.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A near-zero angle suggests a lack of significant trend in the data over the period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The greater the absolute value of the angle, the stronger the trend.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode LinearRegAngle<T>(
         ReadOnlySpan<T> inReal,
@@ -31,6 +107,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         LinearRegAngleImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="LinearRegAngle{T}">LinearRegAngle</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int LinearRegAngleLookback(int optInTimePeriod = 14) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
 

@@ -22,6 +22,136 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Parabolic SAR (Overlap Studies)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInAcceleration">
+    /// The acceleration factor that controls the sensitivity of the SAR:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values make the SAR more responsive to price changes but may increase the risk of false signals.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values reduce responsiveness, providing smoother outputs.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// A typical range is <c>0.01..0.2</c>.
+    /// </para>
+    /// </param>
+    /// <param name="optInMaximum">
+    /// The maximum value to which the acceleration factor can increase:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values allow the SAR to accelerate more quickly during strong trends.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values limit acceleration, maintaining smoother trends.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// A typical range is <c>0.01..0.5</c>.
+    /// </para>
+    /// </param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Parabolic Stop and Reverse is a trend-following indicator designed to identify potential reversal points in the market.
+    /// It plots a series of dots above or below price bars to signify the direction of the trend.
+    /// As the trend progresses, the dots move closer to the price, providing dynamic stop-loss levels that adapt to changing market conditions.
+    /// <para>
+    /// The function is particularly useful for identifying trend direction, setting trailing stops, and detecting potential reversals.
+    /// Pairing it with trend or volatility indicators such as <see cref="Adx{T}">ADX</see> or
+    /// <see cref="Atr{T}">ATR</see> enhances its application.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Determine the initial trend direction based on the directional movement (DM) of the first two bars:
+    ///       <code>
+    ///         Direction = Long if +DM > -DM; otherwise, Short.
+    ///       </code>
+    ///       In the case of a tie, the trend defaults to Long.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Set the initial SAR (Stop and Reverse) and Extreme Point (EP):
+    /// <code>
+    /// SAR = Lowest Low (for Long) or Highest High (for Short) of the first price bar.
+    /// EP = Highest High (for Long) or Lowest Low (for Short) of the second price bar.
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       For each subsequent price bar:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>
+    ///             Calculate the SAR using the formula:
+    ///             <code>
+    ///               SAR = Previous SAR + Acceleration Factor * (EP - Previous SAR)
+    ///             </code>
+    ///             Where the Acceleration Factor (AF) starts at the initial value and increases incrementally with new highs/lows up to the maximum limit.
+    ///             The EP is updated to the new highest high (for Long) or lowest low (for Short).
+    ///             </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             Ensure that the SAR does not penetrate the range of the previous two price bars.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             If the SAR crosses the current price, the trend direction reverses, and the SAR is reset to the EP.
+    ///           </description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       SAR dots below the price indicate an uptrend, providing potential stop-loss levels for long positions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       SAR dots above the price indicate a downtrend, providing potential stop-loss levels for short positions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       When the SAR switches from below to above (or vice versa), it signals a potential trend reversal.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Sar<T>(
         ReadOnlySpan<T> inHigh,
@@ -33,6 +163,10 @@ public static partial class Functions
         double optInMaximum = 0.2) where T : IFloatingPointIeee754<T> =>
         SarImpl(inHigh, inLow, inRange, outReal, out outRange, optInAcceleration, optInMaximum);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Sar{T}">Sar</see>.
+    /// </summary>
+    /// <returns>Always 1 since there is only one price bar required for this calculation.</returns>
     [PublicAPI]
     public static int SarLookback() => 1;
 

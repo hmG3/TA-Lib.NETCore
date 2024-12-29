@@ -22,6 +22,99 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Stochastic Fast (Momentum Indicators)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outFastK">A span to store the calculated %K line values.</param>
+    /// <param name="outFastD">A span to store the calculated %D line values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInFastKPeriod">The time period for calculating the Fast %K line.</param>
+    /// <param name="optInFastDPeriod">The time period for smoothing the Fast %K line.</param>
+    /// <param name="optInFastDMAType">The moving average type used for smoothing the Fast %D line.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Fast Stochastic Oscillator is a momentum indicator that measures the relative position of the closing price
+    /// within a defined range over a given number of periods. It helps identify overbought or oversold conditions
+    /// and potential trend reversals. Unlike the standard Stochastic Oscillator, this implementation directly calculates
+    /// the raw %K line and applies minimal smoothing to generate the %D line.
+    /// <para>
+    /// Stochastic Fast is more sensitive to price movements than the standard <see cref="Stoch{T}">Stoch</see>,
+    /// making it more prone to false signals.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Calculate the raw %K value for each period:
+    ///       <code>
+    ///         %K = 100 * ((Close - LowestLow) / (HighestHigh - LowestLow))
+    ///       </code>
+    ///       where:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>
+    ///             <b>Close</b> is the closing price of the current period.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             <b>LowestLow</b> is the lowest low over the Fast %K period.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             <b>HighestHigh</b> is the highest high over the Fast %K period.
+    ///           </description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Smooth the %K line over the Fast %D period using the specified moving average type to produce the %D line.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Values above 80 typically indicate overbought conditions, suggesting a potential reversal to the downside.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Values below 20 typically indicate oversold conditions, suggesting a potential reversal to the upside.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Crossovers between the %K and %D lines are often used as trading signals:
+    ///       - A %K line crossing above %D may signal a buy.
+    ///       - A %K line crossing below %D may signal a sell.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The Fast Stochastic Oscillator is more sensitive to price changes than the Slow Stochastic Oscillator,
+    ///       making it more prone to false signals in volatile markets.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode StochF<T>(
         ReadOnlySpan<T> inHigh,
@@ -36,6 +129,13 @@ public static partial class Functions
         Core.MAType optInFastDMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
         StochFImpl(inHigh, inLow, inClose, inRange, outFastK, outFastD, out outRange, optInFastKPeriod, optInFastDPeriod, optInFastDMAType);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="StochF{T}">StochF</see>.
+    /// </summary>
+    /// <param name="optInFastKPeriod">The time period for calculating the Fast %K line.</param>
+    /// <param name="optInFastDPeriod">The time period for smoothing the Fast %K line.</param>
+    /// <param name="optInFastDMAType">The moving average type used for smoothing the Fast %D line.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int StochFLookback(int optInFastKPeriod = 5, int optInFastDPeriod = 3, Core.MAType optInFastDMAType = Core.MAType.Sma) =>
         optInFastKPeriod < 1 || optInFastDPeriod < 1 ? -1 : optInFastKPeriod - 1 + MaLookback(optInFastDPeriod, optInFastDMAType);

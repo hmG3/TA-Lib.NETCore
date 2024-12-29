@@ -22,6 +22,85 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Normalized Average True Range (Volatility Indicators)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Normalized Average True Range function calculates the normalized measure of price volatility, expressed
+    /// as a percentage of the closing price. It enhances the traditional <see cref="Atr{T}">ATR</see> by making it
+    /// comparable across different time periods or securities with varying price ranges.
+    /// <para>
+    /// The function is particularly useful for long-term analysis where price ranges vary drastically or for
+    /// cross-market or cross-security volatility comparisons.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the True Range (TR), which is the greatest of the following:
+    ///       <code>
+    ///         TR = max[(High - Low), abs(High - Previous Close), abs(Low - Previous Close)]
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       For the first ATR value, calculate the simple average of the TR values over the specified time period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       For subsequent ATR values, use Wilder's smoothing method:
+    ///       <code>
+    ///         ATR = [(Previous ATR * (Time Period - 1)) + Current TR] / Time Period
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Normalize the ATR by dividing it by the corresponding closing price and multiplying by 100:
+    ///       <code>
+    ///         NATR = (ATR / Close) * 100
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A high value indicates increased price volatility relative to the security's price.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A low value suggests lower price volatility.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Values are expressed as a percentage, enabling cross-security or cross-market comparisons.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Natr<T>(
         ReadOnlySpan<T> inHigh,
@@ -33,6 +112,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         NatrImpl(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Natr{T}">Natr</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int NatrLookback(int optInTimePeriod = 14) =>
         optInTimePeriod < 1 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Natr);

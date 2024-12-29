@@ -25,42 +25,89 @@ public static partial class Functions
     /// <summary>
     /// Average Directional Movement Index (Momentum Indicators)
     /// </summary>
-    /// <typeparam name="T">
-    /// The numeric data type, typically <see cref="float"/> or <see cref="double"/>,
-    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
-    /// </typeparam>
     /// <param name="inHigh">A span of input high prices.</param>
     /// <param name="inLow">A span of input low prices.</param>
     /// <param name="inClose">A span of input close prices.</param>
-    /// <param name="inRange">A range of indices that determines the portion of data to be calculated within the input spans.</param>
-    /// <param name="outReal">The span in which to store the calculated values.</param>
-    /// <param name="outRange">The range of indices representing the valid values within the output span.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
     /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
     /// <returns>
     /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
     /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
     /// </returns>
     /// <remarks>
-    /// The function calculates the Average Directional Index, which is a measure of trend strength.
-    /// It does not indicate trend direction, only the strength of the trend.
-    /// The ADX is derived from the smoothed averages of the difference between +DI and -DI.
+    /// Average Directional Movement Index is a momentum indicator that measures the strength of a trend
+    /// without indicating its direction. It is derived from the Directional Movement indicators (+DI and -DI) and is
+    /// commonly used in conjunction with them to evaluate the intensity of market trends.
     /// <para>
-    /// The ADX calculation involves several steps:
-    /// <list type="number">
-    /// <item>
-    /// <description>Calculate the True Range (TR), +DM (Directional Movement), and -DM for the specified time period.</description>
-    /// </item>
-    /// <item>
-    /// <description>Compute the smoothed averages of +DM and -DM, and then calculate the +DI and -DI.</description>
-    /// </item>
-    /// <item>
-    /// <description>Calculate the DX (Directional Index) from the difference between +DI and -DI.</description>
-    /// </item>
-    /// <item>
-    /// <description>Finally, compute the ADX as the smoothed average of the DX values.</description>
-    /// </item>
-    /// </list>
+    /// The function can guide the selection of trend-following or range-based strategies. It is often combined with moving averages,
+    /// oscillators, or support/resistance analysis to avoid false signals in low-trend-strength conditions.
     /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Calculate the True Range (TR) and Directional Movement (DM) values:
+    /// <code>
+    /// TR = max(High - Low, abs(High - Previous Close), abs(Low - Previous Close))
+    /// +DM = High - Previous High (if positive and greater than Low - Previous Low, otherwise 0)
+    /// -DM = Previous Low - Low (if positive and greater than High - Previous High, otherwise 0)
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Smooth the TR, +DM, and -DM values over the specified time period using Wilder's smoothing technique.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the Directional Indicators (+DI and -DI):
+    /// <code>
+    /// +DI = 100 * (+DM / TR)
+    /// -DI = 100 * (-DM / TR)
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the Directional Movement Index (DX):
+    ///       <code>
+    ///         DX = 100 * abs(+DI - -DI) / (+DI + -DI)
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the ADX as a smoothed average of the DX values over the specified time period.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Values above 25 indicate a strong trend, while values below 20 suggest a weak or non-existent trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A rising value suggests a strengthening trend, while a falling ADX indicates a weakening trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The ADX does not indicate the direction of the trend; it measures only its strength.
+    ///     </description>
+    ///   </item>
+    /// </list>
     /// </remarks>
     [PublicAPI]
     public static Core.RetCode Adx<T>(
@@ -74,7 +121,7 @@ public static partial class Functions
         AdxImpl(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod);
 
     /// <summary>
-    /// Returns the lookback period for <see cref="Adx{T}"/>.
+    /// Returns the lookback period for <see cref="Adx{T}">Adx</see>.
     /// </summary>
     /// <param name="optInTimePeriod">The time period.</param>
     /// <returns>The number of periods required before the first output value can be calculated.</returns>

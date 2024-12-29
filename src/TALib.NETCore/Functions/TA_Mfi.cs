@@ -22,6 +22,93 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Money Flow Index (Momentum Indicators)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inVolume">A span of input volumes.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Money Flow Index is a momentum oscillator that measures the strength of money flowing in and out of a security over a given period.
+    /// It combines price and volume data to indicate buying or selling pressure,
+    /// and is often used to identify overbought or oversold conditions.
+    /// <para>
+    /// MFI is similar to the <see cref="Rsi{T}">RSI</see> but incorporates volume data.
+    /// Combining it with trend indicators or <see cref="Obv{T}">OBV</see> may strengthen interpretive power.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the typical price for each bar:
+    ///       <code>
+    ///         Typical Price = (High + Low + Close) / 3
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the raw money flow for each bar:
+    ///       <code>
+    ///         Money Flow = Typical Price * Volume
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Determine if the raw money flow is positive or negative by comparing the current typical price to the previous typical price:
+    ///       - If the current typical price is greater than the previous typical price, it contributes to the positive money flow.
+    ///       - If it is less, it contributes to the negative money flow.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Accumulate the positive and negative money flows over the specified time period (`optInTimePeriod`).
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the Money Flow Index using the formula:
+    ///       <code>
+    ///         MFI = 100 * (Positive Money Flow / (Positive Money Flow + Negative Money Flow))
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value above 80 indicates overbought conditions, suggesting a potential trend reversal or pullback.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value below 20 indicates oversold conditions, suggesting a potential trend reversal or bounce.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Divergences between the MFI and price movement can signal potential trend reversals.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Mfi<T>(
         ReadOnlySpan<T> inHigh,
@@ -34,6 +121,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         MfiImpl(inHigh, inLow, inClose, inVolume, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Mfi{T}">Mfi</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int MfiLookback(int optInTimePeriod = 14) =>
         optInTimePeriod < 2 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mfi);
@@ -158,8 +250,7 @@ public static partial class Functions
     {
         for (var i = timePeriod; i > 0; i--)
         {
-            UpdateMoneyFlow(high, low, close, volume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow,
-                ref mflowIdx);
+            UpdateMoneyFlow(high, low, close, volume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow, ref mflowIdx);
 
             if (++mflowIdx > maxIdxMflow)
             {
@@ -178,21 +269,20 @@ public static partial class Functions
         (T negative, T positive)[] moneyFlow,
         int maxIdxMflow,
         ref T posSumMF,
-        ref int mflowIdx,
+        ref int mFlowIdx,
         ref T negSumMF,
         ref T prevValue) where T : IFloatingPointIeee754<T>
     {
         while (today < startIdx)
         {
-            posSumMF -= moneyFlow[mflowIdx].positive;
-            negSumMF -= moneyFlow[mflowIdx].negative;
+            posSumMF -= moneyFlow[mFlowIdx].positive;
+            negSumMF -= moneyFlow[mFlowIdx].negative;
 
-            UpdateMoneyFlow(high, low, close, volume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow,
-                ref mflowIdx);
+            UpdateMoneyFlow(high, low, close, volume, ref today, ref prevValue, ref posSumMF, ref negSumMF, moneyFlow, ref mFlowIdx);
 
-            if (++mflowIdx > maxIdxMflow)
+            if (++mFlowIdx > maxIdxMflow)
             {
-                mflowIdx = 0;
+                mFlowIdx = 0;
             }
         }
 

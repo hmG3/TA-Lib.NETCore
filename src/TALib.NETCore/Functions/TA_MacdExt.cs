@@ -22,6 +22,96 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// MACD with controllable MA type (Momentum Indicators)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outMACD">A span to store the calculated MACD line values.</param>
+    /// <param name="outMACDSignal">A span to store the calculated Signal line values.</param>
+    /// <param name="outMACDHist">A span to store the calculated MACD Histogram values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInFastPeriod">The time period for calculating the fast moving average.</param>
+    /// <param name="optInFastMAType">The moving average type used for the fast moving average.</param>
+    /// <param name="optInSlowPeriod">The time period for calculating the slow moving average.</param>
+    /// <param name="optInSlowMAType">The moving average type used for the slow moving average.</param>
+    /// <param name="optInSignalPeriod">The time period for calculating the Signal line.</param>
+    /// <param name="optInSignalMAType">The moving average type used for the Signal line.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Extended Moving Average Convergence Divergence allows customization of moving average types
+    /// for calculating the MACD line, Signal line, and MACD Histogram. This flexibility allows the indicator to be adapted
+    /// to various market conditions and analysis strategies.
+    /// <para>
+    /// The choice of moving average types (e.g., SMA, EMA) for the fast, slow, and Signal lines affects the indicator's sensitivity.
+    /// The function can be adapted to suit certain assets or volatility conditions. Combining it with volume indicators
+    /// may strengthen momentum-based signals.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the slow moving average using the specified <paramref name="optInSlowPeriod"/> and <paramref name="optInSlowMAType"/>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the fast moving average using the specified <paramref name="optInFastPeriod"/> and <paramref name="optInFastMAType"/>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the MACD line as the difference between the fast and slow moving averages:
+    ///       <code>
+    ///         MACD = FastMA - SlowMA
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the Signal line as the moving average of the MACD line using the specified <paramref name="optInSignalPeriod"/>
+    ///       and <paramref name="optInSignalMAType"/>..
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the MACD Histogram as the difference between the MACD line and the Signal line:
+    ///       <code>
+    ///         MACDHist = MACD - Signal
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A positive MACD line indicates upward momentum, while a negative MACD line indicates downward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The Signal line is used to identify potential buy or sell signals, with a bullish crossover occurring when the MACD line
+    ///       crosses above the Signal line, and a bearish crossover occurring when the MACD line crosses below the Signal line.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The MACD Histogram reflects the strength of momentum, with larger bars indicating stronger momentum in the direction
+    ///       of the MACD line and shrinking bars signaling a potential reversal or weakening momentum.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode MacdExt<T>(
         ReadOnlySpan<T> inReal,
@@ -39,6 +129,16 @@ public static partial class Functions
         MacdExtImpl(inReal, inRange, outMACD, outMACDSignal, outMACDHist, out outRange, optInFastPeriod, optInFastMAType, optInSlowPeriod,
             optInSlowMAType, optInSignalPeriod, optInSignalMAType);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="MacdExt{T}">MacdExt</see>.
+    /// </summary>
+    /// <param name="optInFastPeriod">The time period for calculating the fast moving average.</param>
+    /// <param name="optInFastMAType">The moving average type used for the fast moving average.</param>
+    /// <param name="optInSlowPeriod">The time period for calculating the slow moving average.</param>
+    /// <param name="optInSlowMAType">The moving average type used for the slow moving average.</param>
+    /// <param name="optInSignalPeriod">The time period for calculating the Signal line.</param>
+    /// <param name="optInSignalMAType">The moving average type used for the Signal line.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int MacdExtLookback(
         int optInFastPeriod = 12,

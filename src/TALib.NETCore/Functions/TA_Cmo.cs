@@ -22,6 +22,73 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Chande Momentum Oscillator (Momentum Indicators)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Chande Momentum Oscillator is a momentum indicator that measures the difference between the sum of gains
+    /// and losses over a specified time period, normalized by their total. It is similar to <see cref="Rsi{T}">RSI</see>,
+    /// but CMO considers both the upward and downward momentum simultaneously in its calculation.
+    /// <para>
+    /// The function can detect momentum shifts. Incorporating it with trend confirmation tools may improve accuracy in timing decisions.
+    /// The function is particularly useful in identifying overbought and oversold conditions and
+    /// in confirming trends when used with other indicators.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Calculate the gains and losses between consecutive price values over the specified time period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the sum of gains and the sum of losses.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the CMO:
+    ///       <code>
+    ///         CMO = 100 * (Sum of Gains - Sum of Losses) / (Sum of Gains + Sum of Losses)
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A positive value indicates upward momentum, suggesting bullish conditions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A negative value indicates downward momentum, suggesting bearish conditions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Values near zero suggest a lack of significant momentum in either direction.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Cmo<T>(
         ReadOnlySpan<T> inReal,
@@ -31,6 +98,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         CmoImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Cmo{T}">Cmo</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int CmoLookback(int optInTimePeriod = 14)
     {

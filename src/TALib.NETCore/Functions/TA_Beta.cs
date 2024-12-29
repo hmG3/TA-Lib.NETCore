@@ -22,6 +22,56 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Beta (Statistic Functions)
+    /// </summary>
+    /// <param name="inReal0">A span of input security or stock prices.</param>
+    /// <param name="inReal1">A span of input benchmark or market prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Beta function calculates the beta coefficient, which measures the volatility of a security relative to a benchmark index.
+    /// <para>
+    /// The function can be used in risk management and portfolio selection.
+    /// Combining it with other risk measures or normalization techniques may optimize instrument choices.
+    /// </para>
+    ///
+    /// <b>Calculation formula</b>:
+    /// <code>
+    ///   Beta = Covariance(Security, Market) / Variance(Market)
+    /// </code>
+    /// where the covariance and variance are derived from the percentage changes in the security's and market's prices
+    /// over a specified time period.
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 1 indicates that the security's price moves with the market.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value greater than 1 suggests that the security is more volatile than the market.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value less than 1 indicates that the security is less volatile than the market.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Beta<T>(
         ReadOnlySpan<T> inReal0,
@@ -32,6 +82,11 @@ public static partial class Functions
         int optInTimePeriod = 5) where T : IFloatingPointIeee754<T> =>
         BetaImpl(inReal0, inReal1, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Beta{T}">Beta</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int BetaLookback(int optInTimePeriod = 5) => optInTimePeriod < 1 ? -1 : optInTimePeriod;
 

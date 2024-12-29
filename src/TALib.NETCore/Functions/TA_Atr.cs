@@ -22,6 +22,75 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Average True Range (Volatility Indicators)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Average True Range is a volatility indicator that measures the degree of price movement over a specified time period.
+    /// <para>
+    /// The function is widely used for setting stop-loss levels, managing position sizes, and assessing volatility conditions.
+    /// It may be integrated with trend or momentum indicators to enhance risk management.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the True Range (TR), which is the greatest of the following:
+    ///       <code>
+    ///         TR = max[(High - Low), abs(High - Previous Close), abs(Low - Previous Close)]
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       For the first ATR value, calculate the simple average of the TR values over the specified time period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       For subsequent ATR values, use Wilder's smoothing method:
+    ///       <code>
+    ///         ATR = [(Previous ATR * (Time Period - 1)) + Current TR] / Time Period
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A higher value indicates higher market volatility.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A lower value suggests reduced volatility.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       ATR does not indicate the direction of price movement but reflects the degree of volatility over the specified period.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Atr<T>(
         ReadOnlySpan<T> inHigh,
@@ -33,6 +102,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         AtrImpl(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Atr{T}">Atr</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int AtrLookback(int optInTimePeriod = 14) =>
         optInTimePeriod < 1 ? -1 : optInTimePeriod + Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Atr);

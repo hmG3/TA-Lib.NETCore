@@ -22,6 +22,96 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Hilbert Transform - Dominant Cycle Phase (Cycle Indicators)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Hilbert Transform - Dominant Cycle Phase determines the phase of the dominant price cycle,
+    /// locating the current position within the cycle.
+    /// This phase angle provides insights into the position within the cycle, which can be used for timing and trend analysis.
+    /// <para>
+    /// The function is useful in identifying cycles and their phases in financial data.
+    /// It helps in identifying overbought and oversold conditions and potential reversals in price movements.
+    /// The function can enhance timing when combined with <see cref="HtDcPeriod{T}">HT DC Period</see> or other cycle tools.
+    /// Adding trend and momentum measures can refine decisions further.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Smooth the input prices using a weighted moving average (WMA) to remove noise and stabilize the data.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Use the Hilbert Transform to compute the in-phase (I) and quadrature (Q) components for even and odd price bars.
+    ///       These components form the basis of the phase calculation.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the real and imaginary parts of the dominant cycle phase using trigonometric operations over the smoothed prices.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Derive the phase angle from the real and imaginary parts. Adjust the phase angle for small imaginary components
+    ///       and account for one-bar lags introduced by the WMA.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Perform final phase adjustments to ensure the result is within the expected range.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value provides the current position within a market cycle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A rising value may indicate the beginning of a bullish trend, while a falling phase may signal bearish trends.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A falling value may signal bearish trends.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Limitations</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The function is more effective in cyclical or ranging markets and may produce unreliable results in strong trending conditions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The output is sensitive to noisy data; smoothing techniques, such as WMA, help mitigate this.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode HtDcPhase<T>(
         ReadOnlySpan<T> inReal,
@@ -30,10 +120,16 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         HtDcPhaseImpl(inReal, inRange, outReal, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="HtDcPhase{T}">HtDcPhase</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
+    /// <remarks>
+    /// 31 inputs are skipped, for compatibility with Tradestation.
+    /// See <see cref="MamaLookback">MamaLookback</see> for an explanation of the "32"
+    /// </remarks>
     [PublicAPI]
-    public static int HtDcPhaseLookback() =>
-        // See MamaLookback for an explanation of the "32"
-        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtDcPhase) + 63;
+    public static int HtDcPhaseLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtDcPhase) + 31 + 32;
 
     /// <remarks>
     /// For compatibility with abstract API

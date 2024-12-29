@@ -22,6 +22,85 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Plus Directional Indicator (Momentum Indicators)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Plus Directional Indicator is a momentum indicator that measures the strength of upward price movement over a given time period.
+    /// It is part of the Directional Movement System.
+    /// <para>
+    /// The function can be integrated with <see cref="PlusDM{T}">+DM</see> and <see cref="Adx{T}">ADX</see> to provide
+    /// a complete picture of trend strength. Confirming signals with additional indicators reduces the risk of misinterpretation.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Calculate the one-period positive directional movement (+DM1) as the difference between the current high and the previous high,
+    ///       provided it exceeds the negative directional movement (-DM1).
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the True Range (TR), which represents the total price movement for a period, accounting for gaps and volatility.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Apply Wilder's smoothing method to calculate the smoothed +DM and TR over the specified time period:
+    /// <code>
+    /// Today's +DM(n) = Previous +DM(n) - (Previous +DM(n) / TimePeriod) + Today's +DM1
+    /// Today's TR(n)  = Previous TR(n)  - (Previous TR(n) / TimePeriod) + Today's TR
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the Plus Directional Indicator (+DI) as the ratio of smoothed +DM to smoothed TR, expressed as a percentage:
+    ///       <code>
+    ///         +DI = (+DM(n) / TR(n)) * 100
+    ///       </code>
+    ///       where <c>+DM(n)</c> and <c>TR(n)</c> are the smoothed values over the specified time period.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A rising value indicates strong upward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A falling value suggests weakening upward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Comparing <c>-DI</c> (from <see cref="MinusDI{T}">-DI</see>) and <c>-DI</c> can help identify trend direction:
+    ///       if <c>+DI > -DI</c>, the trend is upward, and if <c>-DI > +DI</c>, the trend is downward.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode PlusDI<T>(
         ReadOnlySpan<T> inHigh,
@@ -33,6 +112,11 @@ public static partial class Functions
         int optInTimePeriod = 14) where T : IFloatingPointIeee754<T> =>
         PlusDIImpl(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="PlusDI{T}">PlusDI</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int PlusDILookback(int optInTimePeriod = 14) => optInTimePeriod switch
     {

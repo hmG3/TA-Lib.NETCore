@@ -22,6 +22,70 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Moving average with variable period (Overlap Studies)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inPeriods">A span of period values that determine the moving average period for each data point.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInMinPeriod">The minimum allowable time period for calculating the moving average.</param>
+    /// <param name="optInMaxPeriod">The maximum allowable time period for calculating the moving average.</param>
+    /// <param name="optInMAType">The moving average type.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Moving Average Variable Period function calculates a moving average where the period can vary for each data point.
+    /// This flexibility allows the moving average to adapt dynamically to changing conditions,
+    /// such as volatility or custom-defined periods.
+    /// <para>
+    /// The function is particularly useful in scenarios where adaptability to market conditions or specific custom periods is required.
+    /// The choice of <paramref name="optInMAType"/> and the range defined by <paramref name="optInMinPeriod"/> and
+    /// <paramref name="optInMaxPeriod"/> significantly affects the behavior and responsiveness of the MAVP.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Truncate the input periods <paramref name="inPeriods"/> to fit within the specified MinPeriod and MaxPeriod.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the moving average for each data point using the corresponding period from the truncated series.
+    ///       The moving average type <paramref name="optInMAType"/> determines the calculation method (e.g., SMA, EMA, etc.).
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Populate the output with the calculated moving average values for each period.
+    ///       Avoid redundant calculations by reusing results for identical periods in the input.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The MAVP output reflects a dynamically adjusted moving average based on the input period values.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Shorter periods result in more reactive and sensitive outputs, while longer periods provide smoother and less sensitive outputs.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Mavp<T>(
         ReadOnlySpan<T> inReal,
@@ -34,6 +98,12 @@ public static partial class Functions
         Core.MAType optInMAType = Core.MAType.Sma) where T : IFloatingPointIeee754<T> =>
         MavpImpl(inReal, inPeriods, inRange, outReal, out outRange, optInMinPeriod, optInMaxPeriod, optInMAType);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Mavp{T}">Mavp</see>.
+    /// </summary>
+    /// <param name="optInMaxPeriod">The maximum allowable time period for calculating the moving average.</param>
+    /// <param name="optInMAType">The moving average type.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int MavpLookback(int optInMaxPeriod = 30, Core.MAType optInMAType = Core.MAType.Sma) =>
         optInMaxPeriod < 2 ? -1 : MaLookback(optInMaxPeriod, optInMAType);

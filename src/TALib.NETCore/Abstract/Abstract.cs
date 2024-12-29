@@ -91,7 +91,7 @@ public partial class Abstract : IEnumerable<F>
             { "ACCBANDS", new F("Accbands", "Acceleration Bands", osGroup, inputPriceHLC, optionTimePeriod, outputBands) },
             { "ACOS", new F("Acos", "Vector Trigonometric ACos", mtGroup, inputReal, [], outputReal) },
             { "AD", new F("Ad", "Chaikin A/D Line", vmiGroup, inputPriceHLCV, [], outputReal) },
-            { "ADD", new F("Add", "Vector Arithmetic Add", moGroup, inputRealUnary, [], outputReal) },
+            { "ADD", new F("Add", "Vector Arithmetic Addition", moGroup, inputRealUnary, [], outputReal) },
             {
                 "ADOSC",
                 new F("AdOsc", "Chaikin A/D Oscillator", vmiGroup, inputPriceHLCV, [optionFastPeriod, optionSlowPeriod], outputReal)
@@ -131,7 +131,7 @@ public partial class Abstract : IEnumerable<F>
             { "COS", new F("Cos", "Vector Trigonometric Cos", mtGroup, inputReal, [], outputReal) },
             { "COSH", new F("Cosh", "Vector Trigonometric Cosh", mtGroup, inputReal, [], outputReal) },
             { "DEMA", new F("Dema", "Double Exponential Moving Average", osGroup, inputReal, optionTimePeriod, outputReal) },
-            { "DIV", new F("Div", "Vector Arithmetic Div", moGroup, inputRealUnary, [], outputReal) },
+            { "DIV", new F("Div", "Vector Arithmetic Division", moGroup, inputRealUnary, [], outputReal) },
             { "DX", new F("Dx", "Directional Movement Index", miGroup, inputPriceHLC, optionTimePeriod, outputReal) },
             { "EMA", new F("Ema", "Exponential Moving Average", osGroup, inputReal, optionTimePeriod, outputReal) },
             { "EXP", new F("Exp", "Vector Arithmetic Exp", mtGroup, inputReal, [], outputReal) },
@@ -223,7 +223,7 @@ public partial class Abstract : IEnumerable<F>
             { "MINUSDI", new F("MinusDI", "Minus Directional Indicator", miGroup, inputPriceHLC, optionTimePeriod, outputReal) },
             { "MINUSDM", new F("MinusDM", "Minus Directional Movement", miGroup, inputPriceHL, optionTimePeriod, outputReal) },
             { "MOM", new F("Mom", "Momentum", miGroup, inputReal, optionTimePeriod, outputReal) },
-            { "MULT", new F("Mult", "Vector Arithmetic Mult", moGroup, inputRealUnary, [], outputReal) },
+            { "MULT", new F("Mult", "Vector Arithmetic Multiplication", moGroup, inputRealUnary, [], outputReal) },
             { "NATR", new F("Natr", "Normalized Average True Range", vliGroup, inputPriceHLC, optionTimePeriod, outputReal) },
             { "OBV", new F("Obv", "On Balance Volume", vmiGroup, [realInput, volumeInput], [], outputReal) },
             { "PLUSDI", new F("PlusDI", "Plus Directional Indicator", miGroup, inputPriceHLC, optionTimePeriod, outputReal) },
@@ -306,11 +306,7 @@ public partial class Abstract : IEnumerable<F>
             },
             { "SUB", new F("Sub", "Vector Arithmetic Subtraction", moGroup, inputRealUnary, [], outputReal) },
             { "SUM", new F("Sum", "Summation", moGroup, inputReal, optionTimePeriod, outputReal) },
-            {
-                "T3",
-                new F("T3", "Triple Exponential Moving Average (T3)", osGroup, inputReal,
-                    [..optionTimePeriod, ("V Factor", "Volume Factor")], outputReal)
-            },
+            { "T3", new F("T3", "T3 Moving Average", osGroup, inputReal, [..optionTimePeriod, ("V Factor", "Volume Factor")], outputReal) },
             { "TAN", new F("Tan", "Vector Trigonometric Tan", mtGroup, inputReal, [], outputReal) },
             { "TANH", new F("Tanh", "Vector Trigonometric Tanh", mtGroup, inputReal, [], outputReal) },
             { "TEMA", new F("Tema", "Triple Exponential Moving Average", osGroup, inputReal, optionTimePeriod, outputReal) },

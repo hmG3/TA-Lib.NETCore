@@ -22,6 +22,33 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Average Price (Price Transform)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Average Price is a simple price transform that calculates the arithmetic mean of the open,
+    /// high, low, and close prices for a given range.
+    /// It provides a single value representing the average price of a security over a period.
+    /// <para>
+    /// This function is useful for smoothing out price fluctuations and obtaining a representative price for analysis.
+    /// Combining it with moving averages or oscillators may assist in identifying fair value zones or mean-reversion opportunities.
+    /// </para>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode AvgPrice<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,9 +60,10 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         AvgPriceImpl(inOpen, inHigh, inLow, inClose, inRange, outReal, out outRange);
 
-    /// <remarks>
-    /// For compatibility with abstract API
-    /// </remarks>
+    /// <summary>
+    /// Returns the lookback period for <see cref="AvgPrice{T}">AvgPrice</see>.
+    /// </summary>
+    /// <returns>Always 0 since no historical data is required for this calculation.</returns>
     [PublicAPI]
     public static int AvgPriceLookback() => 0;
 

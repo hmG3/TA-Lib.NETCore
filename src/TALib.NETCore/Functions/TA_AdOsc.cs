@@ -25,31 +25,80 @@ public static partial class Functions
     /// <summary>
     /// Chaikin A/D Oscillator (Volume Indicators)
     /// </summary>
-    /// <typeparam name="T">
-    /// The numeric data type, typically <see cref="float"/> or <see cref="double"/>,
-    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
-    /// </typeparam>
     /// <param name="inHigh">A span of input high prices.</param>
     /// <param name="inLow">A span of input low prices.</param>
     /// <param name="inClose">A span of input close prices.</param>
     /// <param name="inVolume">A span of input volume data.</param>
-    /// <param name="inRange">A range of indices that determines the portion of data to be calculated within the input spans.</param>
-    /// <param name="outReal">The span in which to store the calculated values.</param>
-    /// <param name="outRange">The range of indices representing the valid values within the output span.</param>
-    /// <param name="optInFastPeriod">The time period for the fast moving average.</param>
-    /// <param name="optInSlowPeriod">The time period for the slow moving average.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInFastPeriod">The time period for calculating the fast moving average.</param>
+    /// <param name="optInSlowPeriod">The time period for calculating the slow moving average.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
     /// <returns>
     /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
     /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
     /// </returns>
     /// <remarks>
-    /// The function computes the Chaikin Accumulation/Distribution Oscillator,
-    /// which is the difference between two EMAs of the Accumulation/Distribution line.
-    /// The oscillator is used to identify momentum in the market by comparing short-term and long-term buying and selling pressure.
+    /// Chaikin A/D Oscillator measures the momentum of the Accumulation/Distribution line by comparing shorter and
+    /// longer-term money flow intervals.
     /// <para>
-    /// Note that depending on the specified periods, the "fastEMA" may not always be faster than the "slowEMA" in practice,
-    /// but the calculation logic remains consistent.
+    /// The function can highlight underlying changes in buying or selling pressure before such shifts become apparent in price data.
+    /// It can confirm trends identified by price action and other technical indicators or serve as
+    /// a leading indicator for potential breakouts.
     /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the A/D Line for the given period using the formula:
+    ///       <code>
+    ///         A/D Line = ((Close - Low) - (High - Close)) / (High - Low) * Volume
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the fast EMA of the A/D Line using the specified fast period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the slow EMA of the A/D Line using the specified slow period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the Chaikin A/D Oscillator as the difference between the fast and slow EMAs:
+    ///       <code>
+    ///         AdOsc = EMA(Fast, A/D Line) - EMA(Slow, A/D Line)
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A rising value indicates an increasing momentum in buying pressure, suggesting potential upward price movement.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A falling value indicates increasing selling pressure, suggesting potential downward price movement.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Divergences between the AdOsc and the price trend can signal potential reversals or trend continuations.
+    ///     </description>
+    ///   </item>
+    /// </list>
     /// </remarks>
     [PublicAPI]
     public static Core.RetCode AdOsc<T>(
@@ -65,10 +114,10 @@ public static partial class Functions
         AdOscImpl(inHigh, inLow, inClose, inVolume, inRange, outReal, out outRange, optInFastPeriod, optInSlowPeriod);
 
     /// <summary>
-    /// Returns the lookback period for <see cref="AdOsc{T}"/>.
+    /// Returns the lookback period for <see cref="AdOsc{T}">AdOsc</see>.
     /// </summary>
-    /// <param name="optInFastPeriod">The time period for the fast moving average.</param>
-    /// <param name="optInSlowPeriod">The time period for the slow moving average.</param>
+    /// <param name="optInFastPeriod">The time period for calculating the fast moving average.</param>
+    /// <param name="optInSlowPeriod">The time period for calculating the slow moving average.</param>
     /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int AdOscLookback(int optInFastPeriod = 3, int optInSlowPeriod = 10)

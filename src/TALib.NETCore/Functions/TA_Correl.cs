@@ -22,6 +22,73 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Pearson's Correlation Coefficient (r) (Statistic Functions)
+    /// </summary>
+    /// <param name="inReal0">A span of input values for the first dataset.</param>
+    /// <param name="inReal1">A span of input values for the second dataset.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Pearson's Correlation Coefficient (r) measures the linear correlation between two datasets, showing how closely they move together.
+    /// <para>
+    /// The function is useful for portfolio construction, pair strategies, and diversification.
+    /// It can be paired with relative strength or spread indicators to identify correlation breakdowns or convergences.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the sums of the two datasets and their respective squares over the specified time period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the product of the datasets for each time period and calculate the sum of these products.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the covariance and the standard deviations of the datasets.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Divide the covariance by the product of the standard deviations to compute the correlation coefficient.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       -1 value indicates a perfect negative linear relationship.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       0 indicates no linear relationship.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       1 value indicates a perfect positive linear relationship.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Correl<T>(
         ReadOnlySpan<T> inReal0,
@@ -32,6 +99,11 @@ public static partial class Functions
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
         CorrelImpl(inReal0, inReal1, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Correl{T}">Correl</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int CorrelLookback(int optInTimePeriod = 30) => optInTimePeriod < 1 ? -1 : optInTimePeriod - 1;
 
@@ -100,7 +172,7 @@ public static partial class Functions
         var timePeriod = T.CreateChecked(optInTimePeriod);
 
         // Write the first output.
-        // Save first the trailing values since the input and output might be the same array.
+        // Save first the trailing values since the input and output might be the same span.
         var trailingX = inReal0[trailingIdx];
         var trailingY = inReal1[trailingIdx++];
         var tempReal = (sumX2 - sumX * sumX / timePeriod) * (sumY2 - sumY * sumY / timePeriod);
@@ -129,7 +201,7 @@ public static partial class Functions
             sumY2 += y * y;
 
             // Output new coefficient.
-            // Save first the trailing values since the input and output might be the same array.
+            // Save first the trailing values since the input and output might be the same span.
             trailingX = inReal0[trailingIdx];
             trailingY = inReal1[trailingIdx++];
             tempReal = (sumX2 - sumX * sumX / timePeriod) * (sumY2 - sumY * sumY / timePeriod);

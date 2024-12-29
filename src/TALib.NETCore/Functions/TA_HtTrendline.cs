@@ -22,6 +22,82 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Hilbert Transform - Instantaneous Trendline (Overlap Studies)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Hilbert Transform - Instantaneous Trendline is a cycle indicator designed to calculate a smooth trendline using
+    /// the Hilbert Transform. It removes noise and provides an immediate trend representation by combining recent smoothed data points and
+    /// extrapolating based on dominant cycles.
+    /// <para>
+    /// The function can be combined with <see cref="Adx{T}">ADX</see> or <see cref="Macd{T}">MACD</see> to ensure that changes
+    /// in the trendline align with broader conditions, reducing the risk of acting on false signals.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Smooth the input prices using a weighted moving average (WMA) to reduce noise and ensure smoother transitions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Apply the Hilbert Transform to extract the in-phase (I) and quadrature (Q) components, which are used to determine the cycle properties.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the dominant cycle period using the I and Q components to estimate the cycle length dynamically.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the trendline using a weighted moving average of the smoothed values over the dominant cycle period.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Store the calculated trendline values in the output span for visualization or further analysis.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The <i>trendline</i> provides a smooth representation of the market trend, filtering out short-term volatility.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Limitations</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The function is primarily effective in trending markets and may underperform in highly cyclic or volatile environments.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The algorithm assumes the presence of a dominant cycle, so markets lacking cyclic behavior may result in misleading trends.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode HtTrendline<T>(
         ReadOnlySpan<T> inReal,
@@ -30,16 +106,16 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         HtTrendlineImpl(inReal, inRange, outReal, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="HtTrendline{T}">HtTrendline</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
+    /// <remarks>
+    /// 31 inputs are skipped, for compatibility with Tradestation.
+    /// See <see cref="MamaLookback">MamaLookback</see> for an explanation of the "32"
+    /// </remarks>
     [PublicAPI]
-    public static int HtTrendlineLookback() =>
-        /*  31 input are skip
-         * +32 output are skip to account for misc lookback
-         * ──────────────────
-         *  63 Total Lookback
-         *
-         * See MamaLookback for an explanation of the "32"
-         */
-        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendline) + 63;
+    public static int HtTrendlineLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtTrendline) + 31 + 32;
 
     /// <remarks>
     /// For compatibility with abstract API

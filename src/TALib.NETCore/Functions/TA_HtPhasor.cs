@@ -22,6 +22,97 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Hilbert Transform - Phasor Components (Cycle Indicators)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outInPhase">A span to store the calculated "in-phase" component values.</param>
+    /// <param name="outQuadrature">A span to store the calculated "quadrature" component values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Hilbert Transform - Phasor Components is a technical indicator that decomposes price data into its
+    /// in-phase and quadrature components. These components represent the real and imaginary parts of the signal, respectively,
+    /// and are essential for analyzing cyclic properties of price data.
+    /// <para>
+    /// The function is generally used in cycle-focused analysis. Integrating it with conventional trend or momentum indicators
+    /// can validate cyclical signals.
+    /// The function is useful in identifying cycles and their phases in financial data, enabling to anticipate price
+    /// reversals or continuations.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Smooth the input prices using a weighted moving average (WMA) to minimize noise and stabilize the underlying data.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Apply the Hilbert Transform to determine the in-phase (I) and quadrature (Q) components for both even and odd bars.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the real and imaginary parts of the phase using trigonometric calculations applied to the smoothed data.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Derive the phase angle from the real and imaginary parts, adjusting for small imaginary values and any WMA-induced lag.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Perform final adjustments to the phase angle to ensure it fits within the expected range of values.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The <i>in-phase component</i> represents the price data's position within a cycle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The <i>quadrature component</i> captures the signal's delay or lag relative to the cycle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       By plotting these components on a polar graph, the cyclic behavior can be observed, and the phase shifts can be identified,
+    ///       which may indicate trend reversals or transitions.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Limitations</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The function is most effective in markets with cyclic behavior and
+    ///       may produce unreliable results in trending or highly volatile markets.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The accuracy of the components depends on the quality of the smoothed input data.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode HtPhasor<T>(
         ReadOnlySpan<T> inReal,
@@ -31,10 +122,15 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         HtPhasorImpl(inReal, inRange, outInPhase, outQuadrature, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="HtPhasor{T}">HtPhasor</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
+    /// <remarks>
+    /// See <see cref="MamaLookback">MamaLookback</see> for an explanation of the "32"
+    /// </remarks>
     [PublicAPI]
-    public static int HtPhasorLookback() =>
-        // See MamaLookback for an explanation of the "32"
-        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtPhasor) + 32;
+    public static int HtPhasorLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtPhasor) + 32;
 
     /// <remarks>
     /// For compatibility with abstract API

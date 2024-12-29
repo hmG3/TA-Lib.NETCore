@@ -22,6 +22,58 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Index of lowest value over a specified period (Math Operators)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outInteger">A span to store the calculated index values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// MinIndex function calculates the index of the lowest value in a data series over a specified period.
+    /// It is typically used in technical analysis to determine where the minimum value occurred in a rolling window of data.
+    /// <para>
+    /// The <see cref="Min{T}">Min</see> function can be used to get the lowest value itself rather than its index.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Identify the range of indices to evaluate for the lowest value based on the input range and time period:
+    ///       <code>
+    ///         Range = [trailingIdx, today]
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Determine the index of the lowest value in the range:
+    ///       <code>
+    ///         LowestIndex = IndexOfMin(inReal[i] for i in Range)
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The output provides the relative index within the input range where the lowest value was found during each time window.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode MinIndex<T>(
         ReadOnlySpan<T> inReal,
@@ -31,6 +83,11 @@ public static partial class Functions
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
         MinIndexImpl(inReal, inRange, outInteger, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="MinIndex{T}">MinIndex</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int MinIndexLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
 

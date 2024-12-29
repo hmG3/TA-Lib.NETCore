@@ -22,6 +22,51 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Weighted Moving Average (Overlap Studies)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Weighted Moving Average is a type of moving average that assigns greater weight to more recent data points.
+    /// This weighting makes it more responsive to recent price movements compared to a Simple Moving Average (SMA),
+    /// which treats all data points equally.
+    /// <para>
+    /// The function can capture short-term trends effectively.
+    /// Combining it with oscillators or other momentum indicators enhances timing and responsiveness in changing conditions.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       For each period, compute the weighted sum of the input values:
+    ///       <code>
+    ///         Weighted Sum = Σ(Value * Weight), where weights are assigned as 1, 2, ..., n for n periods.
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Divide the weighted sum by the sum of weights to calculate the WMA:
+    ///       <code>
+    ///         WMA = Weighted Sum / Σ(Weights), where Σ(Weights) = n * (n + 1) / 2 for n periods.
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Wma<T>(
         ReadOnlySpan<T> inReal,
@@ -31,6 +76,11 @@ public static partial class Functions
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
         WmaImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Wma{T}">Wma</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int WmaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : optInTimePeriod - 1;
 

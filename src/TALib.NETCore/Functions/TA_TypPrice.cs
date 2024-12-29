@@ -22,6 +22,45 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Typical Price (Price Transform)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Typical Price is a simple average of the high, low, and close prices of a financial instrument
+    /// for a given time period. It provides a straightforward representation of the average price movement
+    /// within that period, which can be used for various technical analysis calculations or as an input
+    /// to other indicators.
+    /// <para>
+    /// The function can serve as a reference for mean-reversion or confirmation strategies.
+    /// Combining it with oscillators or volatility bands may add contextual value.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       For each period, calculate the Typical Price using the formula:
+    ///       <code>
+    ///         TP = (High + Low + Close) / 3.
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode TypPrice<T>(
         ReadOnlySpan<T> inHigh,
@@ -32,6 +71,10 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         TypPriceImpl(inHigh, inLow, inClose, inRange, outReal, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="TypPrice{T}">TypPrice</see>.
+    /// </summary>
+    /// <returns>Always 0 since no historical data is required for this calculation.</returns>
     [PublicAPI]
     public static int TypPriceLookback() => 0;
 

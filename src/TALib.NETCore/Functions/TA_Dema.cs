@@ -22,6 +22,36 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Double Exponential Moving Average (Overlap Studies)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Double Exponential Moving Average is designed to reduce the lag associated with traditional moving averages
+    /// by combining a single exponential moving average with the EMA of that EMA (commonly referred to as EMA2).
+    /// <para>
+    /// This calculation results in a smoother average that reacts faster to price changes, making it useful for identifying
+    /// trends and reversals with reduced lag. The function can improve responsiveness in trend-following strategies.
+    /// Combining it with oscillators may help confirm signals and minimize delays.
+    /// </para>
+    ///
+    /// <b>Calculation formula</b>:
+    /// <code>
+    ///   DEMA = 2 * EMA(t, period) - EMA(EMA(t, period), period)
+    /// </code>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Dema<T>(
         ReadOnlySpan<T> inReal,
@@ -31,6 +61,11 @@ public static partial class Functions
         int optInTimePeriod = 30) where T : IFloatingPointIeee754<T> =>
         DemaImpl(inReal, inRange, outReal, out outRange, optInTimePeriod);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Dema{T}">Dema</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod">The time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int DemaLookback(int optInTimePeriod = 30) => optInTimePeriod < 2 ? -1 : EmaLookback(optInTimePeriod) * 2;
 

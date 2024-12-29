@@ -22,6 +22,121 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// MESA Adaptive Moving Average (Overlap Studies)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outMAMA">A span to store the calculated MAMA values.</param>
+    /// <param name="outFAMA">A span to store the calculated FAMA values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInFastLimit">
+    /// The upper bound for the adaptive factor:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values increase responsiveness to price changes, making the MAMA more sensitive to market trends.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values reduce responsiveness, smoothing the MAMA output.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Valid range is <c>0.01..0.99</c>. Values near 0.99 maximize sensitivity, while values closer to 0.01 prioritize smoothing.
+    /// </para>
+    /// </param>
+    /// <param name="optInSlowLimit">
+    /// The lower bound for the adaptive factor:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values reduce the minimum responsiveness, adding stability to the MAMA during market consolidations.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values increase minimum responsiveness, allowing faster reactions to market changes.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Valid range is <c>0.01..0.99</c>. Values near 0.99 reduce noise, while values closer to 0.01 allow greater flexibility.
+    /// </para>
+    /// </param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// MESA Adaptive Moving Average dynamically adjusts its responsiveness based on the dominant cycle in the market.
+    /// It utilizes a combination of the Hilbert Transform and alpha factor to adapt to changing market conditions, producing
+    /// two outputs: the MAMA and the FAMA (Following Adaptive Moving Average).
+    /// <para>
+    /// The function's adaptability allows it to respond quickly during trends while minimizing false signals in consolidation phases.
+    /// Combining it with <see cref="Adx{T}">ADX</see>, <see cref="Rsi{T}">RSI</see>,
+    /// or volatility measures like <see cref="Atr{T}">ATR</see> can refine strategy development.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Apply a Weighted Moving Average (WMA) to smooth the input prices and reduce noise.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Perform the Hilbert Transform on the smoothed data to extract in-phase (I) and quadrature (Q) components.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the dominant cycle period based on phase differences between successive in-phase and quadrature values.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the alpha factor using the fast and slow limits, which determines the level of responsiveness:
+    ///       <code>
+    ///         Alpha = FastLimit / DeltaPhase
+    ///       </code>
+    ///       Adjustments are made to ensure alpha stays within the range defined by the slow and fast limits.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Update the MAMA using the current price and alpha, and calculate the FAMA as a smoothed version of the MAMA.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       <i>MAMA</i> tracks the dominant trend with reduced lag.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       <i>FAMA</i> provides additional smoothing, acting as a signal line to identify changes in trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Crossovers between MAMA and FAMA can indicate potential buy or sell signals: a bullish crossover occurs when MAMA crosses
+    ///       above FAMA, and a bearish crossover occurs when MAMA crosses below FAMA.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Mama<T>(
         ReadOnlySpan<T> inReal,
@@ -33,21 +148,26 @@ public static partial class Functions
         double optInSlowLimit = 0.05) where T : IFloatingPointIeee754<T> =>
         MamaImpl(inReal, inRange, outMAMA, outFAMA, out outRange, optInFastLimit, optInSlowLimit);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Mama{T}">Mama</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
+    /// <remarks>
+    /// The fix lookback is 32 and is established as follows:
+    /// <list type="bullet">
+    /// <item><description>12 price bar to be compatible with the implementation of TradeStation found in John Ehlers book.</description></item>
+    /// <item><description>6 price bars for the <c>Detrender</c></description></item>
+    /// <item><description>6 price bars for <c>Q1</c></description></item>
+    /// <item><description>3 price bars for <c>JI</c></description></item>
+    /// <item><description>3 price bars for <c>JQ</c></description></item>
+    /// <item><description>1 price bar for <c>Re</c>/<c>Im</c></description></item>
+    /// <item><description>1 price bar for the <c>Delta Phase</c></description></item>
+    /// <item><description>————————</description></item>
+    /// <item><description>32 total</description></item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
-    public static int MamaLookback() =>
-        /* The fix lookback is 32 and is established as follows:
-         *
-         * 12 price bar to be compatible with the implementation of TradeStation found in John Ehlers book.
-         * 6 price bars for the Detrender
-         * 6 price bars for Q1
-         * 3 price bars for jI
-         * 3 price bars for jQ
-         * 1 price bar for Re/Im
-         * 1 price bar for the Delta Phase
-         * ────────
-         * 32 Total
-         */
-        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mama) + 32;
+    public static int MamaLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.Mama) + 32;
 
     /// <remarks>
     /// For compatibility with abstract API

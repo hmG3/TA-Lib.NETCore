@@ -22,6 +22,83 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Ultimate Oscillator (Momentum Indicators)
+    /// </summary>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInTimePeriod1">The short-term time period.</param>
+    /// <param name="optInTimePeriod2">The medium-term time period.</param>
+    /// <param name="optInTimePeriod3">The long-term time period.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Ultimate Oscillator is a momentum oscillator designed to capture the relationship between
+    /// buying and selling pressure over multiple time frames. It helps identify potential price reversals
+    /// and overbought/oversold conditions by combining short-term, medium-term, and long-term averages
+    /// of true ranges and buying pressure.
+    /// <para>
+    /// The Ultimate Oscillator combines multiple time frames to minimize false signals caused by short-term
+    /// market fluctuations while still reacting quickly enough to significant price movements.
+    /// The function provides a more balanced momentum view.
+    /// Integrating it with trend confirmation or volume indicators can reinforce signal credibility.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       For each period, calculate the true range (TR) and the buying pressure (BP):
+    /// <code>
+    /// True Range (TR) = Maximum(High - Low, Absolute(High - Previous Close), Absolute(Low - Previous Close)).
+    /// Buying Pressure (BP) = Close - Minimum(Low, Previous Close).
+    /// </code>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the averages of BP and TR for the short-term, medium-term, and long-term periods.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compute the Ultimate Oscillator value as a weighted average of the three time periods:
+    ///       <code>
+    ///         UO = 100 * [(4 * (Short BP/TR)) + (2 * (Medium BP/TR)) + (1 * (Long BP/TR))] / (4 + 2 + 1).
+    ///       </code>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Values above 70 suggest overbought conditions, indicating potential selling opportunities.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Values below 30 suggest oversold conditions, indicating potential buying opportunities.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The oscillator can confirm trends when used with price action or other indicators.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode UltOsc<T>(
         ReadOnlySpan<T> inHigh,
@@ -35,6 +112,13 @@ public static partial class Functions
         int optInTimePeriod3 = 28) where T : IFloatingPointIeee754<T> =>
         UltOscImpl(inHigh, inLow, inClose, inRange, outReal, out outRange, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="UltOsc{T}">UltOsc</see>.
+    /// </summary>
+    /// <param name="optInTimePeriod1">The short-term time period.</param>
+    /// <param name="optInTimePeriod2">The medium-term time period.</param>
+    /// <param name="optInTimePeriod3">The long-term time period.</param>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int UltOscLookback(int optInTimePeriod1 = 7, int optInTimePeriod2 = 14, int optInTimePeriod3 = 28) =>
         optInTimePeriod1 < 1 || optInTimePeriod2 < 1 || optInTimePeriod3 < 1

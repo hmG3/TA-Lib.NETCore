@@ -22,6 +22,29 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Vector Trigonometric ATan (Math Transform)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// ATan applies the arctangent (inverse tangent) function to each data point in a series, primarily for advanced mathematical modeling,
+    /// rather than standard technical analysis.
+    /// <para>
+    /// The function is rarely used alone for generating signals. It may be integrated into specialized or proprietary models,
+    /// in combination with other mathematical transformations.
+    /// </para>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Atan<T>(
         ReadOnlySpan<T> inReal,
@@ -30,6 +53,10 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         AtanImpl(inReal, inRange, outReal, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Atan{T}">Atan</see>.
+    /// </summary>
+    /// <returns>Always 0 since no historical data is required for this calculation.</returns>
     [PublicAPI]
     public static int AtanLookback() => 0;
 

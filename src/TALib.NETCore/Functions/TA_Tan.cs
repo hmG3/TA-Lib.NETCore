@@ -22,6 +22,27 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Vector Trigonometric Tan (Math Transform)
+    /// </summary>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// TAN applies the tangent function, typically for specialized or experimental analysis.
+    /// <para>
+    /// The function is not generally used alone. Consider its application only in complex, custom modeling scenarios.
+    /// </para>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Tan<T>(
         ReadOnlySpan<T> inReal,
@@ -30,6 +51,10 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         TanImpl(inReal, inRange, outReal, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Tan{T}">Tan</see>.
+    /// </summary>
+    /// <returns>Always 0 since no historical data is required for this calculation.</returns>
     [PublicAPI]
     public static int TanLookback() => 0;
 

@@ -22,6 +22,87 @@ namespace TALib;
 
 public static partial class Functions
 {
+    /// <summary>
+    /// Hilbert Transform - Dominant Cycle Period (Cycle Indicators)
+    /// </summary>
+    /// <param name="inReal">A span of input values.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outReal">A span to store the calculated values.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Hilbert Transform - Dominant Cycle Period identifies the dominant cycle length in market data.
+    /// It applies a series of transformations to identify periodic patterns and their dominant frequency.
+    /// <para>
+    /// The function is used in advanced technical analysis to identify cycles in financial time series data, helping to determine
+    /// market trends and timing for entry or exit positions. The function can be integrated into cycle-based approaches
+    /// to time entries or exits.
+    /// </para>
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Smooth the input data using a weighted moving average (WMA) to reduce noise while preserving the underlying signal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Apply the Hilbert Transform to compute in-phase (I) and quadrature (Q) components for odd and even price bars.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Calculate the arctangent of Q and I components to compute phase changes between successive price bars.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Use the phase change to estimate the instantaneous period of the dominant cycle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Apply a smoothing factor to stabilize the calculated period and reduce the impact of noise and outliers.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The output represents the dominant cycle period in the data.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A smaller period indicates faster market cycles, while a larger period signals slower cycles.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Limitations</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       The function is more effective in cyclical or ranging markets and may produce unreliable results in strong trending conditions.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The output is sensitive to noisy data; smoothing techniques, such as WMA, help mitigate this.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode HtDcPeriod<T>(
         ReadOnlySpan<T> inReal,
@@ -30,10 +111,13 @@ public static partial class Functions
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         HtDcPeriodImpl(inReal, inRange, outReal, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="HtDcPeriod{T}">HtDcPeriod</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
+    /// <remarks>See <see cref="MamaLookback">MamaLookback</see> for an explanation of the "32"</remarks>
     [PublicAPI]
-    public static int HtDcPeriodLookback() =>
-        // See MamaLookback for an explanation of the "32"
-        Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtDcPeriod) + 32;
+    public static int HtDcPeriodLookback() => Core.UnstablePeriodSettings.Get(Core.UnstableFunc.HtDcPeriod) + 32;
 
     /// <remarks>
     /// For compatibility with abstract API
