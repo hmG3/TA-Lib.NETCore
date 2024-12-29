@@ -216,7 +216,7 @@ public static partial class Functions
         }
 
         // Perform the calculation for the requested range
-        int outIdx = default;
+        var outIdx = 0;
         while (today <= endIdx)
         {
             ad = FunctionHelpers.CalcAccumulationDistribution(inHigh, inLow, inClose, inVolume, ref today, ad);

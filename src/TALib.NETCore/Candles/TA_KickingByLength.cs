@@ -114,7 +114,7 @@ public static partial class Candles
          * the longer of the two marubozu determines the bullishness or bearishness of this pattern
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             var idx = CandleHelpers.RealBody(inClose, inOpen, i) > CandleHelpers.RealBody(inClose, inOpen, i - 1) ? i : i - 1;

@@ -118,7 +118,7 @@ public static partial class Candles
          * outIntType is always positive (100) but this does not mean it is bullish: rickshaw man shows uncertainty
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] =

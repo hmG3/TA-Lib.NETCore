@@ -158,7 +158,7 @@ public static partial class Functions
         FunctionHelpers.HTHelper.InitWma(inReal, startIdx, lookbackTotal, out var periodWMASub, out var periodWMASum,
             out var trailingWMAValue, out var trailingWMAIdx, 9, out var today);
 
-        int hilbertIdx = default;
+        var hilbertIdx = 0;
 
         /* Initialize the circular buffer used by the hilbert transform logic.
          * A buffer is used for odd day and another for even days.
@@ -167,7 +167,7 @@ public static partial class Functions
          */
         Span<T> circBuffer = FunctionHelpers.HTHelper.BufferFactory<T>();
 
-        int outIdx = default;
+        var outIdx = 0;
 
         T prevI2, prevQ2, re, im, i1ForOddPrev3, i1ForEvenPrev3, i1ForOddPrev2, i1ForEvenPrev2, smoothPeriod;
         var period = prevI2 = prevQ2 = re = im = i1ForOddPrev3 = i1ForEvenPrev3 = i1ForOddPrev2 = i1ForEvenPrev2 = smoothPeriod = T.Zero;

@@ -156,7 +156,7 @@ public static partial class Functions
         var nbBar = endIdx - startIdx + 1;
         outRange = new Range(startIdx, startIdx + nbBar);
         var currentBar = startIdx;
-        int outIdx = default;
+        var outIdx = 0;
         var ad = T.Zero;
 
         while (nbBar != 0)

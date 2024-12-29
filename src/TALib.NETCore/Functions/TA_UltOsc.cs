@@ -184,7 +184,7 @@ public static partial class Functions
 
         // Calculate oscillator
         var today = startIdx;
-        int outIdx = default;
+        var outIdx = 0;
         var trailingIdx1 = today - optInTimePeriod1 + 1;
         var trailingIdx2 = today - optInTimePeriod2 + 1;
         var trailingIdx3 = today - optInTimePeriod3 + 1;
@@ -246,8 +246,8 @@ public static partial class Functions
 
         for (var i = 0; i < 3; ++i)
         {
-            int longestPeriod = default;
-            int longestIndex = default;
+            var longestPeriod = 0;
+            var longestIndex = 0;
             for (var j = 0; j < 3; j++)
             {
                 if (!usedFlag[j] && periods[j] > longestPeriod)

@@ -178,11 +178,11 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        int outIdx = default;
+        var outIdx = 0;
 
         var moneyFlow = new (T negative, T positive)[optInTimePeriod];
 
-        int mflowIdx = default;
+        var mflowIdx = 0;
         var maxIdxMflow = optInTimePeriod - 1;
 
         // Accumulate the positive and negative money flow among the initial period.

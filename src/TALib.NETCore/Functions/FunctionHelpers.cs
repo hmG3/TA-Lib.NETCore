@@ -296,7 +296,7 @@ internal static class FunctionHelpers
             }
         }
 
-        int outIdx = default;
+        var outIdx = 0;
         var timePeriod = T.CreateChecked(optInTimePeriod);
         do
         {
@@ -349,7 +349,7 @@ internal static class FunctionHelpers
 
         // Proceed with the calculation for the requested range.
         // The algorithm allows the input and output to be the same buffer.
-        int outIdx = default;
+        var outIdx = 0;
         var timePeriod = T.CreateChecked(optInTimePeriod);
         do
         {

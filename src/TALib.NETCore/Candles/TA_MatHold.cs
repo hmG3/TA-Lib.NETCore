@@ -125,7 +125,7 @@ public static partial class Candles
          * outIntType is positive (100): mat hold is always bullish
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         var penetration = T.CreateChecked(optInPenetration);
         do
         {

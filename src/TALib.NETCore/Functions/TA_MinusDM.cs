@@ -258,7 +258,7 @@ public static partial class Functions
         var today = startIdx - 1;
         var prevHigh = high[today];
         var prevLow = low[today];
-        int outIdx = 0;
+        var outIdx = 0;
 
         while (today < endIdx)
         {

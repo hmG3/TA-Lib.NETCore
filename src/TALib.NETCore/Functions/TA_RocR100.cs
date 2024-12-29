@@ -155,7 +155,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        int outIdx = default;
+        var outIdx = 0;
         var inIdx = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
         while (inIdx <= endIdx)

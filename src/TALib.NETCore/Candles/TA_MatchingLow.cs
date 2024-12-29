@@ -97,7 +97,7 @@ public static partial class Candles
          * outIntType is always positive (100): matching low is always bullish
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = IsMatchingLowPattern(inOpen, inHigh, inLow, inClose, i, equalPeriodTotal) ? 100 : 0;

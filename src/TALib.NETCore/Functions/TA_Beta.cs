@@ -158,7 +158,7 @@ public static partial class Functions
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             UpdateSummation(inReal0, inReal1, ref lastPriceX, ref lastPriceY, ref i, ref sxx, ref sxy, ref sx, ref sy);

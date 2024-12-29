@@ -195,7 +195,7 @@ public static partial class Functions
 
         var thirdEMANbElement = thirdEMARange.End.Value - thirdEMARange.Start.Value;
         // Iterate through the EMA3 (output buffer) and adjust the value by using the EMA2 and EMA1.
-        int outIdx = default;
+        var outIdx = 0;
         while (outIdx < thirdEMANbElement)
         {
             outReal[outIdx++] += FunctionHelpers.Three<T>() * firstEMA[firstEMAIdx++] -

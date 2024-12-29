@@ -149,7 +149,7 @@ public static partial class Functions
 
         var outBegIdx = today;
 
-        int outIdx = default;
+        var outIdx = 0;
         while (today <= endIdx)
         {
             var todaySum = T.Zero;

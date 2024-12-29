@@ -120,7 +120,7 @@ public static partial class Candles
          * outIntType is always positive (100) but this does not mean it is bullish: takuri must be considered relatively to the trend
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = IsTakuriPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowVeryShortPeriodTotal,

@@ -109,7 +109,7 @@ public static partial class Candles
          * dragonfly doji must be considered relatively to the trend
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] =

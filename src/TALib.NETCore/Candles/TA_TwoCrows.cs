@@ -101,7 +101,7 @@ public static partial class Candles
          * while the function does not consider the trend
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = IsTwoCrowsPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal) ? -100 : 0;

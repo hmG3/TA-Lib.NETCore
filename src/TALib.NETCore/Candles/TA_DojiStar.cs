@@ -111,7 +111,7 @@ public static partial class Candles
          * so to determine the bullishness or bearishness of the pattern the trend must be analyzed
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = IsDojiStarPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, bodyDojiPeriodTotal)

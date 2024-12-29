@@ -130,7 +130,7 @@ public static partial class Functions
             periodTotal += inReal[i++];
         }
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             periodTotal += inReal[i++];

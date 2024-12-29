@@ -233,7 +233,7 @@ public static partial class Functions
 
         // Proceed with the calculation for the requested range.
         // The algorithm allows the input and output to be the same buffer.
-        int outIdx = default;
+        var outIdx = 0;
 
         // Calculate just enough K for ending up with the caller requested range.
         // (The range of k must consider allthe lookback involve with the smoothing).

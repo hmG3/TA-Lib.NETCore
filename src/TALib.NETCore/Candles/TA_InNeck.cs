@@ -110,7 +110,7 @@ public static partial class Candles
          * while this function does not consider it
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = InNeckPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, equalPeriodTotal)

@@ -161,8 +161,8 @@ public static partial class Functions
         }
 
         var i = optInTimePeriod - 1;
-        int j = default;
-        int outIdx = default;
+        var j = 0;
+        var outIdx = 0;
         var nbElement = endIdx - startIdx + 2;
         while (--nbElement != 0)
         {

@@ -145,7 +145,7 @@ public static partial class Functions
             return Core.RetCode.Success;
         }
 
-        int outIdx = default;
+        var outIdx = 0;
         var trailingIdx = startIdx - lookbackTotal;
 
         var periodSub = T.Zero;

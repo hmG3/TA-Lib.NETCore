@@ -107,7 +107,7 @@ public static partial class Candles
          * outIntType is positive (100) when white (bullish), negative (-100) when black (bearish)
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = IsBeltHoldPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, shadowVeryShortPeriodTotal)

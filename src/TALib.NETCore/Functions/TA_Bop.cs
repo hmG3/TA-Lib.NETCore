@@ -122,7 +122,7 @@ public static partial class Functions
 
         var (startIdx, endIdx) = rangeIndices;
 
-        int outIdx = default;
+        var outIdx = 0;
         for (var i = startIdx; i <= endIdx; i++)
         {
             var tempReal = inHigh[i] - inLow[i];

@@ -136,7 +136,7 @@ public static partial class Candles
          * while this function does not consider the trend
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         var penetration = T.CreateChecked(optInPenetration);
         do
         {

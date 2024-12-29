@@ -260,7 +260,7 @@ public static partial class Functions
         }
 
         var outBegIdx = startIdx;
-        int outIdx = default;
+        var outIdx = 0;
 
         var todayIdx = startIdx;
 

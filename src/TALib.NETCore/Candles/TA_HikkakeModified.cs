@@ -87,8 +87,8 @@ public static partial class Candles
             i++;
         }
 
-        int patternIdx = default;
-        int patternResult = default;
+        var patternIdx = 0;
+        var patternResult = 0;
         i = startIdx - 3;
         InitializeHikkakeModified(inOpen, inHigh, inLow, inClose, i, startIdx, ref nearPeriodTotal, ref patternResult, ref patternIdx,
             ref nearTrailingIdx);
@@ -112,7 +112,7 @@ public static partial class Candles
          * so bullish (bearish) modified hikkake is significant when appearing in a downtrend (uptrend)
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         CalcHikkakeModified(inOpen, inHigh, inLow, inClose, outIntType, i, nearPeriodTotal, patternResult, patternIdx, ref outIdx,
             nearTrailingIdx, endIdx);
 

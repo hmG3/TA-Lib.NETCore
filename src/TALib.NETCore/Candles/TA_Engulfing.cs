@@ -90,7 +90,7 @@ public static partial class Candles
          * while this function does not consider it
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = IsEngulfingPattern(inOpen, inClose, i) ? (int) CandleHelpers.CandleColor(inClose, inOpen, i) * 100 : 0;

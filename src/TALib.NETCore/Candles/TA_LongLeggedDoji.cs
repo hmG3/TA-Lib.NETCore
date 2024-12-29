@@ -106,7 +106,7 @@ public static partial class Candles
          * outIntType is always positive (100) but this does not mean it is bullish: long-legged doji shows uncertainty
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = IsLongLeggedDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal, shadowLongPeriodTotal)

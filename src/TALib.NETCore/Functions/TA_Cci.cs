@@ -163,7 +163,7 @@ public static partial class Functions
 
         // Allocate a circular buffer equal to the requested period.
         Span<T> circBuffer = new T[optInTimePeriod];
-        int circBufferIdx = default;
+        var circBufferIdx = 0;
         var maxIdxCircBuffer = optInTimePeriod - 1;
 
         // Do the MA calculation using tight loops.
@@ -185,7 +185,7 @@ public static partial class Functions
 
         // Proceed with the calculation for the requested range.
         // The algorithm allows the input and output to be the same buffer.
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             var lastValue = (inHigh[i] + inLow[i] + inClose[i]) / FunctionHelpers.Three<T>();

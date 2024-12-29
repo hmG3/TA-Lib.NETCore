@@ -147,7 +147,7 @@ public static partial class Functions
         }
 
         // Calculate Momentum. Just subtract the value from 'period' ago from current value.
-        int outIdx = default;
+        var outIdx = 0;
         var inIdx = startIdx;
         var trailingIdx = startIdx - lookbackTotal;
         while (inIdx <= endIdx)

@@ -265,7 +265,7 @@ public static partial class Functions
         var c4 = T.One + FunctionHelpers.Three<T>() * vFactor - c1 + FunctionHelpers.Three<T>() * tempReal;
 
         // Write the first output
-        int outIdx = default;
+        var outIdx = 0;
         outReal[outIdx++] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
 
         // Calculate and output the remaining of the range.

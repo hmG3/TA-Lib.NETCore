@@ -190,7 +190,7 @@ public static partial class Functions
 
         var timePeriod = T.CreateChecked(optInTimePeriod);
 
-        int outIdx = default;
+        var outIdx = 0;
 
         // Accumulate Wilder's "Average Gain" and "Average Loss" among the initial period.
         var today = startIdx - lookbackTotal;

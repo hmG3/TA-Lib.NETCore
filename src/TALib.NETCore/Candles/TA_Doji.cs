@@ -96,7 +96,7 @@ public static partial class Candles
          * doji shows uncertainty, and it is neither bullish nor bearish when considered alone
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = IsDojiPattern(inOpen, inHigh, inLow, inClose, i, bodyDojiPeriodTotal) ? 100 : 0;

@@ -113,7 +113,7 @@ public static partial class Candles
          * outIntType is positive (100) when bullish or negative (-100) when bearish
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = IsKickingPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, shadowVeryShortPeriodTotal)

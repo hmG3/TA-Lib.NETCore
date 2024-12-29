@@ -168,7 +168,7 @@ public static partial class Functions
 
         // Iterate through the second EMA and write the DEMA into the output.
         var firstEMAIdx = secondEMABegIdx;
-        int outIdx = default;
+        var outIdx = 0;
         while (outIdx < secondEMANbElement)
         {
             outReal[outIdx] = FunctionHelpers.Two<T>() * firstEMA[firstEMAIdx++] - secondEMA[outIdx];

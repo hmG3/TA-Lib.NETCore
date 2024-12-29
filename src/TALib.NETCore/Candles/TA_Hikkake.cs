@@ -78,8 +78,8 @@ public static partial class Candles
 
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
-        int patternIdx = default;
-        int patternResult = default;
+        var patternIdx = 0;
+        var patternResult = 0;
         var i = startIdx - 3;
 
         InitializeHikkake(inHigh, inLow, inClose, ref patternIdx, ref patternResult, ref i, startIdx);
@@ -98,7 +98,7 @@ public static partial class Candles
          * (the new hikkake overwrites the confirmation of the old hikkake)
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         CalcHikkake(inHigh, inLow, inClose, endIdx, ref i, ref outIdx, outIntType, ref patternIdx, ref patternResult);
 
         outRange = new Range(startIdx, startIdx + outIdx);

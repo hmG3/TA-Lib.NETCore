@@ -147,7 +147,7 @@ public static partial class Functions
 
         var prevOBV = inVolume[startIdx];
         var prevReal = inReal[startIdx];
-        int outIdx = default;
+        var outIdx = 0;
 
         for (var i = startIdx; i <= endIdx; i++)
         {

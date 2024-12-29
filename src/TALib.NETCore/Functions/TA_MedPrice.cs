@@ -121,7 +121,7 @@ public static partial class Functions
          * See MidPrice to use instead the highest high and lowest low over multiple price bar.
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         for (var i = startIdx; i <= endIdx; i++)
         {
             outReal[outIdx++] = (inHigh[i] + inLow[i]) / FunctionHelpers.Two<T>();

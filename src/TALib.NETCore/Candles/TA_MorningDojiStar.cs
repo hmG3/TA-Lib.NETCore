@@ -134,7 +134,7 @@ public static partial class Candles
          * while this function does not consider the trend
          */
 
-        int outIdx = default;
+        var outIdx = 0;
         do
         {
             outIntType[outIdx++] = IsMorningDojiStarPattern(inOpen, inHigh, inLow, inClose, optInPenetration, i, bodyLongPeriodTotal,
