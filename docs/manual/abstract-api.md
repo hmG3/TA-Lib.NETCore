@@ -1,3 +1,6 @@
+# Abstract API
+<br>
+
 ## Quick start
 
 `TALib.Abstract.All` provides a centralized instance to access the full collection of functions supported by the library.

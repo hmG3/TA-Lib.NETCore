@@ -1,3 +1,6 @@
+# Unstable Period
+<br>
+
 ## Overview
 
 Certain functions in Technical Analysis (TA) are influenced by the entire range of historical data, resulting in outputs that depend on past values.

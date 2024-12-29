@@ -1,3 +1,6 @@
+# Functions API
+<br>
+
 ## Unified method signature
 
 Technical Analysis (TA) functions are simple mathematical functions.

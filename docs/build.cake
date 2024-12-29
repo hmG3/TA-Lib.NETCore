@@ -1,6 +1,6 @@
 #addin nuget:?package=Cake.DocFx&version=1.0.0
 #addin nuget:?package=Cake.Yaml&version=6.0.0
-#addin nuget:?package=YamlDotNet&version=16.1.0
+#addin nuget:?package=YamlDotNet&version=16.3.0
 
 using MetaFile = System.IO.File;
 using System.Text.Encodings.Web;
@@ -15,8 +15,8 @@ Setup(context =>
 Task("ExtractMetadata").Does(DocFxMetadata);
 
 Task("ProcessMetadata")
-.IsDependentOn("ExtractMetadata")
-.DoesForEach(() => new [] { "TALib.Candles.yml", "TALib.Functions.yml" }, (string fileName) => {
+  .IsDependentOn("ExtractMetadata")
+  .DoesForEach(() => new [] { "TALib.Candles.yml", "TALib.Functions.yml" }, (string fileName) => {
     var filePath = new FilePath($"api{System.IO.Path.DirectorySeparatorChar}{fileName}");
 
     if (!FileExists(filePath))
@@ -222,7 +222,7 @@ void RemoveVbNodes(dynamic node)
 });
 
 Task("BuildMetadata")
-.IsDependentOn("ProcessMetadata")
-.Does(DocFxBuild);
+  .IsDependentOn("ProcessMetadata")
+  .Does(DocFxBuild);
 
 RunTarget("BuildMetadata");
