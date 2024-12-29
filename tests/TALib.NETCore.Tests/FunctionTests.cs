@@ -297,13 +297,13 @@ public sealed class FunctionTests
 
         const int itemsCount = 100;
         var inputs = Enumerable.Range(0, function.Inputs.Length)
-            .Select(__ => Enumerable.Repeat(0, itemsCount).Select(_ => random.NextDouble()).ToArray())
+            .Select(_ => Enumerable.Repeat(0, itemsCount).Select(_ => random.NextDouble()).ToArray())
             .ToArray();
 
         var options = Enumerable.Repeat(0, function.Options.Length).Select(_ => (double) random.Next(1, itemsCount)).ToArray();
 
         var outputs = Enumerable.Range(0, function.Outputs.Length)
-            .Select(__ => new double[itemsCount])
+            .Select(_ => new double[itemsCount])
             .ToArray();
 
         function.Run(inputs, options, outputs, new Index(itemsCount)..new Index(itemsCount - 1), out _)
