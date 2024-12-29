@@ -28,7 +28,6 @@ public static partial class Core
     public enum UnstableFunc
     {
         Adx,
-        Adxr,
         Atr,
         Cmo,
         Dx,
@@ -48,7 +47,6 @@ public static partial class Core
         PlusDI,
         PlusDM,
         Rsi,
-        StochRsi,
         T3,
         All
     }
