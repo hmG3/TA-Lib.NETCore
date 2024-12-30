@@ -107,6 +107,7 @@ void ProcessFunctionPair(dynamic metaRoot, List<dynamic> metaMethods, List<dynam
     {
         ["children"] = new List<string> { function["uid"], lookBack["uid"] },
         ["uid"] = functionFullName,
+        ["name"] = $"{metaRoot["name"]}.{functionName}",
         ["commentId"] = $"T:{functionFullName}",
         ["inheritedMembers"] = null!
     };
