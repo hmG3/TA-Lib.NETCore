@@ -22,6 +22,75 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Engulfing Pattern (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Engulfing function identifies a two-candle reversal pattern where the second candle's real body fully "engulfs" the real body
+    /// of the preceding candle. This pattern often signals a potential reversal when observed in an existing trend.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Identify the color of the first candle: white (bullish) or black (bearish).
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check if the second candle's real body completely overlaps the first candle's real body:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>
+    ///             For a bullish pattern, the second candle is white, its open is below (or at) the previous candle's close,
+    ///             and its close is above (or at) the previous candle's open.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             For a bearish pattern, the second candle is black, its open is above (or at) the previous candle's close,
+    ///             and its close is below (or at) the previous candle's open.
+    ///           </description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates a bullish Engulfing pattern, suggesting a potential upward reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates a bearish Engulfing pattern, suggesting a potential downward reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Engulfing<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +102,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         EngulfingImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Engulfing{T}">Engulfing</see>.
+    /// </summary>
+    /// <returns>Always 2 since there are only two prices bar required for this calculation.</returns>
     [PublicAPI]
     public static int EngulfingLookback() => 2;
 
@@ -79,16 +152,6 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         var i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first: black (white) real body
-         *   - second: white (black) real body that engulfs the prior real body
-         * outIntType is positive (100) when bullish or negative (-100) when bearish:
-         *   - 100 is returned when the second candle's real body begins before and ends after the first candle's real body
-         * it should be considered that an engulfing must appear in a downtrend if bullish or in an uptrend if bearish,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

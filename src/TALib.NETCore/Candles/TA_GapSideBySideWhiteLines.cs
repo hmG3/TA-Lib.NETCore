@@ -22,6 +22,82 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Up/Down-gap side-by-side white lines (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Gap Side-by-Side White Lines function used to identify candlestick patterns that is typically observed after a significant
+    /// price gap, often signaling a continuation of the current trend. Two consecutive white candles follow the initial gap,
+    /// aligning in such a way that their real bodies and openings appear nearly identical. This formation can appear in both
+    /// bullish (up gap) and bearish (down gap) contexts but usually highlights strong market momentum.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Detect a price gap between the first candle and the next two candles. The gap may be upward (indicating bullish continuation)
+    ///       or downward (indicating bearish continuation).
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify that the second and third candles both have white real bodies, reflecting consistent upward movement within
+    ///       this gap scenario.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the second and third candles have real bodies of similar size, defined as <em>near</em> by
+    ///       <see cref="Core.CandleSettingType.Near">Near</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check that the opening prices of the second and third candles are nearly <em>equal</em>, as specified by
+    ///       <see cref="Core.CandleSettingType.Equal">Equal</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Ensure that the gap established by the first candle remains unfilled by the second, indicating that the trend is still intact.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates Upside Gap Side-By-Side White Lines pattern, signaling bullish momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates Downside Gap Side-By-Side White Lines pattern, signaling bearish momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode GapSideBySideWhiteLines<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +109,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         GapSideBySideWhiteLinesImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="GapSideBySideWhiteLines{T}">GapSideBySideWhiteLines</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int GapSideBySideWhiteLinesLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near),
@@ -99,19 +179,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - upside or downside gap (between the bodies)
-         *   - first candle after the window: white candlestick
-         *   - second candle after the window: white candlestick with similar size (near the same) and
-         *     about the same open (equal) of the previous candle
-         *   - the second candle does not close the window
-         * The meaning of "near" and "equal" is specified with CandleSettings
-         * outIntType is positive (100) or negative (-100):
-         * it should be considered that upside or downside gap side-by-side white lines is significant when it appears in a trend,
-         * while this function does not consider the trend
-         */
 
         var outIdx = 0;
         do

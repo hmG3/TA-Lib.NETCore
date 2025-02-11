@@ -22,6 +22,60 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Doji (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Doji function identifies a single-candle pattern distinguished by a very small or nonexistent real body, implying that the open
+    /// and close prices are nearly the same. This often signifies market indecision or equilibrium between buying and selling pressure,
+    /// without a clear bullish or bearish tilt.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Compute the candle's real body as the absolute difference between its open and close prices.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Compare this real-body length to the average Doji body length defined by
+    ///       <see cref="Core.CandleSettingType.BodyDoji">BodyDoji</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///       If it is less than or equal to that average, the candle is classified as a Doji.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates the presence of a Doji pattern.
+    ///       Because a Doji suggests indecision, it does not convey a bullish or bearish bias.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Doji<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +87,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         DojiImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Doji{T}">Doji</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int DojiLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyDoji);
 
@@ -86,15 +144,6 @@ public static partial class Candles
             bodyDojiPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.BodyDoji, i);
             i++;
         }
-
-        /* Proceed with the calculation for the requested range.
-         *
-         * Must have:
-         *   - open quite equal to close
-         * How much can be the maximum distance between open and close is specified with CandleSettings
-         * outIntType is always positive (100) but this does not mean it is bullish:
-         * doji shows uncertainty, and it is neither bullish nor bearish when considered alone
-         */
 
         var outIdx = 0;
         do

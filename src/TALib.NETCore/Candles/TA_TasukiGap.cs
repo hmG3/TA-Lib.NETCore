@@ -22,6 +22,82 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Tasuki Gap (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Tasuki Gap function identifies a three-candle continuation pattern suggesting the market will persist in its current trend
+    /// (bullish or bearish). This pattern features a gap that remains unfilled by the subsequent candle, backed up by two candles
+    /// whose similar real-body sizes confirm the existing directional bias.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Verify that a gap forms between the first candle and the prior candle (either an upside or downside gap).
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the second candle continues in the direction of the gap:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>White (bullish) for an upside gap.</description>
+    ///         </item>
+    ///         <item>
+    ///           <description>Black (bearish) for a downside gap.</description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check that the third candle is of the opposite color, opens within the second candle's real body, and closes within,
+    ///       but does not fill, the gap.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Ensure the second and third candles have real bodies of similar size, adhering to
+    ///       <see cref="Core.CandleSettingType.Near">Near</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 represents a bullish Tasuki Gap pattern, signaling a continuation of an upward trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 represents a bearish Tasuki Gap pattern, signaling a continuation of a downward trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode TasukiGap<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +109,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         TasukiGapImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="TasukiGap{T}">TasukiGap</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int TasukiGapLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near) + 2;
 
@@ -88,19 +168,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - upside (downside) gap
-         *   - first candle after the window: white (black) candlestick
-         *   - second candle: black (white) candlestick that opens within the previous real body and closes under (above)
-         *     the previous real body inside the gap
-         *   - the size of two real bodies should be near the same
-         * The meaning of "near" is specified with CandleSettings
-         * outIntType is positive (100) when bullish or negative (-100) when bearish
-         * it should be considered that tasuki gap is significant when it appears in a trend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

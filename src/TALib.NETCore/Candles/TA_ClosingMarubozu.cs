@@ -22,6 +22,76 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Closing Marubozu (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Closing Marubozu function identifies a single-candle pattern characterized by a long real body and minimal (or no) shadow on
+    /// the closing side, indicating strong momentum in the direction of the closing price. It is often used to confirm trend strength
+    /// or continuation.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Verify that the candle's real body is <em>long</em>. Its body length must exceed the average length specified by
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check the shadow on the side opposite the candle's close:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>
+    ///             For a white (bullish) pattern, the upper shadow must be very short or absent. Its length is compared against
+    ///             <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see>.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             For a black (bearish) pattern, the lower shadow must be very short or absent.
+    ///           </description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates a bullish Closing Marubozu pattern, signaling strong upward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates a bearish Closing Marubozu pattern, signaling strong downward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode ClosingMarubozu<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +103,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         ClosingMarubozuImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="ClosingMarubozu{T}">ClosingMarubozu</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int ClosingMarubozuLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong),
@@ -98,14 +172,6 @@ public static partial class Candles
                 CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i);
             i++;
         }
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - long white (black) real body
-         *   - no or very short upper (lower) shadow
-         * The meaning of "long" and "very short" is specified with CandleSettings
-         * outIntType is positive (100) when white (bullish), negative (-100) when black (bearish)
-         */
 
         var outIdx = 0;
         do

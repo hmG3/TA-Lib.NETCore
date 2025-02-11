@@ -43,11 +43,7 @@ internal static class CandleHelpers
     public static Core.CandleColor CandleColor<T>(ReadOnlySpan<T> close, ReadOnlySpan<T> open, int idx)
         where T : IFloatingPointIeee754<T> => close[idx] >= open[idx] ? Core.CandleColor.White : Core.CandleColor.Black;
 
-    public static Core.CandleRangeType CandleRangeType(Core.CandleSettingType set) => Core.CandleSettings.Get(set).RangeType;
-
     public static int CandleAveragePeriod(Core.CandleSettingType set) => Core.CandleSettings.Get(set).AveragePeriod;
-
-    public static double CandleFactor(Core.CandleSettingType set) => Core.CandleSettings.Get(set).Factor;
 
     public static T CandleRange<T>(
         ReadOnlySpan<T> open,
@@ -55,12 +51,11 @@ internal static class CandleHelpers
         ReadOnlySpan<T> low,
         ReadOnlySpan<T> close,
         Core.CandleSettingType set,
-        int idx) where T : IFloatingPointIeee754<T> => CandleRangeType(set) switch
+        int idx) where T : IFloatingPointIeee754<T> => Core.CandleSettings.Get(set).RangeType switch
     {
-        Core.CandleRangeType.RealBody => CandleHelpers.RealBody(close, open, idx),
+        Core.CandleRangeType.RealBody => RealBody(close, open, idx),
         Core.CandleRangeType.HighLow => HighLowRange(high, low, idx),
-        Core.CandleRangeType.Shadows => CandleHelpers.UpperShadow(high, close, open, idx) +
-                                        CandleHelpers.LowerShadow(close, open, low, idx),
+        Core.CandleRangeType.Shadows => UpperShadow(high, close, open, idx) + LowerShadow(close, open, low, idx),
         _ => T.Zero
     };
 
@@ -73,12 +68,13 @@ internal static class CandleHelpers
         T sum,
         int idx) where T : IFloatingPointIeee754<T>
     {
-        var candleAveragePeriod = T.CreateChecked(CandleHelpers.CandleAveragePeriod(set));
-        var candleFactor = T.CreateChecked(CandleFactor(set));
+        var candleAveragePeriod = T.CreateChecked(CandleAveragePeriod(set));
+        var candleFactor = T.CreateChecked(Core.CandleSettings.Get(set).Factor);
+        var rangeTypeFactor = Core.CandleSettings.Get(set).RangeType == Core.CandleRangeType.Shadows ? T.CreateChecked(2) : T.One;
+
         return candleFactor * (!T.IsZero(candleAveragePeriod)
-                   ? sum / candleAveragePeriod
-                   : CandleHelpers.CandleRange(open, high, low, close, set, idx)) /
-               (CandleRangeType(set) == Core.CandleRangeType.Shadows ? T.CreateChecked(2) : T.One);
+            ? sum / candleAveragePeriod
+            : CandleRange(open, high, low, close, set, idx)) / rangeTypeFactor;
     }
 
     public static bool RealBodyGapUp<T>(

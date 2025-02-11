@@ -22,6 +22,66 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Unique Three River (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Unique Three River Pattern function identifies a bullish three-candle reversal pattern that generally appears at the end of
+    /// a downtrend. Characterized by a long black candle, a black "harami" candle, and a small white candle, it signifies diminishing
+    /// bearish pressure and the potential for a bullish reversal.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Verify that the first candle is black and <em>long</em>. Its real body length must exceed the average set by
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm the second candle is black and forms a "harami" within the first candle's real body. Specifically,
+    ///       its low must extend below the low of the first candle, while its open remains at or below the first candle's open,
+    ///       and its close is above the first candle's close.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check that the third candle is white and <em>short</em>, below the average specified by
+    ///       <see cref="Core.CandleSettingType.BodyShort">BodyShort</see>. It must open no lower than the second candle's low.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates Unique Three River Pattern, signaling a potential bullish reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode UniqueThreeRiver<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +93,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         UniqueThreeRiverImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="UniqueThreeRiver{T}">UniqueThreeRiver</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int UniqueThreeRiverLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyShort),
@@ -99,17 +163,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: long black candle
-         *   - second candle: black harami candle with a lower low than the first candle's low
-         *   - third candle: small white candle with open not lower than the second candle's low,
-         *     better if its open and close are under the second candle's close
-         * The meaning of "short" and "long" is specified with CandleSettings
-         * outIntType is positive (100): unique three river is always bullish and should appear in a downtrend to be significant,
-         * while this function does not consider the trend
-         */
 
         var outIdx = 0;
         do

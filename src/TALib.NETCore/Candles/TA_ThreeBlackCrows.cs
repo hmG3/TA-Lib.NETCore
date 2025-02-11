@@ -22,6 +22,70 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Three Black Crows (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Three Black Crows function identifies a bearish reversal formation, which commonly appears after a bullish or neutral market phase.
+    /// This pattern is highlighted by three successive black (bearish) candlesticks, each featuring a small or negligible lower shadow
+    /// and opening within the body of the preceding black candle.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Check that the pattern begins with a white (bullish) candle, followed by three consecutive black (bearish) candles.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm each black candle has a <em>very short</em> lower shadow, per the threshold for
+    ///       <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify the second black candle opens within the first black candle's real body and the third black candle
+    ///       opens within the second black candle's real body.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Establish that the closing prices of these three black candles consistently decline.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 represents a Three Black Crows pattern, signaling a potential bearish reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode ThreeBlackCrows<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +97,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         ThreeBlackCrowsImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="ThreeBlackCrows{T}">ThreeBlackCrows</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int ThreeBlackCrowsLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 3;
 
@@ -93,18 +161,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - three consecutive and declining black candlesticks
-         *   - each candle must have no or very short lower shadow
-         *   - each candle after the first must open within the prior candle's real body
-         *   - the first candle's close should be under the prior white candle's high
-         * The meaning of "very short" is specified with CandleSettings
-         * outIntType is negative (-100): three black crows is always bearish
-         * it should be considered that 3 black crows is significant when it appears after a mature advance or at high levels,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

@@ -22,6 +22,64 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Two Crows (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Two Crows Pattern function identifies a bearish two-candle formation emerging after an established uptrend. It consists of
+    /// a long white (bullish) candle, followed by two black (bearish) candles—where the second black candle exhibits a gap relative
+    /// to the first white candle.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the first candle is white, with a <em>long</em> real body. Its body length must exceed the average specified by
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify the second candle is black and gaps up relative to the first candle's real body.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm the third candle is black, opening within the real body of the second black candle
+    ///       and closing within the real body of the first white candle, thereby reversing part of the prior advance.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates Two Crows Pattern, signaling a potential bearish reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode TwoCrows<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +91,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         TwoCrowsImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="TwoCrows{T}">TwoCrows</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int TwoCrowsLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 2;
 
@@ -88,18 +150,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: long white candle
-         *   - second candle: black real body
-         *   - gap between the first and the second candle's real bodies
-         *   - third candle: black candle that opens within the second real body and closes within the first real body
-         * The meaning of "long" is specified with CandleSettings
-         * outIntType is negative (-100): two crows is always bearish
-         * it should be considered that two crows is significant when it appears in an uptrend,
-         * while the function does not consider the trend
-         */
 
         var outIdx = 0;
         do

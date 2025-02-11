@@ -22,6 +22,92 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Morning Star (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInPenetration">
+    /// Specifies the penetration factor for the third candle into the first candle's real body:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A higher value allows the third candle's real body to penetrate deeper into the first candle's real body,
+    ///       creating a more relaxed validation for the pattern.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A lower value restricts the third candle's real body to penetrate only slightly into the first candle's real body,
+    ///       enforcing stricter validation.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Typical range: <c>0.2..0.6</c>. Valid values are between <c>0.0</c> (no penetration) and <c>1.0</c> (full penetration).
+    /// </para>
+    /// </param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Morning Star function identifies a three-candle bullish reversal formation typically observed near the end of a downtrend.
+    /// It starts with a long black candle, followed by a short candle (star) that gaps downward, and concludes with a strong white candle
+    /// whose close intrudes deeply into the real body of the first black candle.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the first candle is black and <em>long</em>, exceeding the average specified by
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify that the second candle is <em>short</em>, as determined by
+    ///       <see cref="Core.CandleSettingType.BodyShort">BodyShort</see>, and that it gaps down from the first candle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Establish that the third candle is white and longer than <see cref="Core.CandleSettingType.BodyShort">BodyShort</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the third candle's close penetrates into the real body of the first black candle by
+    ///       a degree set by <paramref name="optInPenetration"/>. Moreover, the third candle must not be short, as determined by
+    ///       <see cref="Core.CandleSettingType.BodyShort">BodyShort</see>.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 represents a Morning Star pattern, signaling a potential bullish reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode MorningStar<T>(
         ReadOnlySpan<T> inOpen,
@@ -34,6 +120,10 @@ public static partial class Candles
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
         MorningStarImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange, optInPenetration);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="MorningStar{T}">MorningStar</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int MorningStarLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyShort),
@@ -109,20 +199,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: long black real body
-         *   - second candle: star (Short real body gapping down)
-         *   - third candle: white real body that moves well within the first candle's real body
-         * The meaning of "short" and "long" is specified with CandleSettings
-         * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean
-         * the real body should not be short ("short" is specified with CandleSettings) -
-         * Greg Morris wants it to be long, someone else wants it to be relatively long
-         * outIntType is positive (100): morning star is always bullish
-         * it should be considered that a morning star is significant when it appears in a downtrend,
-         * while this function does not consider the trend
-         */
 
         var outIdx = 0;
         do

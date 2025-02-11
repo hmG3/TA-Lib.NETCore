@@ -22,6 +22,72 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// High-Wave Candle (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// HighWave function identifies the "High-Wave" candlestick pattern, a candle exhibiting a short real body along with very long
+    /// upper and lower shadows. This configuration reflects significant market indecision, as both buyers and sellers fail to establish
+    /// a decisive advantage. Consequently, High-Wave candles frequently appear near potential turning points or areas of consolidation
+    /// in price movements.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Identify the candle with a <em>short</em> real body. Its body length must be less than the average length
+    ///       specified by <see cref="Core.CandleSettingType.BodyShort">BodyShort</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the upper shadow is <em>very long</em>, with a length exceeding the average value defined by
+    ///       <see cref="Core.CandleSettingType.ShadowVeryLong">ShadowVeryLong</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check that the lower shadow is also <em>very long</em>, surpassing the average measurement specified by
+    ///       <see cref="Core.CandleSettingType.ShadowVeryLong">ShadowVeryLong</see>.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates a bullish High-Wave pattern, signaling potential upward market momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates a bearish High-Wave pattern, signaling potential downward market momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode HighWave<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +99,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         HighWaveImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="HighWave{T}">HighWave</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int HighWaveLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyShort),
@@ -97,14 +167,6 @@ public static partial class Candles
             shadowPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i);
             i++;
         }
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - short real body
-         *   - very long upper and lower shadow
-         * The meaning of "short" and "very long" is specified with CandleSettings
-         * outIntType is positive (100) when white or negative (-100) when black
-         */
 
         var outIdx = 0;
         do

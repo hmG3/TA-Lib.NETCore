@@ -22,6 +22,76 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Hikkake Pattern (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Hikkake function identifies the "Hikkake" candlestick pattern, a multi-bar formation noted for potential trend
+    /// reversals or continuation signals. The pattern commences with an inside bar configuration, followed by a third candle
+    /// that appears to break in one direction before ultimately reversing course.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Examine the first two candles to confirm an inside bar, where the second candle's high is lower than the first candle's
+    ///       high, and its low is higher than the first candle's low.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Detect a breakout with the third candle, which must exhibit either a lower high and lower low (suggesting a bullish setup)
+    ///       or a higher high and higher low (suggesting a bearish setup) in comparison to the second candle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       (Optional) Within three periods of the detected pattern, look for a confirmation bar that closes above the second
+    ///       candle's high (bullish) or below its low (bearish), thereby confirming the Hikkake pattern.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 represents a bullish Hikkake pattern, indicating potential upward market momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 represents a bearish Hikkake pattern, indicating potential downward market momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       An additional confirmation bar adds or subtracts 100 to the respective pattern value when observed within
+    ///       three periods of the pattern's detection.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Hikkake<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +103,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         HikkakeImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Hikkake{T}">Hikkake</see>.
+    /// </summary>
+    /// <returns>Always 5 since there are only five prices bar required for this calculation.</returns>
     [PublicAPI]
     public static int HikkakeLookback() => 5;
 
@@ -85,18 +159,6 @@ public static partial class Candles
         InitializeHikkake(inHigh, inLow, inClose, ref patternIdx, ref patternResult, ref i, startIdx);
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first and second candle: inside bar (2nd has lower high and higher low than 1st)
-         *   - third candle: lower high and lower low than 2nd (higher high and higher low than 2nd)
-         * outIntType[hikkakebar] is positive (100) or negative (-100) meaning bullish or bearish hikkake
-         * Confirmation could come in the next 3 days with:
-         *   - a day that closes higher than the high (lower than the low) of the 2nd candle
-         * outIntType[confirmationbar] is equal to 100 + the bullish hikkake result or -100 - the bearish hikkake result
-         * Note: if confirmation and a new hikkake come at the same bar, only the new hikkake is reported
-         * (the new hikkake overwrites the confirmation of the old hikkake)
-         */
 
         var outIdx = 0;
         CalcHikkake(inHigh, inLow, inClose, endIdx, ref i, ref outIdx, outIntType, ref patternIdx, ref patternResult);

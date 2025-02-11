@@ -22,6 +22,78 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Three Outside Up/Down (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Three Outside Up/Down function identifies a three-candle reversal pattern, which can signal a shift in the market's prevailing
+    /// direction. This reversal pattern is defined by an engulfing second candle and a third candle that confirms the prospective move.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Verify that the first candle is black (bearish) or white (bullish).
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm the second candle is of the opposite color and fully engulfs the real body of the first candle:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>
+    ///             In a Three Outside Up, a white candle completely engulfs a black candle.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             In a Three Outside Down, a black candle completely engulfs a white candle.
+    ///           </description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Ensure the third candle confirms the reversal by closing higher (for Up) or lower (for Down) than the second candle's close.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 represents a Three Outside Up pattern, signaling a potential bullish reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 represents a Three Outside Down pattern, signaling a potential bearish reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode ThreeOutside<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +105,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         ThreeOutsideImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="ThreeOutside{T}">ThreeOutside</see>.
+    /// </summary>
+    /// <returns>Always 3 since there are only three prices bar required for this calculation.</returns>
     [PublicAPI]
     public static int ThreeOutsideLookback() => 3;
 
@@ -79,16 +155,6 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         var i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first: black (white) real body
-         *   - second: white (black) real body that engulfs the prior real body
-         *   - third: candle that closes higher (lower) than the second candle
-         * outIntType is positive (100) for the three outside up or negative (-100) for the three outside down
-         * it should be considered that a three outside up must appear in a downtrend and three outside down must appear in an uptrend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

@@ -22,6 +22,73 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Hanging Man (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Hanging Man function identifies a single-candle bearish reversal pattern that commonly appears in an established uptrend.
+    /// It is distinguished by a small real body near the upper end of the trading range, a long lower shadow, and minimal or nonexistent
+    /// upper shadow. This configuration suggests that selling pressure emerged during the session, possibly foreshadowing
+    /// a downward price shift.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Determine whether the current candle's real body is smaller than the average size for short-bodied candles,
+    ///       as specified by <see cref="Core.CandleSettingType.BodyShort">BodyShort</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify that the lower shadow length exceeds the average for long shadows, as defined by
+    ///       <see cref="Core.CandleSettingType.ShadowLong">ShadowLong</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the upper shadow length is shorter than the average for very short shadows,
+    ///       per <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check that the candle's real body is near the previous candle's high, based on
+    ///       <see cref="Core.CandleSettingType.Near">Near</see>.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates the detection of a Hanging Man pattern, suggesting a potential bearish reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode HangingMan<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +100,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         HangingManImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="HangingMan{T}">HangingMan</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int HangingManLookback() =>
         Math.Max(
@@ -123,18 +194,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - small real body
-         *   - long lower shadow
-         *   - no, or very short, upper shadow
-         *   - body above or near the highs of the previous candle
-         * The meaning of "short", "long" and "near the highs" is specified with CandleSettings
-         * outIntType is negative (-100): hanging man is always bearish
-         * it should be considered that a hanging man must appear in an uptrend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

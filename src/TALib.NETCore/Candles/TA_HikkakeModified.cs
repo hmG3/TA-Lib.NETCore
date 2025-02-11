@@ -22,6 +22,82 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Modified Hikkake Pattern (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Hikkake Modified function identifies a variation of the traditional Hikkake candlestick pattern, wherein a multi-bar sequence
+    /// underscores a more rigorous confirmation stage. This version commences with an inside bar and continues through a specified
+    /// configuration of subsequent candles, culminating in a validated breakout or reversal signal.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Identify the second candle as an inside bar, such that its high is lower and its low is higher than the corresponding
+    ///       values of the first candle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the third candle's range is smaller than that of the second candle. The third candle should also close
+    ///       near its top (in anticipation of a bullish move) or near its bottom (in anticipation of a bearish move).
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Detect a breakout in the fourth candle, which must present a lower high and lower low (bullish) or a higher high
+    ///       and higher low (bearish) when compared to the third candle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Optionally, observe the next three bars for a confirming candle. A close exceeding the third candle's high (bullish)
+    ///       or falling below its low (bearish) substantiates the Modified Hikkake pattern.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 represents a bullish Hikkake Modified pattern, indicating potential upward market momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 represents a bearish Hikkake Modified pattern, indicating potential downward market momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       An additional confirmation bar adds or subtracts 100 to the respective pattern value when observed within
+    ///       three periods of the pattern's detection.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode HikkakeModified<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +109,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         HikkakeModifiedImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="HikkakeModified{T}">HikkakeModified</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int HikkakeModifiedLookback() => Math.Max(1, CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near)) + 5;
 
@@ -94,23 +174,6 @@ public static partial class Candles
             ref nearTrailingIdx);
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle
-         *   - second candle: candle with range less than first candle and close near the bottom (near the top)
-         *   - third candle: lower high and higher low than 2nd
-         *   - fourth candle: lower high and lower low (higher high and higher low) than 3rd
-         * outInteger[hikkake bar] is positive (100) or negative (-100) meaning bullish or bearish hikkake
-         * Confirmation could come in the next 3 days with:
-         *   - a day that closes higher than the high (lower than the low) of the 3rd candle
-         * outIntType[confirmationbar] is equal to 100 + the bullish hikkake result or -100 - the bearish hikkake result
-         * Note: if confirmation and a new hikkake come at the same bar, only the new hikkake is reported
-         * (the new hikkake overwrites the confirmation of the old hikkake)
-         * it should be considered that modified hikkake is a reversal pattern,
-         * while hikkake could be both a reversal or a continuation pattern,
-         * so bullish (bearish) modified hikkake is significant when appearing in a downtrend (uptrend)
-         */
 
         var outIdx = 0;
         CalcHikkakeModified(inOpen, inHigh, inLow, inClose, outIntType, i, nearPeriodTotal, patternResult, patternIdx, ref outIdx,

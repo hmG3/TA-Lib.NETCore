@@ -22,6 +22,64 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Rickshaw Man (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Rickshaw Man function identifies a single-candle formation denoting significant indecision in the market. The candle exhibits
+    /// a doji body roughly centered within its high-low range and features extended upper and lower shadows.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm a <em>doji</em> body, ensuring its real body does not exceed the average length defined by
+    ///       <see cref="Core.CandleSettingType.BodyDoji">BodyDoji</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify both the upper and lower shadows are <em>long</em>, surpassing the averages set by
+    ///       <see cref="Core.CandleSettingType.ShadowLong">ShadowLong</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check that the doji body is positioned near the midpoint of the candle's overall range, according to
+    ///       <see cref="Core.CandleSettingType.Near">Near</see>.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 represents a Rickshaw Man pattern, indicating market indecision.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode RickshawMan<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +91,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         RickshawManImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="RickshawMan{T}">RickshawMan</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int RickshawManLookback() =>
         Math.Max(
@@ -108,15 +170,6 @@ public static partial class Candles
             nearPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.Near, i);
             i++;
         }
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - doji body
-         *   - two long shadows
-         *   - body near the midpoint of the high-low range
-         * The meaning of "doji" and "near" is specified with CandleSettings
-         * outIntType is always positive (100) but this does not mean it is bullish: rickshaw man shows uncertainty
-         */
 
         var outIdx = 0;
         do

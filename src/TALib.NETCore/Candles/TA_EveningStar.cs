@@ -22,6 +22,85 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Evening Star (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInPenetration">
+    /// Specifies the penetration factor for the third candle's closing position within the first candle's real body:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values require the third candle to close deeper into the first candle's real body,
+    ///       enforcing stricter validation for the pattern.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values allow for a more shallow penetration, making the pattern more flexible but potentially increasing false positives.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Typical range: <c>0.2..0.5</c>. Valid values are between <c>0.0</c> (no penetration) and <c>1.0</c> (full penetration).
+    /// </para>
+    /// </param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Evening Star function identifies a three-candle bearish reversal pattern that typically appears at the top of an uptrend.
+    /// It is composed of a strong white (bullish) candle, followed by a short candle that gaps upward, and concludes with a long
+    /// black (bearish) candle closing well into the white candle's body. This arrangement signals waning bullish momentum and
+    /// potential downward movement.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       The first candle must be long and white, exceeding the <em>long</em> the average length specified by
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The second candle must be <em>short</em> (per <see cref="Core.CandleSettingType.BodyShort">BodyShort</see>), and it must
+    ///       gap up relative to the first candle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The third candle must be a black real body, longer than the <em>short</em> threshold, and must close sufficiently deep
+    ///       into the first candle's body to meet the <paramref name="optInPenetration"/> requirement.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 signifies the detection of an Evening Star pattern, indicating bearish sentiment.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode EveningStar<T>(
         ReadOnlySpan<T> inOpen,
@@ -34,6 +113,10 @@ public static partial class Candles
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
         EveningStarImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange, optInPenetration);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="EveningStar{T}">EveningStar</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int EveningStarLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyShort),
@@ -109,20 +192,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: long white real body
-         *   - second candle: star (short real body gapping up)
-         *   - third candle: black real body that moves well within the first candle's real body
-         * The meaning of "short" and "long" is specified with CandleSettings
-         * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean
-         * the real body should not be short ("short" is specified with CandleSettings) -
-         * Greg Morris wants it to be long, someone else wants it to be relatively long
-         * outIntType is negative (-100): evening star is always bearish
-         * it should be considered that an evening star is significant when it appears in an uptrend,
-         * while this function does not consider the trend
-         */
 
         var outIdx = 0;
         do

@@ -22,6 +22,64 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Concealing Baby Swallow (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Concealing Baby Swallow function identifies a four-candle bullish reversal pattern generally observed during
+    /// a downtrend. The pattern is characterized by two strong bearish candles followed by a sequence of two additional candles showing
+    /// signs of reversal. This pattern indicates a potential shift in market sentiment.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       The first and second candles must be black Marubozu, meaning they have almost no upper or lower shadows, as specified by
+    ///       <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The third candle opens with a gap down from the second candle and has an upper shadow that penetrates the real body
+    ///       of the second candle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The fourth candle fully engulfs the third candle, including its shadows.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates a bullish Concealing Baby Swallow pattern, signaling potential upward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode ConcealingBabySwallow<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +91,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         ConcealingBabySwallowImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="ConcealingBabySwallow{T}">ConcealingBabySwallow</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int ConcealingBabySwallowLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 3;
 
@@ -93,18 +155,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: black marubozu (very short shadows)
-         *   - second candle: black marubozu (very short shadows)
-         *   - third candle: black candle that opens gapping down but has an upper shadow that extends into the prior body
-         *   - fourth candle: black candle that completely engulfs the third candle, including the shadows
-         * The meanings of "very short shadow" are specified with CandleSettings
-         * outIntType is positive (100): concealing baby swallow is always bullish
-         * it should be considered that concealing baby swallow is significant when it appears in downtrend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

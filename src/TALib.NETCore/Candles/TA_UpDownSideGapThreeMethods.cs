@@ -22,6 +22,81 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Upside/Downside Gap Three Methods (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Upside/Downside Gap Three Methods Pattern function identifies a bearish or bullish continuation pattern.
+    /// This pattern typically occurs during a trend and consists of three candles where the first two are of the same color,
+    /// followed by a third candle of the opposite color, with a noticeable gap between the first two candles' real bodies.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Verify that the first two candles share the same color (both white or both black).
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm a gap exists between the real bodies of the first two candles:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>
+    ///             If the first candle is white, ensure an <em>upside</em> gap, signifying a bullish push.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             If the first candle is black, ensure a <em>downside</em> gap, emphasizing continued bearish pressure.
+    ///           </description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check the third candle's color, which must be opposite that of the first two. Its open should lie within
+    ///       the real body of the second candle, while its close should fall within the real body of the first candle,
+    ///       suggesting only a partial retracement against the ongoing trend.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates Upside Gap Three Methods pattern, signaling a bullish continuation.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates Downside Gap Three Methods pattern, signaling a bearish continuation.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode UpDownSideGapThreeMethods<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +108,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         UpDownSideGapThreeMethodsImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="UpDownSideGapThreeMethods{T}">UpDownSideGapThreeMethods</see>.
+    /// </summary>
+    /// <returns>Always 2 since there are only two prices bar required for this calculation.</returns>
     [PublicAPI]
     public static int UpDownSideGapThreeMethodsLookback() => 2;
 
@@ -79,17 +158,6 @@ public static partial class Candles
         // Do the calculation using tight loops.
         // Add-up the initial period, except for the last value.
         var i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: white (black) candle
-         *   - second candle: white (black) candle
-         *   - upside (downside) gap between the first and the second real bodies
-         *   - third candle: black (white) candle that opens within the second real body and closes within the first real body
-         * outIntType is negative (-100): upside gap two crows is always bearish
-         * it should be considered that up/downside gap three methods is significant when it appears in a trend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

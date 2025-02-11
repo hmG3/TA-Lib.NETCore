@@ -22,6 +22,72 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Three Stars In The South (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Three Stars In The South function identifies a three-candle formation that frequently arises near the culmination of a downtrend.
+    /// This pattern consists of progressively smaller black candles, each dominated by significant lower shadows and contained within
+    /// the body of the preceding candle, hinting at diminishing bearish strength and the potential for a bullish reversal.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Verify that the first candle is black and has a <em>long</em> real body. Its body length must exceed
+    ///       the average length specified by <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>. The lower shadow must also be <em>long</em>,
+    ///       surpassing the average for <see cref="Core.CandleSettingType.ShadowLong">ShadowLong</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the second candle is black and <em>shorter</em> than the first. Its body length must be
+    ///       less than the average specified by <see cref="Core.CandleSettingType.BodyShort">BodyShort</see>.
+    ///       It should open above the first candle's close yet remain within the prior candle's overall range,
+    ///       trade below the first candle's close but not below its low, and close off its own low,
+    ///       indicating a distinctive lower shadow.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Ensure that the third candle is black, with a <em>small</em> body or near a marubozu form. Its body length
+    ///       must not exceed the average set by <see cref="Core.CandleSettingType.BodyShort">BodyShort</see>. It should have
+    ///       <em>very short</em> shadows, below the average for <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see>,
+    ///       and be entirely engulfed by the second candle's range.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates Three Stars In The South pattern, suggesting a potential bullish reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode ThreeStarsInSouth<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +99,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         ThreeStarsInSouthImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="ThreeStarsInSouth{T}">ThreeStarsInSouth</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int ThreeStarsInSouthLookback() =>
         Math.Max(
@@ -125,18 +195,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: long black candle with long lower shadow
-         *   - second candle: smaller black candle that opens higher than prior close but within prior candle's range and
-         *     trades lower than prior close but not lower than prior low and closes off of its low (it has a shadow)
-         *   - third candle: small black marubozu (or candle with very short shadows) engulfed by prior candle's range
-         * The meanings of "long body", "short body", "very short shadow" are specified with CandleSettings
-         * outIntType is positive (100): three stars in the south is always bullish
-         * it should be considered that three stars in the south is significant when it appears in downtrend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

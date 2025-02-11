@@ -22,6 +22,70 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Inverted Hammer (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Inverted Hammer function identifies a potential bullish reversal often observed near the bottom of a downtrend. The pattern
+    /// consists of a shor real body near the lower portion of the candle, coupled with a long upper shadow and little or no lower shadow,
+    /// indicating emerging buying interest.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the candle has a <em>short</em> real body, with its length below the average specified by
+    ///       <see cref="Core.CandleSettingType.BodyShort">BodyShort</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify the candle's upper shadow is <em>long</em>, exceeding the average for
+    ///       <see cref="Core.CandleSettingType.ShadowLong">ShadowLong</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Ensure the candle has a <em>very short</em> lower shadow, measuring less than the average associated with
+    ///       <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check for a downward gap, where the real body of the current candle is positioned below the body of the preceding candle.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates the presence of a valid Inverted Hammer pattern, suggesting a potential bullish reversal.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode InvertedHammer<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +97,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         InvertedHammerImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="InvertedHammer{T}">InvertedHammer</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int InvertedHammerLookback() =>
         Math.Max(
@@ -110,18 +178,6 @@ public static partial class Candles
                 CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i);
             i++;
         }
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - small real body
-         *   - long upper shadow
-         *   - no, or very short, lower shadow
-         *   - gap down
-         * The meaning of "short", "very short" and "long" is specified with CandleSettings
-         * outIntType is positive (100): inverted hammer is always bullish
-         * it should be considered that an inverted hammer must appear in a downtrend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

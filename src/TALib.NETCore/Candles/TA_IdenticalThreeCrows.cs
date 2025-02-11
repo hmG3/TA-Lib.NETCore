@@ -22,6 +22,73 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Identical Three Crows (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Identical Three Crows function identifies a strong bearish reversal signal comprised of three consecutively declining black candles.
+    /// Each candle displays a very short lower shadow, and the open of each subsequent candle is very close to the prior candle's close,
+    /// thereby illustrating persistent selling pressure.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the first candle is black, with a <em>very short</em> lower shadow. Its lower shadow length must be
+    ///       less than the average length defined by <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify that the second candle is also black, with a <em>very short</em> lower shadow as specified by
+    ///       <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see>. Additionally, its open must be
+    ///       <em>very close</em> to the close of the first candle, determined by <see cref="Core.CandleSettingType.Equal">Equal</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Ensure the third candle is black, once again exhibiting a <em>very short</em> lower shadow, and that its open
+    ///       is <em>very close</em> to the close of the second candle, based on <see cref="Core.CandleSettingType.Equal">Equal</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the three black candles form a declining sequence, with each close lower than the previous
+    ///       candle's close, underscoring uninterrupted downward momentum.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates Identical Three Crows pattern, suggesting bearish market sentiment and a potential downtrend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode IdenticalThreeCrows<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +100,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         IdenticalThreeCrowsImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="IdenticalThreeCrows{T}">IdenticalThreeCrows</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int IdenticalThreeCrowsLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort),
@@ -105,18 +176,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - three consecutive and declining black candlesticks
-         *   - each candle must have no or very short lower shadow
-         *   - each candle after the first must open at or very close to the prior candle's close
-         * The meaning of "very short" is specified with CandleSettings
-         * the meaning of "very close" is specified with CandleSettings (Equal)
-         * outIntType is negative (-100): identical three crows is always bearish
-         * it should be considered that identical 3 crows is significant when it appears after a mature advance or at high levels,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

@@ -22,6 +22,69 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Counterattack (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Counterattack function identifies a two-candle reversal pattern in which both candles have "long" real bodies,
+    /// but of opposite colors, and the second candle’s close is effectively the same as the first candle's close. This pattern often
+    /// signals an imminent shift in market sentiment when it appears during a trend.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm the first candle is <em>long</em>. Its body length must exceed the average specified by
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm the second candle is also <em>long</em>, but of the opposite color.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify that the second candle's close is considered <em>equal</em> to the first candle's close, meaning it lies within
+    ///       the range defined by <see cref="Core.CandleSettingType.Equal">Equal</see>.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates a bullish Counterattack pattern, signaling a potential reversal to an uptrend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates a bearish Counterattack pattern, signaling a potential reversal to a downtrend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode CounterAttack<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +96,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         CounterAttackImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="CounterAttack{T}">CounterAttack</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int CounterAttackLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Equal),
@@ -100,16 +167,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: long black (white)
-         *   - second candle: long white (black) with close equal to the prior close
-         * The meaning of "equal" and "long" is specified with CandleSettings
-         * outIntType is positive (100) when bullish or negative (-100) when bearish
-         * it should be considered that counterattack is significant in a trend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

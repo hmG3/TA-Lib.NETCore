@@ -22,6 +22,65 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Ladder Bottom (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Ladder Bottom function identifies a bullish reversal pattern that is typically observed at the culmination of a downward trend.
+    /// This pattern spans five candles, with the initial four candles being black and each demonstrating successively lower opens
+    /// and closes, and the fourth candle specifically displaying an upper shadow that is not very short. The fifth candle is white,
+    /// opening above the previous candle's body and closing above its high, thereby suggesting a potential bullish reversal.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Verify that the first three candles are black and exhibit consecutively lower opens and closes.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the fourth candle is black, but possesses an upper shadow exceeding the average for
+    ///       <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Identify the fifth candle as white, with an opening price above the fourth candle's body and a closing price above its high.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates Ladder Bottom pattern, suggesting a potential upward price movement.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode LadderBottom<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +92,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         LadderBottomImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="LadderBottom{T}">LadderBottom</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int LadderBottomLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort) + 4;
 
@@ -89,17 +152,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - three black candlesticks with consecutively lower opens and closes
-         *   - fourth candle: black candle with an upper shadow (it's supposed to be not very short)
-         *   - fifth candle: white candle that opens above prior candle's body and closes above prior candle's high
-         * The meaning of "very short" is specified with CandleSettings
-         * outIntType is positive (100): ladder bottom is always bullish
-         * it should be considered that ladder bottom is significant when it appears in a downtrend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

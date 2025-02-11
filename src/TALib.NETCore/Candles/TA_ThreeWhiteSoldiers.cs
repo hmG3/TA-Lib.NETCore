@@ -22,6 +22,74 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Three Advancing White Soldiers (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Three Advancing White Soldiers function identifies a bullish three-candle formation typically observed after a downtrend.
+    /// This pattern signals strong upward momentum, with each successive candle confirming bullish sentiment.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm the first candle is white and possesses a <em>very short</em> upper shadow, measuring below the average for
+    ///       <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify the second candle is also white and opens within or near the first candle's real body. "Near" is defined by
+    ///       <see cref="Core.CandleSettingType.Near">Near</see>, indicating it should not gap significantly above the prior close.
+    ///       The candle must close above the previous candle's close, confirming upward follow-through.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Establish that the third candle is similarly white and opens within or near the real body of the second candle,
+    ///       again referencing <see cref="Core.CandleSettingType.Near">Near</see>. It should close above the second
+    ///       candle's close, reinforcing bullish momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Ensure that neither the second nor the third white candle is <em>far</em> shorter than its preceding white candle.
+    ///       "Far" is governed by <see cref="Core.CandleSettingType.Far">Far</see>. Lastly, confirm that the third candle's
+    ///       real body is not <em>short</em>, defined by <see cref="Core.CandleSettingType.BodyShort">BodyShort</see>.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates Three Advancing White Soldiers pattern, signaling strong bullish sentiment.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode ThreeWhiteSoldiers<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +101,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         ThreeWhiteSoldiersImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="ThreeWhiteSoldiers{T}">ThreeWhiteSoldiers</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int ThreeWhiteSoldiersLookback() =>
         Math.Max(
@@ -129,20 +201,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - three white candlesticks with consecutively higher closes -
-         *     Greg Morris wants them to be long, Steve Nison doesn't; anyway they should not be short
-         *   - each candle opens within or near the previous white real body
-         *   - each candle must have no or very short upper shadow
-         *   - to differentiate this pattern from advance block, each candle must not be far shorter than the prior candle
-         * The meanings of "not short", "very short shadow", "far" and "near" are specified with CandleSettings
-         * here the 3 candles must be not short, if you want them to be long use CandleSettings on BodyShort
-         * outIntType is positive (100): advancing three white soldiers is always bullish
-         * it should be considered that three white soldiers is significant when it appears in downtrend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

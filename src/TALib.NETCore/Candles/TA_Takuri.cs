@@ -22,6 +22,65 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Takuri Line (Dragonfly Doji with very long lower shadow) (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Takuri Line function identifies a single-candle bullish reversal pattern, also referred to as a Dragonfly Doji with a very long
+    /// lower shadow. This formation often arises when the market undergoes sharp selling pressure yet rebounds significantly,
+    /// hinting at a potential upward turn.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm the candle is a <em>doji</em>, meaning its real body is less than or equal to the average
+    ///       <see cref="Core.CandleSettingType.BodyDoji">BodyDoji</see> length in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify the upper shadow is <em>very short</em>, falling below the average threshold set by
+    ///       <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Establish that the lower shadow is <em>very long</em>, exceeding the average for
+    ///       <see cref="Core.CandleSettingType.ShadowVeryLong">ShadowVeryLong</see>.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates Takuri Line pattern, signaling a potential upward trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Takuri<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +92,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         TakuriImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Takuri{T}">Takuri</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int TakuriLookback() =>
         Math.Max(
@@ -110,15 +173,6 @@ public static partial class Candles
                 CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryLong, i);
             i++;
         }
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - doji body
-         *   - open and close at the high of the day = no or very short upper shadow
-         *   - very long lower shadow
-         * The meaning of "doji", "very short" and "very long" is specified with CandleSettings
-         * outIntType is always positive (100) but this does not mean it is bullish: takuri must be considered relatively to the trend
-         */
 
         var outIdx = 0;
         do

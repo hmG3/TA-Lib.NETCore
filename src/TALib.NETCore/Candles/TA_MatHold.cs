@@ -22,6 +22,91 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Mat Hold (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInPenetration">
+    /// Specifies the penetration factor for the reaction days within the first candle's real body:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A higher value allows the reaction days to penetrate deeper into the first candle's real body,
+    ///       relaxing the validation for the pattern.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A lower value restricts the reaction days to stay closer to the first candle's upper body, enforcing stricter validation.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    /// Typical range: <c>0.2..0.6</c>. Valid values are between <c>0.0</c> (no penetration) and <c>1.0</c> (full penetration).
+    /// </para>
+    /// </param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Mat Hold function identifies a continuation formation observed during an established uptrend. This pattern is characterized
+    /// by a strong bullish candle, followed by a short period of consolidation with smaller candles remaining largely within the first
+    /// candle's real body, and culminating in another robust bullish candle that reaffirms upward momentum.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Verify that the first candle is white and <em>long</em>, exceeding the average defined by
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm the second candle is black (bearish) and establishes an upside gap versus the first candle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check the third and fourth candles are relatively <em>short</em> (black or white), determined by
+    ///       <see cref="Core.CandleSettingType.BodyShort">BodyShort</see>. Their real bodies must lie within the real body of
+    ///       the first candle. The depth of penetration into the first
+    ///       candle's real body must remain under the specified <paramref>optInPenetration</paramref> factor.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify that the fifth candle is white, opens above the fourth candle's close, and surpasses the highest high
+    ///       of the intervening (reaction) candles.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates the presence of a Mat Hold pattern, suggesting a continuation of the bullish trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode MatHold<T>(
         ReadOnlySpan<T> inOpen,
@@ -34,6 +119,10 @@ public static partial class Candles
         double optInPenetration = 0.5) where T : IFloatingPointIeee754<T> =>
         MatHoldImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange, optInPenetration);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="MatHold{T}">MatHold</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int MatHoldLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyShort),
@@ -108,22 +197,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: long white candle
-         *   - upside gap between the first and the second bodies
-         *   - second candle: small black candle
-         *   - third and fourth candles: falling small real body candlesticks (commonly black) that hold within the long
-         *     white candle's body and are higher than the reaction days of the rising three methods
-         *   - fifth candle: white candle that opens above the previous small candle's close and closes higher than
-         *     the high of the highest reaction day
-         * The meaning of "short" and "long" is specified with CandleSettings
-         * "hold within" means "a part of the real body must be within"
-         * optInPenetration is the maximum percentage of the first white body the reaction days can penetrate
-         * (it is to specify how much the reaction days should be "higher than the reaction days of the rising three methods")
-         * outIntType is positive (100): mat hold is always bullish
-         */
 
         var outIdx = 0;
         var penetration = T.CreateChecked(optInPenetration);

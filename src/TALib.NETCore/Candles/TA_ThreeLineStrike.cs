@@ -22,6 +22,77 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Three-Line Strike (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Three-Line Strike function identifies a four-candle configuration that may confirm existing bullish or bearish momentum or signal
+    /// an impending shift in sentiment. It begins with three consecutive candles in the same direction, followed by a fourth candle
+    /// whose move counters and largely negates the gains or losses of the prior three candles.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Ensure the first three candles share the same color (all white for a bullish scenario or all black for a bearish scenario).
+    ///       Each candle must successively close beyond the previous candle’s close, confirming trend acceleration.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm the fourth candle is the opposite color to the first three. For an uptrend of three white candles,
+    ///       the fourth must be black. For a downtrend of three black candles, the fourth must be white.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify that the second and third candles' opens lie "near" the preceding candle’s real body. Here,
+    ///       <em>near</em> is governed by <see cref="Core.CandleSettingType.Near">Near</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check that the fourth candle opens beyond the third candle's close and closes across the open of the first candle.
+    ///       This "strike" reclaims much of the prior progression.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 represents a bullish Three-Line Strike pattern, signaling a potential upward continuation.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 represents a bearish Three-Line Strike pattern, signaling a potential downward continuation.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode ThreeLineStrike<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +104,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         ThreeLineStrikeImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="ThreeLineStrike{T}">ThreeLineStrike</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int ThreeLineStrikeLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Near) + 3;
 
@@ -89,19 +164,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - three white soldiers (three black crows): three white (black) candlesticks with consecutively higher (lower) closes,
-         *     each opening within or near the previous real body
-         *   - fourth candle: black (white) candle that opens above (below) prior candle's close and closes below (above)
-         *     the first candle's open
-         * The meaning of "near" is specified with CandleSettings
-         * outIntType is positive (100) when bullish or negative (-100) when bearish
-         * it should be considered that 3-line strike is significant when it appears in a trend
-         * in the same direction of the first three candles,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

@@ -22,6 +22,98 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Breakaway (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Breakaway function identifies a five-candle reversal pattern characterized by a notable gap in price action and a subsequent trend
+    /// reversal on the fifth candle. It can signal a potential shift in market momentum, either bullish or bearish, depending on the
+    /// configuration of the candles.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the first candle is <em>long</em>, meaning its real body exceeds the average length specified by
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The second candle forms a gap:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>
+    ///             In a bearish pattern, the second candle gaps downward relative to the first.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             In a bullish pattern, the second candle gaps upward relative to the first.
+    ///           </description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The third and fourth candles continue the direction implied by the gap:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>
+    ///             In a bearish pattern, each candle's high and low are lower than those of the preceding candle.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             In a bullish pattern, each candle's high and low are higher than those of the preceding candle.
+    ///           </description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       The fifth candle reverses the trend by closing within the gap created between the first and second candles.
+    ///       The color of the fifth candle is opposite to the first candle.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates a bullish Breakaway pattern, signaling potential upward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates a bearish Breakaway pattern, signaling potential downward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Breakaway<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +125,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         BreakawayImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Breakaway{T}">Breakaway</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int BreakawayLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 4;
 
@@ -88,19 +184,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: long black (white)
-         *   - second candle: black (white) day whose body gaps down (up)
-         *   - third candle: black or white day with lower (higher) high and lower (higher) low than prior candle's
-         *   - fourth candle: black (white) day with lower (higher) high and lower (higher) low than prior candle's
-         *   - fifth candle: white (black) day that closes inside the gap, erasing the prior 3 days
-         * The meaning of "long" is specified with CandleSettings
-         * outIntType is positive (100) when bullish or negative (-100) when bearish
-         * it should be considered that breakaway is significant in a trend opposite to the last candle,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

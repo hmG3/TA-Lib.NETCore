@@ -22,6 +22,71 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Thrusting Pattern (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Thrusting Pattern function identifies a two-candle bearish continuation formation that frequently arises within a downtrend.
+    /// By demonstrating a partial but insufficient upward retracement, this pattern suggests the downtrend is likely to persist.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the first candle is black (bearish) and possesses a <em>long</em> real body. Its body length
+    ///       must exceed the average length defined by <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify the second candle is white (bullish) and opens below the low of the preceding black candle,
+    ///       establishing a distinct gap on the open.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Ensure the second candle's close rises into the body of the first candle but remains below its midpoint,
+    ///       suggesting only a partial recovery. The reference for the midpoint is <see cref="Core.CandleSettingType.Equal">Equal</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the second candle's close does not match the prior candle's close, differentiating this pattern
+    ///       from the "In-Neck" pattern.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates Thrusting Pattern, signaling a continuation of bearish sentiment.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Thrusting<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +98,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         ThrustingImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Thrusting{T}">Thrusting</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int ThrustingLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Equal),
@@ -99,18 +168,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: long black candle
-         *   - second candle: white candle with open below previous day low and close into previous day body under the midpoint
-         * to differentiate it from in-neck the close should not be equal to the black candle's close
-         * The meaning of "equal" is specified with CandleSettings
-         * outIntType is negative (-100): thrusting pattern is always bearish
-         * it should be considered that the thrusting pattern is significant when it appears in a downtrend,
-         * and it could be even bullish "when coming in an uptrend or occurring twice within several days" (Steve Nison says),
-         * while this function does not consider the trend
-         */
 
         var outIdx = 0;
         do

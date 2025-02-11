@@ -22,6 +22,60 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Long Legged Doji (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Long Legged Doji function identifies a candlestick pattern that conveys significant indecision among market participants.
+    /// This candle is characterized by a doji body, where the open and close prices are nearly identical—and at least one elongated shadow,
+    /// reflecting heightened volatility.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm a <em>doji</em> candle by verifying that its real body length is less than or equal to the average
+    ///       for <see cref="Core.CandleSettingType.BodyDoji">BodyDoji</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check that at least one shadow (upper or lower) is <em>long</em>, exceeding the average specified by
+    ///       <see cref="Core.CandleSettingType.ShadowLong">ShadowLong</see>.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates the presence of a Long Legged Doji pattern, which signifies market indecision
+    ///       rather than a specific directional bias.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode LongLeggedDoji<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +87,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         LongLeggedDojiImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="LongLeggedDoji{T}">LongLeggedDoji</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int LongLeggedDojiLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyDoji),
@@ -97,14 +155,6 @@ public static partial class Candles
             shadowLongPeriodTotal += CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowLong, i);
             i++;
         }
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - doji body
-         *   - one or two long shadows
-         * The meaning of "doji" is specified with CandleSettings
-         * outIntType is always positive (100) but this does not mean it is bullish: long-legged doji shows uncertainty
-         */
 
         var outIdx = 0;
         do

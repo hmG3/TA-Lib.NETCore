@@ -22,6 +22,70 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Stalled Pattern (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Stalled Pattern function identifies a three-candle formation typically appearing near the peak of an uptrend. This pattern shows
+    /// progressively weakening bullish momentum, culminating in a smaller candle that stalls at the upper region of the preceding
+    /// candle's body, suggesting a potential bearish shift.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Detect three consecutive white (bullish) candles, each closing higher than the previous candle's close.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify that the first candle is <em>long</em>, exceeding the average for
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the second candle is also <em>long</em> and white, with a <em>very short</em> upper shadow.
+    ///       Its opening price lies within or near the real body of the first candle, and it closes above the first candle's close.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check that the third candle is <em>small</em>, maintaining a white body positioned at the upper portion
+    ///       of the second candle's real body ("riding on the shoulder" of the second candle).
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 represents a bearish Stalled Pattern, indicating a potential downward trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode StalledPattern<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +97,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         StalledPatternImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="StalledPattern{T}">StalledPattern</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int StalledPatternLookback() =>
         Math.Max(
@@ -124,20 +192,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - three white candlesticks with consecutively higher closes
-         *   - first candle: long white
-         *   - second candle: long white with no or very short upper shadow opening within or near the previous white real body
-         *     and closing higher than the prior candle
-         *   - third candle: small white that gaps away or "rides on the shoulder" of the prior long real body
-         *     (= it's at the upper end of the prior real body)
-         * The meanings of "long", "very short", "short", "near" are specified with CandleSettings
-         * outIntType is negative (-100): stalled pattern is always bearish
-         * it should be considered that stalled pattern is significant when it appears in uptrend,
-         * while this function does not consider it
-         */
 
         var outIdx = 0;
         do

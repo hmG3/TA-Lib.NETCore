@@ -22,6 +22,73 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Kicking (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Kicking function detects a two-candle pattern that signals a significant shift in market sentiment, indicating either a bullish
+    /// or bearish reversal. This pattern comprises two marubozu candles of opposite colors, separated by a gap.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Confirm that the first candle is a <em>marubozu</em> (long real body) with <em>very short</em> shadows.
+    ///       Its body length must exceed the average for <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in
+    ///       <see cref="Core.CandleSettings">CandleSettings</see>, and its shadow lengths must be less than the average for
+    ///       <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify that the second candle is also a <em>marubozu</em>, similarly exceeding the average for
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> and remaining under the threshold for
+    ///       <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see>, but with the opposite color of
+    ///       the first candle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check for a gap between the two marubozu candles. An upside gap signifies a potential bearish-to-bullish transition,
+    ///       while a downside gap denotes a potential bullish-to-bearish transition.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates a bullish Kicking pattern, suggesting a potential upward price movement.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates a bearish Kicking pattern, suggesting a potential downward price movement.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode Kicking<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +100,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         KickingImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="Kicking{T}">Kicking</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int KickingLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort),
@@ -103,15 +174,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: marubozu
-         *   - second candle: opposite color marubozu
-         *   - gap between the two candles: upside gap if black then white, downside gap if white then black
-         * The meaning of "long body" and "very short shadow" is specified with CandleSettings
-         * outIntType is positive (100) when bullish or negative (-100) when bearish
-         */
 
         var outIdx = 0;
         do

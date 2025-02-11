@@ -22,6 +22,76 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Belt-hold (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Belt-hold function identifies a single-candle reversal pattern marked by a long real body and an absent (or very short) shadow.
+    /// It often signals a potential shift in market direction, appearing at the start of a new trend or as a continuation signal
+    /// in an existing trend.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Verify that the candle's real body is <em>long</em>. Its body length must exceed the average length specified by
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Check the candle's shadow:
+    ///       <list type="bullet">
+    ///         <item>
+    ///           <description>
+    ///             For a white (bullish) pattern, the lower shadow must be <em>very short</em> or absent, meaning its shadow length is
+    ///             below the average length specified by <see cref="Core.CandleSettingType.ShadowVeryShort">ShadowVeryShort</see>.
+    ///           </description>
+    ///         </item>
+    ///         <item>
+    ///           <description>
+    ///             For a black (bearish) pattern, the upper shadow must be similarly short or absent.
+    ///           </description>
+    ///         </item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates a bullish Belt-hold pattern, signaling potential upward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates a bearish Belt-hold pattern, signaling potential downward momentum.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode BeltHold<T>(
         ReadOnlySpan<T> inOpen,
@@ -33,6 +103,10 @@ public static partial class Candles
         out Range outRange) where T : IFloatingPointIeee754<T> =>
         BeltHoldImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="BeltHold{T}">BeltHold</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int BeltHoldLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong),
@@ -98,14 +172,6 @@ public static partial class Candles
                 CandleHelpers.CandleRange(inOpen, inHigh, inLow, inClose, Core.CandleSettingType.ShadowVeryShort, i);
             i++;
         }
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - long white (black) real body
-         *   - no or very short lower (upper) shadow
-         * The meaning of "long" and "very short" is specified with CandleSettings
-         * outIntType is positive (100) when white (bullish), negative (-100) when black (bearish)
-         */
 
         var outIdx = 0;
         do

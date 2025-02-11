@@ -22,6 +22,96 @@ namespace TALib;
 
 public static partial class Candles
 {
+    /// <summary>
+    /// Abandoned Baby (Pattern Recognition)
+    /// </summary>
+    /// <param name="inOpen">A span of input open prices.</param>
+    /// <param name="inHigh">A span of input high prices.</param>
+    /// <param name="inLow">A span of input low prices.</param>
+    /// <param name="inClose">A span of input close prices.</param>
+    /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input spans.</param>
+    /// <param name="outIntType">A span to store the output pattern type for each price bar.</param>
+    /// <param name="outRange">The range of indices representing the valid data within the output spans.</param>
+    /// <param name="optInPenetration">
+    /// The penetration factor used to determine how deeply the third candle must close within the first candle's real body:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       Higher values require the third candle to penetrate deeper into the first candle's body,
+    ///       making the pattern stricter and less sensitive.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Lower values allow for more shallow penetration, making the pattern more flexible but potentially increasing false positives.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// <para>
+    ///   Typical range: <c>0.1..0.5</c>. Valid values are between <c>0.0</c> (no penetration) and <c>1.0</c> (full penetration).
+    /// </para>
+    /// </param>
+    /// <typeparam name="T">
+    /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+    /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+    /// </typeparam>
+    /// <returns>
+    /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+    /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+    /// </returns>
+    /// <remarks>
+    /// Abandoned Baby function identifies a rare three-candle reversal pattern typically identified at the end of significant
+    /// uptrends or downtrends. The pattern is characterized by a distinctive gap between the Doji candle and the preceding and
+    /// following candles, indicating a sharp shift in market sentiment.
+    ///
+    /// <b>Calculation steps</b>:
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       Identify the first candle as <em>long</em> by comparing its real body against the average of
+    ///       <see cref="Core.CandleSettingType.BodyLong">BodyLong</see> in <see cref="Core.CandleSettings">CandleSettings</see>.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify the second candle is a Doji, adhering to the average threshold specified by
+    ///       <see cref="Core.CandleSettingType.BodyDoji">BodyDoji</see>. This Doji must gap away from the first candle,
+    ///       forming a clear space (upside or downside gap) that emphasizes the "abandoned" nature.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Confirm the third candle is longer than "short", surpassing <see cref="Core.CandleSettingType.BodyShort">BodyShort</see>.
+    ///      It must also gap away from the Doji in the opposite direction, effectively isolating the central Doji candle.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Verify that the third candle's closing price falls well within the real body of the first candle. The allowable depth
+    ///       of penetration is determined by the <paramref>optInPenetration</paramref> parameter.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    ///
+    /// <b>Value interpretation</b>:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       A value of 100 indicates a bullish Abandoned Baby pattern, suggesting a potential upward trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of -100 indicates a bearish Abandoned Baby pattern, suggesting a potential downward trend.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       A value of 0 indicates that no pattern was detected.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     [PublicAPI]
     public static Core.RetCode AbandonedBaby<T>(
         ReadOnlySpan<T> inOpen,
@@ -34,6 +124,10 @@ public static partial class Candles
         double optInPenetration = 0.3) where T : IFloatingPointIeee754<T> =>
         AbandonedBabyImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange, optInPenetration);
 
+    /// <summary>
+    /// Returns the lookback period for <see cref="AbandonedBaby{T}">AbandonedBaby</see>.
+    /// </summary>
+    /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
     public static int AbandonedBabyLookback() =>
         Math.Max(
@@ -119,22 +213,6 @@ public static partial class Candles
         }
 
         i = startIdx;
-
-        /* Proceed with the calculation for the requested range.
-         * Must have:
-         *   - first candle: long white (black) real body
-         *   - second candle: doji
-         *   - third candle: black (white) real body that moves well within the first candle's real body
-         *   - upside (downside) gap between the first candle and the doji (the shadows of the two candles don't touch)
-         *   - downside (upside) gap between the doji and the third candle (the shadows of the two candles don't touch)
-         * The meaning of "doji" and "long" is specified with CandleSettings
-         * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean
-         * the real body should not be short ("short" is specified with CandleSettings) -
-         * Greg Morris wants it to be long, someone else wants it to be relatively long
-         * outIntType is positive (100) when it's an abandoned baby bottom or negative (-100) when it's an abandoned baby top
-         * it should be considered that an abandoned baby is significant when it appears in an uptrend or downtrend,
-         * while this function does not consider the trend
-         */
 
         var outIdx = 0;
         var penetration = T.CreateChecked(optInPenetration);
