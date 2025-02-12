@@ -27,7 +27,7 @@ jobs:
 
     - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.x
+        dotnet-version: 9.x
 
     - name: Install SonarCloud scanner
       if: ${{ matrix.operating-system == 'ubuntu-latest' }}
@@ -52,11 +52,11 @@ jobs:
 
     - name: Upload coverage to Codecov
       if: ${{ matrix.operating-system == 'ubuntu-latest' }}
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         name: codecov-talib
         token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./tests/TALib.NETCore.Tests/coverage/opencover-coverage.xml
+        files: ./tests/TALib.NETCore.Tests/coverage/opencover-coverage.xml
         flags: unittests
         fail_ci_if_error: true
 

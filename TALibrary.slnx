@@ -1,0 +1,15 @@
+﻿<Solution>
+  <Folder Name="/docs/">
+    <File Path="docs\build.cake" />
+    <File Path="docs\docfx.json" />
+    <File Path="docs\index.md" />
+    <File Path="docs\manual\functions-api.md" />
+    <File Path="docs\manual\abstract-api.md" />
+    <File Path="docs\manual\unstable-period.md" />
+    <File Path="docs\manual\functions-list.md" />
+    <File Path="docs\template\public\main.css" />
+    <File Path="docs\template\public\main.js" />
+  </Folder>
+  <Project Path="src\TALib.NETCore\TALib.NETCore.csproj" />
+  <Project Path="tests\TALib.NETCore.Tests\TALib.NETCore.Tests.csproj" />
+</Solution>
