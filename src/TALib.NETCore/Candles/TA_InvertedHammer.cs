@@ -76,7 +76,7 @@ public static partial class Candles
     /// <list type="bullet">
     ///   <item>
     ///     <description>
-    ///       A value of 100 indicates the presence of a valid Inverted Hammer pattern, suggesting a potential bullish reversal.
+    ///       A value of 100 indicates the presence of an Inverted Hammer pattern, suggesting a potential bullish reversal.
     ///     </description>
     ///   </item>
     ///   <item>

@@ -76,7 +76,7 @@ public static partial class Candles
     /// <list type="bullet">
     ///   <item>
     ///     <description>
-    ///       A value of -100 represents a bearish Stalled Pattern, indicating a potential downward trend.
+    ///       A value of -100 represents a bearish Stalled pattern, indicating a potential downward trend.
     ///     </description>
     ///   </item>
     ///   <item>
@@ -87,7 +87,7 @@ public static partial class Candles
     /// </list>
     /// </remarks>
     [PublicAPI]
-    public static Core.RetCode StalledPattern<T>(
+    public static Core.RetCode Stalled<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -95,14 +95,14 @@ public static partial class Candles
         Range inRange,
         Span<int> outIntType,
         out Range outRange) where T : IFloatingPointIeee754<T> =>
-        StalledPatternImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
+        StalledImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     /// <summary>
-    /// Returns the lookback period for <see cref="StalledPattern{T}">StalledPattern</see>.
+    /// Returns the lookback period for <see cref="Stalled{T}">Stalled</see>.
     /// </summary>
     /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
-    public static int StalledPatternLookback() =>
+    public static int StalledLookback() =>
         Math.Max(
             Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong),
                 CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyShort)),
@@ -114,7 +114,7 @@ public static partial class Candles
     /// For compatibility with abstract API
     /// </remarks>
     [UsedImplicitly]
-    private static Core.RetCode StalledPattern<T>(
+    private static Core.RetCode Stalled<T>(
         T[] inOpen,
         T[] inHigh,
         T[] inLow,
@@ -122,9 +122,9 @@ public static partial class Candles
         Range inRange,
         int[] outIntType,
         out Range outRange) where T : IFloatingPointIeee754<T> =>
-        StalledPatternImpl<T>(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
+        StalledImpl<T>(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
-    private static Core.RetCode StalledPatternImpl<T>(
+    private static Core.RetCode StalledImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -142,7 +142,7 @@ public static partial class Candles
 
         var (startIdx, endIdx) = rangeIndices;
 
-        var lookbackTotal = StalledPatternLookback();
+        var lookbackTotal = StalledLookback();
         startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
@@ -196,7 +196,7 @@ public static partial class Candles
         var outIdx = 0;
         do
         {
-            outIntType[outIdx++] = IsStalledPatternPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal,
+            outIntType[outIdx++] = IsStalledPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal,
                 shadowVeryShortPeriodTotal, nearPeriodTotal, bodyShortPeriodTotal)
                 ? -100
                 : 0;
@@ -236,7 +236,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    private static bool IsStalledPatternPattern<T>(
+    private static bool IsStalledPattern<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,

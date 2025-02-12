@@ -135,7 +135,7 @@ BeltHold                    Belt-hold
 Breakaway                   Breakaway
 ClosingMarubozu             Closing Marubozu
 ConcealingBabySwallow       Concealing Baby Swallow
-CounterAttack               Counterattack
+Counterattack               Counterattack
 DarkCloudCover              Dark Cloud Cover
 Doji                        Doji
 DojiStar                    Doji Star
@@ -167,16 +167,16 @@ MatHold                     Mat Hold
 MorningDojiStar             Morning Doji Star
 MorningStar                 Morning Star
 OnNeck                      On-Neck Pattern
-Piercing                    Piercing Pattern
+PiercingLine                Piercing Line
 RickshawMan                 Rickshaw Man
 RisingFallingThreeMethods   Rising/Falling Three Methods
 SeparatingLines             Separating Lines
 ShootingStar                Shooting Star
 ShortLine                   Short Line Candle
 SpinningTop                 Spinning Top
-StalledPattern              Stalled Pattern
+Stalled                     Stalled Pattern
 StickSandwich               Stick Sandwich
-Takuri                      Takuri Line (Dragonfly Doji with very long lower shadow)
+TakuriLine                  Takuri Line
 TasukiGap                   Tasuki Gap
 ThreeBlackCrows             Three Black Crows
 ThreeInside                 Three Inside Up/Down

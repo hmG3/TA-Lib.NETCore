@@ -23,7 +23,7 @@ namespace TALib;
 public static partial class Candles
 {
     /// <summary>
-    /// Piercing Pattern (Pattern Recognition)
+    /// Piercing Line Pattern (Pattern Recognition)
     /// </summary>
     /// <param name="inOpen">A span of input open prices.</param>
     /// <param name="inHigh">A span of input high prices.</param>
@@ -41,7 +41,7 @@ public static partial class Candles
     /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
     /// </returns>
     /// <remarks>
-    /// Piercing Pattern function identifies a two-candle bullish reversal formation observed in a downtrend. This configuration features
+    /// Piercing Line function identifies a two-candle bullish reversal formation observed in a downtrend. This configuration features
     /// a long black candle followed by a long white candle that opens below the black candle’s low but closes above the midpoint
     /// of its real body.
     ///
@@ -76,7 +76,7 @@ public static partial class Candles
     /// <list type="bullet">
     ///   <item>
     ///     <description>
-    ///       A value of 100 represents a Piercing pattern, signaling a potential bullish reversal.
+    ///       A value of 100 represents a Piercing Line pattern, signaling a potential bullish reversal.
     ///     </description>
     ///   </item>
     ///   <item>
@@ -87,7 +87,7 @@ public static partial class Candles
     /// </list>
     /// </remarks>
     [PublicAPI]
-    public static Core.RetCode Piercing<T>(
+    public static Core.RetCode PiercingLine<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -95,20 +95,20 @@ public static partial class Candles
         Range inRange,
         Span<int> outIntType,
         out Range outRange) where T : IFloatingPointIeee754<T> =>
-        PiercingImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
+        PiercingLineImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     /// <summary>
-    /// Returns the lookback period for <see cref="Piercing{T}">Piercing</see>.
+    /// Returns the lookback period for <see cref="PiercingLine{T}">PiercingLine</see>.
     /// </summary>
     /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
-    public static int PiercingLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 1;
+    public static int PiercingLineLookback() => CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong) + 1;
 
     /// <remarks>
     /// For compatibility with abstract API
     /// </remarks>
     [UsedImplicitly]
-    private static Core.RetCode Piercing<T>(
+    private static Core.RetCode PiercingLine<T>(
         T[] inOpen,
         T[] inHigh,
         T[] inLow,
@@ -116,9 +116,9 @@ public static partial class Candles
         Range inRange,
         int[] outIntType,
         out Range outRange) where T : IFloatingPointIeee754<T> =>
-        PiercingImpl<T>(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
+        PiercingLineImpl<T>(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
-    private static Core.RetCode PiercingImpl<T>(
+    private static Core.RetCode PiercingLineImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -136,7 +136,7 @@ public static partial class Candles
 
         var (startIdx, endIdx) = rangeIndices;
 
-        var lookbackTotal = PiercingLookback();
+        var lookbackTotal = PiercingLineLookback();
         startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
@@ -161,7 +161,7 @@ public static partial class Candles
         var outIdx = 0;
         do
         {
-            outIntType[outIdx++] = IsPiercingPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal) ? 100 : 0;
+            outIntType[outIdx++] = IsPiercingLinePattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal) ? 100 : 0;
 
             // add the current range and subtract the first range: this is done after the pattern recognition
             // when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
@@ -182,7 +182,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    private static bool IsPiercingPattern<T>(
+    private static bool IsPiercingLinePattern<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,

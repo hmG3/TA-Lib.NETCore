@@ -77,7 +77,7 @@ public static partial class Candles
     /// <list type="bullet">
     ///   <item>
     ///     <description>
-    ///       A value of -100 indicates Thrusting Pattern, signaling a continuation of bearish sentiment.
+    ///       A value of -100 indicates Thrusting pattern, signaling a continuation of bearish sentiment.
     ///     </description>
     ///   </item>
     ///   <item>

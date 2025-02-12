@@ -70,7 +70,7 @@ public static partial class Candles
     /// <list type="bullet">
     ///   <item>
     ///     <description>
-    ///       A value of -100 indicates Two Crows Pattern, signaling a potential bearish reversal.
+    ///       A value of -100 indicates Two Crows pattern, signaling a potential bearish reversal.
     ///     </description>
     ///   </item>
     ///   <item>

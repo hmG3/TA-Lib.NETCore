@@ -23,7 +23,7 @@ namespace TALib;
 public static partial class Candles
 {
     /// <summary>
-    /// Takuri Line (Dragonfly Doji with very long lower shadow) (Pattern Recognition)
+    /// Takuri Line (Pattern Recognition)
     /// </summary>
     /// <param name="inOpen">A span of input open prices.</param>
     /// <param name="inHigh">A span of input high prices.</param>
@@ -82,7 +82,7 @@ public static partial class Candles
     /// </list>
     /// </remarks>
     [PublicAPI]
-    public static Core.RetCode Takuri<T>(
+    public static Core.RetCode TakuriLine<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -90,14 +90,14 @@ public static partial class Candles
         Range inRange,
         Span<int> outIntType,
         out Range outRange) where T : IFloatingPointIeee754<T> =>
-        TakuriImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
+        TakuriLineImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     /// <summary>
-    /// Returns the lookback period for <see cref="Takuri{T}">Takuri</see>.
+    /// Returns the lookback period for <see cref="TakuriLine{T}">TakuriLine</see>.
     /// </summary>
     /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
-    public static int TakuriLookback() =>
+    public static int TakuriLineLookback() =>
         Math.Max(
             Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyDoji),
                 CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.ShadowVeryShort)),
@@ -107,7 +107,7 @@ public static partial class Candles
     /// For compatibility with abstract API
     /// </remarks>
     [UsedImplicitly]
-    private static Core.RetCode Takuri<T>(
+    private static Core.RetCode TakuriLine<T>(
         T[] inOpen,
         T[] inHigh,
         T[] inLow,
@@ -115,9 +115,9 @@ public static partial class Candles
         Range inRange,
         int[] outIntType,
         out Range outRange) where T : IFloatingPointIeee754<T> =>
-        TakuriImpl<T>(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
+        TakuriLineImpl<T>(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
-    private static Core.RetCode TakuriImpl<T>(
+    private static Core.RetCode TakuriLineImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -135,7 +135,7 @@ public static partial class Candles
 
         var (startIdx, endIdx) = rangeIndices;
 
-        var lookbackTotal = TakuriLookback();
+        var lookbackTotal = TakuriLineLookback();
         startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)

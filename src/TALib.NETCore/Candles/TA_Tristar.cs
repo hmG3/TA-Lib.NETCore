@@ -69,12 +69,12 @@ public static partial class Candles
     /// <list type="bullet">
     ///   <item>
     ///     <description>
-    ///       A value of 100 indicates a bullish Tristar Pattern, signaling a potential upward reversal.
+    ///       A value of 100 indicates a bullish Tristar pattern, signaling a potential upward reversal.
     ///     </description>
     ///   </item>
     ///   <item>
     ///     <description>
-    ///       A value of -100 indicates a bearish Tristar Pattern, signaling a potential downward reversal.
+    ///       A value of -100 indicates a bearish Tristar pattern, signaling a potential downward reversal.
     ///     </description>
     ///   </item>
     ///   <item>

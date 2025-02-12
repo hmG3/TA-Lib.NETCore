@@ -77,12 +77,12 @@ public static partial class Candles
     /// <list type="bullet">
     ///   <item>
     ///     <description>
-    ///       A value of 100 represents a bullish Hikkake Modified pattern, indicating potential upward market momentum.
+    ///       A value of 100 represents a bullish Modified Hikkake pattern, indicating potential upward market momentum.
     ///     </description>
     ///   </item>
     ///   <item>
     ///     <description>
-    ///       A value of -100 represents a bearish Hikkake Modified pattern, indicating potential downward market momentum.
+    ///       A value of -100 represents a bearish Modified Hikkake pattern, indicating potential downward market momentum.
     ///     </description>
     ///   </item>
     ///   <item>

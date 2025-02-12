@@ -8,7 +8,7 @@ These are referred to as _functions with memory_.
 
 * Functions with Memory:
   * Example: EMA (Exponential Moving Average).
-  * Relies on the previous value (e.g., the prior day’s EMA) for calculations.
+  * Relies on the previous value (e.g., the prior day's EMA) for calculations.
   * Historical data points have a perpetual influence on all subsequent values.
 * Finite-Period Functions:
   * Example: SMA (Simple Moving Average).

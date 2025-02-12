@@ -86,7 +86,7 @@ public static partial class Candles
     /// </list>
     /// </remarks>
     [PublicAPI]
-    public static Core.RetCode CounterAttack<T>(
+    public static Core.RetCode Counterattack<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -94,14 +94,14 @@ public static partial class Candles
         Range inRange,
         Span<int> outIntType,
         out Range outRange) where T : IFloatingPointIeee754<T> =>
-        CounterAttackImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
+        CounterattackImpl(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
     /// <summary>
-    /// Returns the lookback period for <see cref="CounterAttack{T}">CounterAttack</see>.
+    /// Returns the lookback period for <see cref="Counterattack{T}">Counterattack</see>.
     /// </summary>
     /// <returns>The number of periods required before the first output value can be calculated.</returns>
     [PublicAPI]
-    public static int CounterAttackLookback() =>
+    public static int CounterattackLookback() =>
         Math.Max(CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.Equal),
             CandleHelpers.CandleAveragePeriod(Core.CandleSettingType.BodyLong)) + 1;
 
@@ -109,7 +109,7 @@ public static partial class Candles
     /// For compatibility with abstract API
     /// </remarks>
     [UsedImplicitly]
-    private static Core.RetCode CounterAttack<T>(
+    private static Core.RetCode Counterattack<T>(
         T[] inOpen,
         T[] inHigh,
         T[] inLow,
@@ -117,9 +117,9 @@ public static partial class Candles
         Range inRange,
         int[] outIntType,
         out Range outRange) where T : IFloatingPointIeee754<T> =>
-        CounterAttackImpl<T>(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
+        CounterattackImpl<T>(inOpen, inHigh, inLow, inClose, inRange, outIntType, out outRange);
 
-    private static Core.RetCode CounterAttackImpl<T>(
+    private static Core.RetCode CounterattackImpl<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,
@@ -137,7 +137,7 @@ public static partial class Candles
 
         var (startIdx, endIdx) = rangeIndices;
 
-        var lookbackTotal = CounterAttackLookback();
+        var lookbackTotal = CounterattackLookback();
         startIdx = Math.Max(startIdx, lookbackTotal);
 
         if (startIdx > endIdx)
@@ -171,7 +171,7 @@ public static partial class Candles
         var outIdx = 0;
         do
         {
-            outIntType[outIdx++] = IsCounterAttackPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, equalPeriodTotal)
+            outIntType[outIdx++] = IsCounterattackPattern(inOpen, inHigh, inLow, inClose, i, bodyLongPeriodTotal, equalPeriodTotal)
                 ? (int) CandleHelpers.CandleColor(inClose, inOpen, i) * 100
                 : 0;
 
@@ -199,7 +199,7 @@ public static partial class Candles
         return Core.RetCode.Success;
     }
 
-    private static bool IsCounterAttackPattern<T>(
+    private static bool IsCounterattackPattern<T>(
         ReadOnlySpan<T> inOpen,
         ReadOnlySpan<T> inHigh,
         ReadOnlySpan<T> inLow,

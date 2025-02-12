@@ -72,7 +72,7 @@ public static partial class Candles
     /// <list type="bullet">
     ///   <item>
     ///     <description>
-    ///       A value of 100 indicates Unique Three River Pattern, signaling a potential bullish reversal.
+    ///       A value of 100 indicates Unique Three River pattern, signaling a potential bullish reversal.
     ///     </description>
     ///   </item>
     ///   <item>

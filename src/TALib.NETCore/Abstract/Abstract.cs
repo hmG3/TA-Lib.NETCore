@@ -338,7 +338,7 @@ public partial class Abstract : IEnumerable<F>
                 "CONCEALINGBABYSWALLOW",
                 new F("ConcealingBabySwallow", "Concealing Baby Swallow", prGroup, inputPriceOHLC, [], outputIntTypePattern)
             },
-            { "COUNTERATTACK", new F("CounterAttack", "Counterattack", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
+            { "COUNTERATTACK", new F("Counterattack", "Counterattack", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
             {
                 "DARKCLOUDCOVER",
                 new F("DarkCloudCover", "Dark Cloud Cover", prGroup, inputPriceOHLC, optionPenetration, outputIntTypePattern)
@@ -397,7 +397,7 @@ public partial class Abstract : IEnumerable<F>
             },
             { "MORNINGSTAR", new F("MorningStar", "Morning Star", prGroup, inputPriceOHLC, optionPenetration, outputIntTypePattern) },
             { "ONNECK", new F("OnNeck", "On-Neck Pattern", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
-            { "PIERCING", new F("Piercing", "Piercing Pattern", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
+            { "PIERCINGLINE", new F("PiercingLine", "Piercing Line", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
             { "RICKSHAWMAN", new F("RickshawMan", "Rickshaw Man", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
             {
                 "RISINGFALLINGTHREEMETHODS",
@@ -407,13 +407,9 @@ public partial class Abstract : IEnumerable<F>
             { "SHOOTINGSTAR", new F("ShootingStar", "Shooting Star", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
             { "SHORTLINE", new F("ShortLine", "Short Line Candle", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
             { "SPINNINGTOP", new F("SpinningTop", "Spinning Top", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
-            { "STALLEDPATTERN", new F("StalledPattern", "Stalled Pattern", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
+            { "STALLED", new F("Stalled", "Stalled Pattern", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
             { "STICKSANDWICH", new F("StickSandwich", "Stick Sandwich", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
-            {
-                "TAKURI",
-                new F("Takuri", "Takuri Line (Dragonfly Doji with very long lower shadow)", prGroup, inputPriceOHLC, [],
-                    outputIntTypePattern)
-            },
+            { "TAKURILINE", new F("TakuriLine", "Takuri Line", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
             { "TASUKIGAP", new F("TasukiGap", "Tasuki Gap", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
             { "THREEBLACKCROWS", new F("ThreeBlackCrows", "Three Black Crows", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
             { "THREEINSIDE", new F("ThreeInside", "Three Inside Up/Down", prGroup, inputPriceOHLC, [], outputIntTypePattern) },
