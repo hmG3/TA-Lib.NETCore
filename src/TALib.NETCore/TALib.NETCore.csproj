@@ -1,22 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>TALib</RootNamespace>
+    <TargetFramework>net8.0</TargetFramework>
+    <Version>0.5.0</Version>
     <Nullable>enable</Nullable>
-    <Company>hmG3</Company>
-    <Product>TALib.NETCore</Product>
+
+    <Product>Technical Analysis Library for .NET</Product>
     <Description>A modern port to .NET (C#) of Technical Analysis Library</Description>
     <Authors>Anatoliy Siryi</Authors>
-    <Copyright>Anatoliy Siryi</Copyright>
-    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://hmg3.github.io/TaTooIne</PackageProjectUrl>
-    <Version>0.5.0</Version>
+    <Company>hmG3</Company>
+    <Copyright>©2020-2025 Anatoliy Siryi</Copyright>
+
     <RepositoryUrl>https://github.com/hmG3/TA-Lib.NETCore</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+
+    <PackageProjectUrl>https://hmg3.github.io/TA-Lib.NETCore</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>talib.png</PackageIcon>
-    <PackageTags>talib;technical;analysis;financial;data;stock;market;pattern;recognition</PackageTags>
+    <PackageTags>talib;technical;analysis;financial;data;stock;crypto;market;pattern;recognition;algorithmic;trading</PackageTags>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
