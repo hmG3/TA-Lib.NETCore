@@ -20,6 +20,10 @@
 
 namespace TALib;
 
+/// <summary>
+/// Provides a Core layer for configuration settings for candlestick patterns, compatibility modes, and handling of
+/// unstable periods in calculations.
+/// </summary>
 public static partial class Core
 {
     /// <summary>

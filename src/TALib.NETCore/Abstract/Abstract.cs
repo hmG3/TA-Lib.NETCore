@@ -26,7 +26,7 @@ using OH = TALib.Core.OutputDisplayHints;
 namespace TALib;
 
 /// <summary>
-/// Provides an abstraction layer for accessing all functions.
+/// Provides Abstraction layer for accessing all functions.
 /// Abstract API simplifies the usage of individual functions by offering a unified interface for setting and controlling input data,
 /// configuring function parameters, and retrieving results.
 /// </summary>
@@ -462,6 +462,7 @@ public partial class Abstract : IEnumerable<F>
     /// </summary>
     public F? this[string name] => Function(name);
 
+    /// <inheritdoc/>
     [MustDisposeResource]
     public IEnumerator<F> GetEnumerator() => FunctionsDefinition.Values.GetEnumerator();
 

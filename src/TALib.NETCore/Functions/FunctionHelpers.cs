@@ -131,7 +131,7 @@ internal static class FunctionHelpers
         // Catch special case for fix 26/12 MACD.
         if (optInSlowPeriod != 0)
         {
-            k1 = FunctionHelpers.Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
+            k1 = Two<T>() / (T.CreateChecked(optInSlowPeriod) + T.One);
         }
         else
         {
@@ -141,7 +141,7 @@ internal static class FunctionHelpers
 
         if (optInFastPeriod != 0)
         {
-            k2 = FunctionHelpers.Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
+            k2 = Two<T>() / (T.CreateChecked(optInFastPeriod) + T.One);
         }
         else
         {
@@ -193,8 +193,9 @@ internal static class FunctionHelpers
         fastEMABuffer.Slice(lookbackSignal, endIdx - startIdx + 1).CopyTo(outMacd);
 
         // Calculate the signal/trigger line.
+        var k1Period = Two<T>() / (T.CreateChecked(optInSignalPeriod) + T.One);
         retCode = CalcExponentialMA(fastEMABuffer, Range.EndAt(nbElement1 - 1), outMacdSignal, out var outRange2, optInSignalPeriod,
-            FunctionHelpers.Two<T>() / (T.CreateChecked(optInSignalPeriod) + T.One));
+            k1Period);
         if (retCode != Core.RetCode.Success)
         {
             return retCode;
@@ -588,7 +589,7 @@ internal static class FunctionHelpers
     {
         periodWMASub += varNewPrice;
         periodWMASub -= trailingWMAValue;
-        periodWMASum += varNewPrice * FunctionHelpers.Four<T>();
+        periodWMASum += varNewPrice * Four<T>();
         trailingWMAValue = real[idx++];
         varToStoreSmoothedValue = periodWMASum * T.CreateChecked(0.1);
         periodWMASum -= periodWMASub;
@@ -654,10 +655,10 @@ internal static class FunctionHelpers
             periodWMASum = tempReal;
             tempReal = real[today++];
             periodWMASub += tempReal;
-            periodWMASum += tempReal * FunctionHelpers.Two<T>();
+            periodWMASum += tempReal * Two<T>();
             tempReal = real[today++];
             periodWMASub += tempReal;
-            periodWMASum += tempReal * FunctionHelpers.Three<T>();
+            periodWMASum += tempReal * Three<T>();
 
             trailingWMAValue = T.Zero;
 
@@ -756,7 +757,7 @@ internal static class FunctionHelpers
             var tempReal1 = period;
             if (!T.IsZero(im) && !T.IsZero(re))
             {
-                period = Ninety<T>() * FunctionHelpers.Four<T>() / T.RadiansToDegrees(T.Atan(im / re));
+                period = Ninety<T>() * Four<T>() / T.RadiansToDegrees(T.Atan(im / re));
             }
 
             var tempReal2 = T.CreateChecked(1.5) * tempReal1;
@@ -825,3 +826,8 @@ internal static class FunctionHelpers
         return startIdx >= 0 && endIdx > 0 && endIdx >= startIdx && endIdx < inputLength ? (startIdx, endIdx) : null;
     }
 }
+
+/// <summary>
+/// Provides a Functions layer for accessing indicator functions.
+/// </summary>
+public static partial class Functions;

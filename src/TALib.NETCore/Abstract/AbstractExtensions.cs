@@ -3,8 +3,14 @@ using System.Text;
 
 namespace TALib;
 
+/// <summary>
+/// Provides extension methods for <see cref="Abstract"/>.
+/// </summary>
 public static class AbstractExtensions
 {
+    /// <summary>
+    /// Returns a formatted string representation of groups and their functions.
+    /// </summary>
     public static string ToFormattedGroupList(this Abstract a)
     {
         var maxNameLength = a.Select(f => f.Name.Length).Max();

@@ -101,3 +101,8 @@ internal static class CandleHelpers
         int idx2,
         int idx1) where T : IFloatingPointIeee754<T> => high[idx2] < low[idx1];
 }
+
+/// <summary>
+/// Provides a Candles layer for accessing candlestick patterns functions.
+/// </summary>
+public static partial class Candles;

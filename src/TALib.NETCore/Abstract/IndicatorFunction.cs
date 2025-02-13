@@ -25,6 +25,9 @@ namespace TALib;
 
 public partial class Abstract
 {
+    /// <summary>
+    /// Represents a function that can be used to calculate technical indicators.
+    /// </summary>
     public sealed class IndicatorFunction
     {
         private const string LookbackSuffix = "Lookback";
@@ -44,19 +47,54 @@ public partial class Abstract
             (string displayName, Core.OutputDisplayHints displayHint)[] outputs) =>
             (Name, Description, Group, Inputs, Options, Outputs) = (name, description, group, inputs, options, outputs);
 
+        /// <summary>
+        /// Gets the name of the function.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// Gets the description of the function.
+        /// </summary>
         public string Description { get; }
 
+        /// <summary>
+        /// Gets the group to which the function belongs.
+        /// </summary>
         public string Group { get; }
 
+        /// <summary>
+        /// Gets the input parameters of the function.
+        /// </summary>
         public string[] Inputs { get; }
 
+        /// <summary>
+        /// Gets the options of the function.
+        /// </summary>
         public (string displayName, string hint)[] Options { get; }
 
+        /// <summary>
+        /// Gets the output parameters of the function.
+        /// </summary>
         public (string displayName, Core.OutputDisplayHints displayHint)[] Outputs { get; }
 
 #pragma warning disable S2368
+        /// <summary>
+        /// Runs the function with the specified inputs, options, and outputs.
+        /// </summary>
+        /// <param name="inputs">The input data arrays to use for the calculation.</param>
+        /// <param name="options">The options to use for the calculation.</param>
+        /// <param name="outputs">The output data arrays to store the calculation results.</param>
+        /// <param name="inRange">The range of indices that determines the portion of data to be calculated within the input arrays.</param>
+        /// <param name="outRange">The range of indices representing the valid data within the output arrays.</param>
+        /// <typeparam name="T">
+        /// The numeric data type, typically <see langword="float"/> or <see langword="double"/>,
+        /// implementing the <see cref="IFloatingPointIeee754{T}"/> interface.
+        /// </typeparam>
+        /// <returns>
+        /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+        /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+        /// </returns>
+        /// <exception cref="MissingMethodException">Thrown when the function method is not found.</exception>
         public Core.RetCode Run<T>(
             T[][] inputs,
             T[] options,
@@ -93,6 +131,15 @@ public partial class Abstract
             return retCode;
         }
 
+        /// <summary>
+        /// Calculates the lookback of the function with the specified options.
+        /// </summary>
+        /// <param name="options">The options to use for the lookback calculation.</param>
+        /// <returns>
+        /// A <see cref="Core.RetCode"/> value indicating the success or failure of the calculation.
+        /// Returns <see cref="Core.RetCode.Success"/> on successful calculation, or an appropriate error code otherwise.
+        /// </returns>
+        /// <exception cref="MissingMethodException">Thrown when the lookback method is not found.</exception>
         public int Lookback(params int[] options)
         {
             var lookbackMethod = ReflectMethods(publicOnly: true)
@@ -128,6 +175,11 @@ public partial class Abstract
             return (int) lookbackMethod.Invoke(null, paramsArray)!;
         }
 
+        /// <summary>
+        /// Sets the unstable period of the function.
+        /// </summary>
+        /// <param name="period">The unstable period to set.</param>
+        /// <exception cref="NotSupportedException">Thrown when the function does not support unstable period settings.</exception>
         public void SetUnstablePeriod(int period)
         {
             if (Enum.TryParse(Name, out Core.UnstableFunc func))
@@ -140,6 +192,7 @@ public partial class Abstract
             }
         }
 
+        /// <inheritdoc />
         public override string ToString() => Name;
 
         private static IEnumerable<MethodInfo> ReflectMethods(bool publicOnly) =>

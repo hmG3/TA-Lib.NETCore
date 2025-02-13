@@ -2,8 +2,16 @@ using System.Text;
 
 namespace TALib;
 
+/// <summary>
+/// Provides extension methods for <see cref="Abstract.IndicatorFunction"/>.
+/// </summary>
 public static class IndicatorFunctionExtensions
 {
+    /// <summary>
+    /// Returns a formatted string representation of the function's definition.
+    /// </summary>
+    /// <param name="f"></param>
+    /// <returns></returns>
     public static string GetInfo(this Abstract.IndicatorFunction f)
     {
         var sb = new StringBuilder();
