@@ -1,6 +1,6 @@
 /*
  * Technical Analysis Library for .NET
- * Copyright (c) 2020-2024 Anatolii Siryi
+ * Copyright (c) 2020-2025 Anatolii Siryi
  *
  * This file is part of Technical Analysis Library for .NET.
  *
