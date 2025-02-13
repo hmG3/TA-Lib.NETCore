@@ -148,12 +148,7 @@ public sealed class FunctionTests
         var outputLength = model.Inputs[0].Length - inputOffset;
         outputLength.ShouldBePositive("Output array should have the correct length");
 
-        var resultOutput = new double[model.Outputs.Length][];
-        resultOutput.Length.ShouldBe(function.Outputs.Length, "Number of outputs must match the definition");
-        for (var i = 0; i < resultOutput.Length; i++)
-        {
-            resultOutput[i] = new double[outputLength];
-        }
+        model.Outputs.Length.ShouldBe(function.Outputs.Length, "Number of outputs must match the definition");
 
         if (model.Unstable.HasValue)
         {
@@ -233,12 +228,7 @@ public sealed class FunctionTests
         var outputLength = model.Inputs[0].Length - inputOffset;
         outputLength.ShouldBePositive("Output array should have the correct length");
 
-        var resultOutput = new float[model.Outputs.Length][];
-        resultOutput.Length.ShouldBe(function.Outputs.Length, "Number of outputs must match the definition");
-        for (var i = 0; i < resultOutput.Length; i++)
-        {
-            resultOutput[i] = new float[outputLength];
-        }
+        model.Outputs.Length.ShouldBe(function.Outputs.Length, "Number of outputs must match the definition");
 
         if (model.Unstable.HasValue)
         {
