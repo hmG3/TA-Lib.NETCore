@@ -1,4 +1,4 @@
-name: test-analyse-automation
+name: test-analyse
 
 on:
   push:
