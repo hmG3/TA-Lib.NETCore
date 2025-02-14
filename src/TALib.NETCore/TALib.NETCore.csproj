@@ -12,19 +12,15 @@
     <Company>hmG3</Company>
     <Copyright>©2020-2025 Anatoliy Siryi</Copyright>
 
-    <RepositoryUrl>https://github.com/hmG3/TA-Lib.NETCore</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
-
     <PackageProjectUrl>https://hmg3.github.io/TA-Lib.NETCore</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>talib.png</PackageIcon>
     <PackageTags>talib;technical;analysis;financial;data;stock;crypto;market;pattern;recognition;algorithmic;trading</PackageTags>
 
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <RepositoryUrl>https://github.com/hmG3/TA-Lib.NETCore</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
