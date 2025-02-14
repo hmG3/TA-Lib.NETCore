@@ -198,9 +198,8 @@ public static partial class Functions
             var tempReal2 = CalcSummation(circBuffer, theAverage);
 
             var tempReal = lastValue - theAverage;
-            outReal[outIdx++] = !T.IsZero(tempReal) && !T.IsZero(tempReal2)
-                ? tempReal / (tPointZeroOneFive * (tempReal2 / timePeriod))
-                : T.Zero;
+            var denominator = tPointZeroOneFive * (tempReal2 / timePeriod);
+            outReal[outIdx++] = !T.IsZero(tempReal) && !T.IsZero(denominator) ? tempReal / denominator : T.Zero;
 
             // Move forward the circular buffer indexes.
             if (circBufferIdx > maxIdxCircBuffer)
