@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hmg3.github.io/TA-Lib.NETCore/sitemap.xml

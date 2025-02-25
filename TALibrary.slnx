@@ -7,6 +7,7 @@
     <File Path="docs\manual\abstract-api.md" />
     <File Path="docs\manual\unstable-period.md" />
     <File Path="docs\manual\functions-list.md" />
+    <File Path="docs\template\layout\_master.tmpl" />
     <File Path="docs\template\public\main.css" />
     <File Path="docs\template\public\main.js" />
   </Folder>

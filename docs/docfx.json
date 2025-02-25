@@ -26,7 +26,10 @@
       "_appLogoPath": "images/logo.png",
       "_appName": "TA-Lib.NETCore",
       "_appTitle": "Technical Analysis Library for .NET",
+      "_description": "TA-Lib is widely used by trading software developers requiring to perform technical analysis of financial market data.",
+      "_author": "Anatoliy Siryi",
       "_appFooter": "<div class=\"d-flex flex-column flex-sm-row justify-content-around pt-1 text-center small\"><p>Made with <a href=\"https://dotnet.github.io/docfx\">docfx</a></p><p>Published with <a href=\"https://pages.github.com\">GitHub Pages</a></p></div>",
+      "_lang": "en",
       "_enableSearch": true,
       "_disableBreadcrumb": true,
       "_disableContribution": true,
@@ -48,10 +51,22 @@
         "files": [
           "images/**",
           "favicon.ico",
-          "favicon.png"
+          "favicon.png",
+          "logo.svg",
+          "robots.txt"
         ]
       }
     ],
+    "sitemap": {
+      "baseUrl": "https://hmg3.github.io/TA-Lib.NETCore",
+      "priority": 0.7,
+      "changefreq": "monthly",
+      "fileOptions":{
+        "**/index.md": {
+          "priority": 1.0
+        }
+      }
+    },
     "output": "_site",
     "template": [
       "default",
